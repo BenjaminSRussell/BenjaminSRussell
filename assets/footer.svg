@@ -1,14 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 80" preserveAspectRatio="xMidYMid meet" role="img">
-  <rect width="1280" height="80" fill="#0A0C10"/>
-  <path d="M80 40 H560" stroke="#7C3AED" stroke-width="1" opacity="0.45"/>
-  <path d="M720 40 H1200" stroke="#22D3EE" stroke-width="1" opacity="0.45"/>
-  <circle cx="640" cy="40" r="5" fill="#0D1117" stroke="#A78BFA" stroke-width="1.2">
-    <animate attributeName="r" values="5;6.2;5" dur="3.2s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="640" cy="40" r="14" fill="none" stroke="#7C3AED" stroke-width="0.6" opacity="0.35"/>
-  <g fill="#22D3EE" opacity="0.5">
-    <circle cx="200" cy="40" r="1.5"/><circle cx="280" cy="40" r="1.5"/><circle cx="360" cy="40" r="1.5"/>
-    <circle cx="920" cy="40" r="1.5"/><circle cx="1000" cy="40" r="1.5"/><circle cx="1080" cy="40" r="1.5"/>
-  </g>
-</svg>
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 80" preserveAspectRatio="xMidYMid meet" role="img" aria-label="profile footer"><rect width="1280" height="80" fill="#0A0C10"/><path d="M40 40H1240" stroke="#1E2430"/><path d="M180 40H1100" stroke="url(#g)" stroke-width="2"/><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs><circle cx="40" cy="40" r="3" fill="#7C3AED"/><circle cx="1240" cy="40" r="3" fill="#22D3EE"/></svg>
