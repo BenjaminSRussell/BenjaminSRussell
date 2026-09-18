@@ -12,7 +12,7 @@
 <br/>
 <br/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/hero.svg" width="100%" alt="data machine"/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/machine.svg" width="100%" alt="data machine"/>
 
 <br/>
 <br/>
