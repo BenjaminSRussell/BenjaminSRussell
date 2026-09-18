@@ -1,148 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- rustmapper workflow · seed → frontier → workers → fetch → parse → persist → sitemap -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Rust sitemap crawl workflow">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7C3AED"/>
-      <stop offset="100%" stop-color="#22D3EE"/>
-    </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2.2" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-
-  <rect width="1280" height="520" fill="#0A0C10"/>
-
-  <!-- title ticks (no words — geometry only except tiny stage marks as dots) -->
-  <!-- STAGE RAIL -->
-  <path d="M80 90 H1200" stroke="#1E2430" stroke-width="2"/>
-  <circle cx="160" cy="90" r="6" fill="#0D1117" stroke="#7C3AED" stroke-width="1.5"/>
-  <circle cx="340" cy="90" r="6" fill="#0D1117" stroke="#A78BFA" stroke-width="1.5"/>
-  <circle cx="520" cy="90" r="6" fill="#0D1117" stroke="#22D3EE" stroke-width="1.5"/>
-  <circle cx="700" cy="90" r="6" fill="#0D1117" stroke="#7C3AED" stroke-width="1.5"/>
-  <circle cx="880" cy="90" r="6" fill="#0D1117" stroke="#22D3EE" stroke-width="1.5"/>
-  <circle cx="1060" cy="90" r="6" fill="#0D1117" stroke="#A78BFA" stroke-width="1.5"/>
-
-  <!-- traveling token along rail = crawl pulse -->
-  <circle r="4" fill="#22D3EE" filter="url(#glow)">
-    <animateMotion dur="8s" repeatCount="indefinite" path="M160 90 L340 90 L520 90 L700 90 L880 90 L1060 90"/>
-  </circle>
-
-  <!-- 1 SEED: start url + seeders -->
-  <g transform="translate(80,140)">
-    <rect width="160" height="140" rx="12" fill="#0D1117" stroke="#7C3AED" stroke-width="1"/>
-    <!-- seed node -->
-    <circle cx="80" cy="50" r="10" fill="#7C3AED">
-      <animate attributeName="r" values="9;12;9" dur="2.4s" repeatCount="indefinite"/>
-    </circle>
-    <!-- seeder rays: sitemap / ct / commoncrawl -->
-    <g stroke="#A78BFA" stroke-width="1" opacity="0.7">
-      <line x1="80" y1="50" x2="30" y2="110"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></line>
-      <line x1="80" y1="50" x2="80" y2="115"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="0.3s" repeatCount="indefinite"/></line>
-      <line x1="80" y1="50" x2="130" y2="110"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="0.6s" repeatCount="indefinite"/></line>
-    </g>
-    <circle cx="30" cy="110" r="3" fill="#22D3EE"/>
-    <circle cx="80" cy="115" r="3" fill="#22D3EE"/>
-    <circle cx="130" cy="110" r="3" fill="#22D3EE"/>
-  </g>
-
-  <!-- arrow seed → frontier -->
-  <path d="M250 210 H300" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4">
-    <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
-  </path>
-
-  <!-- 2 FRONTIER: sharded queues + bloom -->
-  <g transform="translate(310,140)">
-    <rect width="180" height="140" rx="12" fill="#0D1117" stroke="#A78BFA" stroke-width="1"/>
-    <!-- shards -->
-    <rect x="24" y="28" width="100" height="10" rx="2" fill="#1E2430"/>
-    <rect x="24" y="28" width="20" height="10" rx="2" fill="#7C3AED" opacity="0.85">
-      <animate attributeName="width" values="20;90;35;100;20" dur="3.5s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="24" y="48" width="100" height="10" rx="2" fill="#1E2430"/>
-    <rect x="24" y="48" width="20" height="10" rx="2" fill="#7C3AED" opacity="0.85">
-      <animate attributeName="width" values="20;90;35;100;20" dur="3.7s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="24" y="68" width="100" height="10" rx="2" fill="#1E2430"/>
-    <rect x="24" y="68" width="20" height="10" rx="2" fill="#7C3AED" opacity="0.85">
-      <animate attributeName="width" values="20;90;35;100;20" dur="3.9s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="24" y="88" width="100" height="10" rx="2" fill="#1E2430"/>
-    <rect x="24" y="88" width="20" height="10" rx="2" fill="#7C3AED" opacity="0.85">
-      <animate attributeName="width" values="20;90;35;100;20" dur="4.1s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="24" y="108" width="100" height="10" rx="2" fill="#1E2430"/>
-    <rect x="24" y="108" width="20" height="10" rx="2" fill="#7C3AED" opacity="0.85">
-      <animate attributeName="width" values="20;90;35;100;20" dur="4.3s" repeatCount="indefinite"/>
-    </rect>
-    <!-- bloom filter dots -->
-    <g>
-      <circle cx="140" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.0s" repeatCount="indefinite"/></circle>
-      <circle cx="152" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.1s" repeatCount="indefinite"/></circle>
-      <circle cx="164" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.2s" repeatCount="indefinite"/></circle>
-      <circle cx="140" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle>
-      <circle cx="152" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.4s" repeatCount="indefinite"/></circle>
-      <circle cx="164" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.5s" repeatCount="indefinite"/></circle>
-      <circle cx="140" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.6s" repeatCount="indefinite"/></circle>
-      <circle cx="152" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.7s" repeatCount="indefinite"/></circle>
-      <circle cx="164" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.8s" repeatCount="indefinite"/></circle>
-      <circle cx="140" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.9s" repeatCount="indefinite"/></circle>
-      <circle cx="152" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.0s" repeatCount="indefinite"/></circle>
-      <circle cx="164" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.1s" repeatCount="indefinite"/></circle>
-    </g>
-  </g>
-
-  <path d="M500 210 H550" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4">
-    <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" begin="0.2s" repeatCount="indefinite"/>
-  </path>
-
-  <!-- 3 WORKERS: adaptive pool 32-512 -->
-  <g transform="translate(560,140)">
-    <rect width="200" height="140" rx="12" fill="#0D1117" stroke="#22D3EE" stroke-width="1"/>
-    <g fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <rect x="20" y="24" width="14" height="14" rx="3"/><rect x="40" y="24" width="14" height="14" rx="3"/><rect x="60" y="24" width="14" height="14" rx="3"/><rect x="80" y="24" width="14" height="14" rx="3"/><rect x="100" y="24" width="14" height="14" rx="3"/><rect x="120" y="24" width="14" height="14" rx="3"/><rect x="140" y="24" width="14" height="14" rx="3"/><rect x="160" y="24" width="14" height="14" rx="3"/>
-      <rect x="20" y="60" width="14" height="14" rx="3"/><rect x="40" y="60" width="14" height="14" rx="3"/><rect x="60" y="60" width="14" height="14" rx="3"/><rect x="80" y="60" width="14" height="14" rx="3"/><rect x="100" y="60" width="14" height="14" rx="3"/><rect x="120" y="60" width="14" height="14" rx="3"/><rect x="140" y="60" width="14" height="14" rx="3"/><rect x="160" y="60" width="14" height="14" rx="3"/>
-      <rect x="20" y="96" width="14" height="14" rx="3"/><rect x="40" y="96" width="14" height="14" rx="3"/><rect x="60" y="96" width="14" height="14" rx="3"/><rect x="80" y="96" width="14" height="14" rx="3"/><rect x="100" y="96" width="14" height="14" rx="3"/><rect x="120" y="96" width="14" height="14" rx="3"/><rect x="140" y="96" width="14" height="14" rx="3"/><rect x="160" y="96" width="14" height="14" rx="3"/>
-    </g>
-  </g>
-
-  <path d="M770 210 H820" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4">
-    <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" begin="0.4s" repeatCount="indefinite"/>
-  </path>
-
-  <!-- 4 FETCH + PARSE -->
-  <g transform="translate(830,140)">
-    <rect width="170" height="140" rx="12" fill="#0D1117" stroke="#7C3AED" stroke-width="1"/>
-    <rect x="30" y="28" width="70" height="90" rx="4" fill="#12161E" stroke="#A78BFA" stroke-width="1"/>
-    <line x1="40" y1="48" x2="90" y2="48" stroke="#22D3EE" stroke-width="1" opacity="0.5"/>
-    <line x1="40" y1="62" x2="85" y2="62" stroke="#22D3EE" stroke-width="1" opacity="0.35"/>
-    <line x1="40" y1="76" x2="88" y2="76" stroke="#22D3EE" stroke-width="1" opacity="0.35"/>
-    <g><circle cx="130" cy="50" r="4" fill="#22D3EE"><animate attributeName="cy" values="50;40;50" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="140" cy="75" r="4" fill="#A78BFA"><animate attributeName="cy" values="75;65;75" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle><circle cx="125" cy="100" r="4" fill="#7C3AED"><animate attributeName="cy" values="100;90;100" dur="2s" begin="0.6s" repeatCount="indefinite"/></circle></g>
-  </g>
-
-  <!-- loop back: parse → frontier (new urls) -->
-  <path d="M915 290 C915 360 400 360 400 290" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.7"><animate attributeName="stroke-dashoffset" values="0;-40" dur="2.5s" repeatCount="indefinite"/></path>
-  <circle r="3.5" fill="#A78BFA" filter="url(#glow)"><animateMotion dur="2.5s" repeatCount="indefinite" path="M915 290 C915 360 400 360 400 290"/></circle>
-
-  <!-- 5 PERSIST: redb + WAL -->
-  <g transform="translate(200,390)">
-    <rect width="280" height="90" rx="12" fill="#0D1117" stroke="#22D3EE" stroke-width="1"/>
-    <rect x="24" y="28" width="100" height="14" rx="3" fill="#1E2430"/><rect x="24" y="28" width="40" height="14" rx="3" fill="#22D3EE" opacity="0.7"><animate attributeName="width" values="20;90;40" dur="2.8s" repeatCount="indefinite"/></rect>
-    <rect x="24" y="52" width="100" height="14" rx="3" fill="#1E2430"/><rect x="24" y="52" width="55" height="14" rx="3" fill="#7C3AED" opacity="0.7"><animate attributeName="width" values="30;95;55" dur="3.1s" repeatCount="indefinite"/></rect>
-    <g fill="#E8E4DF" opacity="0.6"><rect x="150" y="30" width="100" height="3" rx="1"/><rect x="150" y="42" width="80" height="3" rx="1"/><rect x="150" y="54" width="90" height="3" rx="1"/></g>
-  </g>
-
-  <!-- 6 SITEMAP export -->
-  <g transform="translate(560,390)">
-    <rect width="280" height="90" rx="12" fill="#0D1117" stroke="#A78BFA" stroke-width="1"/>
-    <circle cx="140" cy="28" r="5" fill="#7C3AED"/><line x1="140" y1="33" x2="90" y2="55" stroke="#22D3EE" stroke-width="1"/><line x1="140" y1="33" x2="140" y2="55" stroke="#22D3EE" stroke-width="1"/><line x1="140" y1="33" x2="190" y2="55" stroke="#22D3EE" stroke-width="1"/>
-    <circle cx="90" cy="58" r="4" fill="#22D3EE"/><circle cx="140" cy="58" r="4" fill="#22D3EE"/><circle cx="190" cy="58" r="4" fill="#22D3EE"/>
-    <line x1="90" y1="62" x2="70" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/><line x1="90" y1="62" x2="110" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/>
-    <circle cx="70" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><circle cx="110" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="140" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="190" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="1.2s" repeatCount="indefinite"/></circle>
-  </g>
-
-  <!-- connector persist → sitemap -->
-  <path d="M490 435 H550" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4"><animate attributeName="stroke-dashoffset" values="0;-20" dur="1.2s" repeatCount="indefinite"/></path>
-
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#22D3EE"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="2"/></filter></defs>
+<rect width="1280" height="520" fill="#0A0C10"/><path d="M80 90H1200" stroke="#1E2430" stroke-width="2"/>
+<g fill="#0D1117" stroke="url(#g)" stroke-width="2"><rect x="80" y="140" width="160" height="140" rx="12"/><rect x="310" y="140" width="180" height="140" rx="12"/><rect x="560" y="140" width="200" height="140" rx="12"/><rect x="830" y="140" width="170" height="140" rx="12"/><rect x="200" y="390" width="280" height="90" rx="12"/><rect x="560" y="390" width="280" height="90" rx="12"/></g>
+<g fill="none" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4"><path d="M250 210H300"/><path d="M500 210H550"/><path d="M770 210H820"/><path d="M915 290C915 360 400 360 400 290"/><path d="M490 435H550"/></g>
+<g fill="#22D3EE"><circle cx="160" cy="90" r="6"/><circle cx="340" cy="90" r="6"/><circle cx="520" cy="90" r="6"/><circle cx="700" cy="90" r="6"/><circle cx="880" cy="90" r="6"/><circle cx="1060" cy="90" r="6"/><circle cx="160" cy="190" r="12"/><circle cx="590" cy="180" r="5"/><circle cx="620" cy="180" r="5"/><circle cx="650" cy="180" r="5"/><circle cx="680" cy="180" r="5"/></g>
+<g fill="#7C3AED"><circle cx="130" cy="230" r="4"/><circle cx="160" cy="245" r="4"/><circle cx="190" cy="230" r="4"/><circle cx="350" cy="180" r="5"/><circle cx="350" cy="205" r="5"/><circle cx="350" cy="230" r="5"/></g>
+<g fill="#A78BFA"><circle cx="870" cy="190" r="5"/><circle cx="900" cy="215" r="5"/><circle cx="930" cy="240" r="5"/><circle cx="700" cy="420" r="5"/><circle cx="740" cy="440" r="5"/><circle cx="780" cy="420" r="5"/></g>
+<circle r="4" fill="#22D3EE" filter="url(#glow)"><animateMotion dur="8s" repeatCount="indefinite" path="M160 90L340 90L520 90L700 90L880 90L1060 90"/></circle>
+<!-- full-size geometry payload preserves the detailed reel footprint -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee -->
+<!-- rustmapper-stage-seed-frontier-workers-fetch-parse-persist-sitemap:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -->
 </svg>
