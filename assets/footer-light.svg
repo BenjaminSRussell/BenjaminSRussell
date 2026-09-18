@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="80" viewBox="0 0 1280 80" role="img" aria-label="closing mark">
+  <defs>
+    <linearGradient id="gV-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6D28D9" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#6D28D9" stop-opacity="0.85"/>
+      <stop offset="65%" stop-color="#0891B2" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0891B2" stop-opacity="0"/>
+      <animate attributeName="x1" values="0%;15%;0%" dur="12s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="100%;85%;100%" dur="12s" repeatCount="indefinite"/>
+    </linearGradient>
+    <radialGradient id="glowC-light" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0891B2" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#0891B2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowV-light" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6D28D9" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#6D28D9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-light" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="haze-light" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="80" fill="#EDE9E3"/>
+  <line x1="480" y1="28" x2="800" y2="28" stroke="url(#gV-light)" stroke-width="1" opacity="0.75"/>
+  <circle cx="640" cy="28" r="3" fill="#FFFFFF" stroke="#0891B2" stroke-width="1.2">
+    <animate attributeName="r" values="3;4;3" dur="4.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="640" cy="28" r="1.1" fill="#0891B2"/>
+  <text x="640" y="54" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="10" font-weight="500" letter-spacing="5" fill="#5A554E">END OF TRANSMISSION</text>
+</svg>
