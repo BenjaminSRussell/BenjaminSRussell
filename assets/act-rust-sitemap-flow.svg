@@ -78,42 +78,18 @@
     </rect>
     <!-- bloom filter dots -->
     <g>
-      <circle cx="140" cy="40" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.0s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="152" cy="40" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.1s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="164" cy="40" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.2s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="140" cy="62" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="152" cy="62" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.4s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="164" cy="62" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.5s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="140" cy="84" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="152" cy="84" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.7s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="164" cy="84" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.8s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="140" cy="106" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="152" cy="106" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.0s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="164" cy="106" r="2.5" fill="#22D3EE" opacity="0.4">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.1s" repeatCount="indefinite"/>
-      </circle>
+      <circle cx="140" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.0s" repeatCount="indefinite"/></circle>
+      <circle cx="152" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.1s" repeatCount="indefinite"/></circle>
+      <circle cx="164" cy="40" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.2s" repeatCount="indefinite"/></circle>
+      <circle cx="140" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle>
+      <circle cx="152" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.4s" repeatCount="indefinite"/></circle>
+      <circle cx="164" cy="62" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.5s" repeatCount="indefinite"/></circle>
+      <circle cx="140" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.6s" repeatCount="indefinite"/></circle>
+      <circle cx="152" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.7s" repeatCount="indefinite"/></circle>
+      <circle cx="164" cy="84" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.8s" repeatCount="indefinite"/></circle>
+      <circle cx="140" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.9s" repeatCount="indefinite"/></circle>
+      <circle cx="152" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.0s" repeatCount="indefinite"/></circle>
+      <circle cx="164" cy="106" r="2.5" fill="#22D3EE" opacity="0.4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="1.1s" repeatCount="indefinite"/></circle>
     </g>
   </g>
 
@@ -124,78 +100,11 @@
   <!-- 3 WORKERS: adaptive pool 32-512 -->
   <g transform="translate(560,140)">
     <rect width="200" height="140" rx="12" fill="#0D1117" stroke="#22D3EE" stroke-width="1"/>
-    <rect x="20" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.00s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="40" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.15s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="60" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.30s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="80" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.45s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="100" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.60s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="120" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="140" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.90s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="160" y="24" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="1.05s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="20" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.00s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="40" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.15s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="60" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.30s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="80" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.45s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="100" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.60s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="120" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="140" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.90s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="160" y="60" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="1.05s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="20" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.00s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="40" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.15s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="60" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.30s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="80" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.45s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="100" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.60s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="120" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.75s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="140" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="0.90s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="160" y="96" width="14" height="14" rx="3" fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
-      <animate attributeName="fill" values="#1E2430;#22D3EE;#1E2430" dur="2.2s" begin="1.05s" repeatCount="indefinite"/>
-    </rect>
+    <g fill="#1E2430" stroke="#7C3AED" stroke-width="0.8">
+      <rect x="20" y="24" width="14" height="14" rx="3"/><rect x="40" y="24" width="14" height="14" rx="3"/><rect x="60" y="24" width="14" height="14" rx="3"/><rect x="80" y="24" width="14" height="14" rx="3"/><rect x="100" y="24" width="14" height="14" rx="3"/><rect x="120" y="24" width="14" height="14" rx="3"/><rect x="140" y="24" width="14" height="14" rx="3"/><rect x="160" y="24" width="14" height="14" rx="3"/>
+      <rect x="20" y="60" width="14" height="14" rx="3"/><rect x="40" y="60" width="14" height="14" rx="3"/><rect x="60" y="60" width="14" height="14" rx="3"/><rect x="80" y="60" width="14" height="14" rx="3"/><rect x="100" y="60" width="14" height="14" rx="3"/><rect x="120" y="60" width="14" height="14" rx="3"/><rect x="140" y="60" width="14" height="14" rx="3"/><rect x="160" y="60" width="14" height="14" rx="3"/>
+      <rect x="20" y="96" width="14" height="14" rx="3"/><rect x="40" y="96" width="14" height="14" rx="3"/><rect x="60" y="96" width="14" height="14" rx="3"/><rect x="80" y="96" width="14" height="14" rx="3"/><rect x="100" y="96" width="14" height="14" rx="3"/><rect x="120" y="96" width="14" height="14" rx="3"/><rect x="140" y="96" width="14" height="14" rx="3"/><rect x="160" y="96" width="14" height="14" rx="3"/>
+    </g>
   </g>
 
   <path d="M770 210 H820" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4">
@@ -205,83 +114,35 @@
   <!-- 4 FETCH + PARSE -->
   <g transform="translate(830,140)">
     <rect width="170" height="140" rx="12" fill="#0D1117" stroke="#7C3AED" stroke-width="1"/>
-    <!-- page -->
     <rect x="30" y="28" width="70" height="90" rx="4" fill="#12161E" stroke="#A78BFA" stroke-width="1"/>
     <line x1="40" y1="48" x2="90" y2="48" stroke="#22D3EE" stroke-width="1" opacity="0.5"/>
     <line x1="40" y1="62" x2="85" y2="62" stroke="#22D3EE" stroke-width="1" opacity="0.35"/>
     <line x1="40" y1="76" x2="88" y2="76" stroke="#22D3EE" stroke-width="1" opacity="0.35"/>
-    <!-- links peeling off -->
-    <g>
-      <circle cx="130" cy="50" r="4" fill="#22D3EE">
-        <animate attributeName="cy" values="50;40;50" dur="1.6s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="140" cy="75" r="4" fill="#A78BFA">
-        <animate attributeName="cy" values="75;65;75" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="125" cy="100" r="4" fill="#7C3AED">
-        <animate attributeName="cy" values="100;90;100" dur="2s" begin="0.6s" repeatCount="indefinite"/>
-      </circle>
-    </g>
+    <g><circle cx="130" cy="50" r="4" fill="#22D3EE"><animate attributeName="cy" values="50;40;50" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="140" cy="75" r="4" fill="#A78BFA"><animate attributeName="cy" values="75;65;75" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle><circle cx="125" cy="100" r="4" fill="#7C3AED"><animate attributeName="cy" values="100;90;100" dur="2s" begin="0.6s" repeatCount="indefinite"/></circle></g>
   </g>
 
   <!-- loop back: parse → frontier (new urls) -->
-  <path d="M915 290 C915 360 400 360 400 290" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.7">
-    <animate attributeName="stroke-dashoffset" values="0;-40" dur="2.5s" repeatCount="indefinite"/>
-  </path>
-  <circle r="3.5" fill="#A78BFA" filter="url(#glow)">
-    <animateMotion dur="2.5s" repeatCount="indefinite" path="M915 290 C915 360 400 360 400 290"/>
-  </circle>
+  <path d="M915 290 C915 360 400 360 400 290" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.7"><animate attributeName="stroke-dashoffset" values="0;-40" dur="2.5s" repeatCount="indefinite"/></path>
+  <circle r="3.5" fill="#A78BFA" filter="url(#glow)"><animateMotion dur="2.5s" repeatCount="indefinite" path="M915 290 C915 360 400 360 400 290"/></circle>
 
   <!-- 5 PERSIST: redb + WAL -->
   <g transform="translate(200,390)">
     <rect width="280" height="90" rx="12" fill="#0D1117" stroke="#22D3EE" stroke-width="1"/>
-    <!-- disks / wal strips -->
-    <rect x="24" y="28" width="100" height="14" rx="3" fill="#1E2430"/>
-    <rect x="24" y="28" width="40" height="14" rx="3" fill="#22D3EE" opacity="0.7">
-      <animate attributeName="width" values="20;90;40" dur="2.8s" repeatCount="indefinite"/>
-    </rect>
-    <rect x="24" y="52" width="100" height="14" rx="3" fill="#1E2430"/>
-    <rect x="24" y="52" width="55" height="14" rx="3" fill="#7C3AED" opacity="0.7">
-      <animate attributeName="width" values="30;95;55" dur="3.1s" repeatCount="indefinite"/>
-    </rect>
-    <!-- jsonl drip -->
-    <g fill="#E8E4DF" opacity="0.6">
-      <rect x="150" y="30" width="100" height="3" rx="1"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.4s" repeatCount="indefinite"/></rect>
-      <rect x="150" y="42" width="80" height="3" rx="1"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.4s" begin="0.2s" repeatCount="indefinite"/></rect>
-      <rect x="150" y="54" width="90" height="3" rx="1"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.4s" begin="0.4s" repeatCount="indefinite"/></rect>
-    </g>
+    <rect x="24" y="28" width="100" height="14" rx="3" fill="#1E2430"/><rect x="24" y="28" width="40" height="14" rx="3" fill="#22D3EE" opacity="0.7"><animate attributeName="width" values="20;90;40" dur="2.8s" repeatCount="indefinite"/></rect>
+    <rect x="24" y="52" width="100" height="14" rx="3" fill="#1E2430"/><rect x="24" y="52" width="55" height="14" rx="3" fill="#7C3AED" opacity="0.7"><animate attributeName="width" values="30;95;55" dur="3.1s" repeatCount="indefinite"/></rect>
+    <g fill="#E8E4DF" opacity="0.6"><rect x="150" y="30" width="100" height="3" rx="1"/><rect x="150" y="42" width="80" height="3" rx="1"/><rect x="150" y="54" width="90" height="3" rx="1"/></g>
   </g>
 
   <!-- 6 SITEMAP export -->
   <g transform="translate(560,390)">
     <rect width="280" height="90" rx="12" fill="#0D1117" stroke="#A78BFA" stroke-width="1"/>
-    <!-- tree sitemap -->
-    <circle cx="140" cy="28" r="5" fill="#7C3AED"/>
-    <line x1="140" y1="33" x2="90" y2="55" stroke="#22D3EE" stroke-width="1"/>
-    <line x1="140" y1="33" x2="140" y2="55" stroke="#22D3EE" stroke-width="1"/>
-    <line x1="140" y1="33" x2="190" y2="55" stroke="#22D3EE" stroke-width="1"/>
-    <circle cx="90" cy="58" r="4" fill="#22D3EE"/>
-    <circle cx="140" cy="58" r="4" fill="#22D3EE"/>
-    <circle cx="190" cy="58" r="4" fill="#22D3EE"/>
-    <line x1="90" y1="62" x2="70" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/>
-    <line x1="90" y1="62" x2="110" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/>
-    <circle cx="70" cy="80" r="3" fill="#A78BFA">
-      <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="110" cy="80" r="3" fill="#A78BFA">
-      <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.4s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="140" cy="80" r="3" fill="#A78BFA">
-      <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.8s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="190" cy="80" r="3" fill="#A78BFA">
-      <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="1.2s" repeatCount="indefinite"/>
-    </circle>
+    <circle cx="140" cy="28" r="5" fill="#7C3AED"/><line x1="140" y1="33" x2="90" y2="55" stroke="#22D3EE" stroke-width="1"/><line x1="140" y1="33" x2="140" y2="55" stroke="#22D3EE" stroke-width="1"/><line x1="140" y1="33" x2="190" y2="55" stroke="#22D3EE" stroke-width="1"/>
+    <circle cx="90" cy="58" r="4" fill="#22D3EE"/><circle cx="140" cy="58" r="4" fill="#22D3EE"/><circle cx="190" cy="58" r="4" fill="#22D3EE"/>
+    <line x1="90" y1="62" x2="70" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/><line x1="90" y1="62" x2="110" y2="78" stroke="#A78BFA" stroke-width="0.8" opacity="0.7"/>
+    <circle cx="70" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><circle cx="110" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="140" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="190" cy="80" r="3" fill="#A78BFA"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="1.2s" repeatCount="indefinite"/></circle>
   </g>
 
   <!-- connector persist → sitemap -->
-  <path d="M490 435 H550" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4">
-    <animate attributeName="stroke-dashoffset" values="0;-20" dur="1.2s" repeatCount="indefinite"/>
-  </path>
+  <path d="M490 435 H550" stroke="url(#g)" stroke-width="2" stroke-dasharray="6 4"><animate attributeName="stroke-dashoffset" values="0;-20" dur="1.2s" repeatCount="indefinite"/></path>
 
 </svg>
