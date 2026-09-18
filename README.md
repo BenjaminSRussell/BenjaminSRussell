@@ -57,8 +57,6 @@
 
 <br/><br/>
 
-<img alt="" src="https://skillicons.dev/icons?i=python,rust,ts,swift,docker,postgres,redis,linux"/>
-
 <br/><br/><br/><br/>
 
 <!-- ── 5 · closing ── -->
