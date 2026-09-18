@@ -1,6 +1,48 @@
 {
-  "meta": {"system": "data-plane", "version": "1.2.0", "owner": "BenjaminSRussell", "seed": "EC8AC918", "seedDigest": "ec8ac9183fd06f54080db973c70040b4cb1e7f36650a5d23d0c40a5dd988035f", "signature": "BSR⋄DP⋄1.2.0", "caliber": "multi-year"},
-  "color": {"void": "#000000", "deep": "#0A0C10", "surface": "#0D1117", "violet": "#7C3AED", "cyan": "#22D3EE", "mist": "#A78BFA", "bone": "#E8E4DF", "boneDim": "#B8B2A8", "edge": "#1E2430", "light": {"void": "#F7F5F2", "deep": "#EDE9E3", "surface": "#FFFFFF", "violet": "#6D28D9", "cyan": "#0891B2", "mist": "#7C3AED", "bone": "#1A1A1A", "boneDim": "#5A554E", "edge": "#D4CFC7"}},
-  "spacing": {"bannerWidth": 1280, "heroHeight": 300, "flowHeight": 40, "constellationHeight": 280, "footerHeight": 64},
-  "motion": {"pulseDuration": "5.2s", "driftDuration": "22s", "edgePulse": "4.8s", "gradientShift": "14s"}
+  "meta": {
+    "system": "data-plane",
+    "version": "2.0.0",
+    "owner": "BenjaminSRussell",
+    "seed": "EC8AC918",
+    "seedDigest": "ec8ac9183fd06f54080db973c70040b4cb1e7f36650a5d23d0c40a5dd988035f",
+    "signature": "BSR\u2234DP\u22342.0.0",
+    "caliber": "multi-year"
+  },
+  "color": {
+    "void": "#000000",
+    "deep": "#0A0C10",
+    "surface": "#0D1117",
+    "violet": "#7C3AED",
+    "cyan": "#22D3EE",
+    "mist": "#A78BFA",
+    "bone": "#E8E4DF",
+    "boneDim": "#B8B2A8",
+    "edge": "#1E2430",
+    "light": {
+      "void": "#F7F5F2",
+      "deep": "#EDE9E3",
+      "surface": "#FFFFFF",
+      "violet": "#6D28D9",
+      "cyan": "#0891B2",
+      "mist": "#7C3AED",
+      "bone": "#1A1A1A",
+      "boneDim": "#5A554E",
+      "edge": "#D4CFC7"
+    }
+  },
+  "spacing": {
+    "bannerWidth": 1280,
+    "heroHeight": 300,
+    "pipelineHeight": 360,
+    "actHeight": 340,
+    "flowHeight": 40,
+    "constellationHeight": 280,
+    "footerHeight": 64
+  },
+  "motion": {
+    "pulseDuration": "5.2s",
+    "driftDuration": "22s",
+    "edgePulse": "4.8s",
+    "gradientShift": "14s"
+  }
 }
