@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- BSR∴DP∴1.3.0 · seed:EC8AC918 · sigil · derived from SHA-256("BenjaminSRussell") -->
 
-<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="BSR sigil">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" preserveAspectRatio="xMidYMid meet" role="img" aria-label="BSR sigil">
   <rect width="56" height="56" fill="#0A0C10" rx="6"/>
   <path d="M28,15 L37,28 L28,41 L19,28 Z" fill="none" stroke="#7C3AED" stroke-width="1.2" stroke-linejoin="round">
     <animate attributeName="stroke-opacity" values="0.6;1;0.6" dur="3.8s" repeatCount="indefinite"/>
