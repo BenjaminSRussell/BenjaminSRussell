@@ -1,72 +1,44 @@
 <!--
-  BSR∴DP∴1.3.0 · seed EC8AC918
-  silent film: void → chaos → clean → built → breath
-  featured: Scrapy · Rust-sitemap  (swap Act IV only)
+  BSR∴DP∴1.4.0 · seed EC8AC918
+  silent film · dark-only (raw URLs break #gh-*-mode-only)
+  featured: Scrapy · Rust-sitemap
 -->
 
 <div align="center">
 
-<!-- ── 1 · opening · quiet identity ── -->
-<br/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/sigil.svg" height="40" alt=""/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/sigil.svg#gh-dark-mode-only" height="44" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/sigil-light.svg#gh-light-mode-only" height="44" alt=""/>
+<br/><br/>
 
-<br/><br/><br/><br/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/chaos.svg" width="100%" alt=""/>
 
-<!-- ── 2 · rising · messy data ── -->
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/chaos.svg#gh-dark-mode-only" width="92%" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/chaos-light.svg#gh-light-mode-only" width="92%" alt=""/>
+<br/><br/>
 
-<br/><br/><br/><br/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/pipeline.svg" width="100%" alt=""/>
 
-<!-- ── 3 · turning point · messy → ordered ── -->
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/pipeline.svg#gh-dark-mode-only" width="100%" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/pipeline-light.svg#gh-light-mode-only" width="100%" alt=""/>
+<br/><br/>
 
-<br/><br/><br/><br/>
-
-<!-- ── 4 · resolution · what was built ── -->
-<table align="center" width="880" border="0" cellspacing="0" cellpadding="16">
+<table align="center" width="920" border="0" cellspacing="0" cellpadding="10">
   <tr>
-    <td width="50%" align="center" valign="top">
+    <td width="50%" align="center" valign="middle">
       <a href="https://github.com/BenjaminSRussell/Scrapy">
-        <img width="100%" alt="Scrapy" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy.svg#gh-dark-mode-only"/>
-        <img width="100%" alt="Scrapy" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy-light.svg#gh-light-mode-only"/>
+        <img width="100%" alt="Scrapy" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy.svg"/>
       </a>
     </td>
-    <td width="50%" align="center" valign="top">
+    <td width="50%" align="center" valign="middle">
       <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
-        <img width="100%" alt="Rust-sitemap" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap.svg#gh-dark-mode-only"/>
-        <img width="100%" alt="Rust-sitemap" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap-light.svg#gh-light-mode-only"/>
+        <img width="100%" alt="Rust-sitemap" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap.svg"/>
       </a>
     </td>
   </tr>
 </table>
 
-<br/><br/><br/>
+<br/><br/>
 
-<!-- ── breath · thin flow ── -->
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow.svg#gh-dark-mode-only" width="70%" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow-light.svg#gh-light-mode-only" width="70%" alt=""/>
-
-<br/><br/><br/>
-
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg#gh-dark-mode-only" width="92%" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake-light.svg#gh-light-mode-only" width="92%" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg" width="100%" alt=""/>
 
 <br/><br/>
 
-<br/><br/><br/><br/>
-
-<!-- ── 5 · closing ── -->
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer.svg#gh-dark-mode-only" width="100%" alt=""/>
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer-light.svg#gh-light-mode-only" width="100%" alt=""/>
-
-<br/>
-
-<img alt="" src="https://komarev.com/ghpvc/?username=BenjaminSRussell&style=flat-square&color=7C3AED&label=views"/>
-
-<br/><br/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer.svg" width="100%" alt=""/>
 
 </div>
