@@ -1,12 +1,12 @@
-<!-- BSR · no story · one image · clear projects -->
+<!-- BSR · layered animations · clear projects -->
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/machine.svg" width="100%" alt="Ben's scrape-clean-ship machine"/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/layers.svg" width="100%" alt="layered systems"/>
 
-### Ben
+### Ben Russell
 
-<sub>I scrape, clean, and ship data systems.</sub>
+<sub>I build scrapers and data systems that stay standing.</sub>
 
 <br/>
 
@@ -17,6 +17,8 @@
 <a href="https://github.com/BenjaminSRussell/Scrapy">
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy.svg" width="100%" alt="Scrapy"/>
 </a>
+
+<br/>
 
 <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap.svg" width="100%" alt="Rust-sitemap"/>
