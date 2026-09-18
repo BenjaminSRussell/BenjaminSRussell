@@ -52,7 +52,8 @@
 
 <br/><br/><br/>
 
-<img alt="" width="88%" src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/output/github-contribution-grid-snake-dark.svg"/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg#gh-dark-mode-only" width="92%" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake-light.svg#gh-light-mode-only" width="92%" alt=""/>
 
 <br/><br/>
 
