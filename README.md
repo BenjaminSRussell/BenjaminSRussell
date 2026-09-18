@@ -1,30 +1,24 @@
-<!--
-  BSR∴DP∴1.5.0 · mobile-first · dark-only · small words
--->
+<!-- BSR∴DP∴1.5.1 · mobile · very short words -->
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/sigil.svg" height="36" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/sigil.svg" height="32" alt=""/>
 
-### Benjamin Russell
+### Ben
 
-<sub>scraping · systems · games</sub>
+<sub>scrape → clean → ship</sub>
 
 <br/>
+
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/chaos.svg" width="100%" alt=""/>
 
 <sub>messy</sub>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/chaos.svg" width="100%" alt="messy data"/>
-
 <br/>
+
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/pipeline.svg" width="100%" alt=""/>
 
 <sub>clean</sub>
-
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/pipeline.svg" width="100%" alt="clean systems"/>
-
-<br/>
-
-<sub>built</sub>
 
 <br/>
 
@@ -32,7 +26,7 @@
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy.svg" width="100%" alt="Scrapy"/>
 </a>
 
-**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** · live scrape dashboard
+<sub>[Scrapy](https://github.com/BenjaminSRussell/Scrapy)</sub>
 
 <br/>
 
@@ -40,15 +34,11 @@
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap.svg" width="100%" alt="Rust-sitemap"/>
 </a>
 
-**[Rust-sitemap](https://github.com/BenjaminSRussell/Rust-sitemap)** · crawler to the endpoints
+<sub>[Rust-sitemap](https://github.com/BenjaminSRussell/Rust-sitemap)</sub>
 
 <br/>
 
-<sub>motion</sub>
-
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg" width="100%" alt="custom snake"/>
-
-<br/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg" width="100%" alt=""/>
 
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer.svg" width="100%" alt=""/>
 
