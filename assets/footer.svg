@@ -1,1 +1,40 @@
-<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 80" preserveAspectRatio="xMidYMid meet" role="img" aria-label="profile footer"><rect width="1280" height="80" fill="#0A0C10"/><path d="M40 40H1240" stroke="#1E2430"/><path d="M180 40H1100" stroke="url(#g)" stroke-width="2"/><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs><circle cx="40" cy="40" r="3" fill="#7C3AED"/><circle cx="1240" cy="40" r="3" fill="#22D3EE"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BSR∴DP∴2.0.0 · seed:EC8AC918 · footer · derived from SHA-256("BenjaminSRussell") -->
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 64" preserveAspectRatio="xMidYMid meet" role="img" aria-label="closing">
+  <defs>
+    <linearGradient id="gV-dark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
+      <stop offset="40%" stop-color="#7C3AED" stop-opacity="0.75"/>
+      <stop offset="60%" stop-color="#22D3EE" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+      <animate attributeName="x1" values="0%;12%;0%" dur="14s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="100%;88%;100%" dur="14s" repeatCount="indefinite"/>
+    </linearGradient>
+    <radialGradient id="glowC-dark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowV-dark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-dark" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="haze-dark" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="64" fill="#0A0C10"/>
+  <line x1="500" y1="22" x2="780" y2="22" stroke="url(#gV-dark)" stroke-width="1" opacity="0.7"/>
+  <circle cx="640" cy="22" r="2.6" fill="#0D1117" stroke="#22D3EE" stroke-width="1.1">
+    <animate attributeName="r" values="2.6;3.3;2.6" dur="4.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="640" cy="22" r="1" fill="#22D3EE"/>
+  <circle cx="560" cy="42" r="1.1" fill="#7C3AED" opacity="0.55"/>
+  <circle cx="640" cy="42" r="1.1" fill="#22D3EE" opacity="0.7"/>
+  <circle cx="720" cy="42" r="1.1" fill="#A78BFA" opacity="0.55"/>
+</svg>
