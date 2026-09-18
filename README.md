@@ -138,7 +138,7 @@
      Asset: assets/act-rust-sitemap-flow.svg
      ═══════════════════════════════════════════════════════════════ -->
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/act-rust-sitemap-flow.svg" width="100%" alt="rustmapper workflow"/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/act-rust-sitemap-flow.svg" width="100%" alt="rustmapper crawl workflow"/>
 
 <sub>seed → frontier → workers → sitemap</sub>
 
