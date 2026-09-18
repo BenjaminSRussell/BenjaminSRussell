@@ -1,8 +1,8 @@
 <!--
   BSR∴SP∴3.0.0 · seed EC8AC918 · steampunk · dark-warm · mobile-first
   Absolute raw.githubusercontent.com URLs · width="100%" · no HTML tables
-  Palette: #1A120B #2C241C #E8DCC8 #B08D57 #B87333 #D4A574 · teal accent quiet
-  Spine: open → gather → Rust-sitemap → clean → Scrapy → gallery → snake → close
+  Palette: #1A120B #2C241C #E8DCC8 #B08D57 #B87333 #D4A574
+  Spine: open → story (gather→clean→ship) → Rust-sitemap → clean → Scrapy → gallery → snake → close
 -->
 
 <div align="center">
@@ -19,16 +19,16 @@
 <br/>
 <br/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow.svg" width="100%" alt=""/>
+<!-- integrated explanation: gather → clean → ship with steam -->
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/act-hunt.svg" width="100%" alt="gather"/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/story-flow.svg" width="100%" alt="gather, clean, ship"/>
 
-<sub>gather</sub>
+<sub>gather → clean → ship</sub>
 
 <br/>
 <br/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow.svg" width="100%" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/patterns/smoke.svg" width="100%" alt=""/>
 
 <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Rust-sitemap.svg" width="100%" alt="Rust-sitemap"/>
@@ -46,7 +46,7 @@
 <br/>
 <br/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow.svg" width="100%" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/patterns/smoke.svg" width="100%" alt=""/>
 
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/data-clean.svg" width="100%" alt="messy data becoming clean"/>
 
@@ -55,7 +55,7 @@
 <br/>
 <br/>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/flow.svg" width="100%" alt=""/>
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/patterns/smoke.svg" width="100%" alt=""/>
 
 <a href="https://github.com/BenjaminSRussell/Scrapy">
   <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/Scrapy.svg" width="100%" alt="Scrapy"/>
