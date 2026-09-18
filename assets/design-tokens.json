@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "system": "data-plane",
+    "version": "1.0.0",
+    "owner": "BenjaminSRussell",
+    "caliber": "multi-year"
+  },
+  "color": {
+    "void": "#000000",
+    "deep": "#0A0C10",
+    "surface": "#0D1117",
+    "violet": "#7C3AED",
+    "cyan": "#22D3EE",
+    "mist": "#A78BFA",
+    "bone": "#E8E4DF",
+    "boneDim": "#B8B2A8",
+    "edge": "#1E2430",
+    "glowViolet": "rgba(124,58,237,0.35)",
+    "glowCyan": "rgba(34,211,238,0.28)",
+    "light": {
+      "void": "#F7F5F2",
+      "deep": "#EDE9E3",
+      "surface": "#FFFFFF",
+      "violet": "#6D28D9",
+      "cyan": "#0891B2",
+      "mist": "#7C3AED",
+      "bone": "#1A1A1A",
+      "boneDim": "#4A4A4A",
+      "edge": "#D4CFC7",
+      "glowViolet": "rgba(109,40,217,0.18)",
+      "glowCyan": "rgba(8,145,178,0.16)"
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 32,
+    "xl": 48,
+    "xxl": 64,
+    "bannerWidth": 1280,
+    "heroHeight": 280,
+    "flowHeight": 48,
+    "labelHeight": 36,
+    "constellationHeight": 320,
+    "footerHeight": 80
+  },
+  "radius": {
+    "node": 3.5,
+    "hub": 5.5,
+    "soft": 8
+  },
+  "type": {
+    "heroName": 52,
+    "heroSub": 14,
+    "label": 11,
+    "footer": 10,
+    "trackingHero": 14,
+    "trackingLabel": 6
+  },
+  "motion": {
+    "pulseDuration": "4.2s",
+    "driftDuration": "18s",
+    "edgePulse": "3.6s",
+    "gradientShift": "12s"
+  }
+}
