@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="80" viewBox="0 0 1280 80" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 80" preserveAspectRatio="xMidYMid meet" role="img">
   <rect width="1280" height="80" fill="#0A0C10"/>
   <path d="M80 40 H560" stroke="#7C3AED" stroke-width="1" opacity="0.45"/>
   <path d="M720 40 H1200" stroke="#22D3EE" stroke-width="1" opacity="0.45"/>
