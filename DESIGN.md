@@ -1,26 +1,37 @@
-# Design — silent film profile
+# Design — Steampunk plane
 
-Internal craft. Not on the face.
+`BSR∴SP∴3.0.0` · seed `EC8AC918`
 
-## Narrative
+## Intent
 
-1. Opening — quiet sigil / void
-2. Rising — `chaos.svg` (messy data)
-3. Turning — `pipeline.svg` (messy→ordered)
-4. Resolution — Scrapy + Rust-sitemap project heroes
-5. Closing — flow · snake · skills · footer · views
+Antique-mechanical. Calm. Connected. Cool and clean words.
+Not neon cyberpunk. Not frantic HUD pulse.
+Steam from valves serves the story: gather → clean → ship.
 
-## Rules
+## Palette
 
-- Show, don't tell. Almost zero words.
-- Generous whitespace between beats.
-- Absolute `raw.githubusercontent.com/.../main/...` + `#gh-dark-mode-only` / `#gh-light-mode-only`.
-- One palette: void `#0A0C10` · violet `#7C3AED` · cyan `#22D3EE`.
-- Slow SMIL only.
-- Featured swap: edit Act IV in README only. Heroes: `assets/projects/`.
+| Token | Hex |
+|-------|-----|
+| walnut | `#1A120B` |
+| soot | `#2C241C` |
+| parchment | `#E8DCC8` |
+| brass | `#B08D57` |
+| copper | `#B87333` |
+| amber | `#D4A574` |
+| oxidized teal | `#5F7A6A` (quiet accent only) |
 
-## Regen
+## Spine
 
-`python3 gen_assets.py && python3 gen_projects.py`
+1. Open — sigil + Ben + scrape → clean → ship  
+2. Story — `story-flow.svg` (gather → clean → ship + steam)  
+3. Rust-sitemap — hero + `act-rust-sitemap-flow.svg`  
+4. Clean — `data-clean.svg` (L→R, steam works)  
+5. Scrapy — hero  
+6. Gallery — real project names in `<details>`  
+7. Snake — brass crawl  
+8. Close — footer  
 
-`BSR∴DP∴1.3.0` · seed `EC8AC918`
+## Motion
+
+Slow only: gear rotate ~36–56s, steam drift ~14s, dial sweep ~18s.
+Visible steam plumes from valves/pipes. No flicker. Walnut field (no white gaps).
