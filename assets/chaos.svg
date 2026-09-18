@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- BSR∴DP∴1.3.0 · seed:EC8AC918 · chaos · derived from SHA-256("BenjaminSRussell") -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="messy data">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="messy data">
   <defs>
     <linearGradient id="gV-chaos-dark" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
