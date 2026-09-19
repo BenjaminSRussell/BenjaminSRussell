@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ben Russell">
+<defs>
+  <linearGradient id="ng" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
+    <stop offset="35%" stop-color="#7C3AED" stop-opacity=".9"/>
+    <stop offset="65%" stop-color="#22D3EE" stop-opacity=".9"/>
+    <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    <animate attributeName="x1" values="0;0.12;0" dur="11.7s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="1;0.88;1" dur="11.7s" repeatCount="indefinite"/>
+  </linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1280" height="220" fill="#0B0D10"/>
+<ellipse cx="640" cy="100" rx="420" ry="70" fill="#7C3AED" opacity=".06" filter="url(#glow)">
+  <animate attributeName="opacity" values=".05;.09;.05" dur="9.3s" repeatCount="indefinite"/>
+</ellipse>
+<text x="640" y="108" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="54" font-weight="600" letter-spacing="10" fill="#E8E4DF" filter="url(#glow)">BEN RUSSELL</text>
+<rect x="420" y="128" width="440" height="1.5" fill="url(#ng)" opacity=".85" rx="1"/>
+<text x="640" y="162" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" letter-spacing="4.5" fill="#94A3B8" opacity=".92">SCRAPERS · DATA SYSTEMS · THINGS THAT STAY STANDING</text>
+<g stroke="#64748B" stroke-width=".8" opacity=".45" fill="none">
+  <path d="M48 48h28M48 48v28"/><path d="M1232 48h-28M1232 48v28"/>
+  <path d="M48 172h28M48 172v-28"/><path d="M1232 172h-28M1232 172v-28"/>
+</g>
+</svg>
