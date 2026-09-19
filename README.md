@@ -15,13 +15,13 @@
 <br/>
 
 <a href="https://github.com/BenjaminSRussell/Scrapy">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/6293309133d7e8850bbb749ec602e12ef099a128/assets/projects/Scrapy.svg" width="100%" alt="Scrapy"/>
+  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/scrapy-card.svg" width="100%" alt="Scrapy"/>
 </a>
 
 <br/>
 
 <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/6293309133d7e8850bbb749ec602e12ef099a128/assets/projects/Rust-sitemap.svg" width="100%" alt="Rust-sitemap"/>
+  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/rust-sitemap-card.svg" width="100%" alt="Rust-sitemap"/>
 </a>
 
 </div>
