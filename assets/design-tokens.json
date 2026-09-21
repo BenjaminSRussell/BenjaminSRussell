@@ -1,8 +1,8 @@
 {
   "system": "BSR\u2234profile",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "field": "#0B0D10",
-  "fieldAlt": "#0A0C10",
+  "fieldAlt": "#0B0D10",
   "ink": "#E8E4DF",
   "muted": "#94A3B8",
   "violet": "#7C3AED",
@@ -31,16 +31,16 @@
     "hero/layers",
     "identity/nameplate",
     "divider",
-    "signature/snake",
+    "signature/snake@92%",
     "divider",
     "label/build",
-    "copy/what-i-build",
+    "about/between-fetch-and-trust",
     "divider",
     "label/field",
     "projects/scrapy-card",
     "projects/rust-sitemap-card",
     "divider",
-    "close/footer"
+    "close/footer@70%"
   ],
   "locks": [
     "no ACT/story narrative",
@@ -49,5 +49,11 @@
     "no HTML tables",
     "absolute raw.githubusercontent.com URLs",
     "MCP pushes must use full file bytes never LOAD_FROM stubs"
-  ]
+  ],
+  "scale": {
+    "full": "100%",
+    "signature": "92%",
+    "close": "70%"
+  },
+  "notes": "fieldAlt deprecated; all root fills must equal field"
 }
