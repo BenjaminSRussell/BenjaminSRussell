@@ -1,45 +1,37 @@
 {
   "system": "BSR∴profile",
-  "version": "4.0.0",
-  "codename": "Instrument Spread",
+  "version": "5.0.0",
+  "codename": "Quiet Field",
   "field": "#0B0D10",
   "ink": "#E8E4DF",
   "muted": "#94A3B8",
   "violet": "#7C3AED",
   "teal": "#22D3EE",
   "lilac": "#A78BFA",
-  "orbViolet": "#C4B5FD",
-  "orbTeal": "#5EEAD4",
   "edge": "#64748B",
   "motion": {
-    "slow": "14s–24s",
-    "medium": "7s–12s",
-    "pulse": "3.5s–6s",
-    "rule": "gentle SMIL only; signature non-integer durations; distinct choreography per beat"
+    "rule": "gentle opacity / wash only; no clip reveals; no micro-demo toys",
+    "slow": "10s–22s"
   },
   "layout": {
     "canvas": "1280",
-    "hero": "1280x720",
-    "snake": "1280x160",
-    "projectHero": "1280x280",
-    "footer": "1280x48"
+    "hero": "1280x400",
+    "projectCard": "1280x240",
+    "snake": "1280x140"
   },
   "sectionOrder": [
     "hero@100%",
     "projects/scrapy-card@100%",
     "projects/rust-sitemap-card@100%",
-    "signature/snake@92%"
+    "snake@92%"
   ],
-  "killedFromFace": [
-    "layers.svg",
-    "nameplate.svg",
-    "about.svg",
-    "label-*.svg",
-    "divider.svg",
-    "footer.svg",
-    "machine.svg",
-    "act-*.svg",
-    "story-*.svg"
+  "killedFromV4": [
+    "clip-path name reveal loop",
+    "chaos→rows micro-demo",
+    "root→bloom staggered graph",
+    "animateMotion travelers",
+    "illegible sub-1px strokes / r<2 nodes",
+    "720px-tall hero wasting scroll"
   ],
   "locks": [
     "no ACT/story narrative",
@@ -47,14 +39,11 @@
     "dark-only continuous field #0B0D10",
     "no HTML tables",
     "absolute raw.githubusercontent.com URLs",
-    "soft edges (no hard card borders / corner ticks)",
+    "soft edges (no hard card borders)",
     "custom snake essential",
-    "project wordmarks integrated in art",
-    "MCP pushes must use full file bytes never LOAD_FROM stubs"
+    "project wordmarks integrated",
+    "MCP pushes full file bytes never stubs",
+    "assets cooperate with GitHub Markdown width"
   ],
-  "scale": {
-    "full": "100%",
-    "signature": "92%"
-  },
-  "notes": "v4 burn-down: fused identity into hero; full-bleed named project heroes; snake after work; no labels/dividers/about/pamphlet"
+  "notes": "v5 Quiet Field: magazine panels sized for ~900px Markdown. Large type always visible. Craft metaphors as clear stages/tree, not SVG toys."
 }
