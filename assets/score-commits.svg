@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BSR∴profile∴6 · score-commits · seed via search_commits author:BenjaminSRussell total_count=1828 · Actions will refresh with GraphQL lifetime total -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 140" preserveAspectRatio="xMidYMid meet" role="img" aria-label="1,828 total commits">
+  <defs>
+    <radialGradient id="scWashV" cx="22%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity=".14"/>
+      <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="scWashT" cx="82%" cy="48%" r="48%">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity=".10"/>
+      <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="scWashL" cx="50%" cy="20%" r="42%">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity=".07"/>
+      <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="scRule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
+      <stop offset="45%" stop-color="#7C3AED" stop-opacity=".55"/>
+      <stop offset="55%" stop-color="#22D3EE" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="scBlur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1280" height="140" fill="#0B0D10"/>
+  <ellipse cx="280" cy="70" rx="320" ry="90" fill="url(#scWashV)" filter="url(#scBlur)"/>
+  <ellipse cx="1000" cy="72" rx="280" ry="80" fill="url(#scWashT)" filter="url(#scBlur)"/>
+  <ellipse cx="640" cy="36" rx="220" ry="50" fill="url(#scWashL)" filter="url(#scBlur)"/>
+  <text x="640" y="72" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="48" font-weight="600" letter-spacing="4" fill="#E8E4DF">1,828</text>
+  <rect x="520" y="88" width="240" height="1.5" rx="1" fill="url(#scRule)" opacity=".7"/>
+  <text x="640" y="114" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="500" letter-spacing="3.2" fill="#94A3B8" opacity=".9">TOTAL COMMITS</text>
+</svg>
