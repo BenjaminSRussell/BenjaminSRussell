@@ -9,6 +9,10 @@ scrapers · data systems · things that stay standing
 
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/nameplate.svg" width="100%" alt=""/>
 
+<a href="https://github.com/BenjaminSRussell">
+  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/score-commits.svg" width="90%" alt="total commits"/>
+</a>
+
 </div>
 
 <br/>
@@ -104,7 +108,8 @@ Day-to-day: prefer tools that are boring under load, inspectable when they fail,
 <br/>
 
 - This profile README is **markdown-first**. Images are soft supporting beats that match the dark field (`#0B0D10`) so they don't flash a different black than GitHub chrome.
-- Featured face: **Scrapy** + **Rust-sitemap**. The snake below is a custom contribution signature — not a third-party widget dump.
+- Featured face: **Scrapy** + **Rust-sitemap**. The contribution field below is a live Platane/snk animation from the `output` branch — not a static fake seed.
+- Commit score above refreshes via Actions (GraphQL lifetime total). Clicking the field or score goes to the profile overview.
 - No multi-act story, no steampunk machine theater, no funeral copy. Just the file, crafted.
 
 </details>
@@ -113,7 +118,9 @@ Day-to-day: prefer tools that are boring under load, inspectable when they fail,
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/snake.svg" width="90%" alt="contribution snake"/>
+<a href="https://github.com/BenjaminSRussell">
+  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/output/github-contribution-grid-snake-dark.svg" width="90%" alt="contribution field"/>
+</a>
 
 <sub>contribution field</sub>
 
