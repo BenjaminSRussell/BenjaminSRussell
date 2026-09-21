@@ -1,7 +1,7 @@
 {
   "system": "BSR∴profile",
-  "version": "5.0.0",
-  "codename": "Quiet Field",
+  "version": "6.0.0",
+  "codename": "Markdown First",
   "field": "#0B0D10",
   "ink": "#E8E4DF",
   "muted": "#94A3B8",
@@ -10,28 +10,29 @@
   "lilac": "#A78BFA",
   "edge": "#64748B",
   "motion": {
-    "rule": "gentle opacity / wash only; no clip reveals; no micro-demo toys",
-    "slow": "10s–22s"
+    "rule": "almost none; gentle wash opacity OK; no toys",
+    "slow": "16s–22s"
   },
   "layout": {
     "canvas": "1280",
-    "hero": "1280x400",
-    "projectCard": "1280x240",
-    "snake": "1280x140"
+    "nameplate": "1280x280",
+    "projectCard": "1280x220",
+    "snake": "1280x120"
   },
   "sectionOrder": [
-    "hero@100%",
-    "projects/scrapy-card@100%",
-    "projects/rust-sitemap-card@100%",
-    "snake@92%"
+    "markdown-intro",
+    "nameplate@100%",
+    "markdown-work-scrapy+rust",
+    "scrapy-card@100%",
+    "rust-sitemap-card@100%",
+    "markdown-details-extras",
+    "snake@90%",
+    "markdown-close"
   ],
-  "killedFromV4": [
-    "clip-path name reveal loop",
-    "chaos→rows micro-demo",
-    "root→bloom staggered graph",
-    "animateMotion travelers",
-    "illegible sub-1px strokes / r<2 nodes",
-    "720px-tall hero wasting scroll"
+  "killedFromV5": [
+    "image-only face (4 imgs, no markdown craft)",
+    "README as SVG gallery frame",
+    "tall-enough-to-dominate hero as sole identity"
   ],
   "locks": [
     "no ACT/story narrative",
@@ -41,9 +42,10 @@
     "absolute raw.githubusercontent.com URLs",
     "soft edges (no hard card borders)",
     "custom snake essential",
-    "project wordmarks integrated",
+    "Scrapy + Rust-sitemap featured",
     "MCP pushes full file bytes never stubs",
-    "assets cooperate with GitHub Markdown width"
+    "README is the product; images support Markdown",
+    "no v3 funeral / ALL-CAPS labels / divider spam"
   ],
-  "notes": "v5 Quiet Field: magazine panels sized for ~900px Markdown. Large type always visible. Craft metaphors as clear stages/tree, not SVG toys."
+  "notes": "v6 Markdown First: long crafted README with nested details. Quiet SVGs match #0B0D10 and read at Markdown width."
 }
