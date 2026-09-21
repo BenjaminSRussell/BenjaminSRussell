@@ -28,7 +28,7 @@
     </filter>
   </defs>
 
-  <rect width="1280" height="64" fill="#0A0C10"/>
+  <rect width="1280" height="64" fill="#0B0D10"/>
   <line x1="500" y1="22" x2="780" y2="22" stroke="url(#gV-dark)" stroke-width="0.8" opacity="0.45"/>
   <circle cx="640" cy="22" r="2.6" fill="#0D1117" stroke="#22D3EE" stroke-width=".6" opacity=".5">
     <animate attributeName="r" values="2.6;3.3;2.6" dur="4.8s" repeatCount="indefinite"/>
