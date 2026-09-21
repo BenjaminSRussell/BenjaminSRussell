@@ -1,25 +1,53 @@
 {
-  "meta": {
-    "system": "steampunk-plane",
-    "version": "3.0.0",
-    "owner": "BenjaminSRussell",
-    "seed": "EC8AC918",
-    "signature": "BSR∴SP∴3.0.0"
-  },
-  "color": {
-    "walnut": "#1A120B",
-    "soot": "#2C241C",
-    "parchment": "#E8DCC8",
-    "brass": "#B08D57",
-    "copper": "#B87333",
-    "amber": "#D4A574",
-    "oxidizedTeal": "#5F7A6A"
-  },
+  "system": "BSR\u2234profile",
+  "version": "3.0.0",
+  "field": "#0B0D10",
+  "fieldAlt": "#0A0C10",
+  "ink": "#E8E4DF",
+  "muted": "#94A3B8",
+  "violet": "#7C3AED",
+  "teal": "#22D3EE",
+  "lilac": "#A78BFA",
+  "orbViolet": "#C4B5FD",
+  "orbTeal": "#5EEAD4",
+  "edge": "#64748B",
   "motion": {
-    "gearRotate": "36s-56s",
-    "steamDrift": "14s",
-    "dialSweep": "18s",
-    "traveler": "14s-28s"
+    "slow": "14s\u201324s",
+    "medium": "7s\u201312s",
+    "pulse": "4s\u20136s",
+    "rule": "gentle SMIL only; signature non-integer durations"
   },
-  "motifs": ["gears", "pipes", "gauges", "compass", "parchment", "smoke"]
+  "layout": {
+    "canvas": "1280",
+    "hero": "1280x640",
+    "nameplate": "1280x220",
+    "divider": "1280x48",
+    "snake": "1280x160",
+    "card": "640x200",
+    "footer": "1280x64",
+    "label": "1280x56"
+  },
+  "sectionOrder": [
+    "hero/layers",
+    "identity/nameplate",
+    "divider",
+    "signature/snake",
+    "divider",
+    "label/build",
+    "copy/what-i-build",
+    "divider",
+    "label/field",
+    "projects/scrapy-card",
+    "projects/rust-sitemap-card",
+    "divider",
+    "close/footer"
+  ],
+  "locks": [
+    "no ACT/story narrative",
+    "no machine.svg",
+    "dark-only (no light twins in README)",
+    "no HTML tables",
+    "absolute raw.githubusercontent.com URLs",
+    "MCP pushes must use full file bytes never LOAD_FROM stubs"
+  ]
 }
