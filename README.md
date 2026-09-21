@@ -1,4 +1,4 @@
-<!-- BSR∴profile v4 · Instrument Spread · dark field · no story/machine -->
+<!-- BSR∴profile v5 · Quiet Field · dark field · markdown-friendly -->
 <!-- Order: hero → scrapy → rust-sitemap → snake -->
 
 <div align="center">
