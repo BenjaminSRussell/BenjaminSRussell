@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="What I build">
+<defs>
+  <filter id="glow"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
+    <stop offset="50%" stop-color="#7C3AED" stop-opacity=".5"/>
+    <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+<rect width="1280" height="320" fill="#0B0D10"/>
+<ellipse cx="640" cy="160" rx="480" ry="110" fill="#7C3AED" opacity=".04" filter="url(#glow)"/>
+<text x="640" y="58" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="500" letter-spacing="5" fill="#94A3B8">BETWEEN FETCH AND TRUST</text>
+<rect x="500" y="72" width="280" height="1" fill="url(#rule)" opacity=".8"/>
+<text x="640" y="118" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="18" font-weight="400" fill="#E8E4DF">
+  <tspan x="640" dy="0">Scrapers that survive site changes. Pipelines that do not silently rot.</tspan>
+  <tspan x="640" dy="28">Small systems in Python and Rust that stay up when nobody is watching.</tspan>
+</text>
+<text x="640" y="190" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#94A3B8">
+  <tspan x="640" dy="0">Retry logic · schema drift · rate limits · messy HTML · sitemap graphs</tspan>
+  <tspan x="640" dy="22">The glue that turns a crawl into something you can query tomorrow.</tspan>
+</text>
+<text x="640" y="260" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#64748B">
+  Clarity under load — readable logs, replayable failures, honest interfaces.
+</text>
+</svg>
