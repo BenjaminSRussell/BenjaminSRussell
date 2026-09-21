@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- BSR∴profile∴5.0.0 · scrapy · Quiet Field · seed:EC8AC918 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Scrapy — scraping and data platform"><defs>
-<radialGradient id="scWashV" cx="28%" cy="42%" r="55%">
-  <stop offset="0%" stop-color="#7C3AED" stop-opacity=".14"/>
+<!-- BSR∴profile∴6.0.0 · scrapy · Markdown First · seed:EC8AC918 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Scrapy — scraping and data platform"><defs>
+<radialGradient id="scWashV" cx="26%" cy="45%" r="58%">
+  <stop offset="0%" stop-color="#7C3AED" stop-opacity=".12"/>
   <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
 </radialGradient>
-<radialGradient id="scWashT" cx="78%" cy="58%" r="50%">
-  <stop offset="0%" stop-color="#22D3EE" stop-opacity=".11"/>
+<radialGradient id="scWashT" cx="78%" cy="55%" r="52%">
+  <stop offset="0%" stop-color="#22D3EE" stop-opacity=".09"/>
   <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
 </radialGradient>
-<radialGradient id="scWashL" cx="50%" cy="18%" r="42%">
-  <stop offset="0%" stop-color="#A78BFA" stop-opacity=".08"/>
+<radialGradient id="scWashL" cx="50%" cy="20%" r="40%">
+  <stop offset="0%" stop-color="#A78BFA" stop-opacity=".06"/>
   <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
 </radialGradient>
 <linearGradient id="scRule" x1="0" y1="0" x2="1" y2="0">
   <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
-  <stop offset="35%" stop-color="#7C3AED" stop-opacity=".75"/>
-  <stop offset="65%" stop-color="#22D3EE" stop-opacity=".75"/>
+  <stop offset="40%" stop-color="#7C3AED" stop-opacity=".65"/>
+  <stop offset="60%" stop-color="#22D3EE" stop-opacity=".65"/>
   <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
 </linearGradient>
-<filter id="scBlur"><feGaussianBlur stdDeviation="20"/></filter>
-<radialGradient id="scVig" cx="50%" cy="50%" r="70%">
+<filter id="scBlur"><feGaussianBlur stdDeviation="22"/></filter>
+<radialGradient id="scVig" cx="50%" cy="50%" r="72%">
   <stop offset="0%" stop-color="#0B0D10" stop-opacity="0"/>
-  <stop offset="78%" stop-color="#0B0D10" stop-opacity="0"/>
-  <stop offset="100%" stop-color="#050608" stop-opacity="0.68"/>
+  <stop offset="80%" stop-color="#0B0D10" stop-opacity="0"/>
+  <stop offset="100%" stop-color="#050608" stop-opacity="0.5"/>
 </radialGradient>
-</defs><rect width="1280" height="240" fill="#0B0D10"/><ellipse cx="300" cy="120" rx="320" ry="140" fill="url(#scWashV)" filter="url(#scBlur)"/><ellipse cx="980" cy="130" rx="300" ry="120" fill="url(#scWashT)" filter="url(#scBlur)"/><text x="72" y="108" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="36" font-weight="600" letter-spacing="7" fill="#E8E4DF">SCRAPY</text><rect x="72" y="124" width="140" height="2" rx="1" fill="url(#scRule)" opacity=".8"/><text x="72" y="154" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" letter-spacing="2.5" fill="#94A3B8" opacity=".8">messy fetch → trusted rows</text><line x1="700" y1="100" x2="780" y2="100" stroke="#64748B" stroke-width="2" opacity=".25"/><line x1="900" y1="100" x2="980" y2="100" stroke="#64748B" stroke-width="2" opacity=".25"/><rect x="550" y="68" width="140" height="64" rx="12" fill="#12161E" opacity=".85"/><rect x="590" y="68" width="60" height="3" rx="1.5" fill="#7C3AED" opacity=".7"><animate attributeName="opacity" values=".45;.85;.45" dur="8.3s" repeatCount="indefinite"/></rect><text x="620" y="100" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="3.5" fill="#E8E4DF">FETCH</text><text x="620" y="120" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="400" letter-spacing="0.8" fill="#94A3B8" opacity=".7">scattered sources</text><rect x="750" y="68" width="140" height="64" rx="12" fill="#12161E" opacity=".85"/><rect x="790" y="68" width="60" height="3" rx="1.5" fill="#A78BFA" opacity=".7"><animate attributeName="opacity" values=".45;.85;.45" dur="10.0s" repeatCount="indefinite"/></rect><text x="820" y="100" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="3.5" fill="#E8E4DF">CLEAN</text><text x="820" y="120" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="400" letter-spacing="0.8" fill="#94A3B8" opacity=".7">normalize · validate</text><rect x="950" y="68" width="140" height="64" rx="12" fill="#12161E" opacity=".85"/><rect x="990" y="68" width="60" height="3" rx="1.5" fill="#22D3EE" opacity=".7"><animate attributeName="opacity" values=".45;.85;.45" dur="11.7s" repeatCount="indefinite"/></rect><text x="1020" y="100" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="3.5" fill="#E8E4DF">ROWS</text><text x="1020" y="120" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-weight="400" letter-spacing="0.8" fill="#94A3B8" opacity=".7">structured output</text><rect x="980" y="160" width="90" height="5" rx="2.5" fill="#22D3EE" opacity="0.35"/><rect x="980" y="174" width="70" height="5" rx="2.5" fill="#22D3EE" opacity="0.22"/><rect x="980" y="188" width="80" height="5" rx="2.5" fill="#22D3EE" opacity="0.28"/><rect width="1280" height="240" fill="url(#scVig)"/></svg>
+</defs><rect width="1280" height="220" fill="#0B0D10"/><ellipse cx="280" cy="110" rx="300" ry="120" fill="url(#scWashV)" filter="url(#scBlur)"/><ellipse cx="1000" cy="115" rx="280" ry="110" fill="url(#scWashT)" filter="url(#scBlur)"/><text x="72" y="100" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="600" letter-spacing="6" fill="#E8E4DF">SCRAPY</text><rect x="72" y="116" width="120" height="2" rx="1" fill="url(#scRule)" opacity=".75"/><text x="72" y="148" text-anchor="start" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" letter-spacing="2" fill="#94A3B8" opacity=".8">messy fetch → trusted rows</text><line x1="700" y1="95" x2="780" y2="95" stroke="#64748B" stroke-width="2" opacity=".22"/><line x1="900" y1="95" x2="980" y2="95" stroke="#64748B" stroke-width="2" opacity=".22"/><rect x="552" y="62" width="136" height="66" rx="14" fill="#12161E" opacity=".7"/><circle cx="620" cy="78" r="4" fill="#7C3AED" opacity=".7"/><text x="620" y="108" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="3" fill="#E8E4DF">FETCH</text><rect x="752" y="62" width="136" height="66" rx="14" fill="#12161E" opacity=".7"/><circle cx="820" cy="78" r="4" fill="#A78BFA" opacity=".7"/><text x="820" y="108" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="3" fill="#E8E4DF">CLEAN</text><rect x="952" y="62" width="136" height="66" rx="14" fill="#12161E" opacity=".7"/><circle cx="1020" cy="78" r="4" fill="#22D3EE" opacity=".7"/><text x="1020" y="108" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="3" fill="#E8E4DF">ROWS</text><rect width="1280" height="220" fill="url(#scVig)"/></svg>
