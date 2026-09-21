@@ -1,1 +1,28 @@
-PLACEHOLDER
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BSR∴profile∴5.0.0 · hero · Quiet Field · seed:EC8AC918 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ben Russell — scrapers, data systems, things that stay standing"><defs>
+<radialGradient id="hWashV" cx="28%" cy="42%" r="55%">
+  <stop offset="0%" stop-color="#7C3AED" stop-opacity=".14"/>
+  <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="hWashT" cx="78%" cy="58%" r="50%">
+  <stop offset="0%" stop-color="#22D3EE" stop-opacity=".11"/>
+  <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="hWashL" cx="50%" cy="18%" r="42%">
+  <stop offset="0%" stop-color="#A78BFA" stop-opacity=".08"/>
+  <stop offset="100%" stop-color="#0B0D10" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="hRule" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
+  <stop offset="35%" stop-color="#7C3AED" stop-opacity=".75"/>
+  <stop offset="65%" stop-color="#22D3EE" stop-opacity=".75"/>
+  <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+</linearGradient>
+<filter id="hBlur"><feGaussianBlur stdDeviation="20"/></filter>
+<radialGradient id="hVig" cx="50%" cy="50%" r="70%">
+  <stop offset="0%" stop-color="#0B0D10" stop-opacity="0"/>
+  <stop offset="78%" stop-color="#0B0D10" stop-opacity="0"/>
+  <stop offset="100%" stop-color="#050608" stop-opacity="0.78"/>
+</radialGradient>
+</defs><rect width="1280" height="400" fill="#0B0D10"/><ellipse cx="360" cy="180" rx="380" ry="200" fill="url(#hWashV)" filter="url(#hBlur)"><animate attributeName="opacity" values=".7;1;.7" dur="18.7s" repeatCount="indefinite"/></ellipse><ellipse cx="960" cy="240" rx="340" ry="180" fill="url(#hWashT)" filter="url(#hBlur)"><animate attributeName="opacity" values=".65;1;.65" dur="22.3s" repeatCount="indefinite"/></ellipse><ellipse cx="640" cy="90" rx="280" ry="90" fill="url(#hWashL)" filter="url(#hBlur)"/><circle cx="220" cy="120" r="3.5" fill="#A78BFA" opacity="0.22"><animate attributeName="opacity" values="0.132;0.22;0.132" dur="9.3s" repeatCount="indefinite"/></circle><circle cx="1080" cy="100" r="3.0" fill="#22D3EE" opacity="0.18"><animate attributeName="opacity" values="0.108;0.18;0.108" dur="11.7s" repeatCount="indefinite"/></circle><circle cx="180" cy="300" r="2.8" fill="#7C3AED" opacity="0.16"><animate attributeName="opacity" values="0.096;0.16;0.096" dur="13.1s" repeatCount="indefinite"/></circle><circle cx="1120" cy="310" r="3.2" fill="#A78BFA" opacity="0.14"><animate attributeName="opacity" values="0.084;0.14;0.084" dur="14.9s" repeatCount="indefinite"/></circle><circle cx="480" cy="80" r="2.5" fill="#22D3EE" opacity="0.12"><animate attributeName="opacity" values="0.072;0.12;0.072" dur="16.3s" repeatCount="indefinite"/></circle><circle cx="820" cy="70" r="2.6" fill="#7C3AED" opacity="0.12"><animate attributeName="opacity" values="0.072;0.12;0.072" dur="18.1s" repeatCount="indefinite"/></circle><ellipse cx="640" cy="175" rx="420" ry="70" fill="#7C3AED" opacity=".05"><animate attributeName="opacity" values=".035;.07;.035" dur="12.7s" repeatCount="indefinite"/></ellipse><text x="640" y="188" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="600" letter-spacing="10" fill="#E8E4DF">BEN RUSSELL</text><rect x="430" y="214" width="420" height="2" rx="1" fill="url(#hRule)" opacity=".85"/><text x="640" y="252" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="400" letter-spacing="4.5" fill="#94A3B8" opacity=".88">scrapers · data systems · things that stay standing</text><rect width="1280" height="400" fill="url(#hVig)"/></svg>
