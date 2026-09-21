@@ -1,17 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="">
-<defs>
-  <linearGradient id="d" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0%" stop-color="#7C3AED" stop-opacity="0"/>
-    <stop offset="50%" stop-color="#A78BFA" stop-opacity=".85"/>
-    <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
-    <animate attributeName="x1" values="-0.2;0.2;-0.2" dur="8.1s" repeatCount="indefinite"/>
-    <animate attributeName="x2" values="0.8;1.2;0.8" dur="8.1s" repeatCount="indefinite"/>
-  </linearGradient>
-</defs>
-<rect width="1280" height="48" fill="#0B0D10"/>
-<rect x="160" y="23" width="960" height="1.2" fill="url(#d)" rx="1"/>
-<circle cx="640" cy="24" r="2.2" fill="#0B0D10" stroke="#A78BFA" stroke-width="1">
-  <animate attributeName="r" values="2.2;2.8;2.2" dur="5.7s" repeatCount="indefinite"/>
-</circle>
-</svg>
+LOAD_FROM:/tmp/soft_depth_files/assets__divider.svg
