@@ -12,16 +12,10 @@
   <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 <rect width="1280" height="220" fill="#0B0D10"/>
-<!-- soft aura -->
 <ellipse cx="640" cy="100" rx="420" ry="70" fill="#7C3AED" opacity=".06" filter="url(#glow)">
   <animate attributeName="opacity" values=".05;.09;.05" dur="9.3s" repeatCount="indefinite"/>
 </ellipse>
 <text x="640" y="108" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="54" font-weight="600" letter-spacing="10" fill="#E8E4DF" filter="url(#glow)">BEN RUSSELL</text>
 <rect x="420" y="128" width="440" height="1.5" fill="url(#ng)" opacity=".85" rx="1"/>
 <text x="640" y="162" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" letter-spacing="4.5" fill="#94A3B8" opacity=".92">SCRAPERS · DATA SYSTEMS · THINGS THAT STAY STANDING</text>
-<!-- corner ticks -->
-<g stroke="#64748B" stroke-width=".8" opacity=".45" fill="none">
-  <path d="M48 48h28M48 48v28"/><path d="M1232 48h-28M1232 48v28"/>
-  <path d="M48 172h28M48 172v-28"/><path d="M1232 172h-28M1232 172v-28"/>
-</g>
 </svg>
