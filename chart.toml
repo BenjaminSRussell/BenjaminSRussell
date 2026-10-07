@@ -77,6 +77,24 @@ aliases = ["Profile Shoal"]
 slot = "shoal"
 kind = "shoal"
 
+[[features]]
+repo = "game_engine"
+aliases = ["Game Engine I."]
+slot = "named"
+kind = "island"
+
+[[features]]
+repo = "Data_science_dev"
+aliases = ["Data Science Bank"]
+slot = "named"
+kind = "bank"
+
+[[features]]
+repo = "FashionDB"
+aliases = ["FashionDB Bank"]
+slot = "named"
+kind = "bank"
+
 # ----------------------------------------------------------------- sources
 # rustmapper's three seed sources; `first` is optional and left out until measured.
 [[sources]]
