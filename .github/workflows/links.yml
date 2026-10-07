@@ -28,7 +28,7 @@ jobs:
             --no-progress
             --accept 200,206,429
             --max-concurrency 4
-            --exclude-mail
+            --include-mail=false
             --exclude '^https://github\.com/.*/actions/workflows/'
             README.md
           fail: true
