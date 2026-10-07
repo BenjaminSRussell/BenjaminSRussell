@@ -36,16 +36,16 @@ THEMES: dict[str, Theme] = {
         paper="#F4EEE1", paper_log="#F8EEDB", land="#E9DFCA",
         ink="#1B2A41", ink2="#34465F", muted="#56657B",
         shallow_a="#CEE7F7", shallow_b="#AFDBF7",
-        accent="#D73626", ok="#1F6E42", flare="#C81392", light_core="#F8F5EE",
+        accent="#D73626", ok="#227A48", flare="#C81392", light_core="#F8F5EE",
         hair="#CDC3AE", unsurveyed="#34465F",
     ),
     "night": Theme(
         edition="night",
         paper="#0F1A2B", paper_log="#121C30", land="#1F2730",
-        ink="#BBC5D1", ink2="#7A8798", muted="#8A96A8",
-        shallow_a="#0F253B", shallow_b="#103252",
+        ink="#BBC5D1", ink2="#8894A6", muted="#8A96A8",
+        shallow_a="#10294A", shallow_b="#123A5E",
         accent="#FF6853", ok="#45E499", flare="#FF5ACD", light_core="#F8F5EE",
-        hair="#2A3A55", unsurveyed="#7A8798",
+        hair="#2A3A55", unsurveyed="#8894A6",
     ),
 }
 

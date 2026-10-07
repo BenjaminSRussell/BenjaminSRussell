@@ -23,6 +23,18 @@ import typeset  # noqa: E402
 
 NAME = "type"
 TIER = "fast"
+def _wrap(x):
+    """check_type/check_budget return strings ("sheet-ed: message"); check.py wants Findings."""
+    if not isinstance(x, str):
+        return x
+    try:
+        from check import fail
+    except Exception:  # standalone run
+        return x
+    where, _, msg = x.partition(": ")
+    return fail("TYPE", msg or x, where if msg else "")
+
+
 DESCRIPTION = "type roles: scale, floors, soundings, serif floor, containers, label-caps budget, tracking"
 
 
@@ -61,11 +73,11 @@ def check(ctx=None) -> list[str]:
     if report is None and isinstance(ctx, dict) and "sheets" in ctx:
         report = ctx
     if isinstance(report, dict) and "sheets" in report:
-        return check_report(report)
+        return [_wrap(x) for x in check_report(report)]
     edition = _get(ctx, "edition", "day") if ctx is not None else "day"
     scale = _get(ctx, "scale", None) if ctx is not None else None
     sheet = _get(ctx, "sheet", None) if ctx is not None else None
-    return typeset.check_type(edition, scale, sheet) + typeset.check_budget()
+    return [_wrap(x) for x in typeset.check_type(edition, scale, sheet) + typeset.check_budget()]
 
 
 if __name__ == "__main__":
