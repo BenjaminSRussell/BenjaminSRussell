@@ -87,6 +87,25 @@ def _symbols(theme, edition: str, names) -> str:
     return "".join(out)
 
 
+def _wave_y(x: float, x0: float, hy: float) -> float:
+    """y of the swell `q24 -5 48 0` wave (period 48 from x0) at x, at phase 0."""
+    k = (x - x0) // 48
+    u = (x - (x0 + 48 * k)) / 48
+    return hy + 9 - 10 * u * (1 - u)
+
+
+def _shelf(x0: float, hy: float, xa: float, xb: float, edge: float, bottom: float, theme) -> str:
+    """The shallows: tint A from xa to xb, tint B from xb over the lip to `bottom`, topped by the swell."""
+    def top(a, b):
+        pts = [(x, _wave_y(x, x0, hy)) for x in range(int(a), int(b), 4)] + [(b, _wave_y(b, x0, hy))]
+        return "".join(f"L{fmt(x)} {fmt(y)}" for x, y in pts[1:]), pts[0]
+    ta, pa = top(xa, xb)
+    tb, pb = top(xb, edge)
+    a = f'<path d="M{fmt(pa[0])} {fmt(pa[1])}{ta}V{fmt(bottom)}H{fmt(xa)}Z" fill="{theme.shallow_a}"/>'
+    b = f'<path d="M{fmt(pb[0])} {fmt(pb[1])}{tb}c10 0 16 4 19 12c3 8 4 24 4 42V{fmt(bottom)}H{fmt(xb)}Z" fill="{theme.shallow_b}"/>'
+    return a + b
+
+
 def _sloop_parts(theme, tl, luff_at: float | None, scale: float = 1.0) -> str:
     """31's sloop from chartlib's own paths, the main sail wrapped so it can luff once about the mast."""
     P = C.SLOOP_DETAIL
@@ -165,9 +184,11 @@ def _desk(ctx) -> str:
         out.append(hb)
     out.append(tx("UNSURVEYED", 1130, 72, "label", fill=t.ink2))
 
-    # ---- the water: a tint-B body from the surface over the lip to the foot of the fall, then the
-    # surface line, swell (10 s, clipped), the lip, fall lines
-    out.append(f'<path d="M{WX0} {HY}H{EDGE}c10 0 16 4 19 12c3 8 4 24 4 42V226H{WX0}Z" fill="{t.shallow_b}"/>')
+    # ---- the water: deep water is paper; tint marks the shallows at the edge the chart falls off —
+    # tint A (under 10) a 24 px fringe inboard, tint B (under 5) the 40 px shelf before the lip, both topped
+    # by the swell's wave; the limit line falls on the A/B boundary. Then the surface line, swell (10 s,
+    # clipped), the lip, fall lines
+    out.append(_shelf(WX0, HY, LIMIT_X - 24, LIMIT_X, EDGE, 226, t))
     out.append(f'<path d="M{WX0} {HY}H{EDGE}" fill="none" {C.stroke("PEN", t.ink, 0.9 if dark else None, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDGE - WX0) // 48 + 2))
     a, base = _loop(tl, "translate", [(0, "0 0", "sea"), (10, "-48 0")], 0.0, 10.0, "0 0", "0 0")
@@ -219,7 +240,8 @@ def _desk(ctx) -> str:
 
     # ---- neat line, broken where the water leaves; the one line of prose
     out.append(f'<path d="M14 14H1266V112M1266 226V240H14V14" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
-    # role thesis at 28 (on the scale, serif floor met) carries no grade stroke: the sheet repaints every frame
+    # role thesis at 28 (on the scale, serif floor met) carries no grade stroke; inline like every other run
+    # here (through the glyph library the sheet is 9 KB lighter but 3.95 instead of 3.55 ms/frame: measured)
     out.append(tx(_copy(cfg, "footer_line", "The chart ends here. The web doesn't."), 48, 78, "thesis", fill=t.ink, size=28))
 
     # ---- outside the neat line: folio, the chart's own record, no adjoining sheet
@@ -262,7 +284,7 @@ def _phone(ctx) -> str:
         out.append(hb)
     uw = T.text_width("UNSURVEYED", "label", edition=ed)
     out.append(tx("UNSURVEYED", 686, 130 + uw / 2, "label", fill=t.ink2, rotate=-90))
-    out.append(f'<path d="M16 {HYP}H{EDG}c10 0 16 4 19 12c3 8 4 24 4 42V290H16Z" fill="{t.shallow_b}"/>')
+    out.append(_shelf(16, HYP, LIM - 24, LIM, EDG, 290, t))
     out.append(f'<path d="M16 {HYP}H{EDG}" fill="none" {C.stroke("LINE", t.ink, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDG - 16) // 48))
     out.append(f'<path d="M16 {HYP + 9}{waves}" fill="none" {C.stroke("HAIR", t.ink, 0.45)}/>')

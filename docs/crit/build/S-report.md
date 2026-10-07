@@ -260,3 +260,32 @@ PNGs inspected: `…/crit/build/S/png/r2-instruments-day.png`, `r2-instruments-n
 4. Log untouched.
 5. Gates: full build 0 problems, check.py `--only` my four sheets exit 0 (size-target warnings only when unfiltered), motion 0, 24 files byte-identical, 178 tests OK.
 6. Sizes grew by 2–10 KB per changed sheet; still under all hard caps, over the raw targets on three sheets as documented.
+
+---
+
+# Round 3 (footer only; instruments and soundings accepted)
+
+The sea is paper again: no fill under the swell, soundings and sloop as on the hero. Tint marks the
+shallows at the edge the chart falls off: a 24 px tint-A fringe (x 976–1000) and the 40 px tint-B shelf
+(x 1000–1040) running over the lip to the foot of the fall, both topped by the swell's wave shape
+(`_wave_y`, the `q24 -5 48 0` curve at phase 0, sampled every 4 px) so their upper edge follows the swell
+line; the limit line falls exactly on the A/B boundary. Fall lines, lip, swell loop, mist, serpent, arrival
+and the index unchanged. Phone edition gets the same shelf (x 536–560 / 560–600).
+
+Size: tried the serif prose through the glyph library (71.2 KB raw, 21.8 gz) but it cost 0.4 ms/frame
+(3.95 ms, no headroom on the binding 4 ms gate), so the prose stays inline: **80.9 / 81.7 KB raw,
+26.3 / 26.5 gz (day/night)**, stills 77 KB, phone 31 KB. The 40 KB target is out of reach on this sheet
+without giving up the inline lettering that buys the paint (42 KB of outlines ≈ 0.7 ms/frame); documented.
+
+Gates: `perf_check.js --warm=66 --seconds=10 footer-day` **3.64 ms/frame** (max 4.7, 23 % CPU, pass);
+full default build 38 files, 0 problems; `check.py --dev --tier fast --only soundings,log,instruments,footer`
+pass, exit 0, 0 fail / 0 warn; `motion.py` 0 findings; footer's six files byte-identical on rebuild; suite
+178 OK; still-frame at 95 s coverage 1.005, changed 0.58 %.
+
+PNGs: `…/crit/build/S/png/r3-footer-day.png`, `r3-footer-night.png`, `r3-footer-phone-day.png`.
+
+## Summary (round 3)
+
+1. Footer sea is paper; tint A fringe + tint B shelf before the lip follow the swell line, limit line on the A/B boundary; motion unchanged.
+2. Perf 3.64 ms/frame (library prose measured 3.95 and was reverted for headroom); size 80.9/26.3 KB — the 40 KB target is unreachable without the inline lettering, so reported as a warning.
+3. Rebuilt into assets/v9 (38 files, 0 problems); check.py `--only` my sheets exit 0, motion 0, byte-identical, 178 tests OK.
