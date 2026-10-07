@@ -65,11 +65,19 @@ Prefer: clear data contracts, boring operational paths, and tools that explain t
 A longer shelf — some sharp, some exploratory. Featured work stays above; this is the rest of the field.
 
 **Data & scrape**
+- [dealforge](https://github.com/BenjaminSRussell/dealforge) — deal intel + compose-backed API
 - [Elusive_trades_data](https://github.com/BenjaminSRussell/Elusive_trades_data) — trade-shaped datasets
 - [FashionDB](https://github.com/BenjaminSRussell/FashionDB) — structured fashion data
 - [Data-visualizer](https://github.com/BenjaminSRussell/Data-visualizer) — seeing the rows
 - [Data_science_dev](https://github.com/BenjaminSRussell/Data_science_dev) — notebooks & pipelines
 - [ideal-url-organizer](https://github.com/BenjaminSRussell/ideal-url-organizer) — URL hygiene
+- [car-datalake](https://github.com/BenjaminSRussell/car-datalake) — vehicle listing lake
+
+**Systems & agents**
+- [ollama-issue-bot](https://github.com/BenjaminSRussell/ollama-issue-bot) — local-LLM issue triage
+- [agent-coordination](https://github.com/BenjaminSRussell/agent-coordination) — multi-agent orchestration
+- [UConn_AI](https://github.com/BenjaminSRussell/UConn_AI) — RAG / ETL campus stack
+- [wardrobe-kingdom](https://github.com/BenjaminSRussell/wardrobe-kingdom) — wardrobe inventory UI
 
 **ML / local models**
 - [mlx_Qwen_data_entry](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen on MLX for entry work
@@ -79,8 +87,8 @@ A longer shelf — some sharp, some exploratory. Featured work stays above; this
 
 **Interface & play**
 - [3d-swift-globe-widget](https://github.com/BenjaminSRussell/3d-swift-globe-widget) · [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets)
-- [game_engine](https://github.com/BenjaminSRussell/game_engine) · [cozy-game](https://github.com/BenjaminSRussell/cozy-game) · [Wheel](https://github.com/BenjaminSRussell/Wheel)
-- [go_go_go](https://github.com/BenjaminSRussell/go_go_go) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
+- [Wheel](https://github.com/BenjaminSRussell/Wheel) — interactive wheel UI
+- [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader) — course tooling
 - [Spotify_to_apple_music](https://github.com/BenjaminSRussell/Spotify_to_apple_music)
 
 </details>
@@ -110,6 +118,7 @@ Day-to-day: prefer tools that are boring under load, inspectable when they fail,
 - This profile README is **markdown-first**. Images are soft supporting beats that match the dark field (`#0B0D10`) so they don't flash a different black than GitHub chrome.
 - Featured face: **Scrapy** + **Rust-sitemap**. The contribution field below is a live Platane/snk animation from the `output` branch — not a static fake seed.
 - Commit score above refreshes via Actions (GraphQL lifetime total). Clicking the field or score goes to the profile overview.
+- Badge playbook: see **Actions failure playbook** in `DESIGN.md`. Workflows: `score-commits`, `snake`, `links`. Fallback asset: `assets/score-commits-fallback.svg` if live score is stale >7 days.
 - No multi-act story, no steampunk machine theater, no funeral copy. Just the file, crafted.
 
 </details>
