@@ -35,8 +35,12 @@ def bump(q: float) -> float:
     return (1 - q * q) ** 3 if q < 1 else 0.0
 
 
-# Support ratio h / r per feature kind (MASTERPLAN 16: 1.33 island, 1.82 shoal).
-KERNEL_RATIO = {"island": 1.33, "harbour": 1.33, "islet": 1.33, "shoal": 1.82, "wreck": 0.0}
+# Support ratio h / r per feature kind, within MASTERPLAN 16's 1.33–1.82 r. In the depth frame the
+# amplitude is solved so the 5-ring sits at r, and the ratio only sets the shelf width: at 1.33 an
+# island's 0, 5 and 10 contours fall within ~4 % of r (a cliff); at 1.82 the coastline sits at
+# ~0.88 r and the 10-contour at ~1.14 r (base 20), a shelf the eye can read. Override per feature
+# with Feature.ratio.
+KERNEL_RATIO = {"island": 1.82, "harbour": 1.82, "islet": 1.82, "shoal": 1.82, "wreck": 0.0}
 LAND_KINDS = ("island", "harbour", "islet")
 SHOAL_KINDS = ("shoal",)
 DEFAULT_LEVELS = (0.0, 5.0, 10.0, 20.0, 50.0)
@@ -553,11 +557,14 @@ def band_of(cs: list[Contour], x, y, levels, base: float | None = None) -> float
 
 
 def bracket_test(cs: list[Contour], samples, levels=DEFAULT_LEVELS, base: float | None = None,
-                 tie: float = 0.02, skip=()) -> list[tuple]:
+                 tie: float = 0.02, skip=(), field: Field | None = None) -> list[tuple]:
     """Every numeral must sit inside the band labelled ≤ n and outside the next (T2 §2.4).
-    Returns failures [(index, x, y, value, expected_band, found_band)]; near-ties (|v − L| < tie·L)
-    and indices in `skip` (faded soundings the sheet does not print) are not tested. Pass the
-    field's `base` so the unbounded open-water region is banded correctly."""
+    Returns failures [(index, x, y, value, expected_band, found_band, cause)]; near-ties
+    (|v − L| < tie·L) and indices in `skip` (faded soundings the sheet does not print) are not
+    tested. Pass the field's `base` so the unbounded open-water region is banded correctly. With
+    `field`, cause is 'field' when the field itself is wrong there and 'unresolved' when the field
+    is right but the ring is too small for the grid (a lone sounding far from base makes a ring of
+    a few px; nudge it or draw it at a finer cell)."""
     fails = []
     lv = sorted(levels)
     skip = set(skip)
@@ -567,7 +574,11 @@ def bracket_test(cs: list[Contour], samples, levels=DEFAULT_LEVELS, base: float 
         expected = next((L for L in lv if v < L), None)
         found = band_of(cs, x, y, lv, base)
         if expected != found:
-            fails.append((i, round(x), round(y), v, expected, found))
+            cause = "polygon"
+            if field is not None:
+                fv = field.value(x, y)
+                cause = "field" if next((L for L in lv if fv < L), None) != expected else "unresolved"
+            fails.append((i, round(x), round(y), v, expected, found, cause))
     return fails
 
 
@@ -756,13 +767,17 @@ def _tangent_angle(pts, i, closed):
 
 
 def contour_labels(cs: list[Contour], role: str = "contour-figure", min_len: float = 160.0,
-                   gap: float = 20.0, exclusions=(), max_tilt: float = 30.0) -> list[tuple]:
-    """For every contour with length ≥ min_len: the break (contour, i0, i1) around the point of
-    lowest curvature whose tangent is within max_tilt° of horizontal and which avoids `exclusions`
-    (rects). The figure is set by the caller at break_anchor(); the gap is `width + 6` by default 20."""
+                   gap: float = 20.0, exclusions=(), max_tilt: float = 30.0, levels=None,
+                   skip_levels=(0.0,)) -> list[tuple]:
+    """For every contour with length ≥ min_len (at `levels`, or all but skip_levels — the coastline
+    is never figured): the break (contour, i0, i1) around the point of lowest curvature whose
+    tangent is within max_tilt° of horizontal and which avoids `exclusions` (rects). The figure is
+    set by the caller at break_anchor(); the gap is `width + 6`, by default 20."""
     out = []
     for c in cs:
         if c.length < min_len or len(c.pts) < 8:
+            continue
+        if (levels is not None and c.level not in levels) or c.level in skip_levels:
             continue
         n = len(c.pts)
         best, best_i = None, None
@@ -838,15 +853,16 @@ def broken_polylines(c: Contour, i0: int, i1: int) -> list[list]:
 
 
 def draw_contours(cs: list[Contour], index_levels, theme, approx_clip=None, breaks=(),
-                  opacity: float = 0.55, every: int = 3, skip_levels=(0.0,)) -> str:
+                  opacity: float = 0.55, every: int = 3, skip_levels=(0.0,), min_len: float = 0.0) -> str:
     """Intermediate levels at PEN, index levels at LINE, both ink2 at `opacity`; broken where
     `breaks` (from contour_labels) say; portions inside approx_clip redrawn with DASH['APPROX'].
-    Level 0 (the coastline) is skipped by default: coastline() draws it."""
+    Level 0 (the coastline) is skipped by default: coastline() draws it. Closed loops shorter than
+    min_len (the ring a lone sounding makes under its own numeral) are not drawn."""
     from .furniture import stroke
     bmap = {id(c): (i0, i1) for c, i0, i1 in breaks}
     groups = {}  # (is_index, approx) -> [d]
     for c in cs:
-        if c.level in skip_levels:
+        if c.level in skip_levels or (c.closed and c.length < min_len):
             continue
         is_index = c.level in index_levels
         runs = broken_polylines(c, *bmap[id(c)]) if id(c) in bmap else [c.pts]

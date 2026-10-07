@@ -179,7 +179,7 @@ def two_ring_rose(cx, cy, r, theme, hours24, modal: int, var_label_cb=None, labe
     small, big = [], []
     for deg in range(0, 360, 10):
         a = math.radians(deg - 90)
-        L = 11 if deg % 30 == 0 else 6
+        L = 9 if deg % 30 == 0 else 5
         (big if deg % 30 == 0 else small).append(
             f"M{fmt(cx + (r - L) * math.cos(a))} {fmt(cy + (r - L) * math.sin(a))}"
             f"L{fmt(cx + r * math.cos(a))} {fmt(cy + r * math.sin(a))}")
@@ -188,7 +188,7 @@ def two_ring_rose(cx, cy, r, theme, hours24, modal: int, var_label_cb=None, labe
     out.append(f'<path d="M{fmt(cx)} {fmt(cy - r - 2)}l-5 -11h10z" fill="{theme.accent}"/>')
     if label_cb:
         out.append(label_cb("N", cx, cy - r - 17, "label", anchor="middle"))
-    ri = r - 22
+    ri = r - 24
     out.append(f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(ri)}" fill="none" {stroke("HAIR", theme.ink, 0.6)}/>')
     vals = list(hours24) if hours24 else []
     mx = max(vals) if vals else 0
@@ -212,11 +212,12 @@ def two_ring_rose(cx, cy, r, theme, hours24, modal: int, var_label_cb=None, labe
     if label_cb:
         for hh in (0, 6, 12, 18):
             a = math.radians(hh * 15 - 90)
-            rr = ri + 9
-            out.append(label_cb(f"{hh:02d}", cx + rr * math.cos(a), cy + rr * math.sin(a) + 4, "label", anchor="middle"))
+            rr = ri + 10   # between the rings, clear of the 9 px 30° ticks
+            out.append(label_cb(f"{hh:02d}", round(cx + rr * math.cos(a), 1), round(cy + rr * math.sin(a) + 4, 1),
+                                "label", anchor="middle"))
     out.append(f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="2" fill="{theme.ink}"/>')
     if var_label_cb:
-        out.append(var_label_cb(cx, cy + r + 30))
+        out.append(var_label_cb(round(cx, 1), round(cy + r + 30, 1)))
     return "".join(out)
 
 
@@ -308,7 +309,7 @@ def source_diagram(x, y, w, h, zones, theme, jit: Jitter, label_cb=None) -> str:
         if label_cb:
             cx = sum(p[0] for p in poly) / len(poly)
             cy = sum(p[1] for p in poly) / len(poly)
-            out.append(label_cb(z.letter, cx, cy + 4, "label", anchor="middle"))
+            out.append(label_cb(z.letter, round(cx, 1), round(cy + 4, 1), "label", anchor="middle"))
     return "".join(out)
 
 
@@ -322,7 +323,7 @@ def area_key(x, y, k_area: float, values=(10, 100, 500), theme=None, label_cb=No
         out.append(f'<circle cx="{fmt(cx)}" cy="{fmt(y - r)}" r="{fmt(r)}" fill="{theme.shallow_b}" '
                    f'{stroke("PEN", theme.ink, 0.8)}/>')
         if label_cb:
-            out.append(label_cb(str(v), cx, y + 13, "texture", anchor="middle"))
+            out.append(label_cb(str(v), round(cx, 1), round(y + 13, 1), "texture", anchor="middle"))
         cx += r + gap
     return "".join(out)
 
@@ -439,8 +440,8 @@ def course(points, theme, jit: Jitter, pecked: bool = True, label_cb=None, prefi
             L = math.hypot(q[0] - p[0], q[1] - p[1]) or 1
             nx, ny = -(q[1] - p[1]) / L, (q[0] - p[0]) / L   # right of travel
             side = (sides[i] if sides else -1)
-            out.append(label_cb(f"{round(brg) % 360:03d}°", mx + nx * offset * side, my + ny * offset * side + 4,
-                                "label", anchor="middle"))
+            out.append(label_cb(f"{round(brg) % 360:03d}°", round(mx + nx * offset * side, 1),
+                                round(my + ny * offset * side + 4, 1), "label", anchor="middle"))
     return "".join(out)
 
 

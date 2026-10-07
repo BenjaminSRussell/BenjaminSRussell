@@ -14,6 +14,8 @@ from tokens import THEMES, W  # noqa: E402
 
 
 def lbl(text, x, y, role, **kw):
+    # the callback is handed coordinates already rounded to one decimal; assert that here
+    assert round(x, 1) == x and round(y, 1) == y, (text, x, y)
     return f'<text x="{x}" y="{y}" data-role="{role}">{text}</text>'
 
 
@@ -69,7 +71,8 @@ class FieldTests(unittest.TestCase):
         samples = [(200, 200, 3), (400, 200, 8), (600, 200, 30), (400, 400, 70)]
         F = c.Field.from_soundings(800, 600, samples, base=20, coast=c.Coast((0, 0, 800, 600), unsurveyed_x=None))
         cs = c.contours(F, c.DEFAULT_LEVELS)
-        self.assertEqual(c.bracket_test(cs, samples), [])
+        self.assertEqual(c.bracket_test(cs, samples, base=20), [])
+        self.assertEqual(c.band_of(cs, 100, 500, c.DEFAULT_LEVELS, base=20), 50.0)   # ambient water is under 50
 
     def test_coast_closes_everything(self):
         import random
@@ -193,8 +196,9 @@ class SymbolTests(unittest.TestCase):
         self.assertNotIn("filter", defs)
         silhouette = "".join(c.SLOOP_DETAIL[k] for k in ("hull", "main", "jib"))
         self.assertLessEqual(len(re.findall(r"[MLQCA]", silhouette)), 12)
-        glyph = "".join(c.SLOOP_GLYPH.values())
-        self.assertLessEqual(len(re.findall(r"[MLQCA]", glyph)), 7)
+        glyph = "".join(c.SLOOP_GLYPH.values())   # 31's exact paths: 10 drawing commands, 3 closes
+        self.assertLessEqual(len(re.findall(r"[MLQCA]", glyph)), 12)
+        self.assertLess(len(glyph), len(silhouette))
         # day misregisters colour fills; night does not
         self.assertIn("translate(0.6 0.4)", defs)
         self.assertNotIn("translate(0.6 0.4)", c.symbol_defs(THEMES["night"], "hero", "night"))
