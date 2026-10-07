@@ -115,6 +115,10 @@ jobs:
             sleep 5
           done
 
+      - name: Social preview PNGs (ride the chart branch under social/)
+        if: steps.gate.outcome == 'success'
+        run: node scripts/social.mjs
+
       - name: Publish sheets to the orphan chart branch
         if: ${{ !inputs.dry_run }}
         run: python3 scripts/publish_chart.py
