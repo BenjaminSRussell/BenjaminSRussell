@@ -132,7 +132,7 @@ class HeroBuild(unittest.TestCase):
         h = self.entry("day")["hero"]
         self.assertEqual(h.get("course_too_close", []), [])
         self.assertGreaterEqual(h["place"]["min_course_clearance"], hero.CLEAR_COURSE - 1)
-        self.assertGreaterEqual(h["place"]["min_pair_clearance"], 44 - 1)
+        self.assertGreaterEqual(h["place"]["min_pair_clearance"], 30, "islet pairs keep 30 px, islands 44")
 
     # ---- budgets
     def test_budgets(self):

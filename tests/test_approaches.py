@@ -33,7 +33,8 @@ from sheets import approaches as A  # noqa: E402
 
 ANIM_RE = re.compile(r"<(animate|animateTransform|animateMotion|set)\b")
 USE_SYM_RE = re.compile(r'href="#approaches-(c-sym-[a-z-]+)"')
-ALLOWED_MEASURED_KEYS = {"chart-number", "edition", "scrapy_commits", "scrape_interval", "shards"}
+ALLOWED_MEASURED_KEYS = {"chart-number", "edition", "scrapy_commits", "scrape_interval", "shards", "wheel",
+                         "rows_stage1_discovery", "rows_stage2_page_analysis", "rows_stage4_summaries"}
 
 
 def _gz(data: bytes) -> int:
@@ -274,8 +275,7 @@ class Approaches(unittest.TestCase):
         self.assertIn('"s": "12"', json.dumps([r for r in recs if r.get("key") == "shards"]))
         sh = A._Sheet(ctx)
         self.assertEqual(len(sh.survey_lines()), 12)
-        tape = re.findall(r'<rect x="[\d.]+" y="[\d.]+" width="8" height="6"', doc)
-        self.assertEqual(len(tape), 11 * 6 + 8)                       # one cell per sounding
+        self.assertEqual(doc.count('class="wal"'), 11 * 6 + 8)        # one mole block per sounding
         log["measured"] = True
         _doc, recs, _ctx = build_direct("still-day", log=log)
         self.assertEqual([r["slant"] for r in recs if r.get("key") == "shards"], ["upright"])

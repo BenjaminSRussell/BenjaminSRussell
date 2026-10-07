@@ -54,9 +54,9 @@ BREAKS: list[tuple[str, str, str]] = [
     ("The channel centreline from W1 inward is the leading line, not a pecked course",
      "COURSE dots run W0→W1 only; from W1 to the anchorage the solid-then-pecked Ldg line carries the waypoints",
      "the four inner legs are collinear on 290° by decision 1, and two line styles on one line would be noise"),
-    ("The inset is not a true enlargement of the field's basin",
-     "the inset header says 'the harbour works', not a scale",
-     "the basins are the three Delta tables drawn as a harbour; the main-sheet basin comes from the field"),
+    ("No inset: the harbour works are charted at chart scale",
+     "quays named for the Delta tables and workers on the basin's shores, the WAL as a block mole with a head light",
+     "round-2 crit: an inset over the 10-contour was the loudest thing on the sheet; a chart puts the works where they are"),
     ("Phone edition is rotated 90° anticlockwise, with neat-line rules at 26/31 instead of 14/19",
      "point mapper P(x, y) → (y, 1260 − x) with a north arrow pointing left; the wider margin holds the 26 px folio",
      "a 720×1240 sheet reads the channel down the screen (T3 §6); charts oriented to the channel carry a north arrow"),
@@ -70,9 +70,9 @@ W_DESK, H_DESK = SIZES["desk"]
 RULES = {"desk": (14, 19), "phone": (26, 31)}
 BASE = 26.0                                   # open water where nothing is sampled (never on a level)
 H_SND = 110.0                                 # sounding kernel support: samples ~95 px apart must overlap
-LEVELS = (0.0, 2.0, 5.0, 10.0, 20.0)
-INDEX_LEVELS = (10.0,)
-ANCH = (150, 440)
+LEVELS = (0.0, 5.0, 10.0, 20.0, 50.0)
+INDEX_LEVELS = (10.0, 50.0)
+ANCH = (172, 446)
 LDG_BRG = 290.0                               # true, the hero's final leg (decision 1)
 _DIR = (math.sin(math.radians(LDG_BRG - 180)), -math.cos(math.radians(LDG_BRG - 180)))   # seaward unit (110°)
 
@@ -81,7 +81,7 @@ def _along(d: float) -> tuple[int, int]:
     return (E.I(ANCH[0] + _DIR[0] * d), E.I(ANCH[1] + _DIR[1] * d))
 
 
-W4, W3, W2, W1 = _along(91), _along(181), _along(258), _along(383)
+W4, W3, W2, W1 = _along(90), _along(185), _along(270), _along(380)
 W0 = (600, 672)
 COURSE = [W0, W1, W2, W3, W4, ANCH]
 LDG_FRONT, LDG_REAR = _along(-52), _along(-100)
@@ -104,13 +104,14 @@ LEGEND = (360, STRIP_Y, 560, 232)
 BLOCK_SH = (932, STRIP_Y, 312, 232)
 TITLE_C = (470, 50)
 ZOC = (680, 26, 400, 86)
-INSET = (326, 146, 330, 236)
+# the WAL mole: from the north headland root toward the mouth, a light at its head
+MOLE_A, MOLE_B = (238, 412), (366, 436)
 
 LAND = [(60, 130, 230, 70), (40, 330, 220, 70), (50, 560, 230, 70), (50, 720, 230, 70),
         (170, 200, 80, 42), (40, 60, 120, 45), (40, 760, 130, 45),
-        (125, 446, 150, 46),                   # the harbour's own land
-        (196, 398, 48, 52), (196, 500, 48, 52)]  # the two entrance points
-CARVE = [(150, 446, 46, -92), (200, 452, 36, -58)]
+        (140, 448, 170, 50),                   # the harbour's own land
+        (236, 408, 46, 58), (228, 506, 46, 58)]  # the two headlands either side of the mouth (ESE)
+CARVE = [(172, 446, 52, -100), (232, 466, 34, -62)]
 ACRONYMS = {"CT LOGS": "CT logs", "SITEMAPS": "sitemaps", "COMMON CRAWL": "Common Crawl"}
 ZONE_TEXT = {"A": "existence doubtful", "B": "exists, may not answer", "C": "as reported"}
 
@@ -159,15 +160,18 @@ def _shore_distance(x: float, y: float) -> float:
 
 
 def _depth_design(x: float, y: float) -> float:
-    """The designed depth (URLs, thousands) the illustrative soundings are sampled from: a shelf
-    deepening with distance from the shore, a deeper fairway along the course, a shallower bank
-    north of the channel."""
-    d = 2.5 + _shore_distance(x, y) * 0.05
+    """The designed depth (URLs, thousands) the illustrative soundings are sampled from: a steep shelf
+    (one thin tint ribbon each under 5 and under 10), then a slope seaward to the 50 line inside the
+    survey ground, a deeper fairway along the course, a shallower bank north of the channel, and a gentle
+    undulation so the 20 and 50 contours wander rather than rule."""
+    sd = _shore_distance(x, y)
+    d = 2.5 + sd * 0.09 if sd <= 85 else 10.15 + (sd - 85) * 0.055
+    d += 2.6 * math.sin((y - 20) / 110.0) + 1.6 * math.cos(x / 170.0)
     fair = c.dist_to_polyline(x, y, COURSE)
     d += 5.0 * math.exp(-(fair / 48.0) ** 2)
     if x < 520 and y < 420:
         d -= 1.5 * smoothstep((420 - y) / 120) * smoothstep((520 - x) / 150)
-    return max(3.0, min(48.0, d))
+    return max(3.0, min(56.0, d))
 
 
 def _samples(jit: c.Jitter) -> list[tuple[float, float, float]]:
@@ -299,7 +303,8 @@ class _Sheet:
 
     def light_group(self, x, y, lit_id, character, begin, color=None, r=2.0) -> str:
         """A flashing core (+ halo at night) whose group opacity takes the light's character."""
-        anim = self.tl.flash(character, begin=begin, still="lit", name=f"{lit_id}-fl") if self.tl.motion else ""
+        anim = (self.tl.flash(character, begin=begin, still="lit", name=f"{lit_id}-fl")
+                if self.tl.motion and character != "F" else "")
         core = c.lit_core(x, y, self.t, lit_id, r=r, halo_r=(14 if self.night else None), prefix=PREFIX, color=color)
         self.lights.append({"id": lit_id, "character": character, "color": color or self.t.light_core,
                             "bbox": [E.I(x - 14), E.I(y - 14), 28, 28]})
@@ -357,8 +362,8 @@ class _Sheet:
             self.breaks = []
             W.append(c.draw_contours(cs, INDEX_LEVELS, t, opacity=op, min_len=60))
         else:
-            excl = [ZOC, INSET, (TITLE_C[0] - 190, 30, 380, 90), (LIMIT_X - 10, 20, 180, 680), SURVEY]
-            self.breaks = c.contour_labels(cs, min_len=220, gap=18, exclusions=excl, levels=(5.0, 10.0, 20.0))
+            excl = [ZOC, (TITLE_C[0] - 190, 30, 380, 90), (LIMIT_X - 10, 20, 180, 680), SURVEY, (MOLE_A[0] - 10, MOLE_A[1] - 30, 160, 60)]
+            self.breaks = c.contour_labels(cs, min_len=220, gap=18, exclusions=excl, levels=(5.0, 10.0, 20.0, 50.0))
             approx = (UNSURVEYED_FADE[0] - 40, 20, LIMIT_X - UNSURVEYED_FADE[0] + 40, 680)
             W.append(c.draw_contours(cs, INDEX_LEVELS, t, approx_clip=approx, breaks=self.breaks, opacity=op, min_len=60))
         # the unsurveyed hatch, running to the sheet edge where the neat line is broken
@@ -499,11 +504,9 @@ class _Sheet:
         # outer leg: pecked course with waypoints
         L.append(c.course(self.Ppts([W0, W1]), t, jit, pecked=True, prefix=PREFIX, bearings=False))
         self.symbols_used.add(f"{PREFIX}-sym-waypoint")
-        # the leading line: solid from the front mark to W3, pecked beyond to W1
-        f, w3, w1 = P(*LDG_FRONT), P(*W3), P(*W1)
-        L.append(f'<path d="M{E.fmt(f[0])} {E.fmt(f[1])}L{E.fmt(w3[0])} {E.fmt(w3[1])}" fill="none" {self.stroke("PEN", t.ink, 0.8)}/>')
-        L.append(f'<path d="M{E.fmt(w3[0])} {E.fmt(w3[1])}L{E.fmt(w1[0])} {E.fmt(w1[1])}" fill="none" '
-                 f'{self.stroke("PEN", t.ink, 0.8, "PECK", caps="butt")}/>')
+        # the leading line: the darkest ruled line on the sheet, from the front mark out to W1 (the "1"/"2" pair)
+        f, w1 = P(*LDG_FRONT), P(*W1)
+        L.append(f'<path d="M{E.fmt(f[0])} {E.fmt(f[1])}L{E.fmt(w1[0])} {E.fmt(w1[1])}" fill="none" {self.stroke("LINE", t.ink)}/>')
         for wp in (W2, W3, W4, ANCH):
             x, y = P(*wp)
             M.append(self.use("waypoint", x, y))
@@ -525,14 +528,15 @@ class _Sheet:
             M.append(self.hollow_mark(kind, px, py))
             self.extra_excl.append((px - 12, py - 18, 24, 24))
         # lateral marks, Region B, returning heading ~290°–318°: starboard = north
-        legs = [(W0, W1), (W1, W2), (W2, W3), (W3, W4)]
+        # pairs 1/2 off the outer end of the leading line, 3/4 off the entrance: honest, irregular spacing
+        legs = [((W1, W2), 0.08, 26), ((W1, W2), 0.42, 24), ((W2, W3), 0.78, 24), ((W3, W4), 0.10, 26)]
         marks = [("can", 1, "URLS", "port", "Fl G 4s", 0.0),
                  ("nun", 2, "SCOUT", "starboard", "Fl R 4s", 2.0),
                  ("can", 3, "ANALYZE", "port", "Fl G 4s", 0.0),
                  ("nun", 4, "SUMMARIZE", "starboard", "Fl R 4s", 2.0)]
         self.mark_pts = []
-        for leg, (kind, num, stage, side, char, begin) in zip(legs, marks):
-            mx, my = c.lateral_offset(leg, 0.5, side, 24)
+        for (leg, frac, off), (kind, num, stage, side, char, begin) in zip(legs, marks):
+            mx, my = c.lateral_offset(leg, frac, side, off)
             self.mark_pts.append((mx, my))
             x, y = P(mx, my)
             M.append(self.use(kind, x, y))
@@ -542,8 +546,11 @@ class _Sheet:
                                       color=(core if self.night else None)))
             letter = "G" if kind == "can" else "R"
             if self.phone:
-                # after the rotation north (starboard) is to the LEFT of the channel, south to the right
-                if side == "starboard":
+                # after the rotation north (starboard) is to the LEFT of the channel, south to the right;
+                # R "4" lies under the mole's lee, so its label goes below the mark
+                if num == 4:
+                    M.append(self.txt(f'{letter} "{num}"', x, y + 28, "label-italic", anchor="middle"))
+                elif side == "starboard":
                     M.append(self.txt(f'{letter} "{num}"', x - 18, y + 2, "label-italic", anchor="end"))
                 else:
                     M.append(self.txt(f'{letter} "{num}"', x + 18, y + 2, "label-italic"))
@@ -557,11 +564,13 @@ class _Sheet:
         if not self.phone:
             b0 = c.compass_bearing(W0, W1)
             M.append(self.txt(f"{round(b0) % 360:03d}°", (W0[0] + W1[0]) / 2 + 16, (W0[1] + W1[1]) / 2 + 4, "label"))
-            M.append(self.txt(f"Health Ldg Lts {LDG_BRG:.0f}°", (W1[0] + W2[0]) / 2 + 4, (W1[1] + W2[1]) / 2 + 30, "label",
+            M.append(self.txt(f"Health Ldg Lts {LDG_BRG:.0f}°", (W1[0] + W2[0]) / 2 - 38, (W1[1] + W2[1]) / 2 - 57, "label",
                               anchor="middle"))
+            # the shoal is drawn from an illustrative field: its position is approximate
+            M.append(c.doubt("PA", SHOAL[0] + 30, SHOAL[1] - 2, self.lbl, PREFIX))
         else:
-            lx, ly = P((W2[0] + W3[0]) / 2, (W2[1] + W3[1]) / 2)
-            M.append(self.txt(f"Ldg {LDG_BRG:.0f}°", lx - 34, ly + 9, "label", anchor="end"))
+            lx, ly = P((W3[0] + W4[0]) / 2, (W3[1] + W4[1]) / 2)
+            M.append(self.txt(f"Ldg {LDG_BRG:.0f}°", lx + 24, ly + 9, "label"))
         # Grafana Lt on the headland, with its horn
         gx, gy = P(*GRAFANA)
         M.append(self.use("light", gx, gy))
@@ -585,14 +594,14 @@ class _Sheet:
         if self.phone:
             hx, hy = P(110, 206)
             M.append(self.txt("SCRAPY HARBOR", hx, hy, "title", anchor="middle"))
-            dx, dy = P(ANCH[0] - 40, ANCH[1] + 36)
+            dx, dy = P(ANCH[0] - 46, ANCH[1] + 30)
             M.append(self.txt("Delta Lake", dx, dy, "place-water", anchor="middle"))
             sx, sy = P(*SHOAL)
             M.append(self.txt("429 Shoal", sx, sy + 62, "place-water", anchor="middle"))
         else:
             M.append(self.txt("SCRAPY", 96, 300, "title", anchor="middle"))
             M.append(self.txt("HARBOR", 96, 332, "title", anchor="middle"))
-            M.append(self.txt("Delta Lake", ANCH[0], ANCH[1] + 44, "place-water", anchor="middle"))
+            M.append(self.txt("Delta Lake", ANCH[0] - 2, ANCH[1] + 30, "place-water", anchor="middle"))
             M.append(self.txt("429 Shoal", SHOAL[0], SHOAL[1] - 40, "place-water", anchor="middle"))
             M.append(self.txt("Local knowledge advised · see Notices 1–5", 232, 688, "label"))
             M.append(self.txt("proposed · unlit", (start[0] + W0[0]) / 2 + 4, (start[1] + W0[1]) / 2 + 30, "label-italic",
@@ -689,6 +698,8 @@ class _Sheet:
                     continue
                 if math.hypot(x - WRECK[0], y - WRECK[1]) < 28 or math.hypot(x - GRAFANA[0], y - GRAFANA[1]) < 40:
                     continue
+                if c.dist_to_polyline(x, y, [MOLE_A, MOLE_B]) < 22:
+                    continue
             if rx0 - 8 <= x <= rx1 + 8 and ry0 - 8 <= y <= ry1 + 8:
                 continue
             px, py = self.P(x, y)
@@ -746,62 +757,78 @@ class _Sheet:
             Pn.append(self.txt(f"{letter}  {names.get(letter, '')} · {ZONE_TEXT[letter]}", tx, y + 34 + i * 16, "label", within=ZOC))
         Pn.append(self.txt("A: as declared by the site.  B, C: as found.", tx, y + 78, "label", within=ZOC))
 
-    def draw_inset(self):
-        x, y, w, h = INSET
-        t = self.t
-        Pn = self.layers["panels"]
-        Pn.append(self.cartouche(x, y, w, h, "inset", shadow=True))
-        Pn.append(f'<path d="M{x} {y + h}L{W4[0] - 6} {W4[1] - 12}" fill="none" {self.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
-        Pn.append(self.header("INSET · THE HARBOUR WORKS", x + 10, y + 16, within=INSET))
-        ox, oy = x, y + 22          # content origin (u, v) → (ox + u, oy + v), 330 × 214
-        U = lambda u, v: (ox + u, oy + v)  # noqa: E731
-        Pn.append(f'<rect x="{x + 1}" y="{oy}" width="{w - 2}" height="{h - 23}" fill="{t.land}"/>')
-        # three basins: outer stage1_discovery (deepest, raw, open to seaward at the right edge), a sill,
-        # inner stage2_page_analysis, a sill, the dock stage4_summaries
-        outer = [(330, 58), (330, 150), (240, 160), (156, 156), (118, 134), (112, 100), (134, 68), (200, 54), (270, 48)]
-        inner = [(122, 128), (112, 110), (80, 112), (44, 120), (34, 142), (50, 164), (86, 172), (116, 160), (128, 146)]
-        dock = [(66, 118), (50, 108), (32, 92), (36, 70), (56, 60), (78, 66), (86, 86), (84, 108)]
-        for poly, fill in ((outer, t.paper), (inner, t.shallow_a), (dock, t.shallow_b)):
-            pts = [U(u, v) for u, v in poly]
-            Pn.append(f'<path d="{c.smooth_path(pts, True, 1)}" fill="{fill}" {self.stroke("LINE", t.ink2)}/>')
-        depth = {"stage1_discovery": (24, 4), "stage2_page_analysis": (8, 2), "stage4_summaries": (4, 1)}
-        truth = "illustrative"
-        if isinstance(self.trial, dict) and isinstance(self.trial.get("tables"), dict):
-            truth = "measured"
-            for name, tb in self.trial["tables"].items():
-                rows = int(tb.get("rows", 0))
-                depth[name] = (rows // 1000, (rows % 1000) // 100)
-        W = lambda s, avail, role="label": self.fit(s, role, avail)  # noqa: E731
-        Pn.append(self.snd(depth["stage1_discovery"][0], *U(224, 104), sub=depth["stage1_discovery"][1], truth=truth, role="label"))
-        Pn.append(self.txt(W("stage1_discovery", 150), *U(224, 122), "label", anchor="middle", within=INSET))
-        Pn.append(self.txt("Delta Lake", *U(224, 148), "place-water", anchor="middle"))
-        Pn.append(self.use("anchorage", *U(166, 100)))
-        Pn.append(self.snd(depth["stage2_page_analysis"][0], *U(82, 146), sub=depth["stage2_page_analysis"][1], truth=truth, role="label"))
-        Pn.append(self.txt(W("stage2_page_analysis", 150), *U(84, 198), "label", anchor="middle", within=INSET))
-        Pn.append(self.snd(depth["stage4_summaries"][0], *U(60, 92), sub=depth["stage4_summaries"][1], truth=truth, role="label"))
-        Pn.append(self.txt(W("stage4_summaries", 120), *U(10, 52), "label", within=INSET))
-        q = lambda u, v, pw, ph: (f'<rect x="{ox + u}" y="{oy + v}" width="{pw}" height="{ph}" fill="{t.paper}" '  # noqa: E731
-                                   f'{self.stroke("PEN", t.ink)}/>')
-        # the works on the land: Prometheus mast, PostgreSQL tanks, Grafana Lt tower (lantern on the main
-        # light's character) with its horn, Redis twin tanks, the traffic signal beside them, the BART shed
-        Pn.append(f'<path d="M{ox + 22} {oy + 32}V{oy + 8}M{ox + 18} {oy + 14}h8M{ox + 19} {oy + 21}h6" fill="none" {self.stroke("PEN", t.ink)}/>')
-        Pn.append(self.txt("Prometheus", *U(30, 30), "label", within=INSET))
-        Pn.append(q(104, 12, 14, 10) + q(104, 24, 14, 10))
-        Pn.append(self.txt(W("PostgreSQL · metrics", 120), *U(124, 30), "label", within=INSET))
-        tx0, ty0 = U(306, 56)
-        Pn.append(f'<path d="M{tx0 - 3} {ty0}L{tx0 - 2} {ty0 - 20}h4L{tx0 + 3} {ty0}Z" fill="{t.paper}" {self.stroke("PEN", t.ink)}/>')
-        Pn.append(self.use("light", tx0, ty0 - 23, scale=0.8))
-        Pn.append(self.light_group(tx0, ty0 - 23, "lt-grafana-inset", f"Fl {self.scrape}s" if self.scrape else "F", 0.0, r=1.3))
-        Pn.append(self.use("horn", tx0, ty0 - 23, scale=0.8))
-        Pn.append(self.txt("Grafana Lt", tx0 - 12, ty0 - 24, "label", anchor="end", within=INSET))
-        Pn.append(q(298, 166, 10, 10) + q(310, 166, 10, 10))
-        Pn.append(self.txt("Redis · queues", *U(292, 176), "label", anchor="end", within=INSET))
-        Pn.append(self.use("traffic", *U(312, 208)))
-        Pn.append(self.txt("Traffic Sig", *U(302, 208), "label", anchor="end", within=INSET))
-        Pn.append(q(150, 180, 24, 12))
-        Pn.append(self.txt(W("Summarization Wks", 110), *U(180, 192), "label", within=INSET))
-        Pn.append(self.use("ldg", *U(108, 62)) + self.use("ldg", *U(96, 56)))
-        self.exclude("inset", x - 4, y - 4, w + 14, h + 14)
+    def mole_cells(self):
+        """The WAL mole: (n−1)·6 + 8 blocks in two courses from the north headland root toward the mouth;
+        returns [(quad, k)] with k the fix index for the last eight (None for the ones already laid)."""
+        n_cells = (self.shards - 1) * 6 + 8
+        per_row = math.ceil(n_cells / 2)
+        ax, ay = MOLE_A
+        bx, by = MOLE_B
+        L = math.hypot(bx - ax, by - ay)
+        ux, uy = (bx - ax) / L, (by - ay) / L
+        nx, ny = -uy, ux
+        step = L / per_row
+        across = 5.2
+        out = []
+        for i in range(n_cells):
+            col, row = divmod(i, 2)
+            s0, s1 = col * step + 0.4, (col + 1) * step - 0.4
+            o = (row - 0.5) * across
+            quad = [(ax + ux * s0 + nx * (o - across / 2 + 0.3), ay + uy * s0 + ny * (o - across / 2 + 0.3)),
+                    (ax + ux * s1 + nx * (o - across / 2 + 0.3), ay + uy * s1 + ny * (o - across / 2 + 0.3)),
+                    (ax + ux * s1 + nx * (o + across / 2 - 0.3), ay + uy * s1 + ny * (o + across / 2 - 0.3)),
+                    (ax + ux * s0 + nx * (o + across / 2 - 0.3), ay + uy * s0 + ny * (o + across / 2 - 0.3))]
+            k = i - (n_cells - 8) if i >= n_cells - 8 else None
+            out.append((quad, k))
+        return out
+
+    def draw_harbour(self):
+        """The harbour works at chart scale: the WAL mole with its head light, quays named for the Delta
+        tables and the workers, the anchorage. Nothing here is an enlargement; it is the chart."""
+        t, P = self.t, self.P
+        M = self.layers["marks"]
+        # the mole: ink blocks, the last eight laid by the survey vessel's fixes
+        for quad, kidx in self.mole_cells():
+            pts = self.Ppts(quad)
+            d = "M" + "L".join(f"{E.fmt(x)} {E.fmt(y)}" for x, y in pts) + "Z"
+            cell = f'<path class="wal" d="{d}" fill="{t.ink}" fill-opacity=".82" {self.stroke("HAIR", t.ink, 0.7, caps="butt")}/>'
+            M.append(cell if kidx is None else self.tl.reveal(cell, 28.0 + 2 * kidx))
+        bx, by = MOLE_B
+        ax, ay = MOLE_A
+        L = math.hypot(bx - ax, by - ay)
+        hx, hy = bx + (bx - ax) / L * 9, by + (by - ay) / L * 9
+        lx, ly = P(hx, hy)
+        M.append(self.use("light", lx, ly, scale=0.8))
+        M.append(self.light_group(lx, ly, "lt-mole", "F", 0.0, r=1.3))
+        self.extra_excl.append((min(ax, bx) - 8, min(ay, by) - 10, abs(bx - ax) + 30, abs(by - ay) + 22))
+        if self.phone:
+            return
+        M.append(self.txt("write-ahead log · one cell per sounding", ax + 62, ay - 8, "label"))
+        q = lambda x, y, w, h: (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{t.paper}" '  # noqa: E731
+                                f'{self.stroke("PEN", t.ink)}/>')
+        # quays on the basin's shores, named for the three Delta tables; one sounding off each quay,
+        # the table's row count (÷1000, hundreds subscript) upright once stats.trial carries a run
+        M.append(q(146, 400, 18, 5) + self.txt("stage4_summaries", 42, 392, "label"))
+        M.append(q(196, 404, 5, 18) + self.txt("stage1_discovery", 158, 392, "label"))
+        M.append(q(146, 492, 18, 5) + self.txt("stage2_page_analysis", 36, 512, "label"))
+        depth = {"stage4_summaries": (150, 420), "stage1_discovery": (208, 440), "stage2_page_analysis": (150, 482)}
+        tables = (self.trial or {}).get("tables") if isinstance(self.trial, dict) else None
+        for name, (sx, sy) in depth.items():
+            if isinstance(tables, dict) and name in tables:
+                rows = int(tables[name].get("rows", 0))
+                M.append(self.snd(rows // 1000, sx, sy, sub=(rows % 1000) // 100, truth="measured", role="label",
+                                  key=f"rows_{name}"))
+            else:
+                M.append(self.snd(E.I(max(1.0, self.field.value(sx, sy))), sx, sy, truth="illustrative"))
+            self.extra_excl.append((sx - 12, sy - 12, 24, 16))
+        # the works on the land: Prometheus mast and Grafana's feed, Redis tanks with the traffic signal
+        # beside them, PostgreSQL tanks, the BART summarization shed
+        M.append(f'<path d="M58 372V346M54 352h8M55 359h6" fill="none" {self.stroke("PEN", t.ink)}/>')
+        M.append(self.txt("Prometheus", 66, 368, "label"))
+        M.append(q(160, 556, 10, 10) + q(172, 556, 10, 10) + self.txt("Redis · queues", 40, 566, "label"))
+        M.append(self.use("traffic", 196, 568) + self.txt("Traffic Sig", 40, 584, "label"))
+        M.append(q(160, 592, 14, 9) + q(160, 603, 14, 9) + self.txt("PostgreSQL · metrics", 40, 602, "label"))
+        M.append(q(160, 622, 26, 12) + self.txt("Summarization Wks", 40, 632, "label"))
 
     def note_line(self, parts, x, y, within, avail) -> str:
         """A notes line of (role, text) parts on one baseline (italic parts for quoted figures)."""
@@ -837,23 +864,13 @@ class _Sheet:
         ]
         for i, parts in enumerate(notes):
             Pn.append(self.note_line(parts, x + 16, y + 98 + i * 16, BLOCK_RM, avail))
-        # WAL tape: one cell per sounding; the last line's cells appear with the survey vessel's fixes
-        n_cells = (self.shards - 1) * 6 + 8
-        per_row, cw, ch, gap = 28, 8, 6, 2
-        tx, ty = x + 16, y + 186
-        rows = math.ceil(n_cells / per_row)
-        cells = []
-        for i in range(n_cells):
-            r, col = divmod(i, per_row)
-            cx, cy = tx + col * (cw + gap), ty + r * (ch + gap)
-            rect = (f'<rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" fill="{t.ink}" fill-opacity=".8" '
-                    f'{self.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
-            if i < n_cells - 8:
-                cells.append(rect)
-            else:
-                cells.append(self.tl.reveal(rect, 28.0 + 2 * (i - (n_cells - 8))))
-        Pn.append("".join(cells))
-        Pn.append(self.txt("write-ahead log · one cell per sounding", tx, ty + rows * (ch + gap) + 12, "label", within=BLOCK_RM))
+        # the WAL is charted as the mole; the block closes with the real wheel line from PyPI
+        wheels = self.edition_v.get("wheels") or []
+        if wheels:
+            tag = str(wheels[0]).replace("cp313-cp313-", "cp313 · ")
+            Pn.append(self.txt(self.fit(f"Wheel · {tag}", "label", avail), x + 16, y + 196, "label", within=BLOCK_RM,
+                               truth="measured", key="wheel"))
+            Pn.append(self.txt("elsewhere pip builds from source · needs rustc", x + 16, y + 212, "label", within=BLOCK_RM))
         # ---- Scrapy Harbor
         x, y, w, h = BLOCK_SH
         Pn.append(self.cartouche(x, y, w, h, "block-scrapy"))
@@ -997,10 +1014,10 @@ class _Sheet:
         self.draw_limit_and_zones()
         self.draw_survey_ground()
         self.draw_channel()
+        self.draw_harbour()
         self.draw_title_block()
         if not self.phone:
             self.draw_zoc()
-            self.draw_inset()
             self.draw_blocks()
             self.draw_legend()
         self.draw_frame()
