@@ -38,7 +38,7 @@ env:
 jobs:
   chart:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,6 +51,15 @@ jobs:
 
       - name: Install pinned requirements
         run: pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Playwright Chromium (render and perf tiers of check.py)
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
 
       - name: Unit tests
         run: python3 -m unittest discover -s tests

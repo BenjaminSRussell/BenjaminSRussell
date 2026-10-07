@@ -17,7 +17,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { chromium } = require('/opt/node-tools/node_modules/playwright');
+let pw;
+try { pw = require('/opt/node-tools/node_modules/playwright'); } catch { pw = require('playwright'); }
+const { chromium } = pw;
 
 const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const argv = process.argv.slice(2);

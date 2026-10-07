@@ -17,7 +17,9 @@
 // per repaint. Budget (7.3, binding): frozen 0 repaints after warm; hero ≤ 1/s; approaches ≤ 2/s; log ≤ 2/s;
 // footer raster+paint ≤ 4 ms/frame; nothing over 8 ms/frame while moving after its opening; hero-phone at
 // 360 px DPR 3 ≤ 0.25/s after 6 s. Chromium only until `playwright install` is permitted.
-const { chromium } = require('/opt/node-tools/node_modules/playwright');
+let pw;
+try { pw = require('/opt/node-tools/node_modules/playwright'); } catch { pw = require('playwright'); }
+const { chromium } = pw;
 const fs = require('fs'); const path = require('path'); const os = require('os');
 
 const args = process.argv.slice(2);

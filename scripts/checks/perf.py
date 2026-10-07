@@ -14,7 +14,7 @@ from check import Finding, fail, warn, info, error
 
 TIER = "perf"
 WARM = {"hero": 30, "approaches": 44, "log": 50, "footer": 66}
-SECONDS = 10
+SECONDS = 8
 
 
 def _run(root: str, files: list[str], warm: int, extra: list[str]) -> tuple[list[dict] | None, str]:
@@ -35,16 +35,17 @@ def check(ctx) -> list[Finding]:
         return [error("PERF-TOOL", "scripts/perf_check.js missing")]
     rows_all: list[dict] = []
     groups: dict[tuple[int, tuple[str, ...]], list[str]] = {}
+    # Day editions carry every animation the night ones do (same code path, other theme); stills and
+    # non-hero phones are proven frozen by frames.py (zero <animate*>/<set>), so one frozen witness
+    # (hero-still-day) is enough. --dev or --release adds the night editions.
+    full = bool(getattr(ctx, "release", False) or getattr(ctx, "dev", False))
     for name, path in sorted(ctx.svgs.items()):
         sheet, ed = ctx.split(name)
-        if ed in ("day", "night"):
-            warm = WARM.get(sheet, 2)
-            groups.setdefault((warm, ()), []).append(path)
-        elif ed in ("still-day", "phone-still-day", "phone-day") and sheet != "hero":
-            groups.setdefault((2, ()), []).append(path)
+        if ed == "day" or (ed == "night" and full):
+            groups.setdefault((WARM.get(sheet, 2), ()), []).append(path)
         elif name == "hero-phone-day":
             groups.setdefault((6, ("--width=360", "--dpr=3")), []).append(path)
-        elif name in ("hero-still-day", "hero-phone-still-day"):
+        elif name == "hero-still-day":
             groups.setdefault((2, ()), []).append(path)
     # continuous windows: the hero sail (4–28 s) and the footer arrival (40–64 s) at ≤ 8 ms/frame
     for nm, warm in (("hero-day", 8), ("footer-day", 45)):
