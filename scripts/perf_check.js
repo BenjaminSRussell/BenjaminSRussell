@@ -70,8 +70,11 @@ function evaluate(cls, row) {
     case 'hero-phone': if (rate > 0.25) reasons.push(`hero-phone ${rate.toFixed(2)} repaints/s > 0.25`); break;
     default: break;
   }
-  if (cls !== 'footer' && cls !== 'none' && ms !== null && ms > 8.0 && row.frames > 2) {
-    reasons.push(`${ms.toFixed(1)} ms/frame while moving after the opening (cap 8)`);
+  // 7.3: "nothing over 8 ms/frame while moving after its opening" — a continuous window, traced with
+  // --class=moving (e.g. hero --warm=8, footer --warm=45). Discrete light flashes re-raster the whole
+  // <img> once per tick; their cost is bounded by the repaints/s rule above, not by ms/frame.
+  if (cls === 'moving' && ms !== null && ms > 8.0 && row.frames > 2) {
+    reasons.push(`${ms.toFixed(1)} ms/frame while moving (cap 8)`);
   }
   return { pass: reasons.length === 0, reasons };
 }

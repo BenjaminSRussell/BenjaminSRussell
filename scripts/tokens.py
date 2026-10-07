@@ -35,7 +35,7 @@ THEMES: dict[str, Theme] = {
         edition="day",
         paper="#F4EEE1", paper_log="#F8EEDB", land="#E9DFCA",
         ink="#1B2A41", ink2="#34465F", muted="#56657B",
-        shallow_a="#CEE7F7", shallow_b="#AFDBF7",
+        shallow_a="#D8E7F1", shallow_b="#BEDAEC",
         accent="#D73626", ok="#227A48", flare="#C81392", light_core="#F8F5EE",
         hair="#CDC3AE", unsurveyed="#34465F",
     ),

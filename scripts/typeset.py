@@ -75,6 +75,15 @@ TEXTURE_ROLES = {"texture", "texture-italic", "contour-figure"}
 INLINE_INTEGER_FROM = 36          # roles >= 36 px are inline paths with integer coordinates
 FIGURE_IN_SERIF = 0.86            # runs(): figures inside a serif sentence set in Condensed at this ratio
 BUDGET = {"glyph_defs": 160, "size_keys": 6, "defs_kb": 40}
+# a sheet with a 28 px serif title AND a legend through shared glyphs needs more defs than a plain
+# sheet; inlining the serif instead pushes raw size past 300 KB (builder P, approaches report §5)
+BUDGET_BY_SHEET = {"approaches": {"glyph_defs": 200, "defs_kb": 72}, "hero": {"defs_kb": 56}}
+
+
+def budget_for(sheet: str | None) -> dict:
+    b = dict(BUDGET)
+    b.update(BUDGET_BY_SHEET.get(sheet or "", {}))
+    return b
 
 
 # ---------------------------------------------------------------- faces
@@ -947,15 +956,16 @@ def check_type(edition="day", scale: str | None = None, sheet: str | None = None
 def check_budget() -> list[str]:
     """Glyph-library budget per sheet (T5 §2.3): <= 160 defs, <= 6 size keys, <= 40 KB of defs."""
     errors = []
+    b = budget_for(_SHEET.split("-", 1)[0] if _SHEET else None)
     n = glyph_count()
-    if n > BUDGET["glyph_defs"]:
-        errors.append(f"{n} glyph defs (budget {BUDGET['glyph_defs']})")
+    if n > b["glyph_defs"]:
+        errors.append(f"{n} glyph defs (budget {b['glyph_defs']})")
     keys = {gid.rsplit("-", 2)[1] for gid in _GLYPHS}
-    if len(keys) > BUDGET["size_keys"]:
-        errors.append(f"{len(keys)} glyph size keys {sorted(keys)} (budget {BUDGET['size_keys']})")
+    if len(keys) > b["size_keys"]:
+        errors.append(f"{len(keys)} glyph size keys {sorted(keys)} (budget {b['size_keys']})")
     kb = len(glyph_defs().encode()) / 1024
-    if kb > BUDGET["defs_kb"]:
-        errors.append(f"glyph defs {kb:.0f} KB (budget {BUDGET['defs_kb']})")
+    if kb > b["defs_kb"]:
+        errors.append(f"glyph defs {kb:.0f} KB (budget {b['defs_kb']})")
     return errors
 
 

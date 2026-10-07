@@ -95,6 +95,29 @@ aliases = ["FashionDB Bank"]
 slot = "named"
 kind = "bank"
 
+# ----------------------------------------------------------------- claims (figures about the code, not about Ben)
+# measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
+[claims.scrape_interval]
+value = 15
+unit = "s"
+source = "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)"
+sha = "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"
+measured = true
+
+[claims.workers]
+value = "256–1024"
+unit = "permits"
+source = "Rust-sitemap:src/orchestration/governor.rs"
+sha = "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9"
+measured = false      # the repo README (32–512), PyPI (256) and the code disagree: never upright
+
+[claims.shards]
+value = "num_cpus"
+unit = "shards"
+source = "Rust-sitemap:src/lib.rs (num_cpus::get())"
+sha = "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9"
+measured = true
+
 # ----------------------------------------------------------------- sources
 # rustmapper's three seed sources; `first` is optional and left out until measured.
 [[sources]]

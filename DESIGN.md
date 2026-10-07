@@ -49,8 +49,8 @@ sheet at 95 s, and every frame at every instant must read as a finished sheet.
 | ink | `#1B2A41` | `#BBC5D1` | type, primary strokes |
 | ink2 | `#34465F` | `#8894A6` | secondary type, lines |
 | muted | `#56657B` | `#8A96A8` | captions |
-| shallow_a | `#CEE7F7` | `#10294A` | water under 10 |
-| shallow_b | `#AFDBF7` | `#123A5E` | water under 5 |
+| shallow_a | `#D8E7F1` | `#10294A` | water under 10 |
+| shallow_b | `#BEDAEC` | `#123A5E` | water under 5 |
 | accent | `#D73626` | `#FF6853` | red lateral marks |
 | ok | `#227A48` | `#45E499` | green lateral marks |
 | flare | `#C81392` | `#FF5ACD` | light flares and halos (chart magenta) |

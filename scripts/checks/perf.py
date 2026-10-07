@@ -46,6 +46,10 @@ def check(ctx) -> list[Finding]:
             groups.setdefault((6, ("--width=360", "--dpr=3")), []).append(path)
         elif name in ("hero-still-day", "hero-phone-still-day"):
             groups.setdefault((2, ()), []).append(path)
+    # continuous windows: the hero sail (4–28 s) and the footer arrival (40–64 s) at ≤ 8 ms/frame
+    for nm, warm in (("hero-day", 8), ("footer-day", 45)):
+        if nm in ctx.svgs:
+            groups.setdefault((warm, ("--class=moving",)), []).append(ctx.svgs[nm])
     for (warm, extra), files in groups.items():
         rows, err = _run(root, files, warm, list(extra))
         if rows is None:

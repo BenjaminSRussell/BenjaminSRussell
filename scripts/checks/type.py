@@ -64,7 +64,7 @@ def check_report(report: dict) -> list[str]:
             out.append(f"{name}: {err}")
         n = sheet.get("glyph_defs")
         if n is not None and n > typeset.BUDGET["glyph_defs"]:
-            out.append(f"{name}: {n} glyph defs (budget {typeset.BUDGET['glyph_defs']})")
+            out.append(f"{name}: {n} glyph defs (budget {typeset.budget_for(name.split('-', 1)[0])['glyph_defs']})")
     return out
 
 
