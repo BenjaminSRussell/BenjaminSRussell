@@ -8,11 +8,11 @@ panel's median (docs/crit/recrit/).
 
 | Gate | Rule | Result |
 |---|---|---|
-| check.py fast | xml, size, strings, position, expiry, type, motion, data, log, bounds, contrast, legend, alt, flash | _pending_ |
-| check.py render | still-frame gate (7.2), silhouettes | _pending_ |
-| check.py perf | repaint budget (7.3) | run 1 (before hero round 3): approaches 1.25/s · hero 1.0/s · log 2.0/s · footer 3.43 ms/frame · soundings, instruments, hero-still 0 · hero-phone **0.50/s (budget 0.25, fix in hero round 3)** · hero moving window 33 ms/frame (recorded, deviation 1) |
-| unit tests | `python3 -m unittest discover -s tests` | _pending_ |
-| determinism | two builds from one stats.json byte-identical | _pending_ |
+| check.py fast | xml, size, strings, position, expiry, type, motion, data, log, bounds, contrast, legend, alt, flash, readme | **pass, exit 2**: 0 fail · warnings = SIZE-TARGET on soundings/instruments/footer/approaches (hard caps hold), POSITION-EMPTY (Ben's line), 4 BOUNDS-TEXTURE (sounding density at the hero's harbour mouth) |
+| check.py render | still-frame gate (7.2), silhouettes | **pass**: every sampled frame ≥ 0.95 coverage after its opening (hero t=0 ≥ 0.6), ≤ 1.5 % changed outside the moving windows, no emptied ledger, stills carry zero animation elements; six silhouettes pairwise L1 ≥ 0.25 |
+| check.py perf | repaint budget (7.3) | **pass, exit 2** (final build): hero 1.0/s · approaches 1.375/s · log 2.0/s · footer 3.55–3.72 ms/frame (ambient) · hero-phone 0.25/s at 360 px DPR 3 · soundings, instruments, hero-still 0 repaints · hero moving window 35.7 ms/frame = deviation 1, warning |
+| unit tests | `python3 -m unittest discover -s tests` | **180 OK** |
+| determinism | two builds from one stats.json byte-identical | **38 of 38 files identical** |
 
 ## Measured deviations (recorded, not failed)
 
