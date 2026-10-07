@@ -65,19 +65,11 @@ Prefer: clear data contracts, boring operational paths, and tools that explain t
 A longer shelf — some sharp, some exploratory. Featured work stays above; this is the rest of the field.
 
 **Data & scrape**
-- [dealforge](https://github.com/BenjaminSRussell/dealforge) — deal intel + compose-backed API
 - [Elusive_trades_data](https://github.com/BenjaminSRussell/Elusive_trades_data) — trade-shaped datasets
 - [FashionDB](https://github.com/BenjaminSRussell/FashionDB) — structured fashion data
 - [Data-visualizer](https://github.com/BenjaminSRussell/Data-visualizer) — seeing the rows
 - [Data_science_dev](https://github.com/BenjaminSRussell/Data_science_dev) — notebooks & pipelines
 - [ideal-url-organizer](https://github.com/BenjaminSRussell/ideal-url-organizer) — URL hygiene
-- [car-datalake](https://github.com/BenjaminSRussell/car-datalake) — vehicle listing lake
-
-**Systems & agents**
-- [ollama-issue-bot](https://github.com/BenjaminSRussell/ollama-issue-bot) — local-LLM issue triage
-- [agent-coordination](https://github.com/BenjaminSRussell/agent-coordination) — multi-agent orchestration
-- [UConn_AI](https://github.com/BenjaminSRussell/UConn_AI) — RAG / ETL campus stack
-- [wardrobe-kingdom](https://github.com/BenjaminSRussell/wardrobe-kingdom) — wardrobe inventory UI
 
 **ML / local models**
 - [mlx_Qwen_data_entry](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen on MLX for entry work
@@ -87,9 +79,14 @@ A longer shelf — some sharp, some exploratory. Featured work stays above; this
 
 **Interface & play**
 - [3d-swift-globe-widget](https://github.com/BenjaminSRussell/3d-swift-globe-widget) · [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets)
-- [Wheel](https://github.com/BenjaminSRussell/Wheel) — interactive wheel UI
-- [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader) — course tooling
+- [game_engine](https://github.com/BenjaminSRussell/game_engine) · [cozy-game](https://github.com/BenjaminSRussell/cozy-game) · [Wheel](https://github.com/BenjaminSRussell/Wheel)
+- [go_go_go](https://github.com/BenjaminSRussell/go_go_go) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
 - [Spotify_to_apple_music](https://github.com/BenjaminSRussell/Spotify_to_apple_music)
+
+**Tools & systems**
+- [ggml-viz](https://github.com/BenjaminSRussell/ggml-viz) — ggml graph / tensor visualization
+- [Boxalarm-monorepo](https://github.com/BenjaminSRussell/Boxalarm-monorepo) — infra / UI / backend monorepo
+- [excel-and-vba](https://github.com/BenjaminSRussell/excel-and-vba) — spreadsheet automation
 
 </details>
 
