@@ -183,3 +183,114 @@ perf rows `perf-day.json`, `perf-phone.json`, `perf-phone16.json`, `perfvar/*.js
 4. Budgets met: 167.7/39 KB desk, 105/27 KB phone, ≤ 1311 elements, deterministic, `check_type`, motion lint, xml and strings checks clean.
 5. Deviations are lettering and clearance decisions forced by the 40 KB glyph budget and the real data (land names in condensed caps; slots and rows moved so soundings never dig a feature); each is listed in `BREAKS` and §4.
 6. Open for others: raise the hero glyph-defs budget or accept caps land names; the 8 ms/frame cap and the t = 0 coverage gate conflict with the plan's own timeline; three `[[features]]` names for chart.toml; the 512 test scope.
+
+---
+
+# Round 2 (orchestrator crit + addendum)
+
+Files changed: `scripts/sheets/hero.py`, `tests/test_hero.py` only. Rebuilt into scratch and `assets/v9/`
+(byte-identical, 0 runner problems). chart.toml's new `[[features]]` names are read from cfg
+("Game Engine I.", "Data Science Bank", "FashionDB Bank"; `kind = "bank"` reads as shoal, so FashionDB is now a
+bank/shoal although dormant — cfg wins, flagging it).
+
+## What changed, point by point
+
+1. **Bubble chart → coastlines.** Every feature is now its main kernel plus 3–6 sub-kernels from `_lobes()`:
+   positive lobes on a dominant side (land kinds) and negative dents on the lee side (all kinds), positions and
+   supports scaled by the current r, `Jitter(seed, "hero/lobes/<repo>")` (never by data), passed to
+   `Field.from_soundings(extra=…)` and re-generated inside the builder on every solve step. The harbour is exempt
+   (its bay is its character; lobes put the hull's stern on the coast). `solve_radii` measures the drawn 5-polygon
+   with the lobes in, so area ∝ commits still holds: desk ratios **0.972–1.061** (the 1.061 is an r 8 islet, grid-
+   limited; ≥ 10 px features all within ±3 %), drawn ratios 0.946–1.031, phone 0.984–1.029; the ±8 % assertion stays.
+   **10-contours generalised**: closed 10-rings shorter than 520 px (phone 280) are neither drawn nor tinted, so
+   the 10-line runs once around the working ground (Game Engine, the sounded bank, rustmapper, Data Science Bank)
+   and the small features carry tint B only. BREAKS entries "Lobed features", "Contours generalised".
+2. **The tube → a bank (option b + a).** The course threads between Game Engine I. (NW of the leg) and rustmapper
+   (SE) into the harbour; h_snd 36 (not 30) with the rows cycling −36/+18/−18/+36 ± 5 px jitter keyed by index.
+   Amplitudes stay solved (every printed figure is the field's own value: option c rejected). The zero weeks now
+   form one broad irregular shallow bank whose 10-line merges with the islands' shelf. Defended in BREAKS
+   ("Sounded bank softened, not smoothed"). Clearance rule raised to r + 78 (rows 36 + 5 + h 36) so a sounding
+   kernel never digs a feature's 5-ring; rustmapper slot → (1030, 516), min course clearance 78.7.
+3. **Composition.** The unslotted features are strung along a SW–NE arc (`ARC`, `_place_on_arc`: alternating
+   sides, offset r + 26 (+40 per lap), jitter by repo name, every candidate checked against drawable, exclusions
+   (margin r + 12), pairs (44, islets 30) and the course; Halton fallback — unused today). Reads: title NW,
+   archipelago rising SW → NE, harbour SE, working ground and band E. The phone has its own arc (`PHONE_ARC`).
+   All 21 placed on the desk, 15 on the phone (islets < 12 culled), none dropped.
+4. **Collisions.** Lettering positions are decided before the contour figures: `boxes` holds every sounding,
+   spot height and name; `contour_labels` takes them as exclusions; a name below that lands on a neighbour's disc
+   (rect-vs-disc test, inflated 1.15 r) or another box flips above, then left, then right; names never enter the
+   band. Land names: on the land for r ≥ 40 (17 px caps), offshore below the 5-ring for 16 ≤ r < 40, spot height
+   on the land; big shoals (Profile, Data Science Bank) carry name and height inside. Bearings sit 54 px off the
+   leg (outside the sounding rows), on the side and at the distance (54/66/78) that clears every box; 235° found
+   no clear place and is omitted (233°, 208°, 290° stand). "OCT 2025" lifts in 6 px steps until clear of the
+   sounding figures; PA moved to the west edge of the pecked outline; pencil note at (910,558). Rotated labels
+   are now anchored at their start so typeset's registry matches the drawing (see §needs). The new
+   `checks/bounds.py` reports **0 FAIL** on the hero (20 `BOUNDS-TEXTURE` warnings: the 52 soundings are dense in
+   the approach — data).
+5. **The boat.** Anchored in basin water: a third basin kernel (768,556,h 22, −0.5·base) under the berth, the bay
+   (779,557,h 30, −2.0·base) and the mouth (806,567,h 26, −0.66·base); the build asserts land at the harbour
+   centre and water at WP5 and at both hull ends. Detail sloop at **0.7** (`BOAT_SCALE`), hull/sails split and the
+   R/G marks unchanged.
+6. **512 upright** stays (measured commits, key `commits:game_engine`); chart number top-right kept.
+7. **Addendum — title and land static at t = 0.** Name, thesis, title block, imprint, captions, frame, rose, band,
+   land fill, coastlines, vignette, anchorage, coverage box, station and every feature name/height are present at
+   load with no animation; the water draws in: contours deep-first (draw_in 0.2 + 0.12·i), tints 1.0/1.3, danger
+   lines + PA + course 1.6, marks (with their lit cores) 1.6, soundings 1.4 + 0.04·k in course order (k = printed
+   index; phone 0.06), contour figures 1.4, rose settle 2.0, bearings/mark labels/fix dates/note 3.6, boat 4–28.
+   Opening cue still ends at 4.0; `continuous_windows` [[0.2, 28.0]] desk, [[0.2, 4.0]] phone. BREAKS entry
+   "Title and land static at t=0 (five-second test; 7.2 t=0 floor)". Still = t 95 s unchanged.
+   Thesis baseline moved 296 → 306 (phone 212/258 → 222/268) so its metric box clears the display box.
+
+## Gates (final)
+
+| gate | result |
+|---|---|
+| build_assets (8 editions) | 0 problems; scratch and assets/v9 byte-identical (cmp) |
+| checks/motion.py | 0 findings |
+| check.py --dev --tier fast (hero) | 0 FAIL; 20 WARN BOUNDS-TEXTURE (sounding density); other sheets' findings not mine |
+| tests | `tests.test_hero` 15/15 OK; full suite 178 tests OK |
+| perf hero-day (--warm 30 --seconds 10) | 1.0 repaints/s, 30.2 ms per repaint, cpu 3.2 %, **pass** |
+| perf hero-phone-day (360 px, DPR 3, --warm 6 --seconds 16) | 0.25 repaints/s, 12.3 ms, **pass** |
+| perf hero-still-day | 0 repaints, pass |
+| frames vs still (desk) | t 0: coverage **0.665**, t 0.5: 0.666, t 2: 0.993, t 4.1: 1.000, t 28.1: 1.000 (0.00 % changed), t 95: 1.000 |
+| frames vs still (phone) | t 0: 0.796, t 2: 1.001, t 4.1 / 28.1 / 95: 1.000 |
+
+Sizes: hero-day 163.5 / 38.9 KB, 1257 el; night 161.4 / 37.1; still-day 152.4 / 37.7 (1136 el); still-night
+150.4 / 35.9; phone-day 102.1 / 26.9 (602 el); phone-night 103.1 / 26.7; phone-still 97.4 / 98.4 KB. Glyph defs
+113 desk / 71 phone. Area: 21 features, ratios 0.972–1.061, drawn 0.946–1.031; bracket: 3 `unresolved` (rings
+under the grid), 0 field/polygon; 42 soundings printed.
+
+## Needs / notes for others (round 2)
+
+- **typeset (D)**: `_register()` rotates the run's box about `(x0, y)` — the run's *start* — while the drawn
+  `rotate(a x y)` is about the anchor point, so a middle-anchored rotated label is registered 0.5·width away
+  from where it is drawn (LIMIT OF SURVEY was logged 76 px west). Patch: in `_set()`, pass the anchor point to
+  `_register` and rotate about `(x, y)` instead of `(x0, y)`. I work around it by anchoring rotated labels at
+  their start (`up()` helper).
+- **checks/contrast.py**: reads `lights[].color` as the lit colour; the hero now reports the light core
+  (`#F8F5EE`) there and the buoy body under `body`.
+- **chart.toml**: FashionDB `kind = "bank"` makes a dormant repo a shoal; if the data rule should win, drop the
+  kind and keep the alias.
+- Sounding density in the approach (20 BOUNDS-TEXTURE warnings) is the 52-week series on a 348 px span; only a
+  longer course or fewer rows would thin it, both against decision 1 / MASTERPLAN 17.
+
+## PNGs inspected (round 2)
+
+`…/H/r2-still-day.png`, `r2-still-night.png`, `r2-phone-still-day.png`, `r2-phone-still-night.png`,
+`r2-still-day-2x.png`, `r2-crop-entrance-2x.png`, `r2-crop-archipelago-2x.png`, `r2-crop-rose-band-2x.png`,
+`r2-phone-360.png`, `frames/strip.png` + `frames/frame-{0,0p5,2,4p1,28p1,95}.png`, `frames-phone/strip.png`,
+`nosound/r2-still-day.png`.
+
+## Summary (round 2)
+
+1. Islands are lobed and dented by name-seeded sub-kernels, no two alike; the 10-line wanders once around the working ground; small features carry tint B only; area ∝ commits holds on the drawn polygons (±3 % for every feature over 10 px, all within ±8 %).
+2. The sounded bank threads between Game Engine I. and rustmapper into the harbour with h 36 and jittered rows — a shoal area, not a road — and the figures stay the field's own values.
+3. The small features sit on a SW–NE archipelago arc; all 21 charted; names on the land or offshore, bearings and labels clear of every box (bounds plug-in 0 FAIL, only sounding-density warnings).
+4. The sloop is 70 % and anchored in basin water asserted at both hull ends; R/G marks unchanged.
+5. Title, land, names and band are static at t = 0 (coverage 0.665 desk / 0.796 phone); only the water draws in; opening ends at 4.0; boat 4–28; still = t 95.
+6. All gates pass: 8 editions 0 problems and byte-identical, motion lint 0, perf 1.0 repaints/s desk / 0.25 phone, 178 tests OK; files 163.5/38.9 KB desk, 102.1/26.9 KB phone.
+
+Note for the orchestrator: `assets/build-report.json` is shared and `build_assets.py --sheets <one>` rewrites it
+with that sheet only; at hand-back it listed the footer's six entries (builder S's last run), so `check.py` flags
+the hero files REPORT-MISSING until a full `python3 scripts/build_assets.py` runs. The hero SVGs in `assets/v9/`
+are the final ones (byte-identical to the scratch set in `…/H/`, whose `build-report.json` carries the hero entries).
