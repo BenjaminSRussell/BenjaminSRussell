@@ -87,7 +87,7 @@ class Approaches(unittest.TestCase):
     def test_contract_and_alt(self):
         self.assertEqual(A.NAME, "approaches")
         self.assertEqual(A.KIND, "chart")
-        self.assertEqual(A.SIZES, {"desk": (1280, 960), "phone": (720, 1240)})
+        self.assertEqual(A.SIZES, {"desk": (1280, 960), "phone": (720, 1880)})
         self.assertTrue(A.BREAKS and all(len(b) == 3 for b in A.BREAKS))
         alt = A.alt(self.stats, self.cfg)
         self.assertLessEqual(len(alt.split()), 25, alt)
@@ -124,7 +124,8 @@ class Approaches(unittest.TestCase):
 
     # ------------------------------------------------------------- the legend
     def test_legend_defines_every_symbol_and_covers_every_use(self):
-        every = set(c.SYMBOL_NAMES)
+        every = set(c.SYMBOL_NAMES) - {"sloop", "sloop-glyph", "halo", "flare"}   # drawn things the legend plug-in allows
+        allow = {"sloop", "sloop-glyph", "halo", "flare"}
         for name, data in self.svgs.items():
             text = data.decode()
             used = set(USE_SYM_RE.findall(text))
@@ -133,10 +134,11 @@ class Approaches(unittest.TestCase):
             if "phone" not in name:
                 legend = set(e["legend"])
                 self.assertEqual(legend, every, name)                    # the page's single legend
-                self.assertTrue(used <= legend, (name, used - legend))   # legend ↔ sheet <use> diff is empty
+                self.assertTrue(used <= legend | allow, (name, used - legend - allow))   # legend ↔ sheet <use> diff
                 self.assertEqual(set(e["symbols_used"]), used, name)     # the report names every href
             else:
-                self.assertTrue(used <= every, (name, used - every))
+                self.assertTrue(used <= every | allow, (name, used - every - allow))
+                self.assertGreaterEqual(len(e["legend"]), 8, name)        # the phone carries its own compact legend
             # every symbol id a <use> points at is defined once in the file
             for sym in used:
                 self.assertEqual(text.count(f'id="approaches-c-sym-{sym}"'), 1, (name, sym))
@@ -182,6 +184,16 @@ class Approaches(unittest.TestCase):
             cm = [t for t in self.texts(name) if t.get("key") == "scrapy_commits"]
             self.assertEqual(cm[0]["s"], f"{scrapy['commits']:,}")
 
+    def test_legend_and_notes_at_17(self):
+        for name in ("day", "night"):
+            recs = self.texts(name)
+            legend = [r for r in recs if r["within"] == list(A.LEGEND) and r["role"] == "label"]
+            self.assertGreaterEqual(len(legend), 30, name)
+            self.assertTrue(all(r["size"] == A.PANEL_SIZE for r in legend), [(r["s"], r["size"]) for r in legend if r["size"] != A.PANEL_SIZE])
+            notes = [r for r in recs if r["within"] in (list(A.BLOCK_RM), list(A.BLOCK_SH)) and r["s"][:1].isdigit()]
+            self.assertGreaterEqual(len(notes), 11, name)
+            self.assertTrue(all(r["size"] == A.PANEL_SIZE for r in notes), name)
+
     def test_unit_line_once_and_one_label_caps(self):
         for name in ("day", "phone-day"):
             caps = [t for t in self.texts(name) if t["role"] == "label-caps"]
@@ -212,7 +224,8 @@ class Approaches(unittest.TestCase):
             self.assertEqual(m["continuous_windows"], [], name)        # nothing continuous on this sheet
             periods = {lp["period"] for lp in m["loops"]}
             self.assertTrue(periods <= set(float(p) for p in tokens.LOOP_PERIODS), periods)
-            self.assertIn(4.0, periods)                                # Fl 4s laterals
+            self.assertIn(4.0, periods)                                # Fl 4s outer pair
+            self.assertIn(10.0, periods)                               # Fl(2) 10s entrance gate
             self.assertIn(96.0, periods)                               # the packet boat's 96 s plot
             self.assertNotIn("animateMotion", text)
             self.assertNotIn("<pattern", text)
@@ -233,6 +246,8 @@ class Approaches(unittest.TestCase):
             g1 = re.search(r'id="approaches-lt-g1-fl"[^>]*begin="([\d.]+)s" dur="4s"', text)
             self.assertEqual(g1.group(1), "0")
             self.assertRegex(text, r'id="approaches-lt-grafana-fl"[^>]*dur="15s"')
+            self.assertRegex(text, r'id="approaches-lt-g3-fl"[^>]*dur="10s"')
+            self.assertRegex(text, r'id="approaches-lt-r4-fl"[^>]*dur="10s"')
 
     # ------------------------------------------------------------- chart grammar (T3 §10.3)
     def test_region_b_buoyage_on_a_290_leading_line(self):
@@ -253,7 +268,8 @@ class Approaches(unittest.TestCase):
                 self.assertLess(my, mid_y, "even reds north of a channel heading WNW")
         # the sheet says so in its labels
         s = "\n".join(t["s"] for t in self.texts("day"))
-        for lab in ('G "1" URLS', 'R "2" SCOUT', 'G "3" ANALYZE', 'R "4" SUMMARIZE', "Health Ldg Lts 290°", "Fl G 4s", "Fl R 4s"):
+        for lab in ('G "1" URLS', 'R "2" SCOUT', 'G "3" ANALYZE', 'R "4" SUMMARIZE', "Health Ldg Lts 290°", "Fl G 4s", "Fl R 4s",
+                    "Fl(2) G 10s", "Fl(2) R 10s"):
             self.assertIn(lab, s)
         self.assertIn("proposed · unlit", s)
 

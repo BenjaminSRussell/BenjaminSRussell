@@ -41,7 +41,7 @@ from chartlib.field import smoothstep  # noqa: E402
 
 NAME = "approaches"
 KIND = "chart"
-SIZES = {"desk": (1280, 960), "phone": (720, 1950)}
+SIZES = {"desk": (1280, 960), "phone": (720, 1880)}
 BREAKS: list[tuple[str, str, str]] = [
     ("Panel headers are set in role `label` with caps and +0.6 tracking, not `label-caps`",
      "the one `label-caps` run per sheet is the unit line outside the neat line; NOTES / ZONES OF CONFIDENCE / "
@@ -56,8 +56,9 @@ BREAKS: list[tuple[str, str, str]] = [
     ("No inset: the harbour works are charted at chart scale",
      "quays named for the Delta tables and workers on the basin's shores, the WAL as a block mole with a head light",
      "round-2 crit: an inset over the 10-contour was the loudest thing on the sheet; a chart puts the works where they are"),
-    ("Phone edition is rotated 90° anticlockwise, 720 × 1950, with neat-line rules at 26/31 and its own legend",
-     "point mapper P(x, y) → (47 + (y−20)·1.25, 140 + (1150−x)·1.25); the unsurveyed band is cropped to 54 px of desk",
+    ("Phone edition is rotated 90° anticlockwise, 720 × 1880, with neat-line rules at 50/55 and its own legend",
+     "point mapper P(x, y) → (55 + (y−20)·1.2, 180 + (1150−x)·1.2); the unsurveyed band is cropped to 54 px of desk; "
+     "the head and foot marginalia sit 24 px inside the sheet edge",
      "a phone sheet reads the channel down the screen (T3 §6); the README caption promises a legend on every width"),
 ]
 
@@ -66,7 +67,7 @@ SEED = 27
 
 # ------------------------------------------------------------------ geography (1280 × 960 desk space)
 W_DESK, H_DESK = SIZES["desk"]
-RULES = {"desk": (14, 19), "phone": (26, 31)}
+RULES = {"desk": (14, 19), "phone": (50, 55)}
 MAP_TOP, MAP_BOTTOM = 20, 520                 # the charted water; the strip (notes + legend) takes the rest
 _K = (MAP_BOTTOM - MAP_TOP) / 680.0           # the T3 geography (680 tall) compressed into 500
 
@@ -103,15 +104,15 @@ LIMIT_X = 1096
 BAND = (LIMIT_X, MAP_TOP, 1260 - LIMIT_X, MAP_BOTTOM - MAP_TOP)
 UNSURVEYED_FADE = (1080, 1150)
 ZONE_Y = {"A": _y(215), "B": _y(405), "C": _y(595)}
-REP, ED_, SD = (760, 150), (980, _y(480)), (846, _y(596))
+REP, ED_, SD = (760, 150), (980, _y(480)), (842, 417)   # SD sits on a lattice node of line 7
 # the WAL mole: from the north headland root toward the mouth, a light at its head
 MOLE_A, MOLE_B = (238, ANCH[1] - 34), (366, ANCH[1] - 10)
 
 # the strip: two notes blocks over a full-width legend
 STRIP_Y = 524
-BLOCK_RM = (36, STRIP_Y, 600, 200)
-BLOCK_SH = (644, STRIP_Y, 600, 200)
-LEGEND = (36, 730, 1208, 204)
+BLOCK_RM = (36, STRIP_Y, 600, 194)
+BLOCK_SH = (644, STRIP_Y, 600, 194)
+LEGEND = (36, 724, 1208, 212)
 TITLE_C = (470, 50)
 ZOC = (680, 26, 400, 86)
 PANEL_SIZE = 17                               # legend definitions and notes bodies (on SCALE)
@@ -125,9 +126,9 @@ ACRONYMS = {"CT LOGS": "CT logs", "SITEMAPS": "sitemaps", "COMMON CRAWL": "Commo
 ZONE_TEXT = {"A": "existence doubtful", "B": "exists, may not answer", "C": "as reported"}
 
 # phone mapper: rotate 90° anticlockwise, east to the top, north to the left; crop the band
-PH_S = 1.25
-PH_X0, PH_Y0, PH_CROP = 47, 140, 1150
-PH_LEGEND_Y = 1580
+PH_S = 1.2
+PH_X0, PH_Y0, PH_CROP = 55, 180, 1150
+PH_LEGEND_Y = 1556
 
 
 # ------------------------------------------------------------------ coast with per-side insets
@@ -373,10 +374,11 @@ class _Sheet:
         self.defs.append(f'<clipPath id="neat"><rect x="{E.fmt(mx)}" y="{E.fmt(my)}" width="{E.fmt(mw)}" height="{E.fmt(mh)}"/></clipPath>')
         W.append('<g clip-path="url(#neat)">')
         W.append(c.tint_bands(cs, t, levels=(10.0, 5.0)))
-        W.append(c.coastline(cs, t, swell=not self.night))
-        for poly in c.level_polygons(cs, 0.0):
-            if abs(c.polygon_area(poly)) > 4000:
-                W.append(c.coast_vignette(poly, t, jit, step=8.0))
+        W.append(c.coastline(cs, t, swell=not (self.night or self.phone)))
+        if not self.phone:                                   # the vignette is a desk texture (16 KB at phone scale)
+            for poly in c.level_polygons(cs, 0.0):
+                if abs(c.polygon_area(poly)) > 4000:
+                    W.append(c.coast_vignette(poly, t, jit, step=8.0))
         shoal_pt = self.P(*SHOAL)
         W.append(c.danger_lines(cs, 5.0, t, jit, inside=[shoal_pt]))
         op = 0.55 * (0.6 if self.night else 1.0)
@@ -528,11 +530,11 @@ class _Sheet:
             M.append(c.doubt("SD", sx + 10, sy, self.lbl, PREFIX))
             self.extra_excl.append((sx - 14, sy - 10, 48, 18))
             # pencil note with a leader to the Rep ring: between track lines 2 and 3
-            y2, y3 = segs[1][0][1], segs[2][0][1]
-            nx, ny = 712, E.I((y2 + y3) / 2 + 6)
+            y1, y2 = segs[0][0][1], segs[1][0][1]
+            nx, ny = 696, E.I((y1 + y2) / 2 + 6)
             self.note_pos = (nx, ny)
             M.append(self.txt("sitemap says yes; the lead says no", nx, ny, "note", fill=self.t.muted, rotate=-4, opacity=0.9))
-            M.append(f'<path d="M{nx - 4} {ny - 12}Q{nx - 2} {ny - 50} {REP[0] - 8} {REP[1] + 5}" fill="none" '
+            M.append(f'<path d="M{nx + 70} {ny - 16}Q{nx + 76} {ny - 32} {REP[0] - 8} {REP[1] + 6}" fill="none" '
                      f'{self.stroke("HAIR", self.t.muted, 0.8)}/>')
 
     def draw_channel(self):
@@ -587,6 +589,8 @@ class _Sheet:
                 # R "4" lies under the mole's lee, so its label goes below the mark
                 if num == 4:
                     M.append(self.txt(f'{letter} "{num}"', x, y + 28, "label-italic", anchor="middle"))
+                elif num == 1:                       # clear of the shoal's ring
+                    M.append(self.txt(f'{letter} "{num}"', x, y - 24, "label-italic", anchor="middle"))
                 elif side == "starboard":
                     M.append(self.txt(f'{letter} "{num}"', x - 18, y + 2, "label-italic", anchor="end"))
                 else:
@@ -604,7 +608,7 @@ class _Sheet:
             M.append(self.txt(f"Health Ldg Lts {LDG_BRG:.0f}°", (W1[0] + W2[0]) / 2 - 38, (W1[1] + W2[1]) / 2 - 57, "label",
                               anchor="middle"))
             # the shoal is drawn from an illustrative field: its position is approximate
-            M.append(c.doubt("PA", SHOAL[0] + 28, SHOAL[1] - 2, self.lbl, PREFIX))
+            M.append(c.doubt("PA", SHOAL[0] + 26, SHOAL[1] + 2, self.lbl, PREFIX))
         else:
             lx, ly = P((W3[0] + W4[0]) / 2, (W3[1] + W4[1]) / 2)
             M.append(self.txt(f"Ldg {LDG_BRG:.0f}°", lx + 24, ly + 9, "label"))
@@ -636,10 +640,10 @@ class _Sheet:
             sx, sy = P(*SHOAL)
             M.append(self.txt("429 Shoal", sx, sy + 60, "place-water", anchor="middle"))
         else:
-            M.append(self.txt("SCRAPY", 96, _y(300), "title", anchor="middle"))
-            M.append(self.txt("HARBOR", 96, _y(300) + 32, "title", anchor="middle"))
+            M.append(self.txt("SCRAPY", 96, _y(262), "title", anchor="middle"))
+            M.append(self.txt("HARBOR", 96, _y(262) + 32, "title", anchor="middle"))
             M.append(self.txt("Delta Lake", ANCH[0] - 2, ANCH[1] + 30, "place-water", anchor="middle"))
-            M.append(self.txt("429 Shoal", SHOAL[0], SHOAL[1] - 38, "place-water", anchor="middle"))
+            M.append(self.txt("429 Shoal", SHOAL[0] - 32, SHOAL[1] + 4, "place-water", anchor="end"))
             M.append(self.txt("Local knowledge advised · see Notices 1–5", 232, MAP_BOTTOM - 9, "label"))
             M.append(self.txt("proposed · unlit", (start[0] + W0[0]) / 2 + 4, (start[1] + W0[1]) / 2 + 30, "label-italic",
                               anchor="middle"))
@@ -781,12 +785,14 @@ class _Sheet:
             nx0, nx1 = self.note_pos[0] - 10, self.note_pos[0] + 206
             for li, seg in enumerate(self.track_segs[:-1]):
                 y = seg[0][1]
-                drop = {g.choice(range(6))} if li in (1, 2) else set()
+                drop = {g.choice(range(6))} if li in (0, 1) else set()
                 for j in range(6):
                     if j in drop:
                         continue
                     x = 722 + j * 60 + g.uniform(-9, 9)
-                    if li in (1, 2) and nx0 < x < nx1 and g.uniform(0, 1) < 0.5:
+                    if li in (0, 1) and nx0 < x < nx1 and g.uniform(0, 1) < 0.5:
+                        continue
+                    if math.hypot(x - SD[0], (y - 7) - SD[1]) < 30:        # the doubted sounding takes this node
                         continue
                     pts.append((round(x + g.uniform(-3, 3), 1), y - 7 + g.uniform(-1, 1), "survey"))
             g = self.jit.sub("snd")
@@ -854,9 +860,10 @@ class _Sheet:
             # open, centre-stacked, no box, no hatch behind it (the band starts below)
             x = 360
             M = self.layers["marks"]
-            M.append(self.txt("Approaches to Scrapy Harbor", x, 74, "title", anchor="middle"))
-            M.append(self.txt("Surveyed by rustmapper · Datum: main", x, 108, "label", anchor="middle"))
-            self.exclude("title", 40, 44, 640, 76)
+            M.append(self.txt("Approaches to Scrapy Harbor", x, 100, "title", anchor="middle"))
+            M.append(self.txt("Surveyed by rustmapper · Datum: main", x, 134, "label", anchor="middle"))
+            M.append(self.txt("IALA Region B · marks numbered from seaward", x, 166, "label", anchor="middle"))
+            self.exclude("title", 60, 70, 600, 104)
             return
         cx, cy = TITLE_C
         M = self.layers["panels"]
@@ -899,7 +906,7 @@ class _Sheet:
 
     def draw_blocks(self):
         Pn = self.layers["panels"]
-        pitch = 21
+        pitch = 18
         # ---- rustmapper
         x, y, w, h = BLOCK_RM
         avail = w - 32
@@ -923,7 +930,7 @@ class _Sheet:
         if wheels:
             tag = str(wheels[0]).replace("cp313-cp313-", "cp313 · ")
             Pn.append(self.body(self.fit(f"Wheel · {tag} · elsewhere pip builds from source", "label", avail, size=PANEL_SIZE),
-                                x + 16, y + 188, within=BLOCK_RM, truth="measured", key="wheel"))
+                                x + 16, y + 190, within=BLOCK_RM, truth="measured", key="wheel"))
         # ---- Scrapy Harbor
         x, y, w, h = BLOCK_SH
         Pn.append(self.cartouche(x, y, w, h, "block-scrapy"))
@@ -944,7 +951,7 @@ class _Sheet:
                  "5  Breakers wrap http · delta · redis",
                  "6  BART-large-CNN summaries on the worker"]
         for i, s in enumerate(notes):
-            Pn.append(self.body(self.fit(s, "label", avail, size=PANEL_SIZE), x + 16, y + 100 + i * (pitch - 3), within=BLOCK_SH))
+            Pn.append(self.body(self.fit(s, "label", avail, size=PANEL_SIZE), x + 16, y + 100 + i * pitch, within=BLOCK_SH))
 
     def legend_rows(self):
         """(draw(cx, cy, k), text) rows: every charted symbol id in chartlib.symbol_defs (vessels, halo and flare
@@ -977,14 +984,14 @@ class _Sheet:
             (sym("correction"), "Correction · revised"),
             (sym("rep"), "Rep · reported, not found"),
             (sym("ed"), "ED · existence doubtful"),
-            (lambda cx, cy, kk: self.txt("SD", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if kk > 1 else None),
+            (lambda cx, cy, kk: self.txt("SD", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "SD · sounding doubtful"),
-            (lambda cx, cy, kk: self.txt("PA", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if kk > 1 else None),
+            (lambda cx, cy, kk: self.txt("PA", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "PA · position approximate"),
-            (lambda cx, cy, kk: self.txt("A", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if kk > 1 else None)
+            (lambda cx, cy, kk: self.txt("A", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None)
              + f'<rect x="{E.fmt(cx - 8 * kk)}" y="{E.fmt(cy - 8 * kk)}" width="{E.fmt(16 * kk)}" height="{E.fmt(16 * kk)}" fill="none" {S("PEN", ink, 0.9, caps="butt")}/>',
              "Zone · seed source"),
-            (lambda cx, cy, kk: self.txt(f"{LDG_BRG:.0f}°", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if kk > 1 else None),
+            (lambda cx, cy, kk: self.txt(f"{LDG_BRG:.0f}°", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "Bearing · true"),
             (lambda cx, cy, kk: line(f"M{E.fmt(cx - 12 * kk)} {E.fmt(cy)}h{E.fmt(24 * kk)}", S("PEN", ink, 0.85, "COURSE")), "Course · lit channel"),
             (lambda cx, cy, kk: line(f"M{E.fmt(cx - 12 * kk)} {E.fmt(cy + 4 * kk)}h{E.fmt(24 * kk)}", S("PEN", ink, 0.7, "PECK", caps="butt"))
@@ -1024,7 +1031,7 @@ class _Sheet:
         per = math.ceil(len(rows) / ncol)
         col_w = (w - 28) / ncol
         avail = col_w - 54
-        y0, pitch = y + 70, 19
+        y0, pitch = y + 68, 19
         kk = 1.3
         for i, (draw, text) in enumerate(rows):
             ci, ri = divmod(i, per)
@@ -1037,12 +1044,13 @@ class _Sheet:
         """A compact legend of the symbols the phone sheet actually carries, below the chart."""
         t = self.t
         Pn = self.layers["panels"]
-        x, y, w = 40, PH_LEGEND_Y, 640
+        x, y, w = 55, PH_LEGEND_Y, 610
+        short = {"Rep · reported, not found": "Rep · not found", "Anchorage · Delta Lake": "Anchorage · Delta L."}
         Pn.append(self.txt("SYMBOLS", x, y + 26, "label", tracking=1.0))
-        Pn.append(self.txt("upright figures measured · sloping not", x + 140, y + 26, "label-italic"))
+        Pn.append(self.txt("upright figures measured · sloping not", x + 140, y + 26, "label"))
         rows = [r for r in self.legend_rows() if r[1].split(" ·")[0] in
-                ("G can", "R nun", "Light", "Ldg line", "Anchorage", "Wk", "Waypoint", "Fix", "Rep", "ED", "SD",
-                 "Danger line", "Track line", "Restricted", "Hatch", "Limit of survey")]
+                ("G can", "R nun", "Light", "Ldg line", "Anchorage", "Wk", "Rep", "ED", "SD",
+                 "Danger line", "Restricted", "Limit of survey")]
         per = math.ceil(len(rows) / 2)
         col_w = w / 2
         y0, pitch, kk = y + 70, 34, 1.9
@@ -1051,7 +1059,7 @@ class _Sheet:
             cx0 = x + ci * col_w
             cy = y0 + ri * pitch
             Pn.append(draw(cx0 + 24, cy - 8, kk))
-            Pn.append(self.txt(self.fit(text, "label", col_w - 70), cx0 + 62, cy, "label"))
+            Pn.append(self.txt(self.fit(short.get(text, text), "label", col_w - 58), cx0 + 56, cy, "label"))
         self.exclude("phone-legend", x - 4, y, w + 8, 70 + per * pitch)
 
     def lamps(self, cx, cy, kk=1.0) -> str:
@@ -1078,9 +1086,9 @@ class _Sheet:
         unit = self.cfg["copy"]["unit_approaches"]
         if self.phone:
             F.append(c.frame(self.w, self.h, t, "minute-bars", rules=self.rules))
-            Mg.append(self.txt(unit, 360, 21, "label-caps", anchor="middle", fill=t.ink))
-            Mg.append(self.txt(str(self.repo_count), 700, 21, "label", anchor="end", key="chart-number", truth="measured"))
-            Mg.append(self.txt(f"CHART NO. {self.repo_count} · SHEET 3", 26, self.h - 7, "label", key="folio"))
+            Mg.append(self.txt(unit, 340, 42, "label-caps", anchor="middle", fill=t.ink))
+            Mg.append(self.txt(str(self.repo_count), 670, 42, "label", anchor="end", key="chart-number", truth="measured"))
+            Mg.append(self.txt(f"CHART NO. {self.repo_count} · SHEET 3", 50, self.h - 14, "label", key="folio"))
             ax, ay = 70, self.P(0, 0)[1] - 30             # north arrow pointing left: the sheet is oriented to the channel
             Mg.append(f'<path d="M{ax + 44} {E.fmt(ay)}H{ax}M{ax + 12} {E.fmt(ay - 7)}L{ax} {E.fmt(ay)}L{ax + 12} {E.fmt(ay + 7)}" fill="none" {self.stroke("PEN", t.ink, 0.9)}/>')
             Mg.append(self.txt("N", ax + 56, ay + 9, "label"))

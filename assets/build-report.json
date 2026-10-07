@@ -11,17 +11,17 @@
  "sheets": {
   "hero-day": {
    "svg": "assets/v9/hero-day.svg",
-   "sha256": "b520badf4f5fb3ac76181fa89b4ab46fa321298067fb66c3b55dc36dd932e2be",
+   "sha256": "f77c396acc9dae2b8fbfa4d3f18f108005c3f6c24c5f7424038fe723c3533307",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 171400,
-   "gz": 42488,
-   "elements": 1201,
-   "paths": 222,
+   "bytes": 171232,
+   "gz": 42459,
+   "elements": 1200,
+   "paths": 221,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -1730,11 +1730,11 @@
     },
     {
      "s": "sitemap.xml lies again — see Sheet 3",
-     "x0": 908.4,
-     "x1": 1126.6,
-     "y": 558,
-     "y0": 518.8,
-     "y1": 563.2,
+     "x0": 698.4,
+     "x1": 916.6,
+     "y": 672,
+     "y0": 632.8,
+     "y1": 677.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -1793,11 +1793,11 @@
     },
     {
      "s": "208°",
-     "x0": 799.3,
-     "x1": 825.9,
-     "y": 498.2,
-     "y0": 488.8,
-     "y1": 501.1,
+     "x0": 905.5,
+     "x1": 932.1,
+     "y": 554.2,
+     "y0": 544.8,
+     "y1": 557.1,
      "size": 13,
      "font": "cond",
      "slant": "upright",
@@ -2369,9 +2369,9 @@
     },
     {
      "name": "text:sitemap.xml lies again — see Sheet 3",
-     "x": 908.4486520061898,
-     "y": 518.8485871619444,
-     "w": 218.15476874612932,
+     "x": 698.4486520061898,
+     "y": 632.8485871619444,
+     "w": 218.1547687461291,
      "h": 44.382131057205356
     },
     {
@@ -2390,8 +2390,8 @@
     },
     {
      "name": "text:208°",
-     "x": 799.327,
-     "y": 488.76304,
+     "x": 905.5269999999999,
+     "y": 544.76304,
      "w": 26.54600000000005,
      "h": 12.296960000000013
     },
@@ -2883,17 +2883,17 @@
   },
   "hero-night": {
    "svg": "assets/v9/hero-night.svg",
-   "sha256": "d79735d1ebca5efc1891db67146b65bd369df76970c33d106c093391fb4a855b",
+   "sha256": "d6a9a6607ca2a8843df3ca920d4200aaed46efb759260c3c70c1c85cd9e333f0",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 169042,
-   "gz": 40518,
-   "elements": 1201,
-   "paths": 221,
+   "bytes": 168874,
+   "gz": 40497,
+   "elements": 1200,
+   "paths": 220,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -4602,11 +4602,11 @@
     },
     {
      "s": "sitemap.xml lies again — see Sheet 3",
-     "x0": 908.4,
-     "x1": 1126.6,
-     "y": 558,
-     "y0": 518.8,
-     "y1": 563.2,
+     "x0": 698.4,
+     "x1": 916.6,
+     "y": 672,
+     "y0": 632.8,
+     "y1": 677.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -4665,11 +4665,11 @@
     },
     {
      "s": "208°",
-     "x0": 799.3,
-     "x1": 825.9,
-     "y": 498.2,
-     "y0": 488.8,
-     "y1": 501.1,
+     "x0": 905.5,
+     "x1": 932.1,
+     "y": 554.2,
+     "y0": 544.8,
+     "y1": 557.1,
      "size": 13,
      "font": "cond-light",
      "slant": "upright",
@@ -5241,9 +5241,9 @@
     },
     {
      "name": "text:sitemap.xml lies again — see Sheet 3",
-     "x": 908.4486520061898,
-     "y": 518.8485871619444,
-     "w": 218.15476874612932,
+     "x": 698.4486520061898,
+     "y": 632.8485871619444,
+     "w": 218.1547687461291,
      "h": 44.382131057205356
     },
     {
@@ -5262,8 +5262,8 @@
     },
     {
      "name": "text:208°",
-     "x": 799.3335000000001,
-     "y": 488.76304,
+     "x": 905.5335,
+     "y": 544.76304,
      "w": 26.533000000000015,
      "h": 12.296960000000013
     },
@@ -5755,17 +5755,17 @@
   },
   "hero-still-day": {
    "svg": "assets/v9/hero-still-day.svg",
-   "sha256": "c8be3d95433b3983a85c0563a4099f3adebb6a9b34eebe6aee39a8aae4808960",
+   "sha256": "ff1123386436711eb35958da40cc61cc0c35bd05ff14299bac03f6b4c84c30fd",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 165916,
-   "gz": 41216,
-   "elements": 1153,
-   "paths": 222,
+   "bytes": 165748,
+   "gz": 41187,
+   "elements": 1152,
+   "paths": 221,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -7474,11 +7474,11 @@
     },
     {
      "s": "sitemap.xml lies again — see Sheet 3",
-     "x0": 908.4,
-     "x1": 1126.6,
-     "y": 558,
-     "y0": 518.8,
-     "y1": 563.2,
+     "x0": 698.4,
+     "x1": 916.6,
+     "y": 672,
+     "y0": 632.8,
+     "y1": 677.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -7537,11 +7537,11 @@
     },
     {
      "s": "208°",
-     "x0": 799.3,
-     "x1": 825.9,
-     "y": 498.2,
-     "y0": 488.8,
-     "y1": 501.1,
+     "x0": 905.5,
+     "x1": 932.1,
+     "y": 554.2,
+     "y0": 544.8,
+     "y1": 557.1,
      "size": 13,
      "font": "cond",
      "slant": "upright",
@@ -8113,9 +8113,9 @@
     },
     {
      "name": "text:sitemap.xml lies again — see Sheet 3",
-     "x": 908.4486520061898,
-     "y": 518.8485871619444,
-     "w": 218.15476874612932,
+     "x": 698.4486520061898,
+     "y": 632.8485871619444,
+     "w": 218.1547687461291,
      "h": 44.382131057205356
     },
     {
@@ -8134,8 +8134,8 @@
     },
     {
      "name": "text:208°",
-     "x": 799.327,
-     "y": 488.76304,
+     "x": 905.5269999999999,
+     "y": 544.76304,
      "w": 26.54600000000005,
      "h": 12.296960000000013
     },
@@ -8623,17 +8623,17 @@
   },
   "hero-still-night": {
    "svg": "assets/v9/hero-still-night.svg",
-   "sha256": "3c50d2d096fc369ba3ffe62ab9f7c77f5e8aa3d01b1efc29c1133664d874c647",
+   "sha256": "78a4a822b655aa613fc7408a377052564dfbf4b63fb269f4dd19cc29b6ce5afc",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 163558,
-   "gz": 39271,
-   "elements": 1153,
-   "paths": 221,
+   "bytes": 163390,
+   "gz": 39249,
+   "elements": 1152,
+   "paths": 220,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -10342,11 +10342,11 @@
     },
     {
      "s": "sitemap.xml lies again — see Sheet 3",
-     "x0": 908.4,
-     "x1": 1126.6,
-     "y": 558,
-     "y0": 518.8,
-     "y1": 563.2,
+     "x0": 698.4,
+     "x1": 916.6,
+     "y": 672,
+     "y0": 632.8,
+     "y1": 677.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -10405,11 +10405,11 @@
     },
     {
      "s": "208°",
-     "x0": 799.3,
-     "x1": 825.9,
-     "y": 498.2,
-     "y0": 488.8,
-     "y1": 501.1,
+     "x0": 905.5,
+     "x1": 932.1,
+     "y": 554.2,
+     "y0": 544.8,
+     "y1": 557.1,
      "size": 13,
      "font": "cond-light",
      "slant": "upright",
@@ -10981,9 +10981,9 @@
     },
     {
      "name": "text:sitemap.xml lies again — see Sheet 3",
-     "x": 908.4486520061898,
-     "y": 518.8485871619444,
-     "w": 218.15476874612932,
+     "x": 698.4486520061898,
+     "y": 632.8485871619444,
+     "w": 218.1547687461291,
      "h": 44.382131057205356
     },
     {
@@ -11002,8 +11002,8 @@
     },
     {
      "name": "text:208°",
-     "x": 799.3335000000001,
-     "y": 488.76304,
+     "x": 905.5335,
+     "y": 544.76304,
      "w": 26.533000000000015,
      "h": 12.296960000000013
     },
@@ -11491,16 +11491,16 @@
   },
   "hero-phone-day": {
    "svg": "assets/v9/hero-phone-day.svg",
-   "sha256": "8ea069d5a8ce362458ef1754f35e288cfafda66cad1e1c7d0dad8ff50e2b79cb",
+   "sha256": "d9de7d5d929b35f9ea7c42022a6f9663a1ba68a45ffc83d387591cd652db2585",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 116532,
-   "gz": 31499,
-   "elements": 624,
+   "bytes": 115291,
+   "gz": 31378,
+   "elements": 598,
    "paths": 156,
    "breaks": [
     [
@@ -12734,7 +12734,6 @@
    "symbols_used": [
     "anchorage",
     "can",
-    "fix",
     "nun",
     "sloop-glyph",
     "station",
@@ -12791,7 +12790,7 @@
       4.0
      ]
     },
-    "anims": 29,
+    "anims": 18,
     "violations": []
    },
    "features": [
@@ -13054,16 +13053,16 @@
   },
   "hero-phone-night": {
    "svg": "assets/v9/hero-phone-night.svg",
-   "sha256": "8189cfe8d49564977c569084bcb8dab69862a6905b8ff4ac35596d86e91a51ae",
+   "sha256": "a0f253333397af78f8c5a7d8815d6bca68a5c4b54562602d424111c3f2f2d964",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 117417,
-   "gz": 31201,
-   "elements": 625,
+   "bytes": 116176,
+   "gz": 31081,
+   "elements": 599,
    "paths": 156,
    "breaks": [
     [
@@ -14297,7 +14296,6 @@
    "symbols_used": [
     "anchorage",
     "can",
-    "fix",
     "nun",
     "sloop-glyph",
     "station",
@@ -14354,7 +14352,7 @@
       4.0
      ]
     },
-    "anims": 29,
+    "anims": 18,
     "violations": []
    },
    "features": [
@@ -14617,16 +14615,16 @@
   },
   "hero-phone-still-day": {
    "svg": "assets/v9/hero-phone-still-day.svg",
-   "sha256": "78a592d8d14b3710208adac2d871033e24dd41490fba45d49c9ebbcb15924bed",
+   "sha256": "f12326c3de5a6fb77a09d546f410a02acdd0b0563bcb9fe3f1d87d330913b4d9",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 112699,
-   "gz": 30927,
-   "elements": 584,
+   "bytes": 112123,
+   "gz": 30848,
+   "elements": 569,
    "paths": 156,
    "breaks": [
     [
@@ -15860,7 +15858,6 @@
    "symbols_used": [
     "anchorage",
     "can",
-    "fix",
     "nun",
     "sloop-glyph",
     "station",
@@ -15917,7 +15914,7 @@
       4.0
      ]
     },
-    "anims": 24,
+    "anims": 13,
     "violations": []
    },
    "features": [
@@ -16180,16 +16177,16 @@
   },
   "hero-phone-still-night": {
    "svg": "assets/v9/hero-phone-still-night.svg",
-   "sha256": "7130e4e68e9422f023dba98ae543871e9dae7322cb19de733e52139ac2378b78",
+   "sha256": "4f1609ec545f7ccbd05437c8b135731432c8f993f54df528a0d23b7838ab6d08",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 113584,
-   "gz": 30610,
-   "elements": 585,
+   "bytes": 113008,
+   "gz": 30534,
+   "elements": 570,
    "paths": 156,
    "breaks": [
     [
@@ -17423,7 +17420,6 @@
    "symbols_used": [
     "anchorage",
     "can",
-    "fix",
     "nun",
     "sloop-glyph",
     "station",
@@ -17480,7 +17476,7 @@
       4.0
      ]
     },
-    "anims": 24,
+    "anims": 13,
     "violations": []
    },
    "features": [
