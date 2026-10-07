@@ -18,7 +18,7 @@ from check import Finding, fail, warn, info, error
 TIER = "render"
 BASE_T = [0, 0.5, 24, 48, 72, 95, 600]
 EVENTS = {"hero": [4.1, 28.1], "approaches": [28.1, 42.1], "log": [44.5, 48], "footer": [40.5, 64.1, 84.5]}
-HERO_RAMP = {0: 0.0, 0.5: 0.0, 2: 0.6}      # hero coverage floors before 4.1 s (7.2 lets it rise; §2.1 tints at 1.0/1.3)
+HERO_RAMP = {0: 0.6, 2: 0.7}                # hero coverage floors before 4.1 s: title, frame, land are static at t=0 (7.2)
 
 
 def _node(args: list[str], cwd: str, timeout=600) -> tuple[int, str, str]:
