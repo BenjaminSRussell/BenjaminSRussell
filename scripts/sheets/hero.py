@@ -25,6 +25,7 @@ import re
 
 import chartlib as c
 import edition as E
+from timeline import ease_inverse
 from tokens import INK
 
 NAME = "hero"
@@ -64,6 +65,13 @@ BREAKS: list[tuple[str, str, str]] = [
      "at load with no fade; only the water draws in (contours deep-first, tints, soundings in course order, danger "
      "lines, course, marks, bearings), then the boat sails 4–28 s; the opening still ends at 4.0 s",
      "orchestrator decision, round 2: a reader must never land on blank paper"),
+    ("Week figures surface as the boat passes (round 3)",
+     "the printed week soundings and the two dated fixes are discrete reveals on the 0.5 s grid between 4 and "
+     "28 s, in course order, the last landing as she anchors; zero weeks print one 0 per run; figures keep 28 px "
+     "apart (the rest remain kernels); still edition shows them all",
+     "the chart surveys itself: the lead goes down where the ship is"),
+    ("Marginalia moved (round 3)", "small corrections bottom-left, chart number top-right, folio folded into the "
+     "imprint line bottom-centre", "chart practice (13's re-crit); decision 27 put the folio bottom-left"),
     ("Lobed features", "each feature is its main kernel plus 3–6 lobes/dents, Jitter keyed by repo name, scaled by r",
      "no two islands share a silhouette; area ∝ commits is solved on the drawn 5-polygon, lobes included"),
 ]
@@ -100,7 +108,9 @@ TITLE_BOX = (70, 540, 540, 130)
 ROSE = (1000, 160, 72)
 ROSE_BOX = (920, 80, 160, 206)    # rings, numerals and the two VAR lines
 LIMIT_X = 1080
-BAND = (1080, 150, 200, 430)
+BAND = (1080, 24, 200, 692)       # neat line to neat line (round 3): the edge of the world, not a swatch
+SOUND_GAP = 28                    # printed week figures keep this apart (round 3); the rest stay kernels
+GENERALISE_20 = 200               # closed 20-rings shorter than this are not drawn
 UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X … LIMIT_X+70
 PA_SHIFT = (14, -10)
 NOTE_AT = (910, 558, -7)          # pencil note anchor and rotation
@@ -108,6 +118,7 @@ PHONE_S = 0.55
 PHONE_ORIGIN = (19, 300)          # where the desk drawable's corner lands on the phone sheet
 SAIL = (4.0, 24.0)                # begin, dur (MASTERPLAN 2.1: 4–28 s)
 BOAT_SCALE = 0.7                  # the detail sloop at anchor (round 2: chart vessels are small)
+LIGHT_R = 2.2                     # lit core radius (round 3: the hero's lanterns match sheet 3)
 
 LAND_KINDS = ("island", "harbour", "islet")
 
@@ -404,7 +415,7 @@ def build(ctx) -> str:
     if phone:
         rose_cx, rose_cy, rose_r = 600, 310, 56
         rose_box = (500, 210, 200, 202)   # N above the ring, the VAR line below, both inside
-        band = (E.I(limit_x), 412, w - E.I(limit_x), 228)
+        band = (E.I(limit_x), 412, w - E.I(limit_x), 300)
     else:
         rose_cx, rose_cy, rose_r = ROSE
         rose_box = ROSE_BOX
@@ -529,9 +540,35 @@ def build(ctx) -> str:
     spot_default = {f.name: (x, y) for f, x, y, _a in c.spot_heights(feats, cs, clearance=8 * s)}
     letter: dict[str, dict] = {}
     boxes: list[tuple] = []        # (x, y, w, h) of every placed run, for contour_labels and collisions
-    for (x, y, v) in sounds:       # the soundings come first: names and figures keep clear of them
-        if x < limit_x:
-            boxes.append((x - 10 * s, y - 4 * s, 20 * s, 10 * s))
+    # which week figures print (round 3): one per run of zero weeks, then a greedy SOUND_GAP spacing in
+    # course order; every week remains a kernel of the field whether or not its figure is printed
+    cand = []
+    i_ = 0
+    while i_ < len(values):
+        if values[i_] == 0:
+            j_ = i_
+            while j_ < len(values) and values[j_] == 0:
+                j_ += 1
+            cand.append((i_ + j_ - 1) // 2)
+            i_ = j_
+        else:
+            cand.append(i_)
+            i_ += 1
+    show: list[int] = []
+    for i_ in sorted(cand, key=lambda i: (-values[i], i)):      # the big weeks win the space (HW 358 first)
+        x, y, v = sounds[i_]
+        if x >= limit_x - 8 * s:
+            continue
+        fw = width(f"{v}{weeks[i_].get('days', '')}", "texture")
+        fb = (x - fw / 2 - 3 * s, y - 6 * s, fw + 6 * s, 12 * s)
+        # standard spacing: no figure within SOUND_GAP of another on its own line of soundings (|dy| < 10)
+        # and no two figure boxes touching; the culled weeks remain kernels of the field
+        if any((abs(y - sounds[j_][1]) < 10 * s and abs(x - sounds[j_][0]) < SOUND_GAP * s * 0.75) for j_ in show):
+            continue
+        if any(_boxes_overlap(fb, ob) for ob in boxes):
+            continue
+        show.append(i_)
+        boxes.append(fb)
     sz_h = 13 if not phone else 26
     for f in ranked:
         named = f.r >= name_min_r if phone_named is None else f.name in phone_named
@@ -548,26 +585,26 @@ def build(ctx) -> str:
         elif named and not land:
             hx, hy = f.x, f.y - 3 * s
         elif named and big:
-            hx, hy = f.x, f.y - 8 * s
+            hx, hy = (f.x, f.y - 8 * s) if not phone else (f.x, f.y - 0.84 * f.r - 8)
         name_pos = None
         if named:
             if f.kind == "harbour":
-                name_pos = ((f.x - f.r - 8, f.y + 8, "end") if phone else (f.x, f.y + 0.84 * f.r + 16, "middle"))
+                name_pos = (f.x, f.y + 0.84 * f.r + (16 if not phone else 26), "middle")
             elif land and big:
-                name_pos = (f.x, f.y + (16 if not phone else 26), "middle")
+                name_pos = (f.x, f.y + (16 if not phone else 12), "middle")   # on the land
             elif big_shoal:
                 name_pos = (f.x, f.y + (18 if not phone else 30), "middle")
             elif land:
                 name_pos = (f.x, f.y + 1.2 * f.r + (14 if not phone else 26), "middle")
             else:
                 name_pos = (f.x, f.y + f.r + (16 if not phone else 26), "middle")
-        role = "label" if land else "place-water"
+        role = ("label" if not phone else "place-land") if land else "place-water"
         size = (17 if (big and land and not phone) else None)
         hw = width(f"{f.value}{f.sub if f.sub is not None else ''}", "label")
         boxes.append((hx - hw / 2, hy - sz_h * 0.8, hw, sz_h))
         if name_pos:
-            nw = width(f.name.upper() if land else f.name, role, size=size,
-                       tracking=((1.0 if big else caps_track) if land else None))
+            nw = width(f.name.upper() if (land and not phone) else f.name, role, size=size,
+                       tracking=((1.0 if big else caps_track) if (land and not phone) else None))
             nh = (17 if not phone else 30)
             nx_, ny_, anc = name_pos
 
@@ -595,7 +632,7 @@ def build(ctx) -> str:
                 nx_ -= nb[0] + nb[2] - (band[0] - 6)
                 name_pos = (nx_, ny_, anc)
                 nb = box_at(nx_, ny_, anc)
-            if clashes(nb) and f.kind != "harbour" and (phone or not (land and big)) and not big_shoal:
+            if clashes(nb) and (phone or f.kind != "harbour") and (phone or not (land and big)) and not big_shoal:
                 above = f.y - (1.2 * f.r if land else f.r) - 6 * s
                 right = (f.x + 1.2 * f.r + 8 * s, f.y + 4 * s, "start")
                 left = (f.x - 1.2 * f.r - 8 * s, f.y + 4 * s, "end")
@@ -629,15 +666,18 @@ def build(ctx) -> str:
     def up(text, x, ymid, role, **kw):
         # a −90° label centred on ymid, anchored at its start: typeset registers rotated runs about the
         # start of the run, so a middle anchor would log the box 0.5·width away from where it is drawn
-        wdt = width(text.upper() if (kw.get("caps") or role == "label-caps") else text, "label",
-                    tracking=caps_track if (kw.get("caps") or role == "label-caps") else None)
+        caps_ = kw.get("caps") or role == "label-caps"
+        wdt = width(text.upper() if caps_ else text, "label" if role == "label-caps" else role,
+                    tracking=caps_track if caps_ else None)
         return lbl(text, x, ymid + wdt / 2, role, anchor="start", rotate=-90, **kw)
 
     band_labels = [up("UNSURVEYED", band[0] + band[2] * 0.6, band[1] + band[3] / 2, "label-caps")]
     if not phone:
         band_labels.append(up(limit_label, band[0] + 16, band[1] + band[3] / 2, "label", caps=True))
+        band_labels.append(up("soundings along the course: commits per week", band[0] + 34, band[1] + band[3] / 2,
+                              "label-italic", fill=theme.ink2))
     else:
-        band_labels.append(up("SMALL-SCALE", band[0] + 26, band[1] + band[3] / 2, "label", fill=theme.muted, caps=True))
+        pass
 
     # ---- tints (A 1.0, B 1.3), generalised: closed 10-rings under GENERALISE_10 are not tinted
     gen10 = GENERALISE_10[sc]
@@ -663,8 +703,9 @@ def build(ctx) -> str:
     body.append(tl.fade_in(fill_level(10.0, theme.shallow_a, gen10 * s), 1.0, 1.0, rise=0))
     body.append(tl.fade_in(fill_level(5.0, theme.shallow_b), 1.3, 1.0, rise=0))
     land_svg = [fill_level(0.0, theme.land), c.coastline(cs, theme)]
+    big_land = [f for f in feats if f.kind in LAND_KINDS and (f.r >= BIG_NAME_R * s or f.kind == "harbour")]
     for poly in c.level_polygons(cs, 0.0):
-        if abs(c.polygon_area(poly)) > 1500 * s * s:
+        if any(c.point_in_polygon(f.x, f.y, poly) for f in big_land):
             land_svg.append(c.coast_vignette(poly, theme, jit))
     water_svg = []
     shoal_pts = [(f.x, f.y) for f in feats if f.kind == "shoal"]
@@ -705,6 +746,8 @@ def build(ctx) -> str:
             sub = [q for q in cs if q.level == lv and ((q.length < 300 * s) == short)]
             if lv == 10.0:
                 sub = [q for q in sub if not (q.closed and ring_len(q.pts) < gen10 * s)]
+            if lv == 20.0:
+                sub = [q for q in sub if not (q.closed and ring_len(q.pts) < GENERALISE_20 * s)]
             if not sub:
                 continue
             svg = c.draw_contours(sub, INDEX, theme, approx_clip=approx_clip,
@@ -723,20 +766,33 @@ def build(ctx) -> str:
 
     # ---- soundings in course order (1.4 + 0.04·k); none printed in the band; opacity thins toward it
     printed = 0
-    thin = set()
-    if phone:
-        inner = [i for i, (x, y, v) in enumerate(sounds) if abs(rows[i % 4]) < 30 and x < limit_x]
-        thin = set(inner[::3]) if len(inner) > 12 else set(inner)
-    stagger = 0.04 if not phone else 0.06
-    for i, (x, y, v) in enumerate(sounds):
-        if x >= limit_x or (phone and i not in thin):
-            continue
-        ramp0 = geo.p(1000, 0)[0]
-        o = 0.75 if x <= ramp0 else max(0.40, 0.75 - 0.35 * (x - ramp0) / (limit_x - ramp0))
-        wk = weeks[i]
-        frag = snd(v, x, y + (4 if not phone else 6), truth="measured", key=f"week:{wk.get('start', i)}",
-                   fill=theme.ink2 if not night else theme.ink, opacity=round(o, 2))
-        body.append(tl.fade_in(frag, 1.4 + stagger * printed, 0.25, rise=0))   # course order; no rise (6 KB)
+    course_len = c.polyline_length(course)
+    cum = [0.0]
+    for a_, b_ in zip(course, course[1:]):
+        cum.append(cum[-1] + math.hypot(b_[0] - a_[0], b_[1] - a_[1]))
+
+    def pass_time(x, y) -> float:
+        """When the boat passes abeam of (x, y): arc fraction along the course through the sail's ease,
+        snapped to the 0.5 s grid inside [SAIL begin, SAIL end]."""
+        best, arc = math.inf, 0.0
+        for li_, (a_, b_) in enumerate(zip(course, course[1:])):
+            dx_, dy_ = b_[0] - a_[0], b_[1] - a_[1]
+            L2 = dx_ * dx_ + dy_ * dy_ or 1
+            t_ = max(0.0, min(1.0, ((x - a_[0]) * dx_ + (y - a_[1]) * dy_) / L2))
+            d_ = math.hypot(x - (a_[0] + t_ * dx_), y - (a_[1] + t_ * dy_))
+            if d_ < best:
+                best, arc = d_, cum[li_] + t_ * math.sqrt(L2)
+        u = arc / course_len if course_len else 0.0
+        t = SAIL[0] + SAIL[1] * ease_inverse("settle", u)
+        return min(SAIL[0] + SAIL[1], max(SAIL[0], tl.snap(t)))
+
+    phone_show = show if not phone else [i_ for k_, i_ in enumerate(show) if k_ % 2 == 0]
+    for i_ in sorted(phone_show):
+        x, y, v = sounds[i_]
+        wk = weeks[i_]
+        frag = snd(v, x, y + (4 if not phone else 6), sub=(wk.get("days") if v else None), truth="measured",
+                   key=f"week:{wk.get('start', i_)}", fill=theme.ink)
+        body.append(tl.reveal(frag, pass_time(x, y)))      # the lead goes down where the ship is
         printed += 1
     report["soundings_printed"] = printed
     figs = []
@@ -763,7 +819,7 @@ def build(ctx) -> str:
     if not phone:
         var_lines.append("AUTHOR'S LOCAL TIME")
     var_svg = "".join(lbl(t, rose_cx, rose_cy + rose_r + 30 + j * 16 * (1 if not phone else 2), "label", anchor="middle",
-                          fill=theme.muted, tracking=caps_track, truth="measured" if j == 0 else None,
+                          fill=theme.ink2, tracking=caps_track, truth="measured" if j == 0 else None,
                           key="variation" if j == 0 else None)
                       for j, t in enumerate(var_lines))
 
@@ -778,9 +834,11 @@ def build(ctx) -> str:
             parts.append(snd(f.value, hx, hy, sub=f.sub, role="label", truth="measured", key=f"commits:{f.alias}"))
         if L_["name"]:
             nx_, ny_, anc = L_["name"]
-            if L_["land"]:
+            if L_["land"] and not phone:
                 parts.append(lbl(f.name, nx_, ny_, "label", anchor=anc, caps=True, size=L_["size"],
-                                 tracking=(1.0 if L_["big"] and not phone else caps_track)))
+                                 tracking=(1.0 if L_["big"] else caps_track)))
+            elif L_["land"]:
+                parts.append(lbl(f.name, nx_, ny_, "place-land", anchor=anc))
             else:
                 parts.append(lbl(f.name, nx_, ny_, "place-water", anchor=anc))
         body.append("".join(parts))                       # names stand at t = 0 (round 2 addendum)
@@ -813,9 +871,9 @@ def build(ctx) -> str:
         ed_line = f"CHART NO. {N} · EDITION {ver}" + (f" · {_month(ed_date)}" if ed_date else "") + " · IALA REGION B"
         rows_t = [
             (560, f"THE OPEN WEB · FROM SURVEYS {first_year}–{upd_year}", "label", theme.ink, None, None),
-            (616, "SOUNDINGS IN COMMITS · DATUM: MAIN", "label", theme.muted, None, None),
-            (636, ed_line, "label", theme.muted, "measured", "chart-edition"),
-            (656, f"CORRECTED THROUGH NOTICE {notices_n}", "label", theme.muted, "measured", "notices"),
+            (616, "SOUNDINGS IN COMMITS · DATUM: MAIN", "label", theme.ink2, None, None),
+            (636, ed_line, "label", theme.ink2, "measured", "chart-edition"),
+            (656, f"CORRECTED THROUGH NOTICE {notices_n}", "label", theme.ink2, "measured", "notices"),
         ]
         for y, t, role, fill, truth, key in rows_t:
             block.append(lbl(t, bx, y, role, anchor="middle", fill=fill, caps=True, within=TITLE_BOX, truth=truth, key=key))
@@ -827,29 +885,28 @@ def build(ctx) -> str:
         for j, src in enumerate((data.get("sources") or [])[:3]):
             first = src.get("first")
             line = f"{src.get('letter', '?')}  {src.get('name', '')}" + (f" · {first[:4]}–" if first else "")
-            block.append(lbl(line, 470, 632 + 16 * j, "label", fill=theme.muted, caps=True, within=TITLE_BOX))
+            block.append(lbl(line, 470, 632 + 16 * j, "label", fill=theme.ink2, caps=True, within=TITLE_BOX))
         k.exclude("title-block", *TITLE_BOX)
         # outside the neat line: unit line (the one label-caps run), chart number, folio, imprint, small corrections
         block.append(lbl(unit_line, 640, 14, "label-caps", anchor="middle", fill=theme.ink, key="unit"))
         block.append(lbl(str(N), 1262, 14, "label", anchor="end", fill=theme.muted, truth="measured", key="chart-number"))
-        block.append(lbl(f"CHART NO. {N} · SHEET 1", 24, 735, "label-caps", fill=theme.muted, key="folio"))
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
-        imprint = f"Published at github.com/{login} · {_date(taken)} · superintendence: build_assets.py"
-        block.append(lbl(imprint, 600, 735, "label", anchor="middle", fill=theme.muted, caps=True))
+        imprint = (f"CHART NO. {N} · SHEET 1 · Published at github.com/{login} · {_date(taken)} · "
+                   f"superintendence: build_assets.py")
+        block.append(lbl(imprint, 1256, 735, "label-caps", anchor="end", fill=theme.ink2, key="folio"))
         corr = data.get("corrections") or {}
         if corr:
             yr = max(corr)
             nums = [str(e.get("n")) for e in corr[yr] if e.get("n") is not None][-5:]
             if nums:
-                block.append(lbl(f"Small corrections {yr} — {', '.join(nums)}", 1256, 735, "label", anchor="end",
-                                 fill=theme.muted, caps=True))
+                block.append(lbl(f"Small corrections {yr} — {', '.join(nums)}", 24, 735, "label", fill=theme.ink2, caps=True))
     else:
         bx = 360
         ver = edition_d.get("version") or "—"
         rows_t = [
             (770, f"THE OPEN WEB · FROM SURVEYS {first_year}–{upd_year}", "label", theme.ink, False, None, None),
-            (834, unit_line + " · DATUM: MAIN", "label-caps", theme.muted, True, None, None),
-            (866, f"CHART NO. {N} · EDITION {ver} · NOTICE {notices_n}", "label", theme.muted, False, "measured", "chart-edition"),
+            (834, unit_line + " · DATUM: MAIN", "label-caps", theme.ink2, True, None, None),
+            (866, f"CHART NO. {N} · EDITION {ver} · NOTICE {notices_n}", "label", theme.ink2, False, "measured", "chart-edition"),
         ]
         for y, t, role, fill, is_caps_role, truth, key in rows_t:
             if is_caps_role:
@@ -862,9 +919,10 @@ def build(ctx) -> str:
     block.append(var_svg)
     body.append("".join(block))                             # the title block is printed, not revealed
 
-    # ---- mark labels, fix labels, pencil notes, then bearings clear of all of them (3.6)
+    # ---- mark labels, fix labels, pencil notes, then bearings clear of all of them (by 1.5 s)
     late = []
     late_boxes: list[tuple] = []
+    fixes_svg: list[str] = []       # the dated fixes surface as the boat passes them (round 3)
 
     def late_text(text, x, y, role, anchor="start", rotate=0, **kw):
         """A late label, its box recorded so the bearings can keep clear of it."""
@@ -903,16 +961,16 @@ def build(ctx) -> str:
                     if not any(_boxes_overlap(fb, b) for b in boxes):
                         break
                     fy -= 6
-                late.append(late_text(_month(first), wp[0] - 14, fy, "label", fill=theme.ink2, truth="measured",
-                                      key=f"first:{f.alias}", anchor="end"))
+                fixes_svg.append(tl.reveal(late_text(_month(first), wp[0] - 14, fy, "label", fill=theme.ink2, truth="measured",
+                                                     key=f"first:{f.alias}", anchor="end"), pass_time(*wp)))
             else:
-                late.append(late_text(_month(first), wp[0] + 7, wp[1] - 10, "label", fill=theme.ink2, truth="measured",
-                                      key=f"first:{f.alias}"))
+                fixes_svg.append(tl.reveal(late_text(_month(first), wp[0] + 7, wp[1] - 10, "label", fill=theme.ink2,
+                                                     truth="measured", key=f"first:{f.alias}"), pass_time(*wp)))
     if not phone:
         nxp, nyp, rot = NOTE_AT
-        late.append(late_text("sitemap.xml lies again", nxp, nyp, "note", fill=theme.muted, rotate=rot))
+        late.append(late_text("sitemap.xml lies again — see Sheet 3", nxp, nyp, "note", fill=theme.muted, rotate=rot))
         if vessel_ground is not None:
-            nw = k.text_width("sitemap.xml lies again", "note", edition=ed, scale=sc)
+            nw = k.text_width("sitemap.xml lies again — see Sheet 3", "note", edition=ed, scale=sc)
             ex_, ey_ = nxp + nw * math.cos(math.radians(rot)) + 6, nyp + nw * math.sin(math.radians(rot)) - 4
             tx_ = vessel_ground.x + PA_SHIFT[0] - 0.72 * vessel_ground.r
             ty_ = vessel_ground.y + PA_SHIFT[1] + 0.72 * vessel_ground.r
@@ -958,13 +1016,14 @@ def build(ctx) -> str:
             late.append(late_text(text, round(bx_, 1), round(by_ + 4, 1), "label", anchor="middle", truth="measured",
                                   key="bearing"))
             break
-    body.append(tl.fade_in("".join(late), 3.6, 0.4, rise=0))
+    body.append(tl.fade_in("".join(late), 1.1, 0.4, rise=0))      # the proof layer is on the sheet by 1.5 s
+    body.append("".join(fixes_svg))
 
     # ---- lateral marks with their lights (lit from t = 0; G begins 0, R begins 2; one loop each)
     lights = []
     halo_r = 14 * ms if night else None
     for (pos, kind, lit_id, char, bg, top) in ((r2, "nun", "r2-lit", "Fl R 4s", 2.0, 16), (g1, "can", "g1-lit", "Fl G 4s", 0.0, 15)):
-        core = c.lit_core(pos[0], pos[1] - top * ms, theme, lit_id, r=1.5 * ms, halo_r=halo_r, prefix=prefix)
+        core = c.lit_core(pos[0], pos[1] - top * ms, theme, lit_id, r=LIGHT_R * ms, halo_r=halo_r, prefix=prefix)
         flash = tl.flash(char, begin=bg, still="lit", name=lit_id.replace("-lit", "-flash")) if not phone else ""
         body.append(tl.fade_in(use(kind, pos[0], pos[1], scale=ms) + f"<g>{flash}{core}</g>", 1.6, 0.65, rise=0))
         lights.append({"id": f"{NAME}-{lit_id}", "character": char, "color": theme.light_core,
