@@ -54,6 +54,10 @@ KERN_FIX: dict[str, dict[tuple[str, str], float]] = {
     "serif-italic": {
         ("r", "periodcentered"): 40, ("f", "periodcentered"): 134, ("v", "periodcentered"): -10,
         ("w", "periodcentered"): -12, ("y", "periodcentered"): -6, ("t", "periodcentered"): 24,
+        # the italic I overhangs its advance; across the narrow word space "I survey" set as "Isurvey"
+        # (type designer, re-crit 07): open the space after a capital I before a lowercase
+        ("I", "s"): 70, ("I", "a"): 70, ("I", "c"): 70, ("I", "w"): 70, ("I", "h"): 70, ("I", "d"): 70,
+        ("I", "k"): 70, ("I", "t"): 70, ("I", "b"): 70, ("I", "m"): 70, ("I", "r"): 70, ("I", "n"): 70,
     },
     "serif": {
         ("r", "periodcentered"): 28, ("f", "periodcentered"): 52, ("v", "periodcentered"): 36,

@@ -230,6 +230,22 @@ LICENSE_LINE = ("- **License.** Code MIT; sheets and copy CC BY 4.0; fonts under
                 "and run the workflow; the sheets redraw from your repositories.")
 
 
+LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
+                     "computed from the crawler's own settings, not yet measured; the day I record a real session "
+                     "this page sets them upright by itself.")
+LOG_LEDE_MEASURED = "One rustmapper run, recorded {when} on {host}, entered the way a log is kept."
+
+
+def log_lede_block(log: dict | None) -> str:
+    """The Ship's log lede: computed-consistent until a real session is recorded (reviewer 36)."""
+    log = log or {}
+    if log.get("measured"):
+        when = fmt_date((log.get("session") or {}).get("date") or log.get("date") or "")
+        host = (log.get("machine") or {}).get("host") or "one host"
+        return LOG_LEDE_MEASURED.format(when=when or "once", host=host)
+    return LOG_LEDE_COMPUTED
+
+
 def license_block(root: str = ROOT) -> str:
     have = all(os.path.exists(os.path.join(root, f)) for f in ("LICENSE", "LICENSE-ASSETS.md", "chart.toml"))
     return LICENSE_LINE if have else ""
@@ -301,12 +317,23 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "notices", notices_block(cfg, stats))
     text, _ = fill_block(text, "instruments", instruments_block(cfg, fittings))
     text, _ = fill_block(text, "license", license_block(root))
+    text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     for key in inline_keys(text):
         if key in figs:
             text, _ = fill_inline(text, key, figs[key])
         else:
             warnings.append(f"inline marker n:{key} has no figure; left as written")
     return text
+
+
+def _load_log(cfg: dict, root: str = ROOT) -> dict | None:
+    import json
+    path = os.path.join(root, (cfg.get("log") or {}).get("path", "assets/log.json"))
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
 
 
 def load(cfg_path: str = CFG, stats_path: str = STATS) -> tuple[dict, dict]:

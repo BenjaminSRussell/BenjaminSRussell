@@ -102,9 +102,11 @@ rustmapper export-sitemap --data-dir ./data --output sitemap.xml
 <br>
 
 <a name="log"></a>
-## Ship's log <sub><i>one run</i></sub>
+## Ship's log <sub><i>how a run is kept</i></sub>
 
-One rustmapper run, entered the way a log is kept.
+<!-- log_lede:start -->
+A rustmapper run as the log would record it, entered the way a log is kept. The figures are computed from the crawler's own settings, not yet measured; the day I record a real session this page sets them upright by itself.
+<!-- log_lede:end -->
 
 <!-- picture:log:start -->
 <picture>

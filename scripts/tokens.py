@@ -42,7 +42,7 @@ THEMES: dict[str, Theme] = {
     "night": Theme(
         edition="night",
         paper="#0F1A2B", paper_log="#121C30", land="#1F2730",
-        ink="#BBC5D1", ink2="#8894A6", muted="#8A96A8",
+        ink="#BBC5D1", ink2="#8894A6", muted="#98A7BF",
         shallow_a="#10294A", shallow_b="#123A5E",
         accent="#FF6853", ok="#45E499", flare="#FF5ACD", light_core="#F8F5EE",
         hair="#2A3A55", unsurveyed="#8894A6",
