@@ -38,7 +38,22 @@ art director 30, owner's advocate 28). No zero; J1, J2, J7, J10 all ≥ 2. The p
 the shared defects it found (README footer swallowed by the colophon, nine notices under "five principles",
 the computed log signed with initials, the harbour-mouth sounding cluster, 8 px legend and instruments type,
 the empty phone instruments sheet, the floating hatch) were fixed in the rounds that followed, and a second,
-smaller panel re-scores the final render below.
+smaller panel re-scored the final render.
+
+Round 2 (four of the eight critics on the final build; docs/crit/recrit2/):
+
+| Critic | round 1 | round 2 | J1 | J2 | J3 | J4 | J5 | J6 | J7 | J8 | J9 | J10 | J11 | J12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| owner's advocate (36) | 28 | **32** | 3 | 3 | 3 | 3 | 3 | 3 | 2 | 2 | 2 | 2 | 3 | 3 |
+| art director (28) | 30 | **34** | 3 | 3 | 3 | 3 | 2 | 3 | 2 | 3 | 3 | 3 | 3 | 3 |
+| mobile (10) | 28 | **35** | 3 | 3 | 3 | 2 | 3 | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| type designer (07) | 29 | **34** | 2 | 3 | 3 | 3 | 3 | 3 | 3 | 2 | 3 | 3 | 3 | 3 |
+| **median** | 29 | **34 / 36** | 3 | 3 | 3 | 3 | 3 | 3 | 2.5 | 2.5 | 3 | 3 | 3 | 3 |
+
+Pass: ≥ 30 with no zero and J1/J2/J7/J10 ≥ 2 — **met, 34 / 36**. What the second panel still lists is
+last-day polish (a crowded square inch at the hero's 208° junction, zeros read as stippling, two phone label
+collisions, footer fine print at 8–9 px, the thesis echoed three times in the Markdown); the hero items went
+to a final builder round, the rest are recorded here for the next design release.
 
 ## Five-second test
 
