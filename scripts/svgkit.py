@@ -9,7 +9,7 @@
 Everything here is re-exported from those modules; nothing is defined in this file, so there is
 nothing to merge. Each collaborator is imported inside try/except so the facade loads while a
 module is still being written (its names are then simply absent). The v8 kit the reference sheet
-uses is kept whole in `svgkit_v8` and reachable as `svgkit.v8`.
+(v8) was retired with the v8 sheets; git history keeps it.
 """
 from __future__ import annotations
 
@@ -46,12 +46,6 @@ try:
 except ImportError:  # pragma: no cover — E's module not present yet
     timeline = None  # type: ignore
 
-# the v8 kit, whole, for sheets/_v8_reference.py and chartlib_v8.py (old signatures, old themes)
-try:
-    import svgkit_v8 as v8  # noqa: E402,F401
-except ImportError:  # pragma: no cover
-    v8 = None  # type: ignore
-
 
 def _exports() -> list[str]:
     names = set(tokens.__dict__.keys()) & {
@@ -61,7 +55,7 @@ def _exports() -> list[str]:
     for mod in (typeset, timeline):
         if mod is not None:
             names |= set(getattr(mod, "__all__", ()) or (n for n in dir(mod) if not n.startswith("_")))
-    names |= {"tokens", "edition", "typeset", "timeline", "v8"}
+    names |= {"tokens", "edition", "typeset", "timeline"}
     return sorted(names)
 
 
