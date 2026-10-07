@@ -359,3 +359,44 @@ PNGs inspected: `…/H/r3-still-day.png`, `r3-still-night.png`, `r3-phone-still-
 4. Week figures and dated fixes surface as the boat passes them (discrete reveals 5–13.5 s); phone boat is one discrete step per 4 s, 0.25 repaints/s.
 5. Phone land names in the serif land role on the land, SMALL-SCALE inside the hatch, IALA line restored; secondary lines in ink2; lanterns enlarged.
 6. All gates pass (bounds 0 FAIL, 4 texture warnings; motion 0; perf desk 1.0/s, phone 0.25/s; hero tests OK); 167/41.5 KB desk, 113/30.6 KB phone.
+
+---
+
+# Round 4 (art director 34/36; type designer and mobile addenda)
+
+Files: `scripts/sheets/hero.py`, `tests/test_hero.py`. Built with a FULL `python3 scripts/build_assets.py`
+(38 files, 0 problems; the shared report now carries every sheet); scratch hero set byte-identical to assets/v9.
+
+1. **208° junction**: week figures are culled against the drawn pit outlines (every point of the drawn 20/50
+   contours is an exclusion for a figure's box, generalised rings excluded) and against every placed box; bearings
+   are placed last and avoid the figures, so neither ever overprints the other. Printed on the desk: 296₅ · 0 · 1₁ ·
+   0 · 17₁ · 358₁ (6); phone 2. The junction now carries 358₁ and 17₁ only; the rest of the 52 remain kernels.
+2. **Zeros**: at most one "0" per 60 px of course (`ZERO_GAP`) and none within 24 px of a non-zero figure
+   (`ZERO_CLEAR`); two print on the desk.
+3. **Phone**: "Scrapy Harbor" takes the left-adjacent lower candidate, clear of 265₅; "Data Science Bank" moves
+   below its ring when the name does not fit inside 1.5 r (it did not); week figures use the same cull (2 print,
+   none touching); the phone cartouche line 4 drops NOTICE so it reads "CHART NO. 21 · EDITION 0.1.3 · IALA REGION B"
+   inside the 24 px gutters.
+4. Phone band note "SMALL-SCALE EDITION" (a gloss "· see the desk chart" does not fit the 300 px band at 26 px);
+   desk "GAME ENGINE I." set at 13 px caps so "SCRAPY HARBOR" (17) leads the hierarchy.
+5. Bottom margin after the orchestrator's imprint rewording ("… under the superintendence of B. Russell · redrawn
+   nightly", 771 px): the folio and the small corrections share the left line "CHART NO. 21 · SHEET 1 · SMALL
+   CORRECTIONS 2026 — 169–173" (a range when the five numbers are consecutive, else the list), the imprint is
+   right-aligned; 71 px between them.
+
+Gates: full build 0 problems; `check.py --dev --tier fast` on the full build: 0 fail · 17 warn (none hero: no
+BOUNDS findings at all on the hero now) · exit 2; motion lint 0; tests 180 OK (hero 15/15; printed-figure floor
+lowered to 5 for the round-4 cull); perf hero-day 1.0 repaints/s, 28.7 ms, pass; hero-phone 360 px DPR 3 warm 6 /
+8 s: 0.25 repaints/s, 12.0 ms, pass; frames vs still t 0 0.672 · 1.5 0.996 · 4.1 0.998 · 8 0.999 · 28.1 1.000 ·
+95 1.000. Sizes: hero-day 164.0 / 40.7 KB (1168 el), night 161.7 / 38.8, still 158.9 / 39.5, phone 111.1 / 30.3
+(582 el), phone-still 108.0 / 29.8; glyph defs 125 desk / 89 phone.
+
+PNGs inspected: `…/H/r4-still-day.png`, `r4-still-night.png`, `r4-phone-still-day.png`, `r4-phone-still-night.png`,
+`r4-crop-entrance-2x.png`, `frames/strip.png` (0, 1.5, 4.1, 8, 28.1, 95).
+
+## Summary (round 4)
+
+1. The 208° junction is clear: week figures avoid every drawn outline, bearing and box; 358₁ and 17₁ stand there alone, and zeros print one per 60 px of course, clear of non-zero figures.
+2. Phone labels sit clear of their own soundings and rings; the cartouche line keeps its gutters; SMALL-SCALE EDITION glosses the band.
+3. SCRAPY HARBOR (17) leads GAME ENGINE I. (13); bottom margin: folio + corrections range left, imprint right.
+4. Full build 38 files 0 problems, hero byte-identical; fast tier 0 fail (no hero findings), motion 0, perf desk 1.0/s and phone 0.25/s, 180 tests OK.

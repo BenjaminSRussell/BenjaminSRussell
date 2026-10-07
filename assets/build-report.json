@@ -16,17 +16,17 @@
  "sheets": {
   "hero-day": {
    "svg": "assets/v9/hero-day.svg",
-   "sha256": "36a1cc788ee2497901e31fe0556bc973bf1c5b2dc3c9bfd020c2baa9b88fa62e",
+   "sha256": "5f00af98eb474b365fc83c1aa0e78b02d4d499d8c9fcf27c1b6f20e7049b339f",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 172076,
-   "gz": 42541,
-   "elements": 1217,
-   "paths": 220,
+   "bytes": 167932,
+   "gz": 41670,
+   "elements": 1168,
+   "paths": 209,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -182,27 +182,6 @@
      "tracking": 0.0
     },
     {
-     "s": "3₃",
-     "x0": 1052.3,
-     "x1": 1061.7,
-     "y": 316,
-     "y0": 308.0,
-     "y1": 318.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "296₅",
      "x0": 1042.3,
      "x1": 1063.7,
@@ -300,90 +279,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15₂",
-     "x0": 915.3,
-     "x1": 930.7,
-     "y": 483,
-     "y0": 475.0,
-     "y1": 485.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "108₄",
-     "x0": 900.3,
-     "x1": 921.7,
-     "y": 496,
-     "y0": 488.0,
-     "y1": 498.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "37₂",
-     "x0": 849.3,
-     "x1": 864.7,
-     "y": 475,
-     "y0": 467.0,
-     "y1": 477.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-07",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 904.3,
-     "x1": 925.7,
-     "y": 513,
-     "y0": 505.0,
-     "y1": 515.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -603,12 +498,12 @@
     },
     {
      "s": "GAME ENGINE I.",
-     "x0": 753.6,
-     "x1": 878.4,
+     "x0": 769.0,
+     "x1": 863.0,
      "y": 360,
-     "y0": 347.7,
-     "y1": 363.7,
-     "size": 17,
+     "y0": 350.6,
+     "y1": 362.9,
+     "size": 13,
      "font": "cond",
      "slant": "upright",
      "role": "label",
@@ -620,7 +515,7 @@
      "semantic": true,
      "within": null,
      "tracked_spaces": 0,
-     "tracking": 1.0
+     "tracking": 0.6
     },
     {
      "s": "308₄",
@@ -1608,30 +1503,9 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x0": 338.5,
+     "s": "PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 484.9,
      "x1": 1256.0,
-     "y": 735,
-     "y0": 725.6,
-     "y1": 737.9,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label-caps",
-     "tier": "semantic",
-     "truth": null,
-     "key": "folio",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.6
-    },
-    {
-     "s": "SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
-     "x0": 24,
-     "x1": 335.0,
      "y": 735,
      "y0": 725.6,
      "y1": 737.9,
@@ -1642,6 +1516,27 @@
      "tier": "semantic",
      "truth": null,
      "key": null,
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.6
+    },
+    {
+     "s": "CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
+     "x0": 24,
+     "x1": 396.4,
+     "y": 735,
+     "y0": 725.6,
+     "y1": 737.9,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label-caps",
+     "tier": "semantic",
+     "truth": null,
+     "key": "folio",
      "rot": 0,
      "origin": "text_use",
      "semantic": true,
@@ -1869,13 +1764,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:3₃",
-     "x": 1052.27,
-     "y": 308.01488,
-     "w": 9.460000000000036,
-     "h": 10.40512000000001
-    },
-    {
      "name": "text:296₅",
      "x": 1042.33,
      "y": 325.01488,
@@ -1909,34 +1797,6 @@
      "y": 441.01488,
      "w": 15.399999999999977,
      "h": 10.40512000000001
-    },
-    {
-     "name": "text:15₂",
-     "x": 915.3,
-     "y": 475.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:108₄",
-     "x": 900.33,
-     "y": 488.01488,
-     "w": 21.340000000000032,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:37₂",
-     "x": 849.3,
-     "y": 467.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:146₄",
-     "x": 904.33,
-     "y": 505.01488,
-     "w": 21.340000000000032,
-     "h": 10.405119999999954
     },
     {
      "name": "text:358₁",
@@ -2010,10 +1870,10 @@
     },
     {
      "name": "text:GAME ENGINE I.",
-     "x": 753.6065,
-     "y": 347.65936,
-     "w": 124.78700000000003,
-     "h": 16.080640000000017
+     "x": 769.0285,
+     "y": 350.56304,
+     "w": 93.94299999999998,
+     "h": 12.296960000000013
     },
     {
      "name": "text:308₄",
@@ -2331,17 +2191,17 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x": 338.5380000000001,
+     "name": "text:PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 484.92700000000013,
      "y": 725.56304,
-     "w": 917.4619999999999,
+     "w": 771.0729999999999,
      "h": 12.296960000000013
     },
     {
-     "name": "text:SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
+     "name": "text:CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
      "x": 24,
      "y": 725.56304,
-     "w": 311.00899999999996,
+     "w": 372.36199999999997,
      "h": 12.296960000000013
     },
     {
@@ -2512,7 +2372,7 @@
       4.0
      ]
     },
-    "anims": 36,
+    "anims": 31,
     "violations": []
    },
    "features": [
@@ -2814,7 +2674,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 136,
+   "glyph_defs": 125,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -2874,7 +2734,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 6,
     "culled": 0,
     "sail": {
      "begin": 4.0,
@@ -2888,17 +2748,17 @@
   },
   "hero-night": {
    "svg": "assets/v9/hero-night.svg",
-   "sha256": "bc28d1d9c1477056e9b88250424ed72f5f7c34081d6932a8bc486ee1c25c92d6",
+   "sha256": "92d7551c410c74cfa9f1c7f6119ac1f4854c97198f9181334a9d9ced27395c92",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 169795,
-   "gz": 40577,
-   "elements": 1217,
-   "paths": 219,
+   "bytes": 165531,
+   "gz": 39766,
+   "elements": 1168,
+   "paths": 208,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -3054,27 +2914,6 @@
      "tracking": 0.0
     },
     {
-     "s": "3₃",
-     "x0": 1052.3,
-     "x1": 1061.7,
-     "y": 316,
-     "y0": 308.0,
-     "y1": 318.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "296₅",
      "x0": 1042.3,
      "x1": 1063.7,
@@ -3172,90 +3011,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15₂",
-     "x0": 915.3,
-     "x1": 930.7,
-     "y": 483,
-     "y0": 475.0,
-     "y1": 485.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "108₄",
-     "x0": 900.3,
-     "x1": 921.7,
-     "y": 496,
-     "y0": 488.0,
-     "y1": 498.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "37₂",
-     "x0": 849.3,
-     "x1": 864.7,
-     "y": 475,
-     "y0": 467.0,
-     "y1": 477.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-07",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 904.3,
-     "x1": 925.7,
-     "y": 513,
-     "y0": 505.0,
-     "y1": 515.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -3475,12 +3230,12 @@
     },
     {
      "s": "GAME ENGINE I.",
-     "x0": 754.5,
-     "x1": 877.5,
+     "x0": 769.7,
+     "x1": 862.3,
      "y": 360,
-     "y0": 347.7,
-     "y1": 363.7,
-     "size": 17,
+     "y0": 350.6,
+     "y1": 362.9,
+     "size": 13,
      "font": "cond-light",
      "slant": "upright",
      "role": "label",
@@ -3492,7 +3247,7 @@
      "semantic": true,
      "within": null,
      "tracked_spaces": 0,
-     "tracking": 1.0
+     "tracking": 0.6
     },
     {
      "s": "308₄",
@@ -4480,30 +4235,9 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x0": 350.2,
+     "s": "PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 495.0,
      "x1": 1256.0,
-     "y": 735,
-     "y0": 725.6,
-     "y1": 737.9,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label-caps",
-     "tier": "semantic",
-     "truth": null,
-     "key": "folio",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.6
-    },
-    {
-     "s": "SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
-     "x0": 24,
-     "x1": 332.7,
      "y": 735,
      "y0": 725.6,
      "y1": 737.9,
@@ -4514,6 +4248,27 @@
      "tier": "semantic",
      "truth": null,
      "key": null,
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.6
+    },
+    {
+     "s": "CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
+     "x0": 24,
+     "x1": 393.1,
+     "y": 735,
+     "y0": 725.6,
+     "y1": 737.9,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label-caps",
+     "tier": "semantic",
+     "truth": null,
+     "key": "folio",
      "rot": 0,
      "origin": "text_use",
      "semantic": true,
@@ -4741,13 +4496,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:3₃",
-     "x": 1052.27,
-     "y": 308.01488,
-     "w": 9.460000000000036,
-     "h": 10.40512000000001
-    },
-    {
      "name": "text:296₅",
      "x": 1042.33,
      "y": 325.01488,
@@ -4781,34 +4529,6 @@
      "y": 441.01488,
      "w": 15.399999999999977,
      "h": 10.40512000000001
-    },
-    {
-     "name": "text:15₂",
-     "x": 915.3,
-     "y": 475.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:108₄",
-     "x": 900.33,
-     "y": 488.01488,
-     "w": 21.340000000000032,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:37₂",
-     "x": 849.3,
-     "y": 467.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:146₄",
-     "x": 904.33,
-     "y": 505.01488,
-     "w": 21.340000000000032,
-     "h": 10.405119999999954
     },
     {
      "name": "text:358₁",
@@ -4882,10 +4602,10 @@
     },
     {
      "name": "text:GAME ENGINE I.",
-     "x": 754.516,
-     "y": 347.65936,
-     "w": 122.96799999999996,
-     "h": 16.080640000000017
+     "x": 769.724,
+     "y": 350.56304,
+     "w": 92.55200000000002,
+     "h": 12.296960000000013
     },
     {
      "name": "text:308₄",
@@ -5203,17 +4923,17 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x": 350.1600000000001,
+     "name": "text:PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 494.9630000000001,
      "y": 725.56304,
-     "w": 905.8399999999999,
+     "w": 761.0369999999999,
      "h": 12.296960000000013
     },
     {
-     "name": "text:SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
+     "name": "text:CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
      "x": 24,
      "y": 725.56304,
-     "w": 308.70799999999997,
+     "w": 369.099,
      "h": 12.296960000000013
     },
     {
@@ -5384,7 +5104,7 @@
       4.0
      ]
     },
-    "anims": 36,
+    "anims": 31,
     "violations": []
    },
    "features": [
@@ -5686,7 +5406,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 136,
+   "glyph_defs": 125,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -5746,7 +5466,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 6,
     "culled": 0,
     "sail": {
      "begin": 4.0,
@@ -5760,17 +5480,17 @@
   },
   "hero-still-day": {
    "svg": "assets/v9/hero-still-day.svg",
-   "sha256": "25a6bce31146aae659ee6108f9f873d14394cba679a0b93710bf05e8a0fdb5a4",
+   "sha256": "65f59b24c8e2bac2245cb1741489492ddbfce6ae20716b99426bea0fde4e9563",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 166592,
-   "gz": 41270,
-   "elements": 1169,
-   "paths": 220,
+   "bytes": 162750,
+   "gz": 40422,
+   "elements": 1125,
+   "paths": 209,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -5926,27 +5646,6 @@
      "tracking": 0.0
     },
     {
-     "s": "3₃",
-     "x0": 1052.3,
-     "x1": 1061.7,
-     "y": 316,
-     "y0": 308.0,
-     "y1": 318.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "296₅",
      "x0": 1042.3,
      "x1": 1063.7,
@@ -6044,90 +5743,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15₂",
-     "x0": 915.3,
-     "x1": 930.7,
-     "y": 483,
-     "y0": 475.0,
-     "y1": 485.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "108₄",
-     "x0": 900.3,
-     "x1": 921.7,
-     "y": 496,
-     "y0": 488.0,
-     "y1": 498.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "37₂",
-     "x0": 849.3,
-     "x1": 864.7,
-     "y": 475,
-     "y0": 467.0,
-     "y1": 477.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-07",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 904.3,
-     "x1": 925.7,
-     "y": 513,
-     "y0": 505.0,
-     "y1": 515.4,
-     "size": 11,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -6347,12 +5962,12 @@
     },
     {
      "s": "GAME ENGINE I.",
-     "x0": 753.6,
-     "x1": 878.4,
+     "x0": 769.0,
+     "x1": 863.0,
      "y": 360,
-     "y0": 347.7,
-     "y1": 363.7,
-     "size": 17,
+     "y0": 350.6,
+     "y1": 362.9,
+     "size": 13,
      "font": "cond",
      "slant": "upright",
      "role": "label",
@@ -6364,7 +5979,7 @@
      "semantic": true,
      "within": null,
      "tracked_spaces": 0,
-     "tracking": 1.0
+     "tracking": 0.6
     },
     {
      "s": "308₄",
@@ -7352,30 +6967,9 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x0": 338.5,
+     "s": "PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 484.9,
      "x1": 1256.0,
-     "y": 735,
-     "y0": 725.6,
-     "y1": 737.9,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label-caps",
-     "tier": "semantic",
-     "truth": null,
-     "key": "folio",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.6
-    },
-    {
-     "s": "SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
-     "x0": 24,
-     "x1": 335.0,
      "y": 735,
      "y0": 725.6,
      "y1": 737.9,
@@ -7386,6 +6980,27 @@
      "tier": "semantic",
      "truth": null,
      "key": null,
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.6
+    },
+    {
+     "s": "CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
+     "x0": 24,
+     "x1": 396.4,
+     "y": 735,
+     "y0": 725.6,
+     "y1": 737.9,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label-caps",
+     "tier": "semantic",
+     "truth": null,
+     "key": "folio",
      "rot": 0,
      "origin": "text_use",
      "semantic": true,
@@ -7613,13 +7228,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:3₃",
-     "x": 1052.27,
-     "y": 308.01488,
-     "w": 9.460000000000036,
-     "h": 10.40512000000001
-    },
-    {
      "name": "text:296₅",
      "x": 1042.33,
      "y": 325.01488,
@@ -7653,34 +7261,6 @@
      "y": 441.01488,
      "w": 15.399999999999977,
      "h": 10.40512000000001
-    },
-    {
-     "name": "text:15₂",
-     "x": 915.3,
-     "y": 475.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:108₄",
-     "x": 900.33,
-     "y": 488.01488,
-     "w": 21.340000000000032,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:37₂",
-     "x": 849.3,
-     "y": 467.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:146₄",
-     "x": 904.33,
-     "y": 505.01488,
-     "w": 21.340000000000032,
-     "h": 10.405119999999954
     },
     {
      "name": "text:358₁",
@@ -7754,10 +7334,10 @@
     },
     {
      "name": "text:GAME ENGINE I.",
-     "x": 753.6065,
-     "y": 347.65936,
-     "w": 124.78700000000003,
-     "h": 16.080640000000017
+     "x": 769.0285,
+     "y": 350.56304,
+     "w": 93.94299999999998,
+     "h": 12.296960000000013
     },
     {
      "name": "text:308₄",
@@ -8075,17 +7655,17 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x": 338.5380000000001,
+     "name": "text:PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 484.92700000000013,
      "y": 725.56304,
-     "w": 917.4619999999999,
+     "w": 771.0729999999999,
      "h": 12.296960000000013
     },
     {
-     "name": "text:SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
+     "name": "text:CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
      "x": 24,
      "y": 725.56304,
-     "w": 311.00899999999996,
+     "w": 372.36199999999997,
      "h": 12.296960000000013
     },
     {
@@ -8252,7 +7832,7 @@
       4.0
      ]
     },
-    "anims": 29,
+    "anims": 24,
     "violations": []
    },
    "features": [
@@ -8554,7 +8134,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 136,
+   "glyph_defs": 125,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -8614,7 +8194,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 6,
     "culled": 0,
     "sail": {
      "begin": 4.0,
@@ -8628,17 +8208,17 @@
   },
   "hero-still-night": {
    "svg": "assets/v9/hero-still-night.svg",
-   "sha256": "e67f406b74812d117ab9f11724cf7e3153270deb82bb879d28b1adfea9d1a009",
+   "sha256": "669953bf1e52a747cd307476618d05c40961c9dd901a20a996f9ee93c464ac30",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 164311,
-   "gz": 39331,
-   "elements": 1169,
-   "paths": 219,
+   "bytes": 160349,
+   "gz": 38527,
+   "elements": 1125,
+   "paths": 208,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -8794,27 +8374,6 @@
      "tracking": 0.0
     },
     {
-     "s": "3₃",
-     "x0": 1052.3,
-     "x1": 1061.7,
-     "y": 316,
-     "y0": 308.0,
-     "y1": 318.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "296₅",
      "x0": 1042.3,
      "x1": 1063.7,
@@ -8912,90 +8471,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15₂",
-     "x0": 915.3,
-     "x1": 930.7,
-     "y": 483,
-     "y0": 475.0,
-     "y1": 485.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "108₄",
-     "x0": 900.3,
-     "x1": 921.7,
-     "y": 496,
-     "y0": 488.0,
-     "y1": 498.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "37₂",
-     "x0": 849.3,
-     "x1": 864.7,
-     "y": 475,
-     "y0": 467.0,
-     "y1": 477.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-07",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 904.3,
-     "x1": 925.7,
-     "y": 513,
-     "y0": 505.0,
-     "y1": 515.4,
-     "size": 11,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -9215,12 +8690,12 @@
     },
     {
      "s": "GAME ENGINE I.",
-     "x0": 754.5,
-     "x1": 877.5,
+     "x0": 769.7,
+     "x1": 862.3,
      "y": 360,
-     "y0": 347.7,
-     "y1": 363.7,
-     "size": 17,
+     "y0": 350.6,
+     "y1": 362.9,
+     "size": 13,
      "font": "cond-light",
      "slant": "upright",
      "role": "label",
@@ -9232,7 +8707,7 @@
      "semantic": true,
      "within": null,
      "tracked_spaces": 0,
-     "tracking": 1.0
+     "tracking": 0.6
     },
     {
      "s": "308₄",
@@ -10220,30 +9695,9 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x0": 350.2,
+     "s": "PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 495.0,
      "x1": 1256.0,
-     "y": 735,
-     "y0": 725.6,
-     "y1": 737.9,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label-caps",
-     "tier": "semantic",
-     "truth": null,
-     "key": "folio",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.6
-    },
-    {
-     "s": "SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
-     "x0": 24,
-     "x1": 332.7,
      "y": 735,
      "y0": 725.6,
      "y1": 737.9,
@@ -10254,6 +9708,27 @@
      "tier": "semantic",
      "truth": null,
      "key": null,
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.6
+    },
+    {
+     "s": "CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
+     "x0": 24,
+     "x1": 393.1,
+     "y": 735,
+     "y0": 725.6,
+     "y1": 737.9,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label-caps",
+     "tier": "semantic",
+     "truth": null,
+     "key": "folio",
      "rot": 0,
      "origin": "text_use",
      "semantic": true,
@@ -10481,13 +9956,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:3₃",
-     "x": 1052.27,
-     "y": 308.01488,
-     "w": 9.460000000000036,
-     "h": 10.40512000000001
-    },
-    {
      "name": "text:296₅",
      "x": 1042.33,
      "y": 325.01488,
@@ -10521,34 +9989,6 @@
      "y": 441.01488,
      "w": 15.399999999999977,
      "h": 10.40512000000001
-    },
-    {
-     "name": "text:15₂",
-     "x": 915.3,
-     "y": 475.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:108₄",
-     "x": 900.33,
-     "y": 488.01488,
-     "w": 21.340000000000032,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:37₂",
-     "x": 849.3,
-     "y": 467.01488,
-     "w": 15.399999999999977,
-     "h": 10.40512000000001
-    },
-    {
-     "name": "text:146₄",
-     "x": 904.33,
-     "y": 505.01488,
-     "w": 21.340000000000032,
-     "h": 10.405119999999954
     },
     {
      "name": "text:358₁",
@@ -10622,10 +10062,10 @@
     },
     {
      "name": "text:GAME ENGINE I.",
-     "x": 754.516,
-     "y": 347.65936,
-     "w": 122.96799999999996,
-     "h": 16.080640000000017
+     "x": 769.724,
+     "y": 350.56304,
+     "w": 92.55200000000002,
+     "h": 12.296960000000013
     },
     {
      "name": "text:308₄",
@@ -10943,17 +10383,17 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
-     "x": 350.1600000000001,
+     "name": "text:PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 494.9630000000001,
      "y": 725.56304,
-     "w": 905.8399999999999,
+     "w": 761.0369999999999,
      "h": 12.296960000000013
     },
     {
-     "name": "text:SMALL CORRECTIONS 2026 — 169, 170, 171, 172, 173",
+     "name": "text:CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026 — 169–173",
      "x": 24,
      "y": 725.56304,
-     "w": 308.70799999999997,
+     "w": 369.099,
      "h": 12.296960000000013
     },
     {
@@ -11120,7 +10560,7 @@
       4.0
      ]
     },
-    "anims": 29,
+    "anims": 24,
     "violations": []
    },
    "features": [
@@ -11422,7 +10862,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 136,
+   "glyph_defs": 125,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -11482,7 +10922,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 6,
     "culled": 0,
     "sail": {
      "begin": 4.0,
@@ -11496,17 +10936,17 @@
   },
   "hero-phone-day": {
    "svg": "assets/v9/hero-phone-day.svg",
-   "sha256": "d9de7d5d929b35f9ea7c42022a6f9663a1ba68a45ffc83d387591cd652db2585",
+   "sha256": "192151041c5c8bc1299ebdc66db90d936f3a4cb50069ca29883049fb5ab12640",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 115291,
-   "gz": 31378,
-   "elements": 598,
-   "paths": 156,
+   "bytes": 113792,
+   "gz": 31026,
+   "elements": 582,
+   "paths": 154,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -11599,12 +11039,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SMALL-SCALE",
+     "s": "SMALL-SCALE EDITION",
      "x0": 671.1,
      "x1": 695.7,
-     "y": 640.8,
-     "y0": 483.2,
-     "y1": 640.8,
+     "y": 694.0,
+     "y0": 430.0,
+     "y1": 694.0,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -11618,27 +11058,6 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 1.0
-    },
-    {
-     "s": "3₃",
-     "x0": 580.3,
-     "x1": 595.7,
-     "y": 465,
-     "y0": 451.9,
-     "y1": 469.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
     },
     {
      "s": "0",
@@ -11675,48 +11094,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 491.5,
-     "x1": 526.5,
-     "y": 573,
-     "y0": 559.9,
-     "y1": 577.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "358₁",
-     "x0": 455.5,
-     "x1": 490.5,
-     "y": 566,
-     "y0": 552.9,
-     "y1": 570.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-10-05",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -11896,9 +11273,9 @@
      "s": "308₄",
      "x0": 525.8,
      "x1": 576.2,
-     "y": 633.7,
-     "y0": 614.8,
-     "y1": 639.4,
+     "y": 635.4,
+     "y0": 616.5,
+     "y1": 641.1,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -11915,11 +11292,11 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 394.9,
-     "x1": 594.0,
-     "y": 667,
-     "y0": 644.5,
-     "y1": 676.3,
+     "x0": 305.8,
+     "x1": 504.9,
+     "y": 662.3,
+     "y0": 639.8,
+     "y1": 671.6,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -11980,9 +11357,9 @@
      "s": "173₄",
      "x0": 161.8,
      "x1": 212.2,
-     "y": 506.7,
-     "y0": 487.8,
-     "y1": 512.4,
+     "y": 508.4,
+     "y0": 489.5,
+     "y1": 514.1,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -12001,9 +11378,9 @@
      "s": "Profile Shoal",
      "x0": 119.5,
      "x1": 254.5,
-     "y": 540,
-     "y0": 517.5,
-     "y1": 549.3,
+     "y": 561.2,
+     "y0": 538.7,
+     "y1": 570.5,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -12381,9 +11758,9 @@
      "tracking": 1.0
     },
     {
-     "s": "CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x0": 29.1,
-     "x1": 690.9,
+     "s": "CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x0": 92.6,
+     "x1": 627.4,
      "y": 866,
      "y0": 847.1,
      "y1": 871.7,
@@ -12442,18 +11819,11 @@
      "h": 156.784
     },
     {
-     "name": "text:SMALL-SCALE",
+     "name": "text:SMALL-SCALE EDITION",
      "x": 671.12608,
-     "y": 483.1600000000001,
+     "y": 430.03200000000004,
      "w": 24.593920000000026,
-     "h": 157.67999999999995
-    },
-    {
-     "name": "text:3₃",
-     "x": 580.26,
-     "y": 451.93344,
-     "w": 15.480000000000018,
-     "h": 17.02655999999996
+     "h": 263.9359999999999
     },
     {
      "name": "text:0",
@@ -12467,20 +11837,6 @@
      "x": 491.4,
      "y": 524.93344,
      "w": 25.200000000000045,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:146₄",
-     "x": 491.54,
-     "y": 559.93344,
-     "w": 34.920000000000016,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:358₁",
-     "x": 455.54,
-     "y": 552.93344,
-     "w": 34.920000000000016,
      "h": 17.026560000000018
     },
     {
@@ -12542,15 +11898,15 @@
     {
      "name": "text:308₄",
      "x": 525.78,
-     "y": 614.82608,
+     "y": 616.47608,
      "w": 50.440000000000055,
      "h": 24.593920000000026
     },
     {
      "name": "text:Data Science Bank",
-     "x": 394.9200000000001,
-     "y": 644.536,
-     "w": 199.07999999999993,
+     "x": 305.7776393661131,
+     "y": 639.8071803169433,
+     "w": 199.07999999999998,
      "h": 31.76400000000001
     },
     {
@@ -12570,14 +11926,14 @@
     {
      "name": "text:173₄",
      "x": 161.78,
-     "y": 487.82608,
+     "y": 489.47608,
      "w": 50.44,
-     "h": 24.59391999999997
+     "h": 24.593920000000026
     },
     {
      "name": "text:Profile Shoal",
      "x": 119.47,
-     "y": 517.536,
+     "y": 538.7270606485484,
      "w": 135.06,
      "h": 31.76400000000001
     },
@@ -12701,10 +12057,10 @@
      "h": 24.593920000000026
     },
     {
-     "name": "text:CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x": 29.087000000000046,
+     "name": "text:CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x": 92.55700000000002,
      "y": 847.12608,
-     "w": 661.826,
+     "w": 534.886,
      "h": 24.593920000000026
     },
     {
@@ -13013,7 +12369,7 @@
    "bracket_failures": 1,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 91,
+   "glyph_defs": 89,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -13046,7 +12402,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 5,
+    "soundings_printed": 2,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -13058,17 +12414,17 @@
   },
   "hero-phone-night": {
    "svg": "assets/v9/hero-phone-night.svg",
-   "sha256": "a0f253333397af78f8c5a7d8815d6bca68a5c4b54562602d424111c3f2f2d964",
+   "sha256": "6db94d54da5c4c9026cbf75c6ea3a8f28156a7dc4e9b8b31d07edbaba266cbf2",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 116176,
-   "gz": 31081,
-   "elements": 599,
-   "paths": 156,
+   "bytes": 114685,
+   "gz": 30773,
+   "elements": 583,
+   "paths": 154,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -13161,12 +12517,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SMALL-SCALE",
+     "s": "SMALL-SCALE EDITION",
      "x0": 671.1,
      "x1": 695.7,
-     "y": 639.5,
-     "y0": 484.5,
-     "y1": 639.5,
+     "y": 692.0,
+     "y0": 432.0,
+     "y1": 692.0,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -13180,27 +12536,6 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 1.0
-    },
-    {
-     "s": "3₃",
-     "x0": 580.3,
-     "x1": 595.7,
-     "y": 465,
-     "y0": 451.9,
-     "y1": 469.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
     },
     {
      "s": "0",
@@ -13237,48 +12572,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 491.5,
-     "x1": 526.5,
-     "y": 573,
-     "y0": 559.9,
-     "y1": 577.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "358₁",
-     "x0": 455.5,
-     "x1": 490.5,
-     "y": 566,
-     "y0": 552.9,
-     "y1": 570.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-10-05",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -13458,9 +12751,9 @@
      "s": "308₄",
      "x0": 525.8,
      "x1": 576.2,
-     "y": 633.7,
-     "y0": 614.8,
-     "y1": 639.4,
+     "y": 635.4,
+     "y0": 616.5,
+     "y1": 641.1,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -13477,11 +12770,11 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 394.9,
-     "x1": 594.0,
-     "y": 667,
-     "y0": 644.5,
-     "y1": 676.3,
+     "x0": 305.8,
+     "x1": 504.9,
+     "y": 662.3,
+     "y0": 639.8,
+     "y1": 671.6,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -13542,9 +12835,9 @@
      "s": "173₄",
      "x0": 161.8,
      "x1": 212.2,
-     "y": 506.7,
-     "y0": 487.8,
-     "y1": 512.4,
+     "y": 508.4,
+     "y0": 489.5,
+     "y1": 514.1,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -13563,9 +12856,9 @@
      "s": "Profile Shoal",
      "x0": 119.5,
      "x1": 254.5,
-     "y": 540,
-     "y0": 517.5,
-     "y1": 549.3,
+     "y": 561.2,
+     "y0": 538.7,
+     "y1": 570.5,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -13943,9 +13236,9 @@
      "tracking": 1.0
     },
     {
-     "s": "CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x0": 33.2,
-     "x1": 686.8,
+     "s": "CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x0": 96.0,
+     "x1": 624.0,
      "y": 866,
      "y0": 847.1,
      "y1": 871.7,
@@ -14004,18 +13297,11 @@
      "h": 154.39200000000005
     },
     {
-     "name": "text:SMALL-SCALE",
+     "name": "text:SMALL-SCALE EDITION",
      "x": 671.12608,
-     "y": 484.499,
+     "y": 432.0210000000001,
      "w": 24.593920000000026,
-     "h": 155.00199999999995
-    },
-    {
-     "name": "text:3₃",
-     "x": 580.26,
-     "y": 451.93344,
-     "w": 15.480000000000018,
-     "h": 17.02655999999996
+     "h": 259.95799999999997
     },
     {
      "name": "text:0",
@@ -14029,20 +13315,6 @@
      "x": 491.4,
      "y": 524.93344,
      "w": 25.200000000000045,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:146₄",
-     "x": 491.54,
-     "y": 559.93344,
-     "w": 34.920000000000016,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:358₁",
-     "x": 455.54,
-     "y": 552.93344,
-     "w": 34.920000000000016,
      "h": 17.026560000000018
     },
     {
@@ -14104,15 +13376,15 @@
     {
      "name": "text:308₄",
      "x": 525.78,
-     "y": 614.82608,
+     "y": 616.47608,
      "w": 50.440000000000055,
      "h": 24.593920000000026
     },
     {
      "name": "text:Data Science Bank",
-     "x": 394.9200000000001,
-     "y": 644.536,
-     "w": 199.07999999999993,
+     "x": 305.7776393661131,
+     "y": 639.8071803169433,
+     "w": 199.07999999999998,
      "h": 31.76400000000001
     },
     {
@@ -14132,14 +13404,14 @@
     {
      "name": "text:173₄",
      "x": 161.78,
-     "y": 487.82608,
+     "y": 489.47608,
      "w": 50.44,
-     "h": 24.59391999999997
+     "h": 24.593920000000026
     },
     {
      "name": "text:Profile Shoal",
      "x": 119.47,
-     "y": 517.536,
+     "y": 538.7270606485484,
      "w": 135.06,
      "h": 31.76400000000001
     },
@@ -14263,10 +13535,10 @@
      "h": 24.593920000000026
     },
     {
-     "name": "text:CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x": 33.156000000000006,
+     "name": "text:CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x": 95.98900000000003,
      "y": 847.12608,
-     "w": 653.6880000000001,
+     "w": 528.0219999999999,
      "h": 24.593920000000026
     },
     {
@@ -14575,7 +13847,7 @@
    "bracket_failures": 1,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 91,
+   "glyph_defs": 89,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -14608,7 +13880,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 5,
+    "soundings_printed": 2,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -14620,17 +13892,17 @@
   },
   "hero-phone-still-day": {
    "svg": "assets/v9/hero-phone-still-day.svg",
-   "sha256": "f12326c3de5a6fb77a09d546f410a02acdd0b0563bcb9fe3f1d87d330913b4d9",
+   "sha256": "9b39fedfab847152b4d19ed852b59b211f912adbb24376c8c3ba11d3f5fe31c6",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 112123,
-   "gz": 30848,
-   "elements": 569,
-   "paths": 156,
+   "bytes": 110624,
+   "gz": 30499,
+   "elements": 553,
+   "paths": 154,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -14723,12 +13995,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SMALL-SCALE",
+     "s": "SMALL-SCALE EDITION",
      "x0": 671.1,
      "x1": 695.7,
-     "y": 640.8,
-     "y0": 483.2,
-     "y1": 640.8,
+     "y": 694.0,
+     "y0": 430.0,
+     "y1": 694.0,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -14742,27 +14014,6 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 1.0
-    },
-    {
-     "s": "3₃",
-     "x0": 580.3,
-     "x1": 595.7,
-     "y": 465,
-     "y0": 451.9,
-     "y1": 469.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
     },
     {
      "s": "0",
@@ -14799,48 +14050,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 491.5,
-     "x1": 526.5,
-     "y": 573,
-     "y0": 559.9,
-     "y1": 577.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "358₁",
-     "x0": 455.5,
-     "x1": 490.5,
-     "y": 566,
-     "y0": 552.9,
-     "y1": 570.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-10-05",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -15020,9 +14229,9 @@
      "s": "308₄",
      "x0": 525.8,
      "x1": 576.2,
-     "y": 633.7,
-     "y0": 614.8,
-     "y1": 639.4,
+     "y": 635.4,
+     "y0": 616.5,
+     "y1": 641.1,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -15039,11 +14248,11 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 394.9,
-     "x1": 594.0,
-     "y": 667,
-     "y0": 644.5,
-     "y1": 676.3,
+     "x0": 305.8,
+     "x1": 504.9,
+     "y": 662.3,
+     "y0": 639.8,
+     "y1": 671.6,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -15104,9 +14313,9 @@
      "s": "173₄",
      "x0": 161.8,
      "x1": 212.2,
-     "y": 506.7,
-     "y0": 487.8,
-     "y1": 512.4,
+     "y": 508.4,
+     "y0": 489.5,
+     "y1": 514.1,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -15125,9 +14334,9 @@
      "s": "Profile Shoal",
      "x0": 119.5,
      "x1": 254.5,
-     "y": 540,
-     "y0": 517.5,
-     "y1": 549.3,
+     "y": 561.2,
+     "y0": 538.7,
+     "y1": 570.5,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -15505,9 +14714,9 @@
      "tracking": 1.0
     },
     {
-     "s": "CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x0": 29.1,
-     "x1": 690.9,
+     "s": "CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x0": 92.6,
+     "x1": 627.4,
      "y": 866,
      "y0": 847.1,
      "y1": 871.7,
@@ -15566,18 +14775,11 @@
      "h": 156.784
     },
     {
-     "name": "text:SMALL-SCALE",
+     "name": "text:SMALL-SCALE EDITION",
      "x": 671.12608,
-     "y": 483.1600000000001,
+     "y": 430.03200000000004,
      "w": 24.593920000000026,
-     "h": 157.67999999999995
-    },
-    {
-     "name": "text:3₃",
-     "x": 580.26,
-     "y": 451.93344,
-     "w": 15.480000000000018,
-     "h": 17.02655999999996
+     "h": 263.9359999999999
     },
     {
      "name": "text:0",
@@ -15591,20 +14793,6 @@
      "x": 491.4,
      "y": 524.93344,
      "w": 25.200000000000045,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:146₄",
-     "x": 491.54,
-     "y": 559.93344,
-     "w": 34.920000000000016,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:358₁",
-     "x": 455.54,
-     "y": 552.93344,
-     "w": 34.920000000000016,
      "h": 17.026560000000018
     },
     {
@@ -15666,15 +14854,15 @@
     {
      "name": "text:308₄",
      "x": 525.78,
-     "y": 614.82608,
+     "y": 616.47608,
      "w": 50.440000000000055,
      "h": 24.593920000000026
     },
     {
      "name": "text:Data Science Bank",
-     "x": 394.9200000000001,
-     "y": 644.536,
-     "w": 199.07999999999993,
+     "x": 305.7776393661131,
+     "y": 639.8071803169433,
+     "w": 199.07999999999998,
      "h": 31.76400000000001
     },
     {
@@ -15694,14 +14882,14 @@
     {
      "name": "text:173₄",
      "x": 161.78,
-     "y": 487.82608,
+     "y": 489.47608,
      "w": 50.44,
-     "h": 24.59391999999997
+     "h": 24.593920000000026
     },
     {
      "name": "text:Profile Shoal",
      "x": 119.47,
-     "y": 517.536,
+     "y": 538.7270606485484,
      "w": 135.06,
      "h": 31.76400000000001
     },
@@ -15825,10 +15013,10 @@
      "h": 24.593920000000026
     },
     {
-     "name": "text:CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x": 29.087000000000046,
+     "name": "text:CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x": 92.55700000000002,
      "y": 847.12608,
-     "w": 661.826,
+     "w": 534.886,
      "h": 24.593920000000026
     },
     {
@@ -16137,7 +15325,7 @@
    "bracket_failures": 1,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 91,
+   "glyph_defs": 89,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -16170,7 +15358,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 5,
+    "soundings_printed": 2,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -16182,17 +15370,17 @@
   },
   "hero-phone-still-night": {
    "svg": "assets/v9/hero-phone-still-night.svg",
-   "sha256": "4f1609ec545f7ccbd05437c8b135731432c8f993f54df528a0d23b7838ab6d08",
+   "sha256": "e9cdd6ea474a5c7dd9821ae4b64edea7b7187343c266965cedbd05e1aac966e8",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 113008,
-   "gz": 30534,
-   "elements": 570,
-   "paths": 156,
+   "bytes": 111517,
+   "gz": 30225,
+   "elements": 554,
+   "paths": 154,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -16285,12 +15473,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SMALL-SCALE",
+     "s": "SMALL-SCALE EDITION",
      "x0": 671.1,
      "x1": 695.7,
-     "y": 639.5,
-     "y0": 484.5,
-     "y1": 639.5,
+     "y": 692.0,
+     "y0": 432.0,
+     "y1": 692.0,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -16304,27 +15492,6 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 1.0
-    },
-    {
-     "s": "3₃",
-     "x0": 580.3,
-     "x1": 595.7,
-     "y": 465,
-     "y0": 451.9,
-     "y1": 469.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2025-12-29",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
     },
     {
      "s": "0",
@@ -16361,48 +15528,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-07-27",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "146₄",
-     "x0": 491.5,
-     "x1": 526.5,
-     "y": 573,
-     "y0": 559.9,
-     "y1": 577.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-14",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "358₁",
-     "x0": 455.5,
-     "x1": 490.5,
-     "y": 566,
-     "y0": 552.9,
-     "y1": 570.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-10-05",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -16582,9 +15707,9 @@
      "s": "308₄",
      "x0": 525.8,
      "x1": 576.2,
-     "y": 633.7,
-     "y0": 614.8,
-     "y1": 639.4,
+     "y": 635.4,
+     "y0": 616.5,
+     "y1": 641.1,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -16601,11 +15726,11 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 394.9,
-     "x1": 594.0,
-     "y": 667,
-     "y0": 644.5,
-     "y1": 676.3,
+     "x0": 305.8,
+     "x1": 504.9,
+     "y": 662.3,
+     "y0": 639.8,
+     "y1": 671.6,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -16666,9 +15791,9 @@
      "s": "173₄",
      "x0": 161.8,
      "x1": 212.2,
-     "y": 506.7,
-     "y0": 487.8,
-     "y1": 512.4,
+     "y": 508.4,
+     "y0": 489.5,
+     "y1": 514.1,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -16687,9 +15812,9 @@
      "s": "Profile Shoal",
      "x0": 119.5,
      "x1": 254.5,
-     "y": 540,
-     "y0": 517.5,
-     "y1": 549.3,
+     "y": 561.2,
+     "y0": 538.7,
+     "y1": 570.5,
      "size": 30,
      "font": "serif-italic",
      "slant": "italic",
@@ -17067,9 +16192,9 @@
      "tracking": 1.0
     },
     {
-     "s": "CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x0": 33.2,
-     "x1": 686.8,
+     "s": "CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x0": 96.0,
+     "x1": 624.0,
      "y": 866,
      "y0": 847.1,
      "y1": 871.7,
@@ -17128,18 +16253,11 @@
      "h": 154.39200000000005
     },
     {
-     "name": "text:SMALL-SCALE",
+     "name": "text:SMALL-SCALE EDITION",
      "x": 671.12608,
-     "y": 484.499,
+     "y": 432.0210000000001,
      "w": 24.593920000000026,
-     "h": 155.00199999999995
-    },
-    {
-     "name": "text:3₃",
-     "x": 580.26,
-     "y": 451.93344,
-     "w": 15.480000000000018,
-     "h": 17.02655999999996
+     "h": 259.95799999999997
     },
     {
      "name": "text:0",
@@ -17153,20 +16271,6 @@
      "x": 491.4,
      "y": 524.93344,
      "w": 25.200000000000045,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:146₄",
-     "x": 491.54,
-     "y": 559.93344,
-     "w": 34.920000000000016,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:358₁",
-     "x": 455.54,
-     "y": 552.93344,
-     "w": 34.920000000000016,
      "h": 17.026560000000018
     },
     {
@@ -17228,15 +16332,15 @@
     {
      "name": "text:308₄",
      "x": 525.78,
-     "y": 614.82608,
+     "y": 616.47608,
      "w": 50.440000000000055,
      "h": 24.593920000000026
     },
     {
      "name": "text:Data Science Bank",
-     "x": 394.9200000000001,
-     "y": 644.536,
-     "w": 199.07999999999993,
+     "x": 305.7776393661131,
+     "y": 639.8071803169433,
+     "w": 199.07999999999998,
      "h": 31.76400000000001
     },
     {
@@ -17256,14 +16360,14 @@
     {
      "name": "text:173₄",
      "x": 161.78,
-     "y": 487.82608,
+     "y": 489.47608,
      "w": 50.44,
-     "h": 24.59391999999997
+     "h": 24.593920000000026
     },
     {
      "name": "text:Profile Shoal",
      "x": 119.47,
-     "y": 517.536,
+     "y": 538.7270606485484,
      "w": 135.06,
      "h": 31.76400000000001
     },
@@ -17387,10 +16491,10 @@
      "h": 24.593920000000026
     },
     {
-     "name": "text:CHART NO. 21 · EDITION 0.1.3 · NOTICE 9 · IALA REGION B",
-     "x": 33.156000000000006,
+     "name": "text:CHART NO. 21 · EDITION 0.1.3 · IALA REGION B",
+     "x": 95.98900000000003,
      "y": 847.12608,
-     "w": 653.6880000000001,
+     "w": 528.0219999999999,
      "h": 24.593920000000026
     },
     {
@@ -17699,7 +16803,7 @@
    "bracket_failures": 1,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 91,
+   "glyph_defs": 89,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -17732,7 +16836,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 5,
+    "soundings_printed": 2,
     "culled": 6,
     "sail": {
      "begin": 4.0,

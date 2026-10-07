@@ -118,13 +118,13 @@ class HeroBuild(unittest.TestCase):
             h = self.entry(name)["hero"]
             causes = {b[6] for b in h["bracket"]}
             self.assertFalse(causes - {"unresolved"}, f"{name}: bracket failures {h['bracket']}")
-        self.assertGreaterEqual(self.entry("day")["hero"]["soundings_printed"], 10)
+        self.assertGreaterEqual(self.entry("day")["hero"]["soundings_printed"], 5)   # round 4 cull: outlines and zeros
         # every printed sounding is a week from stats.json (commits, days-with-a-commit subscript), upright,
         # measured; the high-water week prints; no two printed figures touch (round 3 cull)
         weeks = {(str(w["n"]), str(w.get("days", ""))) for w in self.stats["weeks"]}
         subs = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
         figs = [t for t in self.entry("day")["text"] if t["origin"] == "sounding" and (t["key"] or "").startswith("week:")]
-        self.assertGreaterEqual(len(figs), 10)
+        self.assertGreaterEqual(len(figs), 5)
         hw = str(self.stats["tide"]["hw"]["n"])
         self.assertTrue(any(t["s"].startswith(hw) for t in figs), f"high water {hw} must print")
         for t in figs:

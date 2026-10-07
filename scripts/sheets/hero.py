@@ -921,23 +921,27 @@ def build(ctx) -> str:
         block.append(lbl(unit_line, 640, 14, "label-caps", anchor="middle", fill=theme.ink, key="unit"))
         block.append(lbl(str(N), 1262, 14, "label", anchor="end", fill=theme.muted, truth="measured", key="chart-number"))
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
-        imprint = (f"CHART NO. {N} · SHEET 1 · Published at github.com/{login} · {_date(taken)} · "
+        imprint = (f"Published at github.com/{login} · {_date(taken)} · "
                    f"under the superintendence of B. Russell · redrawn nightly")
-        block.append(lbl(imprint, 1256, 735, "label-caps", anchor="end", fill=theme.ink2, key="folio"))
+        block.append(lbl(imprint, 1256, 735, "label", anchor="end", fill=theme.ink2, caps=True))
+        # bottom-left: the folio, then the small corrections (a range when the five are consecutive)
         corr = data.get("corrections") or {}
+        folio = f"CHART NO. {N} · SHEET 1"
         if corr:
             yr = max(corr)
-            nums = [str(e.get("n")) for e in corr[yr] if e.get("n") is not None][-5:]
+            nums = [int(e.get("n")) for e in corr[yr] if e.get("n") is not None][-5:]
             if nums:
-                block.append(lbl(f"Small corrections {yr} — {', '.join(nums)}", 24, 735, "label", fill=theme.ink2, caps=True))
+                run_ = all(b_ - a_ == 1 for a_, b_ in zip(nums, nums[1:]))
+                lst = f"{nums[0]}–{nums[-1]}" if run_ and len(nums) > 2 else ", ".join(str(n_) for n_ in nums)
+                folio += f" · Small corrections {yr} — {lst}"
+        block.append(lbl(folio, 24, 735, "label-caps", fill=theme.ink2, key="folio"))
     else:
         bx = 360
         ver = edition_d.get("version") or "—"
         rows_t = [
             (770, f"THE OPEN WEB · FROM SURVEYS {first_year}–{upd_year}", "label", theme.ink, False, None, None),
             (834, unit_line + " · DATUM: MAIN", "label-caps", theme.ink2, True, None, None),
-            (866, f"CHART NO. {N} · EDITION {ver} · NOTICE {notices_n} · IALA REGION B", "label", theme.ink2, False, "measured",
-             "chart-edition"),
+            (866, f"CHART NO. {N} · EDITION {ver} · IALA REGION B", "label", theme.ink2, False, "measured", "chart-edition"),
         ]
         for y, t, role, fill, is_caps_role, truth, key in rows_t:
             if is_caps_role:
