@@ -74,7 +74,9 @@ def check(ctx) -> list[Finding]:
                 floor = max(v for k, v in HERO_RAMP.items() if t >= k)
             if cov < floor:
                 out.append(fail("FRAMES-COVERAGE", f"t={t}s ink coverage {cov:.3f} < {floor}", name))
-            if t >= max(opening, 0.01) and r.get("changedFrac") is not None and r["changedFrac"] > 0.015 and t >= opening:
+            if t < opening:
+                continue                      # the sheet is drawing itself in; coverage floors above still apply
+            if r.get("changedFrac") is not None and r["changedFrac"] > 0.015:
                 # moving windows are allowed to differ: hero 4–28, footer 40–64, approaches/log events
                 moving = (sheet == "hero" and 4 <= t <= 28.5) or (sheet == "footer" and 40 <= t <= 64.5) \
                     or (sheet == "approaches" and 28 <= t <= 42.5) or (sheet == "log" and 44 <= t <= 48.5)
