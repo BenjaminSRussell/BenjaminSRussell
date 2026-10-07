@@ -11,15 +11,15 @@
  "sheets": {
   "hero-day": {
    "svg": "assets/v9/hero-day.svg",
-   "sha256": "209666d9759586510198295a819e1921e40598816351c6111bbfeb0c5170cfa4",
+   "sha256": "cb9c2566a63f9863bedda91c4fa6432cb78aaaa1a5f7e5610874d526fa19cf82",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 167406,
-   "gz": 39842,
+   "bytes": 167401,
+   "gz": 39837,
    "elements": 1257,
    "paths": 199,
    "breaks": [
@@ -105,8 +105,8 @@
     },
     {
      "s": "LIMIT OF SURVEY 2026",
-     "x0": 1056.6,
-     "x1": 1068.9,
+     "x0": 1086.6,
+     "x1": 1098.9,
      "y": 431.7,
      "y0": 298.3,
      "y1": 431.7,
@@ -126,11 +126,11 @@
     },
     {
      "s": "PA",
-     "x0": 1065.7,
-     "x1": 1079.3,
-     "y": 479.3,
-     "y0": 469.9,
-     "y1": 482.2,
+     "x0": 992.5,
+     "x1": 1006.1,
+     "y": 511.4,
+     "y0": 502.0,
+     "y1": 514.3,
      "size": 13,
      "font": "cond-italic",
      "slant": "italic",
@@ -1892,9 +1892,9 @@
      "s": "I survey a web that is wrong about itself.",
      "x0": 72,
      "x1": 577.8,
-     "y": 296,
-     "y0": 269.0,
-     "y1": 307.2,
+     "y": 306,
+     "y0": 279.0,
+     "y1": 317.2,
      "size": 36,
      "font": "serif-italic",
      "slant": "italic",
@@ -2286,69 +2286,6 @@
      "tracking": 0.6
     },
     {
-     "s": "233°",
-     "x0": 952.5,
-     "x1": 979.1,
-     "y": 409.4,
-     "y0": 400.0,
-     "y1": 412.3,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "208°",
-     "x0": 868.3,
-     "x1": 894.9,
-     "y": 534.6,
-     "y0": 525.2,
-     "y1": 537.5,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "290°",
-     "x0": 775.7,
-     "x1": 802.3,
-     "y": 600.0,
-     "y0": 590.6,
-     "y1": 602.9,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "R \"2\" Fl R 4s",
      "x0": 794.6,
      "x1": 859.4,
@@ -2434,11 +2371,11 @@
     },
     {
      "s": "sitemap.xml lies again",
-     "x0": 896.4,
-     "x1": 1036.4,
-     "y": 556,
-     "y0": 526.4,
-     "y1": 561.2,
+     "x0": 908.4,
+     "x1": 1048.4,
+     "y": 558,
+     "y0": 528.4,
+     "y1": 563.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -2473,6 +2410,69 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 0.6
+    },
+    {
+     "s": "233°",
+     "x0": 927.2,
+     "x1": 953.8,
+     "y": 375.9,
+     "y0": 366.5,
+     "y1": 378.8,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "208°",
+     "x0": 809.9,
+     "x1": 836.5,
+     "y": 503.8,
+     "y0": 494.4,
+     "y1": 506.7,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "290°",
+     "x0": 775.7,
+     "x1": 802.3,
+     "y": 600.0,
+     "y0": 590.6,
+     "y1": 602.9,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
     }
    ],
    "exclusions": [
@@ -2485,15 +2485,15 @@
     },
     {
      "name": "text:LIMIT OF SURVEY 2026",
-     "x": 1056.56304,
+     "x": 1086.56304,
      "y": 298.2905000000001,
      "w": 12.296960000000126,
      "h": 133.41899999999987
     },
     {
      "name": "text:PA",
-     "x": 1065.6961754148722,
-     "y": 469.8801131707317,
+     "x": 992.500582379698,
+     "y": 501.9614139837398,
      "w": 13.624000000000024,
      "h": 12.296960000000013
     },
@@ -3081,7 +3081,7 @@
     {
      "name": "text:I survey a web that is wrong about itself.",
      "x": 72,
-     "y": 269.0432,
+     "y": 279.0432,
      "w": 505.8399999999999,
      "h": 38.11680000000001
     },
@@ -3198,27 +3198,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:233°",
-     "x": 952.5269999999999,
-     "y": 399.96304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:208°",
-     "x": 868.327,
-     "y": 525.16304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:290°",
-     "x": 775.727,
-     "y": 590.56304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
      "name": "text:R \"2\" Fl R 4s",
      "x": 794.565,
      "y": 519.56304,
@@ -3248,8 +3227,8 @@
     },
     {
      "name": "text:sitemap.xml lies again",
-     "x": 896.4486520061898,
-     "y": 526.4492102967151,
+     "x": 908.4486520061898,
+     "y": 528.4492102967151,
      "w": 139.96396801212904,
      "h": 34.78150792243457
     },
@@ -3258,6 +3237,27 @@
      "x": 687,
      "y": 474.56304,
      "w": 72.12300000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:233°",
+     "x": 927.227,
+     "y": 366.46304,
+     "w": 26.54600000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:208°",
+     "x": 809.927,
+     "y": 494.36304,
+     "w": 26.54600000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:290°",
+     "x": 775.727,
+     "y": 590.56304,
+     "w": 26.54600000000005,
      "h": 12.296960000000013
     },
     {
@@ -3272,7 +3272,7 @@
      "x": 920,
      "y": 80,
      "w": 160,
-     "h": 195
+     "h": 206
     },
     {
      "name": "title-block",
@@ -3735,15 +3735,15 @@
   },
   "hero-night": {
    "svg": "assets/v9/hero-night.svg",
-   "sha256": "d01df913a06f68ecaaf6d2add41b2bc5a1b0edc3e5d066ad63899ecc691bb19e",
+   "sha256": "41342b948357559e42635768d4f6f1995a5224cf21705857ac911a473e4d35ad",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 165318,
-   "gz": 38009,
+   "bytes": 165311,
+   "gz": 38001,
    "elements": 1257,
    "paths": 198,
    "breaks": [
@@ -3829,8 +3829,8 @@
     },
     {
      "s": "LIMIT OF SURVEY 2026",
-     "x0": 1056.6,
-     "x1": 1068.9,
+     "x0": 1086.6,
+     "x1": 1098.9,
      "y": 430.9,
      "y0": 299.1,
      "y1": 430.9,
@@ -3850,11 +3850,11 @@
     },
     {
      "s": "PA",
-     "x0": 1065.7,
-     "x1": 1079.3,
-     "y": 479.3,
-     "y0": 469.9,
-     "y1": 482.2,
+     "x0": 992.5,
+     "x1": 1006.1,
+     "y": 511.4,
+     "y0": 502.0,
+     "y1": 514.3,
      "size": 13,
      "font": "cond-italic",
      "slant": "italic",
@@ -5616,9 +5616,9 @@
      "s": "I survey a web that is wrong about itself.",
      "x0": 72,
      "x1": 577.8,
-     "y": 296,
-     "y0": 269.0,
-     "y1": 307.2,
+     "y": 306,
+     "y0": 279.0,
+     "y1": 317.2,
      "size": 36,
      "font": "serif-italic",
      "slant": "italic",
@@ -6010,69 +6010,6 @@
      "tracking": 0.6
     },
     {
-     "s": "233°",
-     "x0": 952.5,
-     "x1": 979.1,
-     "y": 409.4,
-     "y0": 400.0,
-     "y1": 412.3,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "208°",
-     "x0": 868.3,
-     "x1": 894.9,
-     "y": 534.6,
-     "y0": 525.2,
-     "y1": 537.5,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "290°",
-     "x0": 775.7,
-     "x1": 802.3,
-     "y": 600.0,
-     "y0": 590.6,
-     "y1": 602.9,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "R \"2\" Fl R 4s",
      "x0": 794.6,
      "x1": 859.4,
@@ -6158,11 +6095,11 @@
     },
     {
      "s": "sitemap.xml lies again",
-     "x0": 896.4,
-     "x1": 1036.4,
-     "y": 556,
-     "y0": 526.4,
-     "y1": 561.2,
+     "x0": 908.4,
+     "x1": 1048.4,
+     "y": 558,
+     "y0": 528.4,
+     "y1": 563.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -6197,6 +6134,69 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 0.6
+    },
+    {
+     "s": "233°",
+     "x0": 927.2,
+     "x1": 953.8,
+     "y": 375.9,
+     "y0": 366.5,
+     "y1": 378.8,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "208°",
+     "x0": 809.9,
+     "x1": 836.5,
+     "y": 503.8,
+     "y0": 494.4,
+     "y1": 506.7,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "290°",
+     "x0": 775.7,
+     "x1": 802.3,
+     "y": 600.0,
+     "y0": 590.6,
+     "y1": 602.9,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
     }
    ],
    "exclusions": [
@@ -6209,15 +6209,15 @@
     },
     {
      "name": "text:LIMIT OF SURVEY 2026",
-     "x": 1056.56304,
+     "x": 1086.56304,
      "y": 299.0834999999999,
      "w": 12.296960000000126,
      "h": 131.83300000000008
     },
     {
      "name": "text:PA",
-     "x": 1065.6961754148722,
-     "y": 469.8801131707317,
+     "x": 992.500582379698,
+     "y": 501.9614139837398,
      "w": 13.624000000000024,
      "h": 12.296960000000013
     },
@@ -6805,7 +6805,7 @@
     {
      "name": "text:I survey a web that is wrong about itself.",
      "x": 72,
-     "y": 269.0432,
+     "y": 279.0432,
      "w": 505.8399999999999,
      "h": 38.11680000000001
     },
@@ -6922,27 +6922,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:233°",
-     "x": 952.5335,
-     "y": 399.96304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:208°",
-     "x": 868.3335000000001,
-     "y": 525.16304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:290°",
-     "x": 775.7335,
-     "y": 590.56304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
      "name": "text:R \"2\" Fl R 4s",
      "x": 794.565,
      "y": 519.56304,
@@ -6972,8 +6951,8 @@
     },
     {
      "name": "text:sitemap.xml lies again",
-     "x": 896.4486520061898,
-     "y": 526.4492102967151,
+     "x": 908.4486520061898,
+     "y": 528.4492102967151,
      "w": 139.96396801212904,
      "h": 34.78150792243457
     },
@@ -6982,6 +6961,27 @@
      "x": 687,
      "y": 474.56304,
      "w": 71.26499999999999,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:233°",
+     "x": 927.2335,
+     "y": 366.46304,
+     "w": 26.533000000000015,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:208°",
+     "x": 809.9335000000001,
+     "y": 494.36304,
+     "w": 26.533000000000015,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:290°",
+     "x": 775.7335,
+     "y": 590.56304,
+     "w": 26.533000000000015,
      "h": 12.296960000000013
     },
     {
@@ -6996,7 +6996,7 @@
      "x": 920,
      "y": 80,
      "w": 160,
-     "h": 195
+     "h": 206
     },
     {
      "name": "title-block",
@@ -7459,15 +7459,15 @@
   },
   "hero-still-day": {
    "svg": "assets/v9/hero-still-day.svg",
-   "sha256": "d30d61c19fc09d8c9b0fa3bb616ea1dd836a332e3a8b80d99d8fed616faaa727",
+   "sha256": "c73d7e9c46adba9c66e3fffd4c3fc8bd723df6963b8c3601b549ef8d8b6b0c3a",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 156102,
-   "gz": 38565,
+   "bytes": 156097,
+   "gz": 38563,
    "elements": 1136,
    "paths": 199,
    "breaks": [
@@ -7553,8 +7553,8 @@
     },
     {
      "s": "LIMIT OF SURVEY 2026",
-     "x0": 1056.6,
-     "x1": 1068.9,
+     "x0": 1086.6,
+     "x1": 1098.9,
      "y": 431.7,
      "y0": 298.3,
      "y1": 431.7,
@@ -7574,11 +7574,11 @@
     },
     {
      "s": "PA",
-     "x0": 1065.7,
-     "x1": 1079.3,
-     "y": 479.3,
-     "y0": 469.9,
-     "y1": 482.2,
+     "x0": 992.5,
+     "x1": 1006.1,
+     "y": 511.4,
+     "y0": 502.0,
+     "y1": 514.3,
      "size": 13,
      "font": "cond-italic",
      "slant": "italic",
@@ -9340,9 +9340,9 @@
      "s": "I survey a web that is wrong about itself.",
      "x0": 72,
      "x1": 577.8,
-     "y": 296,
-     "y0": 269.0,
-     "y1": 307.2,
+     "y": 306,
+     "y0": 279.0,
+     "y1": 317.2,
      "size": 36,
      "font": "serif-italic",
      "slant": "italic",
@@ -9734,69 +9734,6 @@
      "tracking": 0.6
     },
     {
-     "s": "233°",
-     "x0": 952.5,
-     "x1": 979.1,
-     "y": 409.4,
-     "y0": 400.0,
-     "y1": 412.3,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "208°",
-     "x0": 868.3,
-     "x1": 894.9,
-     "y": 534.6,
-     "y0": 525.2,
-     "y1": 537.5,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "290°",
-     "x0": 775.7,
-     "x1": 802.3,
-     "y": 600.0,
-     "y0": 590.6,
-     "y1": 602.9,
-     "size": 13,
-     "font": "cond",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "R \"2\" Fl R 4s",
      "x0": 794.6,
      "x1": 859.4,
@@ -9882,11 +9819,11 @@
     },
     {
      "s": "sitemap.xml lies again",
-     "x0": 896.4,
-     "x1": 1036.4,
-     "y": 556,
-     "y0": 526.4,
-     "y1": 561.2,
+     "x0": 908.4,
+     "x1": 1048.4,
+     "y": 558,
+     "y0": 528.4,
+     "y1": 563.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -9921,6 +9858,69 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 0.6
+    },
+    {
+     "s": "233°",
+     "x0": 927.2,
+     "x1": 953.8,
+     "y": 375.9,
+     "y0": 366.5,
+     "y1": 378.8,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "208°",
+     "x0": 809.9,
+     "x1": 836.5,
+     "y": 503.8,
+     "y0": 494.4,
+     "y1": 506.7,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "290°",
+     "x0": 775.7,
+     "x1": 802.3,
+     "y": 600.0,
+     "y0": 590.6,
+     "y1": 602.9,
+     "size": 13,
+     "font": "cond",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
     }
    ],
    "exclusions": [
@@ -9933,15 +9933,15 @@
     },
     {
      "name": "text:LIMIT OF SURVEY 2026",
-     "x": 1056.56304,
+     "x": 1086.56304,
      "y": 298.2905000000001,
      "w": 12.296960000000126,
      "h": 133.41899999999987
     },
     {
      "name": "text:PA",
-     "x": 1065.6961754148722,
-     "y": 469.8801131707317,
+     "x": 992.500582379698,
+     "y": 501.9614139837398,
      "w": 13.624000000000024,
      "h": 12.296960000000013
     },
@@ -10529,7 +10529,7 @@
     {
      "name": "text:I survey a web that is wrong about itself.",
      "x": 72,
-     "y": 269.0432,
+     "y": 279.0432,
      "w": 505.8399999999999,
      "h": 38.11680000000001
     },
@@ -10646,27 +10646,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:233°",
-     "x": 952.5269999999999,
-     "y": 399.96304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:208°",
-     "x": 868.327,
-     "y": 525.16304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:290°",
-     "x": 775.727,
-     "y": 590.56304,
-     "w": 26.54600000000005,
-     "h": 12.296960000000013
-    },
-    {
      "name": "text:R \"2\" Fl R 4s",
      "x": 794.565,
      "y": 519.56304,
@@ -10696,8 +10675,8 @@
     },
     {
      "name": "text:sitemap.xml lies again",
-     "x": 896.4486520061898,
-     "y": 526.4492102967151,
+     "x": 908.4486520061898,
+     "y": 528.4492102967151,
      "w": 139.96396801212904,
      "h": 34.78150792243457
     },
@@ -10706,6 +10685,27 @@
      "x": 687,
      "y": 474.56304,
      "w": 72.12300000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:233°",
+     "x": 927.227,
+     "y": 366.46304,
+     "w": 26.54600000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:208°",
+     "x": 809.927,
+     "y": 494.36304,
+     "w": 26.54600000000005,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:290°",
+     "x": 775.727,
+     "y": 590.56304,
+     "w": 26.54600000000005,
      "h": 12.296960000000013
     },
     {
@@ -10720,7 +10720,7 @@
      "x": 920,
      "y": 80,
      "w": 160,
-     "h": 195
+     "h": 206
     },
     {
      "name": "title-block",
@@ -11183,14 +11183,14 @@
   },
   "hero-still-night": {
    "svg": "assets/v9/hero-still-night.svg",
-   "sha256": "bc9ef69ff2ad5fddad650815f09cdac16c5e83d619ccf0754d85ca5a5471074e",
+   "sha256": "25a5a482b753494c3ffa3bdd1e39aef0ffeec8a8c16abac61893e1c05127b90d",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 154014,
+   "bytes": 154007,
    "gz": 36722,
    "elements": 1136,
    "paths": 198,
@@ -11277,8 +11277,8 @@
     },
     {
      "s": "LIMIT OF SURVEY 2026",
-     "x0": 1056.6,
-     "x1": 1068.9,
+     "x0": 1086.6,
+     "x1": 1098.9,
      "y": 430.9,
      "y0": 299.1,
      "y1": 430.9,
@@ -11298,11 +11298,11 @@
     },
     {
      "s": "PA",
-     "x0": 1065.7,
-     "x1": 1079.3,
-     "y": 479.3,
-     "y0": 469.9,
-     "y1": 482.2,
+     "x0": 992.5,
+     "x1": 1006.1,
+     "y": 511.4,
+     "y0": 502.0,
+     "y1": 514.3,
      "size": 13,
      "font": "cond-italic",
      "slant": "italic",
@@ -13064,9 +13064,9 @@
      "s": "I survey a web that is wrong about itself.",
      "x0": 72,
      "x1": 577.8,
-     "y": 296,
-     "y0": 269.0,
-     "y1": 307.2,
+     "y": 306,
+     "y0": 279.0,
+     "y1": 317.2,
      "size": 36,
      "font": "serif-italic",
      "slant": "italic",
@@ -13458,69 +13458,6 @@
      "tracking": 0.6
     },
     {
-     "s": "233°",
-     "x0": 952.5,
-     "x1": 979.1,
-     "y": 409.4,
-     "y0": 400.0,
-     "y1": 412.3,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "208°",
-     "x0": 868.3,
-     "x1": 894.9,
-     "y": 534.6,
-     "y0": 525.2,
-     "y1": 537.5,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "290°",
-     "x0": 775.7,
-     "x1": 802.3,
-     "y": 600.0,
-     "y0": 590.6,
-     "y1": 602.9,
-     "size": 13,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "label",
-     "tier": "semantic",
-     "truth": "measured",
-     "key": "bearing",
-     "rot": 0,
-     "origin": "text_use",
-     "semantic": true,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
      "s": "R \"2\" Fl R 4s",
      "x0": 794.6,
      "x1": 859.4,
@@ -13606,11 +13543,11 @@
     },
     {
      "s": "sitemap.xml lies again",
-     "x0": 896.4,
-     "x1": 1036.4,
-     "y": 556,
-     "y0": 526.4,
-     "y1": 561.2,
+     "x0": 908.4,
+     "x1": 1048.4,
+     "y": 558,
+     "y0": 528.4,
+     "y1": 563.2,
      "size": 17,
      "font": "serif-italic",
      "slant": "italic",
@@ -13645,6 +13582,69 @@
      "within": null,
      "tracked_spaces": 0,
      "tracking": 0.6
+    },
+    {
+     "s": "233°",
+     "x0": 927.2,
+     "x1": 953.8,
+     "y": 375.9,
+     "y0": 366.5,
+     "y1": 378.8,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "208°",
+     "x0": 809.9,
+     "x1": 836.5,
+     "y": 503.8,
+     "y0": 494.4,
+     "y1": 506.7,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
+    },
+    {
+     "s": "290°",
+     "x0": 775.7,
+     "x1": 802.3,
+     "y": 600.0,
+     "y0": 590.6,
+     "y1": 602.9,
+     "size": 13,
+     "font": "cond-light",
+     "slant": "upright",
+     "role": "label",
+     "tier": "semantic",
+     "truth": "measured",
+     "key": "bearing",
+     "rot": 0,
+     "origin": "text_use",
+     "semantic": true,
+     "within": null,
+     "tracked_spaces": 0,
+     "tracking": 0.0
     }
    ],
    "exclusions": [
@@ -13657,15 +13657,15 @@
     },
     {
      "name": "text:LIMIT OF SURVEY 2026",
-     "x": 1056.56304,
+     "x": 1086.56304,
      "y": 299.0834999999999,
      "w": 12.296960000000126,
      "h": 131.83300000000008
     },
     {
      "name": "text:PA",
-     "x": 1065.6961754148722,
-     "y": 469.8801131707317,
+     "x": 992.500582379698,
+     "y": 501.9614139837398,
      "w": 13.624000000000024,
      "h": 12.296960000000013
     },
@@ -14253,7 +14253,7 @@
     {
      "name": "text:I survey a web that is wrong about itself.",
      "x": 72,
-     "y": 269.0432,
+     "y": 279.0432,
      "w": 505.8399999999999,
      "h": 38.11680000000001
     },
@@ -14370,27 +14370,6 @@
      "h": 12.296960000000013
     },
     {
-     "name": "text:233°",
-     "x": 952.5335,
-     "y": 399.96304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:208°",
-     "x": 868.3335000000001,
-     "y": 525.16304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
-     "name": "text:290°",
-     "x": 775.7335,
-     "y": 590.56304,
-     "w": 26.533000000000015,
-     "h": 12.296960000000013
-    },
-    {
      "name": "text:R \"2\" Fl R 4s",
      "x": 794.565,
      "y": 519.56304,
@@ -14420,8 +14399,8 @@
     },
     {
      "name": "text:sitemap.xml lies again",
-     "x": 896.4486520061898,
-     "y": 526.4492102967151,
+     "x": 908.4486520061898,
+     "y": 528.4492102967151,
      "w": 139.96396801212904,
      "h": 34.78150792243457
     },
@@ -14430,6 +14409,27 @@
      "x": 687,
      "y": 474.56304,
      "w": 71.26499999999999,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:233°",
+     "x": 927.2335,
+     "y": 366.46304,
+     "w": 26.533000000000015,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:208°",
+     "x": 809.9335000000001,
+     "y": 494.36304,
+     "w": 26.533000000000015,
+     "h": 12.296960000000013
+    },
+    {
+     "name": "text:290°",
+     "x": 775.7335,
+     "y": 590.56304,
+     "w": 26.533000000000015,
      "h": 12.296960000000013
     },
     {
@@ -14444,7 +14444,7 @@
      "x": 920,
      "y": 80,
      "w": 160,
-     "h": 195
+     "h": 206
     },
     {
      "name": "title-block",
@@ -14907,16 +14907,16 @@
   },
   "hero-phone-day": {
    "svg": "assets/v9/hero-phone-day.svg",
-   "sha256": "90a10cfb1adfbdd36d1d7fff2b50d9bfe09120ef10e17910c3219b6a61cfa1d4",
+   "sha256": "b9f154ad3c6c1b80e172ac0f664441ba4dff7d92d9293b7ec1c85d959903a8c9",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 106162,
-   "gz": 27838,
-   "elements": 624,
+   "bytes": 104540,
+   "gz": 27572,
+   "elements": 602,
    "paths": 137,
    "breaks": [
     [
@@ -15000,12 +15000,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SOUNDINGS THINNED",
+     "s": "SMALL-SCALE",
      "x0": 607.1,
      "x1": 631.7,
-     "y": 653.9,
-     "y0": 398.1,
-     "y1": 653.9,
+     "y": 604.8,
+     "y0": 447.2,
+     "y1": 604.8,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -15043,39 +15043,18 @@
     },
     {
      "s": "0",
-     "x0": 591.1,
-     "x1": 600.9,
-     "y": 495,
-     "y0": 481.9,
-     "y1": 499.0,
+     "x0": 568.1,
+     "x1": 577.9,
+     "y": 483,
+     "y0": 469.9,
+     "y1": 487.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-01-19",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "0",
-     "x0": 578.1,
-     "x1": 587.9,
-     "y": 502,
-     "y0": 488.9,
-     "y1": 506.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-02-16",
+     "key": "week:2026-02-09",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -15106,39 +15085,18 @@
     },
     {
      "s": "0",
-     "x0": 553.1,
-     "x1": 562.9,
-     "y": 518,
-     "y0": 504.9,
-     "y1": 522.0,
+     "x0": 532.1,
+     "x1": 541.9,
+     "y": 509,
+     "y0": 495.9,
+     "y1": 513.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-04-13",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "1",
-     "x0": 542.1,
-     "x1": 551.9,
-     "y": 528,
-     "y0": 514.9,
-     "y1": 532.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-05-11",
+     "key": "week:2026-05-04",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -15168,40 +15126,19 @@
      "tracking": 0.0
     },
     {
-     "s": "0",
-     "x0": 520.1,
-     "x1": 529.9,
-     "y": 547,
-     "y0": 533.9,
-     "y1": 551.0,
+     "s": "17",
+     "x0": 494.3,
+     "x1": 513.7,
+     "y": 538,
+     "y0": 524.9,
+     "y1": 542.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-07-06",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15",
-     "x0": 503.3,
-     "x1": 522.7,
-     "y": 556,
-     "y0": 542.9,
-     "y1": 560.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
+     "key": "week:2026-07-27",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -15223,27 +15160,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "13",
-     "x0": 489.3,
-     "x1": 508.7,
-     "y": 576,
-     "y0": 562.9,
-     "y1": 580.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-28",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -15442,8 +15358,8 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 451.5,
-     "x1": 650.5,
+     "x0": 394.9,
+     "x1": 594.0,
      "y": 667,
      "y0": 644.5,
      "y1": 676.3,
@@ -15822,9 +15738,9 @@
      "s": "I survey a web that",
      "x0": 44,
      "x1": 307.2,
-     "y": 212,
-     "y0": 182.0,
-     "y1": 224.4,
+     "y": 222,
+     "y0": 192.0,
+     "y1": 234.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -15843,9 +15759,9 @@
      "s": "is wrong about itself.",
      "x0": 44,
      "x1": 336.6,
-     "y": 258,
-     "y0": 228.0,
-     "y1": 270.4,
+     "y": 268,
+     "y0": 238.0,
+     "y1": 280.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -15969,11 +15885,11 @@
      "h": 156.784
     },
     {
-     "name": "text:SOUNDINGS THINNED",
+     "name": "text:SMALL-SCALE",
      "x": 607.12608,
-     "y": 398.06100000000004,
+     "y": 447.1600000000001,
      "w": 24.593920000000026,
-     "h": 255.87799999999993
+     "h": 157.67999999999995
     },
     {
      "name": "text:7",
@@ -15984,15 +15900,8 @@
     },
     {
      "name": "text:0",
-     "x": 591.14,
-     "y": 481.93344,
-     "w": 9.720000000000027,
-     "h": 17.02655999999996
-    },
-    {
-     "name": "text:0",
-     "x": 578.14,
-     "y": 488.93344,
+     "x": 568.14,
+     "y": 469.93344,
      "w": 9.720000000000027,
      "h": 17.02655999999996
     },
@@ -16005,15 +15914,8 @@
     },
     {
      "name": "text:0",
-     "x": 553.14,
-     "y": 504.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:1",
-     "x": 542.14,
-     "y": 514.93344,
+     "x": 532.14,
+     "y": 495.93344,
      "w": 9.720000000000027,
      "h": 17.026560000000018
     },
@@ -16025,16 +15927,9 @@
      "h": 17.026560000000018
     },
     {
-     "name": "text:0",
-     "x": 520.14,
-     "y": 533.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:15",
-     "x": 503.28,
-     "y": 542.93344,
+     "name": "text:17",
+     "x": 494.28,
+     "y": 524.93344,
      "w": 19.440000000000055,
      "h": 17.026560000000018
     },
@@ -16043,13 +15938,6 @@
      "x": 492.42,
      "y": 550.93344,
      "w": 29.160000000000025,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:13",
-     "x": 489.28,
-     "y": 562.93344,
-     "w": 19.439999999999998,
      "h": 17.026560000000018
     },
     {
@@ -16117,7 +16005,7 @@
     },
     {
      "name": "text:Data Science Bank",
-     "x": 451.46000000000004,
+     "x": 394.9200000000001,
      "y": 644.536,
      "w": 199.07999999999993,
      "h": 31.76400000000001
@@ -16244,14 +16132,14 @@
     {
      "name": "text:I survey a web that",
      "x": 44,
-     "y": 182.048,
+     "y": 192.048,
      "w": 263.2,
      "h": 42.352000000000004
     },
     {
      "name": "text:is wrong about itself.",
      "x": 44,
-     "y": 228.048,
+     "y": 238.048,
      "w": 292.6,
      "h": 42.351999999999975
     },
@@ -16295,7 +16183,7 @@
      "x": 536,
      "y": 236,
      "w": 130,
-     "h": 170
+     "h": 176
     },
     {
      "name": "title-block",
@@ -16352,7 +16240,11 @@
     "continuous_windows": [
      [
       0.2,
-      4.65
+      4.11
+     ],
+     [
+      4.16,
+      4.41
      ]
     ],
     "geometry_anims": 5,
@@ -16363,7 +16255,7 @@
       4.0
      ]
     },
-    "anims": 36,
+    "anims": 32,
     "violations": []
    },
    "features": [
@@ -16614,7 +16506,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 7,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -16626,16 +16518,16 @@
   },
   "hero-phone-night": {
    "svg": "assets/v9/hero-phone-night.svg",
-   "sha256": "c74da4ca4b2fcaecc80b96ea63887ec28ae6691c7819579c136a9b216b75b605",
+   "sha256": "a49df697ab1cbb60da35d8bbd364785eba0ac894e7df2852040148a66dec8a8f",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 107201,
-   "gz": 27520,
-   "elements": 625,
+   "bytes": 105553,
+   "gz": 27298,
+   "elements": 603,
    "paths": 137,
    "breaks": [
     [
@@ -16719,12 +16611,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SOUNDINGS THINNED",
+     "s": "SMALL-SCALE",
      "x0": 607.1,
      "x1": 631.7,
-     "y": 652.4,
-     "y0": 399.6,
-     "y1": 652.4,
+     "y": 603.5,
+     "y0": 448.5,
+     "y1": 603.5,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -16762,39 +16654,18 @@
     },
     {
      "s": "0",
-     "x0": 591.1,
-     "x1": 600.9,
-     "y": 495,
-     "y0": 481.9,
-     "y1": 499.0,
+     "x0": 568.1,
+     "x1": 577.9,
+     "y": 483,
+     "y0": 469.9,
+     "y1": 487.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-01-19",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "0",
-     "x0": 578.1,
-     "x1": 587.9,
-     "y": 502,
-     "y0": 488.9,
-     "y1": 506.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-02-16",
+     "key": "week:2026-02-09",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -16825,39 +16696,18 @@
     },
     {
      "s": "0",
-     "x0": 553.1,
-     "x1": 562.9,
-     "y": 518,
-     "y0": 504.9,
-     "y1": 522.0,
+     "x0": 532.1,
+     "x1": 541.9,
+     "y": 509,
+     "y0": 495.9,
+     "y1": 513.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-04-13",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "1",
-     "x0": 542.1,
-     "x1": 551.9,
-     "y": 528,
-     "y0": 514.9,
-     "y1": 532.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-05-11",
+     "key": "week:2026-05-04",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -16887,40 +16737,19 @@
      "tracking": 0.0
     },
     {
-     "s": "0",
-     "x0": 520.1,
-     "x1": 529.9,
-     "y": 547,
-     "y0": 533.9,
-     "y1": 551.0,
+     "s": "17",
+     "x0": 494.3,
+     "x1": 513.7,
+     "y": 538,
+     "y0": 524.9,
+     "y1": 542.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-07-06",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15",
-     "x0": 503.3,
-     "x1": 522.7,
-     "y": 556,
-     "y0": 542.9,
-     "y1": 560.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
+     "key": "week:2026-07-27",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -16942,27 +16771,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "13",
-     "x0": 489.3,
-     "x1": 508.7,
-     "y": 576,
-     "y0": 562.9,
-     "y1": 580.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-28",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -17161,8 +16969,8 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 451.5,
-     "x1": 650.5,
+     "x0": 394.9,
+     "x1": 594.0,
      "y": 667,
      "y0": 644.5,
      "y1": 676.3,
@@ -17541,9 +17349,9 @@
      "s": "I survey a web that",
      "x0": 44,
      "x1": 307.2,
-     "y": 212,
-     "y0": 182.0,
-     "y1": 224.4,
+     "y": 222,
+     "y0": 192.0,
+     "y1": 234.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -17562,9 +17370,9 @@
      "s": "is wrong about itself.",
      "x0": 44,
      "x1": 336.6,
-     "y": 258,
-     "y0": 228.0,
-     "y1": 270.4,
+     "y": 268,
+     "y0": 238.0,
+     "y1": 280.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -17688,11 +17496,11 @@
      "h": 154.39200000000005
     },
     {
-     "name": "text:SOUNDINGS THINNED",
+     "name": "text:SMALL-SCALE",
      "x": 607.12608,
-     "y": 399.634,
+     "y": 448.499,
      "w": 24.593920000000026,
-     "h": 252.73199999999997
+     "h": 155.00199999999995
     },
     {
      "name": "text:7",
@@ -17703,15 +17511,8 @@
     },
     {
      "name": "text:0",
-     "x": 591.14,
-     "y": 481.93344,
-     "w": 9.720000000000027,
-     "h": 17.02655999999996
-    },
-    {
-     "name": "text:0",
-     "x": 578.14,
-     "y": 488.93344,
+     "x": 568.14,
+     "y": 469.93344,
      "w": 9.720000000000027,
      "h": 17.02655999999996
     },
@@ -17724,15 +17525,8 @@
     },
     {
      "name": "text:0",
-     "x": 553.14,
-     "y": 504.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:1",
-     "x": 542.14,
-     "y": 514.93344,
+     "x": 532.14,
+     "y": 495.93344,
      "w": 9.720000000000027,
      "h": 17.026560000000018
     },
@@ -17744,16 +17538,9 @@
      "h": 17.026560000000018
     },
     {
-     "name": "text:0",
-     "x": 520.14,
-     "y": 533.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:15",
-     "x": 503.28,
-     "y": 542.93344,
+     "name": "text:17",
+     "x": 494.28,
+     "y": 524.93344,
      "w": 19.440000000000055,
      "h": 17.026560000000018
     },
@@ -17762,13 +17549,6 @@
      "x": 492.42,
      "y": 550.93344,
      "w": 29.160000000000025,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:13",
-     "x": 489.28,
-     "y": 562.93344,
-     "w": 19.439999999999998,
      "h": 17.026560000000018
     },
     {
@@ -17836,7 +17616,7 @@
     },
     {
      "name": "text:Data Science Bank",
-     "x": 451.46000000000004,
+     "x": 394.9200000000001,
      "y": 644.536,
      "w": 199.07999999999993,
      "h": 31.76400000000001
@@ -17963,14 +17743,14 @@
     {
      "name": "text:I survey a web that",
      "x": 44,
-     "y": 182.048,
+     "y": 192.048,
      "w": 263.2,
      "h": 42.352000000000004
     },
     {
      "name": "text:is wrong about itself.",
      "x": 44,
-     "y": 228.048,
+     "y": 238.048,
      "w": 292.6,
      "h": 42.351999999999975
     },
@@ -18014,7 +17794,7 @@
      "x": 536,
      "y": 236,
      "w": 130,
-     "h": 170
+     "h": 176
     },
     {
      "name": "title-block",
@@ -18071,7 +17851,11 @@
     "continuous_windows": [
      [
       0.2,
-      4.65
+      4.11
+     ],
+     [
+      4.16,
+      4.41
      ]
     ],
     "geometry_anims": 5,
@@ -18082,7 +17866,7 @@
       4.0
      ]
     },
-    "anims": 36,
+    "anims": 32,
     "violations": []
    },
    "features": [
@@ -18333,7 +18117,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 7,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -18345,16 +18129,16 @@
   },
   "hero-phone-still-day": {
    "svg": "assets/v9/hero-phone-still-day.svg",
-   "sha256": "83312651b646aaa2a24b8c5736bbf36626043ce6d574dcecf07df0de0a8f783f",
+   "sha256": "9a352873ac0bcf817ef9d3f430c5cdadbb72b27be9bf2e56dc38dc9fd6bf5bc5",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 100783,
-   "gz": 27173,
-   "elements": 565,
+   "bytes": 99775,
+   "gz": 26934,
+   "elements": 551,
    "paths": 137,
    "breaks": [
     [
@@ -18438,12 +18222,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SOUNDINGS THINNED",
+     "s": "SMALL-SCALE",
      "x0": 607.1,
      "x1": 631.7,
-     "y": 653.9,
-     "y0": 398.1,
-     "y1": 653.9,
+     "y": 604.8,
+     "y0": 447.2,
+     "y1": 604.8,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -18481,39 +18265,18 @@
     },
     {
      "s": "0",
-     "x0": 591.1,
-     "x1": 600.9,
-     "y": 495,
-     "y0": 481.9,
-     "y1": 499.0,
+     "x0": 568.1,
+     "x1": 577.9,
+     "y": 483,
+     "y0": 469.9,
+     "y1": 487.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-01-19",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "0",
-     "x0": 578.1,
-     "x1": 587.9,
-     "y": 502,
-     "y0": 488.9,
-     "y1": 506.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-02-16",
+     "key": "week:2026-02-09",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -18544,39 +18307,18 @@
     },
     {
      "s": "0",
-     "x0": 553.1,
-     "x1": 562.9,
-     "y": 518,
-     "y0": 504.9,
-     "y1": 522.0,
+     "x0": 532.1,
+     "x1": 541.9,
+     "y": 509,
+     "y0": 495.9,
+     "y1": 513.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-04-13",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "1",
-     "x0": 542.1,
-     "x1": 551.9,
-     "y": 528,
-     "y0": 514.9,
-     "y1": 532.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-05-11",
+     "key": "week:2026-05-04",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -18606,40 +18348,19 @@
      "tracking": 0.0
     },
     {
-     "s": "0",
-     "x0": 520.1,
-     "x1": 529.9,
-     "y": 547,
-     "y0": 533.9,
-     "y1": 551.0,
+     "s": "17",
+     "x0": 494.3,
+     "x1": 513.7,
+     "y": 538,
+     "y0": 524.9,
+     "y1": 542.0,
      "size": 18,
      "font": "cond",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-07-06",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15",
-     "x0": 503.3,
-     "x1": 522.7,
-     "y": 556,
-     "y0": 542.9,
-     "y1": 560.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
+     "key": "week:2026-07-27",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -18661,27 +18382,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "13",
-     "x0": 489.3,
-     "x1": 508.7,
-     "y": 576,
-     "y0": 562.9,
-     "y1": 580.0,
-     "size": 18,
-     "font": "cond",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-28",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -18880,8 +18580,8 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 451.5,
-     "x1": 650.5,
+     "x0": 394.9,
+     "x1": 594.0,
      "y": 667,
      "y0": 644.5,
      "y1": 676.3,
@@ -19260,9 +18960,9 @@
      "s": "I survey a web that",
      "x0": 44,
      "x1": 307.2,
-     "y": 212,
-     "y0": 182.0,
-     "y1": 224.4,
+     "y": 222,
+     "y0": 192.0,
+     "y1": 234.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -19281,9 +18981,9 @@
      "s": "is wrong about itself.",
      "x0": 44,
      "x1": 336.6,
-     "y": 258,
-     "y0": 228.0,
-     "y1": 270.4,
+     "y": 268,
+     "y0": 238.0,
+     "y1": 280.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -19407,11 +19107,11 @@
      "h": 156.784
     },
     {
-     "name": "text:SOUNDINGS THINNED",
+     "name": "text:SMALL-SCALE",
      "x": 607.12608,
-     "y": 398.06100000000004,
+     "y": 447.1600000000001,
      "w": 24.593920000000026,
-     "h": 255.87799999999993
+     "h": 157.67999999999995
     },
     {
      "name": "text:7",
@@ -19422,15 +19122,8 @@
     },
     {
      "name": "text:0",
-     "x": 591.14,
-     "y": 481.93344,
-     "w": 9.720000000000027,
-     "h": 17.02655999999996
-    },
-    {
-     "name": "text:0",
-     "x": 578.14,
-     "y": 488.93344,
+     "x": 568.14,
+     "y": 469.93344,
      "w": 9.720000000000027,
      "h": 17.02655999999996
     },
@@ -19443,15 +19136,8 @@
     },
     {
      "name": "text:0",
-     "x": 553.14,
-     "y": 504.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:1",
-     "x": 542.14,
-     "y": 514.93344,
+     "x": 532.14,
+     "y": 495.93344,
      "w": 9.720000000000027,
      "h": 17.026560000000018
     },
@@ -19463,16 +19149,9 @@
      "h": 17.026560000000018
     },
     {
-     "name": "text:0",
-     "x": 520.14,
-     "y": 533.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:15",
-     "x": 503.28,
-     "y": 542.93344,
+     "name": "text:17",
+     "x": 494.28,
+     "y": 524.93344,
      "w": 19.440000000000055,
      "h": 17.026560000000018
     },
@@ -19481,13 +19160,6 @@
      "x": 492.42,
      "y": 550.93344,
      "w": 29.160000000000025,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:13",
-     "x": 489.28,
-     "y": 562.93344,
-     "w": 19.439999999999998,
      "h": 17.026560000000018
     },
     {
@@ -19555,7 +19227,7 @@
     },
     {
      "name": "text:Data Science Bank",
-     "x": 451.46000000000004,
+     "x": 394.9200000000001,
      "y": 644.536,
      "w": 199.07999999999993,
      "h": 31.76400000000001
@@ -19682,14 +19354,14 @@
     {
      "name": "text:I survey a web that",
      "x": 44,
-     "y": 182.048,
+     "y": 192.048,
      "w": 263.2,
      "h": 42.352000000000004
     },
     {
      "name": "text:is wrong about itself.",
      "x": 44,
-     "y": 228.048,
+     "y": 238.048,
      "w": 292.6,
      "h": 42.351999999999975
     },
@@ -19733,7 +19405,7 @@
      "x": 536,
      "y": 236,
      "w": 130,
-     "h": 170
+     "h": 176
     },
     {
      "name": "title-block",
@@ -19790,7 +19462,11 @@
     "continuous_windows": [
      [
       0.7,
-      4.65
+      4.11
+     ],
+     [
+      4.16,
+      4.41
      ]
     ],
     "geometry_anims": 0,
@@ -19801,7 +19477,7 @@
       4.0
      ]
     },
-    "anims": 31,
+    "anims": 27,
     "violations": []
    },
    "features": [
@@ -20052,7 +19728,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 7,
     "culled": 6,
     "sail": {
      "begin": 4.0,
@@ -20064,16 +19740,16 @@
   },
   "hero-phone-still-night": {
    "svg": "assets/v9/hero-phone-still-night.svg",
-   "sha256": "a3977c11fa8da6dcf52f46c9b43800962c10b4805adc2f37f72af0bb02b3c5b8",
+   "sha256": "0627816f14de53f209293a7b1718635f45f1e510db96f7bf29b06f323f15a153",
    "w": 720,
    "h": 900,
    "form": "phone",
    "edition": "phone-still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 101822,
-   "gz": 26871,
-   "elements": 566,
+   "bytes": 100788,
+   "gz": 26671,
+   "elements": 552,
    "paths": 137,
    "breaks": [
     [
@@ -20157,12 +19833,12 @@
      "tracking": 1.0
     },
     {
-     "s": "SOUNDINGS THINNED",
+     "s": "SMALL-SCALE",
      "x0": 607.1,
      "x1": 631.7,
-     "y": 652.4,
-     "y0": 399.6,
-     "y1": 652.4,
+     "y": 603.5,
+     "y0": 448.5,
+     "y1": 603.5,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -20200,39 +19876,18 @@
     },
     {
      "s": "0",
-     "x0": 591.1,
-     "x1": 600.9,
-     "y": 495,
-     "y0": 481.9,
-     "y1": 499.0,
+     "x0": 568.1,
+     "x1": 577.9,
+     "y": 483,
+     "y0": 469.9,
+     "y1": 487.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-01-19",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "0",
-     "x0": 578.1,
-     "x1": 587.9,
-     "y": 502,
-     "y0": 488.9,
-     "y1": 506.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-02-16",
+     "key": "week:2026-02-09",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -20263,39 +19918,18 @@
     },
     {
      "s": "0",
-     "x0": 553.1,
-     "x1": 562.9,
-     "y": 518,
-     "y0": 504.9,
-     "y1": 522.0,
+     "x0": 532.1,
+     "x1": 541.9,
+     "y": 509,
+     "y0": 495.9,
+     "y1": 513.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-04-13",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "1",
-     "x0": 542.1,
-     "x1": 551.9,
-     "y": 528,
-     "y0": 514.9,
-     "y1": 532.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-05-11",
+     "key": "week:2026-05-04",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -20325,40 +19959,19 @@
      "tracking": 0.0
     },
     {
-     "s": "0",
-     "x0": 520.1,
-     "x1": 529.9,
-     "y": 547,
-     "y0": 533.9,
-     "y1": 551.0,
+     "s": "17",
+     "x0": 494.3,
+     "x1": 513.7,
+     "y": 538,
+     "y0": 524.9,
+     "y1": 542.0,
      "size": 18,
      "font": "cond-light",
      "slant": "upright",
      "role": "texture",
      "tier": "texture",
      "truth": "measured",
-     "key": "week:2026-07-06",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "15",
-     "x0": 503.3,
-     "x1": 522.7,
-     "y": 556,
-     "y0": 542.9,
-     "y1": 560.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-08-03",
+     "key": "week:2026-07-27",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -20380,27 +19993,6 @@
      "tier": "texture",
      "truth": "measured",
      "key": "week:2026-08-31",
-     "rot": 0,
-     "origin": "sounding",
-     "semantic": false,
-     "within": null,
-     "tracked_spaces": 0,
-     "tracking": 0.0
-    },
-    {
-     "s": "13",
-     "x0": 489.3,
-     "x1": 508.7,
-     "y": 576,
-     "y0": 562.9,
-     "y1": 580.0,
-     "size": 18,
-     "font": "cond-light",
-     "slant": "upright",
-     "role": "texture",
-     "tier": "texture",
-     "truth": "measured",
-     "key": "week:2026-09-28",
      "rot": 0,
      "origin": "sounding",
      "semantic": false,
@@ -20599,8 +20191,8 @@
     },
     {
      "s": "Data Science Bank",
-     "x0": 451.5,
-     "x1": 650.5,
+     "x0": 394.9,
+     "x1": 594.0,
      "y": 667,
      "y0": 644.5,
      "y1": 676.3,
@@ -20979,9 +20571,9 @@
      "s": "I survey a web that",
      "x0": 44,
      "x1": 307.2,
-     "y": 212,
-     "y0": 182.0,
-     "y1": 224.4,
+     "y": 222,
+     "y0": 192.0,
+     "y1": 234.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -21000,9 +20592,9 @@
      "s": "is wrong about itself.",
      "x0": 44,
      "x1": 336.6,
-     "y": 258,
-     "y0": 228.0,
-     "y1": 270.4,
+     "y": 268,
+     "y0": 238.0,
+     "y1": 280.4,
      "size": 40,
      "font": "serif-italic",
      "slant": "italic",
@@ -21126,11 +20718,11 @@
      "h": 154.39200000000005
     },
     {
-     "name": "text:SOUNDINGS THINNED",
+     "name": "text:SMALL-SCALE",
      "x": 607.12608,
-     "y": 399.634,
+     "y": 448.499,
      "w": 24.593920000000026,
-     "h": 252.73199999999997
+     "h": 155.00199999999995
     },
     {
      "name": "text:7",
@@ -21141,15 +20733,8 @@
     },
     {
      "name": "text:0",
-     "x": 591.14,
-     "y": 481.93344,
-     "w": 9.720000000000027,
-     "h": 17.02655999999996
-    },
-    {
-     "name": "text:0",
-     "x": 578.14,
-     "y": 488.93344,
+     "x": 568.14,
+     "y": 469.93344,
      "w": 9.720000000000027,
      "h": 17.02655999999996
     },
@@ -21162,15 +20747,8 @@
     },
     {
      "name": "text:0",
-     "x": 553.14,
-     "y": 504.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:1",
-     "x": 542.14,
-     "y": 514.93344,
+     "x": 532.14,
+     "y": 495.93344,
      "w": 9.720000000000027,
      "h": 17.026560000000018
     },
@@ -21182,16 +20760,9 @@
      "h": 17.026560000000018
     },
     {
-     "name": "text:0",
-     "x": 520.14,
-     "y": 533.93344,
-     "w": 9.720000000000027,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:15",
-     "x": 503.28,
-     "y": 542.93344,
+     "name": "text:17",
+     "x": 494.28,
+     "y": 524.93344,
      "w": 19.440000000000055,
      "h": 17.026560000000018
     },
@@ -21200,13 +20771,6 @@
      "x": 492.42,
      "y": 550.93344,
      "w": 29.160000000000025,
-     "h": 17.026560000000018
-    },
-    {
-     "name": "text:13",
-     "x": 489.28,
-     "y": 562.93344,
-     "w": 19.439999999999998,
      "h": 17.026560000000018
     },
     {
@@ -21274,7 +20838,7 @@
     },
     {
      "name": "text:Data Science Bank",
-     "x": 451.46000000000004,
+     "x": 394.9200000000001,
      "y": 644.536,
      "w": 199.07999999999993,
      "h": 31.76400000000001
@@ -21401,14 +20965,14 @@
     {
      "name": "text:I survey a web that",
      "x": 44,
-     "y": 182.048,
+     "y": 192.048,
      "w": 263.2,
      "h": 42.352000000000004
     },
     {
      "name": "text:is wrong about itself.",
      "x": 44,
-     "y": 228.048,
+     "y": 238.048,
      "w": 292.6,
      "h": 42.351999999999975
     },
@@ -21452,7 +21016,7 @@
      "x": 536,
      "y": 236,
      "w": 130,
-     "h": 170
+     "h": 176
     },
     {
      "name": "title-block",
@@ -21509,7 +21073,11 @@
     "continuous_windows": [
      [
       0.7,
-      4.65
+      4.11
+     ],
+     [
+      4.16,
+      4.41
      ]
     ],
     "geometry_anims": 0,
@@ -21520,7 +21088,7 @@
       4.0
      ]
     },
-    "anims": 31,
+    "anims": 27,
     "violations": []
    },
    "features": [
@@ -21771,7 +21339,7 @@
       "unresolved"
      ]
     ],
-    "soundings_printed": 11,
+    "soundings_printed": 7,
     "culled": 6,
     "sail": {
      "begin": 4.0,

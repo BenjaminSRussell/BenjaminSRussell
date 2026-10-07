@@ -63,7 +63,7 @@ def check_report(report: dict) -> list[str]:
         for err in typeset.lint_records(runs, ed, sc, _sheet_of(name)):
             out.append(f"{name}: {err}")
         n = sheet.get("glyph_defs")
-        if n is not None and n > typeset.BUDGET["glyph_defs"]:
+        if n is not None and n > typeset.budget_for(name.split("-", 1)[0])["glyph_defs"]:
             out.append(f"{name}: {n} glyph defs (budget {typeset.budget_for(name.split('-', 1)[0])['glyph_defs']})")
     return out
 

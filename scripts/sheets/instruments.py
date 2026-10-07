@@ -23,13 +23,20 @@ SIZES = {"desk": (1280, 290), "phone": (720, 48)}
 BREAKS: list[tuple[str, str, str]] = [
     ("Right-hung columns", "columns at x 480→1280, the left third nearly empty",
      "the one broken hang on the page; the silhouette names the sheet (27, decision 2)"),
-    ("Mono in the columns", "names and dates in Plex Mono, not Condensed",
-     "an inventory is typed, not lettered (T9 §2C)"),
+    ("Mono in the columns", "names in Plex Mono, dates in Condensed",
+     "an inventory is typed, not lettered (T9 §2C); the dates fit the column in the narrower face"),
+    ("Large rotated group caps", "LEAD · LOG · LOOKOUT at 46 px in the left panel",
+     "the left third is the sheet's title block, not blank paper (round 2)"),
 ]
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-# the three legend-defined marks (T3): a fitting named here (or carrying mark= in chart.toml) gets one
-MARKS = {"Rust": "track", "Delta Lake": "anchorage", "Prometheus · Grafana": "light"}
+# marks in the gutter, all from chartlib.symbol_defs: a named override, else by group (languages are
+# points on the course: a fix for the flagship repos, a waypoint otherwise; stores anchor; deck watches)
+MARKS = {"Prometheus · Grafana": "light"}
+GROUP_MARK = {"LEAD": "waypoint", "LOG": "anchorage", "LOOKOUT": "station"}
+FLAGSHIP = ("Scrapy", "Rust-sitemap")
+GLOSS = {"LEAD": "what measures depth", "LOG": "what keeps the record", "LOOKOUT": "what watches"}
+MARK_NAMES = ("fix", "waypoint", "anchorage", "light", "station")
 COL_X = (480, 747, 1013)
 COL_W = 266
 MARK_X, NAME_X, DATE_X = 14, 30, 250      # within a column: the symbol gutter, the name, the date's right edge
@@ -61,15 +68,21 @@ def _repo_index(data: dict) -> dict:
 
 
 def _mark(kind: str, x: float, y: float, theme) -> str:
-    """A legend mark in the row's gutter, centred on x: track line, anchorage or light, at 0.55."""
-    if kind == "track":
-        svg, _segs = C.track_lines(x - 4, y - 1, x + 4, y - 11, 3, 3.6, theme, opacity=0.9)
-        return svg
-    if kind == "anchorage":
-        return C.use("anchorage", x, y - 4, NAME, scale=0.7)
-    if kind == "light":
-        return C.use("light", x, y - 4, NAME, scale=0.7)
-    return ""
+    """A legend mark in the row's gutter, centred on x, at 0.8 (the same <use> ids the legend defines)."""
+    if kind not in MARK_NAMES:
+        return ""
+    return C.use(kind, x, y - 4, NAME, scale=0.8)
+
+
+def _mark_for(item: dict, code: str) -> str | None:
+    name = str(item.get("name", ""))
+    if item.get("mark"):
+        return str(item["mark"])
+    if name in MARKS:
+        return MARKS[name]
+    if code == "LEAD" and str(item.get("repo", "")) in FLAGSHIP:
+        return "fix"
+    return GROUP_MARK.get(code)
 
 def _symbols(theme, edition: str, names) -> str:
     """Only the sheet's own symbols out of chartlib.symbol_defs (same ids, same drawings), so a sheet
@@ -109,7 +122,7 @@ def _desk(ctx) -> str:
         return T.text_use(s, x, y, role, edition=ed, **kw)
 
     out: list[str] = []
-    defs = _symbols(t, ed.name, ("anchorage", "light"))
+    defs = _symbols(t, ed.name, MARK_NAMES)
     rows = max([sum(1 for i in items if i.get("group") == g[0]) for g in groups] + [6])
     y_top, pitch, y_first = 40, 28, 76
     y_bot = y_first + (rows - 1) * pitch + 20
@@ -130,7 +143,7 @@ def _desk(ctx) -> str:
             fill = t.ink if active else t.ink2
             out.append(tx(name, cx + NAME_X, y, role, fill=fill, opacity=(0.9 if ed.dark and not active else None)))
             pen = cx + NAME_X + T.text_width(name, role, edition=ed)
-            mark = item.get("mark") or MARKS.get(name)
+            mark = _mark_for(item, code)
             if mark:
                 out.append(_mark(mark, cx + MARK_X, y, t))
             fitted = _my(repo.get("first")) if repo else ""
@@ -142,11 +155,19 @@ def _desk(ctx) -> str:
             if fitted:
                 out.append(tx(fitted, cx + DATE_X, y, "label", fill=t.muted, anchor="end", truth="measured",
                               key=f"fitted.{name}"))
-    # the reading key in the left third (plain words for the recruiter, decision 2)
+    # the left third (decision 2): the sheet's name, the three groups as large rotated condensed caps with
+    # their plain-words gloss, hairlines between, and the reading key
+    out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.muted))
+    band_w = 142
+    for gi, (code, _gloss) in enumerate(groups[:3]):
+        bx = 48 + gi * band_w
+        if gi:
+            out.append(f'<path d="M{bx - 12} 52V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
+        out.append(tx(code.upper(), bx + 34, y_bot - 4, "label", fill=t.ink2, size=46, tracking=2.0, rotate=-90))
+        out.append(tx(GLOSS.get(code, _gloss.lower()), bx, y_bot + 18, "label", fill=t.muted))
     n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
-    out.append(tx(f"bold · carried by a repository underway this quarter ({n_active} of {chart_no})", 48, y_bot - 20, "label",
-                  fill=t.muted, truth="measured", key="active_count"))
-    out.append(tx("date · first commit of the repository that carries it", 48, y_bot - 2, "label", fill=t.muted))
+    out.append(tx(f"bold · carried by a repository underway this quarter ({n_active} of {chart_no}) · "
+                  "date · first commit of its repository", 48, H_ - 20, "label", fill=t.muted, truth="measured", key="active_count"))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
     return E.svg(ed, W_, H_, "".join(out), defs + T.glyph_defs(), sheet=NAME)
 

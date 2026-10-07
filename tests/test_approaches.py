@@ -32,7 +32,7 @@ from checks import strings as strings_check  # noqa: E402
 from sheets import approaches as A  # noqa: E402
 
 ANIM_RE = re.compile(r"<(animate|animateTransform|animateMotion|set)\b")
-USE_SYM_RE = re.compile(r'href="#approaches-(c-sym-[a-z-]+)"')
+USE_SYM_RE = re.compile(r'href="#approaches-c-sym-([a-z-]+)"')
 ALLOWED_MEASURED_KEYS = {"chart-number", "edition", "scrapy_commits", "scrape_interval", "shards", "wheel",
                          "rows_stage1_discovery", "rows_stage2_page_analysis", "rows_stage4_summaries"}
 
@@ -124,7 +124,7 @@ class Approaches(unittest.TestCase):
 
     # ------------------------------------------------------------- the legend
     def test_legend_defines_every_symbol_and_covers_every_use(self):
-        every = set(c.symbol_ids("c"))
+        every = set(c.SYMBOL_NAMES)
         for name, data in self.svgs.items():
             text = data.decode()
             used = set(USE_SYM_RE.findall(text))
@@ -134,12 +134,12 @@ class Approaches(unittest.TestCase):
                 legend = set(e["legend"])
                 self.assertEqual(legend, every, name)                    # the page's single legend
                 self.assertTrue(used <= legend, (name, used - legend))   # legend ↔ sheet <use> diff is empty
-                self.assertEqual(set(e["symbols_used"]) - {s for s in e["symbols_used"]}, set())
+                self.assertEqual(set(e["symbols_used"]), used, name)     # the report names every href
             else:
                 self.assertTrue(used <= every, (name, used - every))
             # every symbol id a <use> points at is defined once in the file
             for sym in used:
-                self.assertEqual(text.count(f'id="approaches-{sym}"'), 1, (name, sym))
+                self.assertEqual(text.count(f'id="approaches-c-sym-{sym}"'), 1, (name, sym))
 
     # ------------------------------------------------------------- honesty
     def test_no_banned_strings_no_512_no_coverage(self):

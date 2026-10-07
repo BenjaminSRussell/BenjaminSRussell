@@ -24,7 +24,7 @@ BREAKS: list[tuple[str, str, str]] = [
     ("No neat line", "paper only, head and foot rules", "a tide table is printed in the margin, not framed (27)"),
     ("Two projections of one series", "curve above, 52 depth figures along a traverse below",
      "the hydrographer reads the figures, the reader reads the curve (08, 13)"),
-    ("Register on a shared scale", "15 of 21 lines are nearly flat", "the data is bursty; smoothing or per-line scales would lie (32)"),
+    ("Register on a shared scale", "15 of 21 lines are nearly flat at 26 px", "the data is bursty; smoothing or per-line scales would lie (32)"),
 ]
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -139,7 +139,7 @@ def _desk(ctx) -> str:
     chart_no = repo_count
     W_, H_ = SIZES["desk"]
     X0, X1 = 48, 1232
-    TOP, BASE = 70, 188          # HW at TOP, zero at BASE
+    TOP, BASE = 64, 180          # HW at TOP, zero at BASE
     jit = C.Jitter((ctx.cfg.get("chart") or {}).get("seed", 27), "soundings")
 
     def tx(s, x, y, role="label", **kw):
@@ -221,7 +221,7 @@ def _desk(ctx) -> str:
         out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X0 + 8, 112, "note", fill=t.ink2))
 
     # the traverse: 52 depth figures (upright: measured from the clones), month ticks and letters
-    TRV = 222
+    TRV = 214
     out.append(f'<path d="M{X0} {TRV + 4}H{X1}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
     for i, (x, v) in enumerate(zip(xs, ns)):
         out.append(T.sounding(v, round(x, 1), TRV, truth="measured", edition=ed, key=f"week.{i}"))
@@ -229,35 +229,38 @@ def _desk(ctx) -> str:
     d = "".join(f"M{fmt(xs[i])} {TRV + 4}v5" for i, _ in ticks)
     out.append(f'<path d="{d}" fill="none" {C.stroke("HAIR", t.ink, 0.7, caps="butt")}/>')
     for i, letter in ticks:
-        out.append(tx(letter, xs[i], 244, "label", fill=t.muted, anchor="middle"))
+        out.append(tx(letter, xs[i], 236, "label", fill=t.muted, anchor="middle"))
 
-    # fleet register: one 52-week line per repository on one shared scale
+    # fleet register as a tide-table block: ruled rows and columns, one 52-week line per repository on
+    # one shared scale with its own baseline, name in caps, commits as a spot height
     repos = sorted((r for r in data.get("repos") or [] if r.get("weeks")), key=lambda r: (-int(r.get("commits") or 0), r["name"]))
     if repos:
         cols = max(7, math.ceil(len(repos) / 3))
         rows = math.ceil(len(repos) / cols)
         pitch_x = (X1 - X0 + 9) / cols
         cell_w = pitch_x - 9
-        y0, pitch_y, cell_h = 266, 40, 36
+        HEAD, y0, pitch_y, spark_h = 250, 256, 44, 26
         ymax = max(max(int(v) for v in r["weeks"]) for r in repos) or 1
-        spark_h = 18
-        # register key above the rows: what a line is, and the shared scale
+        out.append(tx("REPOSITORY · 52 WEEKS · COMMITS", X0, HEAD, "label", fill=t.muted))
         out.append(tx(f"one line per repository · 52 weeks · {_n(ymax)} commits a week at full height · ink: underway this quarter",
-                      X0, y0 - 8, "label", fill=t.muted))
+                      X1, HEAD, "label", fill=t.muted, anchor="end"))
+        rules = "".join(f"M{X0} {fmt(y0 + r * pitch_y)}H{X1}" for r in range(rows + 1))
+        rules += "".join(f"M{fmt(X0 + c * pitch_x - 4.5)} {y0}v{rows * pitch_y}" for c in range(1, cols))
+        out.append(f'<path d="{rules}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
         for k, r in enumerate(repos[:cols * rows]):
             c, rr = k % cols, k // cols
             cx, cy = X0 + c * pitch_x, y0 + rr * pitch_y
             active = bool(r.get("active"))
-            name = _pretty(r["name"])
+            name = _pretty(r["name"]).upper()
             count = _n(r.get("commits") or 0)
             cw = T.text_width(count, "label", edition=ed)
-            room = cell_w - cw - 8
+            room = cell_w - cw - 6
             while name and T.text_width(name, "label", edition=ed) > room:
-                name = name[:-2].rstrip() + "…" if not name.endswith("…") else name[:-2].rstrip() + "…"
-            out.append(tx(name, cx, cy + 11, "label", fill=t.ink if active else t.ink2))
-            out.append(tx(count, cx + cell_w, cy + 11, "label", fill=t.ink, anchor="end", truth="measured",
+                name = (name[:-2] if name.endswith("…") else name[:-1]).rstrip() + "…"
+            out.append(tx(name, cx, cy + 12, "label", fill=t.ink if active else t.ink2))
+            out.append(tx(count, cx + cell_w, cy + 12, "label", fill=t.ink, anchor="end", truth="measured",
                           key=f"repo.{r['name']}.commits"))
-            base_y = cy + cell_h - 2
+            base_y = cy + 40
             wk = [int(v) for v in r["weeks"]]
             m = len(wk)
             spts = [(cx + i * cell_w / (m - 1), base_y - spark_h * v / ymax) for i, v in enumerate(wk)]

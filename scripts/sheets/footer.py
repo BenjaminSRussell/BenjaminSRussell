@@ -141,18 +141,19 @@ def _desk(ctx) -> str:
             f'<clipPath id="swell"><rect x="{WX0}" y="{HY - 12}" width="{EDGE - WX0}" height="30"/></clipPath>']
     out: list[str] = []
 
-    # ---- index of adjoining sheets (27): the hero's extent is the one surveyed cell
+    # ---- index of sheets (27): the page's six sheets, this one filled
     IX, IY, IW, IH = 48, 166, 200, 60
-    out.append(tx("ADJOINING SHEETS", IX, IY + IH + 11, "label", fill=t.muted))
-    hd, hb = C.hatch((IX, IY, IW, IH), t, jit.sub("index"), "unsurveyed", clip_id="index-hatch", spacing=6.5)
-    defs.append(hd)
+    out.append(tx("INDEX OF SHEETS", IX, IY + IH + 11, "label", fill=t.muted))
     out.append(f'<rect x="{IX}" y="{IY}" width="{IW}" height="{IH}" fill="{t.paper}" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
-    out.append(hb)
-    cw, ch = IW / 4, IH / 3
-    out.append(f'<rect x="{fmt(IX + cw)}" y="{fmt(IY + ch)}" width="{fmt(cw)}" height="{fmt(ch)}" fill="{t.land}"/>')
-    grid = "".join(f"M{fmt(IX + k * cw)} {IY}v{IH}" for k in (1, 2, 3)) + "".join(f"M{IX} {fmt(IY + k * ch)}h{IW}" for k in (1, 2))
+    cw, ch = IW / 3, IH / 2
+    out.append(f'<rect x="{fmt(IX + 2 * cw)}" y="{fmt(IY + ch)}" width="{fmt(cw)}" height="{fmt(ch)}" fill="{t.land}"/>')
+    grid = "".join(f"M{fmt(IX + k * cw)} {IY}v{IH}" for k in (1, 2)) + f"M{IX} {fmt(IY + ch)}h{IW}"
     out.append(f'<path d="{grid}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
-    out.append(tx("1", IX + 1.5 * cw, IY + 1.5 * ch + 4.5, "label", fill=t.ink, anchor="middle", truth="measured", key="sheet-1"))
+    for k in range(6):
+        c, r = k % 3, k // 3
+        this = (k == 5)
+        out.append(tx(str(k + 1), IX + (c + 0.5) * cw, IY + (r + 0.5) * ch + 4.5, "label", fill=t.ink if this else t.muted,
+                      anchor="middle"))
     T.exclude("index", IX, IY, IW, IH)
 
     # ---- unsurveyed ground beyond the limit: land under hand-ruled hatch
@@ -164,7 +165,9 @@ def _desk(ctx) -> str:
         out.append(hb)
     out.append(tx("UNSURVEYED", 1130, 72, "label", fill=t.ink2))
 
-    # ---- the water: surface, swell (10 s, clipped), the lip, fall lines
+    # ---- the water: a tint-B body from the surface over the lip to the foot of the fall, then the
+    # surface line, swell (10 s, clipped), the lip, fall lines
+    out.append(f'<path d="M{WX0} {HY}H{EDGE}c10 0 16 4 19 12c3 8 4 24 4 42V226H{WX0}Z" fill="{t.shallow_b}"/>')
     out.append(f'<path d="M{WX0} {HY}H{EDGE}" fill="none" {C.stroke("PEN", t.ink, 0.9 if dark else None, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDGE - WX0) // 48 + 2))
     a, base = _loop(tl, "translate", [(0, "0 0", "sea"), (10, "-48 0")], 0.0, 10.0, "0 0", "0 0")
@@ -221,16 +224,16 @@ def _desk(ctx) -> str:
 
     # ---- outside the neat line: folio, the chart's own record, no adjoining sheet
     out.append(tx(f"CHART NO. {chart_no} · SHEET 6", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
-    # every glyph here repaints 57 times a second: the record is the notices count and any contact set in
-    # chart.toml; the taken date is on the soundings dateline (T9 §5.9)
-    record = [f"{n_notices} notice{'s' if n_notices != 1 else ''}"] if n_notices else []
+    # the chart's record, right of the folio: notices and any contact set in chart.toml (the taken date
+    # is on the soundings dateline, T9 §5.9); every glyph here repaints 57 times a second
+    record = [f"{n_notices} notices · corrected through Notice {n_notices}"] if n_notices else []
     contact = cfg.get("contact") or {}
     for key in ("linkedin", "resume"):
         v = str(contact.get(key) or "").strip()
         if v:
             record.append(re.sub(r"^https?://(www\.)?", "", v).rstrip("/"))
     if record:
-        out.append(tx(" · ".join(record), W_ / 2, H_ - 5, "label", fill=t.muted, anchor="middle", truth="measured", key="record"))
+        out.append(tx(" · ".join(record), 1264, H_ - 5, "label", fill=t.muted, anchor="end", truth="measured", key="record"))
     return E.svg(ed, W_, H_, "".join(out), "".join(defs) + T.glyph_defs(), sheet=NAME)
 
 
@@ -259,6 +262,7 @@ def _phone(ctx) -> str:
         out.append(hb)
     uw = T.text_width("UNSURVEYED", "label", edition=ed)
     out.append(tx("UNSURVEYED", 686, 130 + uw / 2, "label", fill=t.ink2, rotate=-90))
+    out.append(f'<path d="M16 {HYP}H{EDG}c10 0 16 4 19 12c3 8 4 24 4 42V290H16Z" fill="{t.shallow_b}"/>')
     out.append(f'<path d="M16 {HYP}H{EDG}" fill="none" {C.stroke("LINE", t.ink, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDG - 16) // 48))
     out.append(f'<path d="M16 {HYP + 9}{waves}" fill="none" {C.stroke("HAIR", t.ink, 0.45)}/>')
@@ -281,7 +285,7 @@ def _phone(ctx) -> str:
     for i, p in enumerate(parts[:2]):
         out.append(tx(p, 24, 72 + 46 * i, "thesis", fill=t.ink))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 6", 16, H_ - 6, "label-caps", fill=t.muted, key="folio"))
-    rec = " · ".join(p for p in ((f"{n_notices} notices" if n_notices else ""), (_dmy(taken) if taken else "")) if p)
+    rec = f"corrected through Notice {n_notices}" if n_notices else ""
     if rec:
         out.append(tx(rec, 704, H_ - 6, "label", fill=t.muted, anchor="end", truth="measured", key="record"))
     return E.svg(ed, W_, H_, "".join(out), "".join(defs) + T.glyph_defs(), sheet=NAME)

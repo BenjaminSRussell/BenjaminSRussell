@@ -277,11 +277,12 @@ class _Sheet:
         return k.sounding(v, x, y, sub=sub, truth=truth, **kw)
 
     def use(self, name, x, y, scale=1.0, rotate=0, extra="") -> str:
-        self.symbols_used.add(f"{PREFIX}-sym-{name}")
+        self.symbols_used.add(name)
         return c.use(name, x, y, PREFIX, scale=scale, rotate=rotate, extra=extra)
 
     def use_legend(self, name, x, y, scale=1.0, rotate=0) -> str:
-        self.legend_ids.add(f"{PREFIX}-sym-{name}")
+        self.legend_ids.add(name)
+        self.symbols_used.add(name)
         return c.use(name, x, y, PREFIX, scale=scale, rotate=rotate)
 
     def stroke(self, *a, **kw) -> str:
@@ -363,7 +364,18 @@ class _Sheet:
             W.append(c.draw_contours(cs, INDEX_LEVELS, t, opacity=op, min_len=60))
         else:
             excl = [ZOC, (TITLE_C[0] - 190, 30, 380, 90), (LIMIT_X - 10, 20, 180, 680), SURVEY, (MOLE_A[0] - 10, MOLE_A[1] - 30, 160, 60)]
-            self.breaks = c.contour_labels(cs, min_len=220, gap=18, exclusions=excl, levels=(5.0, 10.0, 20.0, 50.0))
+            breaks = c.contour_labels(cs, min_len=220, gap=18, exclusions=excl, levels=(5.0, 10.0, 20.0, 50.0))
+            # no figure in the sheet's corners (where contours leave the neat line) and none within 28 px of another
+            kept, anchors = [], []
+            for br in breaks:
+                bx, by, _a = c.break_anchor(br[0], br[1], br[2])
+                if not (70 <= bx <= 1060 and 44 <= by <= 672):
+                    continue
+                if any(math.hypot(bx - qx, by - qy) < 28 for qx, qy in anchors):
+                    continue
+                kept.append(br)
+                anchors.append((bx, by))
+            self.breaks = kept
             approx = (UNSURVEYED_FADE[0] - 40, 20, LIMIT_X - UNSURVEYED_FADE[0] + 40, 680)
             W.append(c.draw_contours(cs, INDEX_LEVELS, t, approx_clip=approx, breaks=self.breaks, opacity=op, min_len=60))
         # the unsurveyed hatch, running to the sheet edge where the neat line is broken
@@ -420,7 +432,7 @@ class _Sheet:
             M.append(self.txt(limit_label, lx + 10, ly - 10, "label"))
             M.append(self.txt("UNSURVEYED", 690, ly - 10, "label", anchor="end", tracking=2.0, fill=t.unsurveyed))
         else:
-            M.append(self.txt(limit_label, LIMIT_X + 10, 560, "label", anchor="middle", rotate=-90))
+            M.append(self.txt(limit_label, LIMIT_X + 10, 500, "label", anchor="middle", rotate=-90))
             M.append(self.txt("UNSURVEYED", 1182, 420, "label", anchor="middle", rotate=-90, tracking=2.0, fill=t.unsurveyed))
 
     def survey_lines(self) -> list[tuple[tuple[float, float], tuple[float, float]]]:
@@ -481,7 +493,7 @@ class _Sheet:
         for kind, (x, y) in (("Rep", REP), ("ED", ED_)):
             px, py = self.P(x, y)
             M.append(c.doubt(kind, px, py, self.lbl, PREFIX))
-            self.symbols_used.add(f"{PREFIX}-sym-{'rep' if kind == 'Rep' else 'ed'}")
+            self.symbols_used.add("rep" if kind == "Rep" else "ed")
             self.extra_excl.append((px - 12, py - 12, 50, 24))
         sx, sy = self.P(*SD)
         if self.phone:
@@ -492,9 +504,9 @@ class _Sheet:
             M.append(c.doubt("SD", sx + 10, sy, self.lbl, PREFIX))
             self.extra_excl.append((sx - 14, sy - 10, 48, 18))
             # pencil note with a leader to the Rep ring: between track lines 1 and 2
-            nx, ny = 704, 234
-            M.append(self.txt("sitemap says yes; the lead says no", nx, ny, "note", fill=self.t.muted, rotate=-6, opacity=0.9))
-            M.append(f'<path d="M{nx - 4} {ny - 12}Q{nx + 10} {ny - 30} {REP[0] - 8} {REP[1] + 4}" fill="none" '
+            nx, ny = 712, 288          # between track lines 2 and 3, clear of the Rep label's box
+            M.append(self.txt("sitemap says yes; the lead says no", nx, ny, "note", fill=self.t.muted, rotate=-4, opacity=0.9))
+            M.append(f'<path d="M{nx - 4} {ny - 12}Q{nx - 2} {ny - 56} {REP[0] - 8} {REP[1] + 5}" fill="none" '
                      f'{self.stroke("HAIR", self.t.muted, 0.8)}/>')
 
     def draw_channel(self):
@@ -503,7 +515,7 @@ class _Sheet:
         P = self.P
         # outer leg: pecked course with waypoints
         L.append(c.course(self.Ppts([W0, W1]), t, jit, pecked=True, prefix=PREFIX, bearings=False))
-        self.symbols_used.add(f"{PREFIX}-sym-waypoint")
+        self.symbols_used.add("waypoint")
         # the leading line: the darkest ruled line on the sheet, from the front mark out to W1 (the "1"/"2" pair)
         f, w1 = P(*LDG_FRONT), P(*W1)
         L.append(f'<path d="M{E.fmt(f[0])} {E.fmt(f[1])}L{E.fmt(w1[0])} {E.fmt(w1[1])}" fill="none" {self.stroke("LINE", t.ink)}/>')
@@ -541,9 +553,7 @@ class _Sheet:
             x, y = P(mx, my)
             M.append(self.use(kind, x, y))
             top = y - 15 if kind == "can" else y - 16
-            core = t.ok if kind == "can" else t.accent
-            M.append(self.light_group(x, top, f"lt-{'g' if kind == 'can' else 'r'}{num}", char, begin,
-                                      color=(core if self.night else None)))
+            M.append(self.light_group(x, top, f"lt-{'g' if kind == 'can' else 'r'}{num}", char, begin))
             letter = "G" if kind == "can" else "R"
             if self.phone:
                 # after the rotation north (starboard) is to the LEFT of the channel, south to the right;
@@ -706,7 +716,7 @@ class _Sheet:
             if any(math.hypot(px - qx, py - qy) < min_gap for qx, qy in placed):
                 continue
             bw, bh = (22, 12) if not self.phone else (36, 20)
-            box = (px - bw / 2 - 2, py - bh - 2, bw + 4, bh + 4)
+            box = (px - bw / 2 - 2, py - bh + 2, bw + 4, bh + 6)   # the run's own box: ascender to descender
             if any(ex[0] < box[0] + box[2] and ex[0] + ex[2] > box[0] and ex[1] < box[1] + box[3] and ex[1] + ex[3] > box[1]
                    for ex in excl):
                 continue
@@ -811,7 +821,11 @@ class _Sheet:
         M.append(q(146, 400, 18, 5) + self.txt("stage4_summaries", 42, 392, "label"))
         M.append(q(196, 404, 5, 18) + self.txt("stage1_discovery", 158, 392, "label"))
         M.append(q(146, 492, 18, 5) + self.txt("stage2_page_analysis", 36, 512, "label"))
-        depth = {"stage4_summaries": (150, 420), "stage1_discovery": (208, 440), "stage2_page_analysis": (150, 482)}
+        # the anchorage itself is the raw table; its sounding takes the first basin spot that is water and
+        # clear of the anchor and the packet boat's berth (the quays are named, not sounded)
+        spot = next(((x, y) for x, y in ((196, 428), (150, 430), (204, 446), (150, 466))
+                     if self.field.value(x, y) > 2.0), (196, 428))
+        depth = {"stage1_discovery": spot}
         tables = (self.trial or {}).get("tables") if isinstance(self.trial, dict) else None
         for name, (sx, sy) in depth.items():
             if isinstance(tables, dict) and name in tables:
@@ -998,7 +1012,7 @@ class _Sheet:
             ax, ay = 60, 1200             # north arrow pointing left: the sheet is oriented to the channel
             Mg.append(f'<path d="M{ax + 44} {ay}H{ax}M{ax + 12} {ay - 7}L{ax} {ay}L{ax + 12} {ay + 7}" fill="none" {self.stroke("PEN", t.ink, 0.9)}/>')
             Mg.append(self.txt("N", ax + 56, ay + 9, "label"))
-            self.exclude("north", ax - 6, ay - 20, 100, 40)
+            self.exclude("north", ax - 6, ay - 14, 110, 28)
         else:
             F.append(c.frame(self.w, self.h, t, "broken", gaps=[("right", 300, 324), ("right", 560, 584)], rules=self.rules))
             Mg.append(self.txt(unit, 640, 12, "label-caps", anchor="middle", fill=t.ink))

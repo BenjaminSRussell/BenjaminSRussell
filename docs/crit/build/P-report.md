@@ -235,3 +235,96 @@ lantern follows. Today the sheet falls back to 15 (T8's verified figure) and pri
    one chart.toml key for the Grafana scrape interval (§5.4).
 6. `tests/test_approaches.py`: 16 tests green (determinism, budgets, legend ⊇ used, honesty, motion plan, buoyage
    geometry, data → geometry, phone floors); the full suite's remaining failures are all in S's test_supporting.py.
+
+---
+
+# Round 2 (orchestrator crit on day-final.png)
+
+Pulled first: `typeset.BUDGET_BY_SHEET` (approaches 200 defs / 72 KB), `perf_check.js --class=moving` cap, the three
+`[claims.*]` keys, paler day tints, protan-safe green, retuned night ink2/tints. Changes in `scripts/sheets/approaches.py`
+and `tests/test_approaches.py` only; rebuilt into scratch, then merged into `assets/v9/` and the shared
+`assets/build-report.json` (38 sheet entries intact; approaches problems: none).
+
+## What changed
+
+1. **The harbour is harbour works, not a blob.** ANCH moved to (172,446); two headland kernels (236,408) and (228,506)
+   frame a mouth that opens ESE; two carve kernels make a deep basin (≈ 55, the raw table is the deepest water).
+   The 290° leading line runs between the headlands into the basin. **The WAL is the mole**: (n−1)·6+8 ink blocks
+   in two courses from the north headland root toward the mouth (`MOLE_A`→`MOLE_B`), a fixed light at its head
+   (`use("light")` + static `lit_core`, character `F`), caption "write-ahead log · one cell per sounding" on its north
+   side; the last eight blocks are laid by the survey vessel's fixes at 28, 30 … 42 s (`ctx.tl.reveal`), so the mole
+   grows with the survey (frames inspected: 48 blocks at 0.5 s, 52 at 36.1 s, complete at 42.1 s). **Quays** at chart
+   scale on the basin's shores named for the Delta tables (stage4_summaries N shore, stage1_discovery N headland root,
+   stage2_page_analysis S shore) with quay rects; the works on the land south-west: Prometheus mast, Redis twin tanks
+   with the Traffic Sig beside them, PostgreSQL tanks, the Summarization Wks shed. One sounding in the basin, the raw
+   table's (illustrative italic; `stats.trial.tables.stage1_discovery.rows` makes it upright — tested); the anchor
+   and *Delta Lake* in the basin. The shelf is steep (2.5 + 0.09 px⁻¹ to 85 px) so the under-5 and under-10 tints are
+   two thin ribbons along the coast, nothing concentric inside the harbour (the basin is deep).
+2. **Inset deleted** (its content is now on the chart). The rustmapper block's tape is gone too; the block closes
+   with the real wheel line from PyPI ("Wheel · cp313 · macosx_11_0_arm64", upright, `key=wheel`; "elsewhere pip
+   builds from source · needs rustc").
+3. **The channel is the reading path.** The leading line is a LINE-weight (1.6 px) full-ink rule from the front mark to
+   W1, the only rule of that weight on the water; COURSE dots from the outer waypoint W0 (324°) to W1; pairs at honest,
+   irregular spacing: G "1"/R "2" off the outer end (fractions .08/.42 of W1–W2), G "3"/R "4" as the entrance gate
+   (.78 of W2–W3, .10 of W3–W4), labels outboard (nuns above, cans below); "Health Ldg Lts 290°" north of the line.
+4. **Middle water.** Design depth now slopes to 56 with a gentle undulation (sin/cos terms) so the 10, 20 and 50 lines
+   wander; levels 0 · 5 · 10 · 20 · 50 (index 10 and 50), the 50 line inside the survey ground, the 20 line through
+   the middle water, figures in breaks (corner figures and figures within 28 px of another are dropped). The 429 Shoal
+   keeps its danger ring and gains a *PA* doubt mark; the wreck (real stale branch) stays.
+5. **Phone** keeps the rotation: `phone360-r2.png` (360 CSS px, DPR 3) inspected — every kept name legible; R "4"
+   sits in the mole's lee so its label goes below the mark; "Ldg 290°" to the right of the line.
+6. Fixes surfaced by the new plug-ins: lateral cores are `light_core` on every edition (decision 21; CONTRAST-LIGHT
+   clean); `legend[]`/`symbols_used[]` are bare symbol names and `symbols_used` names every `-sym-` href in the file
+   (LEGEND plug-in clean, no LEGEND-UNUSED); bounds: limit label between the B and C boxes, pencil note between track
+   lines 2 and 3 with a longer leader, taller sounding cull boxes (ascender to descender), smaller north-arrow
+   exclusion on the phone (BOUNDS clean, no texture warning).
+
+## Gates (final, assets/v9)
+
+`build_assets --sheets approaches`: 6 files, **0 problems**. `checks/motion.py`: 0 findings. `check.py --dev --tier fast
+--only approaches`: no approaches findings except SIZE-TARGET warnings and D's `TYPE … 171 glyph defs (budget 200)`
+(see below). `perf_check --warm=44 --seconds=10`: day 12 repaints / 1.2 per s, 55.7 ms per repaint, cpu 6.9 % → PASS;
+still and phone 0 repaints → PASS. Frames vs still at 0.5 / 28.1 / 36.1 / 42.1 / 95 s: coverage 0.997–1.000, changed
+≤ 0.12 %. `tests/test_approaches.py`: 16 OK (byte-identical rebuild included).
+
+| edition | raw | gz | elements | glyph defs | motion |
+|---|---|---|---|---|---|
+| day / night | 265.5 / 268.0 KB | 48.9 / 46.7 KB | 2865 / 2874 | 171 | lights, 7 indefinite (5 lights + boat 2), 1.094 repaints/s, loops 4/15/96 |
+| still-day / still-night | 262.3 / 264.9 KB | 48.4 / 46.1 KB | 2828 / 2837 | 171 | still |
+| phone-day / phone-night | 94.5 / 94.0 KB | 22.7 KB | 612 / 619 | 104 | frozen |
+
+Measured (upright) runs: `PyPI 0.1.3 · alpha · 2025-11-08` (edition), `Wheel · cp313 · macosx_11_0_arm64` (wheel),
+`265` (scrapy_commits), `265₅` (legend example), `21` (chart-number). Grafana Lt prints `Fl 15s` from
+`claims.scrape_interval` (measured, keyed) — the figure is part of a light character, set upright in the label role.
+
+## One engine bug for D (checks/type.py)
+
+`check_report()` compares `sheet["glyph_defs"]` against the global `typeset.BUDGET["glyph_defs"]` (160) while printing
+the per-sheet budget it should use, so approaches fails with "171 glyph defs (budget 200)":
+```python
+-        if n is not None and n > typeset.BUDGET["glyph_defs"]:
++        if n is not None and n > typeset.budget_for(_sheet_of(name))["glyph_defs"]:
+```
+(`check_budget()` in typeset itself is already per-sheet; only the report-side check lags.)
+
+## PNGs inspected (round 2)
+
+`day3.png` … `day6.png`, `day-final-r2.png`, `night3.png`, `night5.png`, `night-final-r2.png`, `phone3.png` …
+`phone6.png`, `phone-final-r2.png`, `phone360-r2.png`; crops `day4-harbour.png`, `day5-harbour.png`,
+`day6-harbour.png`, `night6-harbour.png`, `phone5-harbour.png`; motion `frames-r2/mole-and-line.png` (0.5 / 36.1 /
+42.1 s), `frames-r3/frame-42p1.png`.
+
+## Summary (round 2)
+
+1. The harbour is now works, not a blob: two headlands, a deep basin on the 290° leading line, the WAL as a block
+   mole with a head light that the survey vessel finishes laying at 28–42 s, quays named for the Delta tables and
+   workers; the inset is gone.
+2. The leading line is the darkest rule on the water from "1" to the anchorage, dotted course from the outer mark,
+   pairs 1/2 and 3/4 at irregular spacing with outboard labels; 10/20/50 contours wander through the middle water.
+3. Honesty unchanged: every water figure italic; upright only chart number, PyPI edition and wheel, Scrapy commits,
+   the legend's 265₅; "512" nowhere; shards italic; no coverage figure.
+4. Motion on plan: 7 indefinite, 1.09–1.2 repaints/s, frames ≤ 0.12 % from the still, stills/phones frozen, perf PASS.
+5. Gates clean on the sheet (motion, bounds, legend, contrast, flash, xml, strings, tests); sizes 262–268 KB /
+   46–49 KB gz desk, 94 KB phone, ≤ 2874 elements, 171 glyph defs within the new budget.
+6. One remaining fail is D's report-side glyph check comparing against the global 160 instead of the per-sheet
+   budget (one-line patch above); phone rotation kept — legible at 360 px.

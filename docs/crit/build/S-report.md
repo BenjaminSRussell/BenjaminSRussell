@@ -196,3 +196,67 @@ silhouettes in `…/S/sil/`. Perf JSON: `frames-final.json`, `frames-log-final.j
 4. Footer: the ambient sheet at 3.3–3.7 ms/frame with 11 loops, boat 330→950 at 40–64 s, serpent at 84 s / 96 s, inline lettering to buy the paint.
 5. Gates: motion lint 0, check.py 0 findings on my sheets (size-target warnings only), silhouettes ≥ 0.74, still-frame coverage ≥ 0.97, 20/20 tests.
 6. Needs: bounds.py double rotation and typeset rotated-pivot patches (above), SEEDED vs log.json wording, optional `mark=` fittings key; size targets on three sheets are warnings I could not close without dropping real content.
+
+---
+
+# Round 2 (orchestrator crit on the day stills)
+
+Engine fixes acknowledged: typeset `_register(pivot_x=)`, bounds.py no double rotation, perf's moving-window
+cap a warning. Log untouched. Changes in my four files only, rebuilt with the full default build
+(`assets/v9`: 38 files, 0 problems).
+
+## What changed
+
+**Instruments.** Left third is now the sheet's title block: `INSTRUMENTS · EQUIPMENT LIST` (label-caps, the
+sheet's one tracked caps run) top-left; `LEAD` / `LOG` / `LOOKOUT` as 46 px condensed caps (role `label`,
+size 46 on the scale, tracking 2, ink2) rotated −90° reading upward from the foot of the column band, in three
+142 px bands separated by hairlines, each with its plain-words gloss beneath (`what measures depth · what keeps
+the record · what watches`); one-line key `bold · carried by a repository underway this quarter (1 of 21) ·
+date · first commit of its repository`; folio. Every item has a gutter mark from `chartlib.symbol_defs`:
+languages `fix` (flagship repos Scrapy/Rust-sitemap) or `waypoint`, stores `anchorage`, deck `light`
+(Prometheus · Grafana) or `station`; `[[fittings.items]] mark=` still overrides. Bold = `active` (TypeScript).
+The three mono columns and their heads are where they were. `symbols_used` = anchorage, fix, light, station,
+waypoint (all legend ids).
+
+**Soundings.** Tide curve, HW/LW/slack/typical labels and the traverse unchanged except for a 8 px lift (HW y 64,
+zero y 180, traverse 214, letters 236) to make room. The register is a ruled tide-table block: head row
+`REPOSITORY · 52 WEEKS · COMMITS` left and `one line per repository · 52 weeks · 278 commits a week at full
+height · ink: underway this quarter` right, hairline rules on every row and between the seven columns, repo
+names in cond caps 13 (ink when active, ink2 otherwise, ellipsis when over the cell), commits upright right-
+aligned (`key=repo.<name>.commits`), 26 px sparklines on the shared scale each on its own hair baseline — the
+January sprint (game engine, 3d swift widget) and the October sweep now read per repository.
+
+**Footer.** Water is a body: one `shallow_b` path from the surface over the lip to the foot of the fall
+(x 264→1040, y 150→226), under the surface line, swell, lip and fall lines; the six italic soundings and the
+anchor sit in it, the sloop on it; swell loop, mist, serpent and arrival untouched. Index relabelled `INDEX OF
+SHEETS`: 3×2 cells numbered 1–6, cell 6 filled `land` with its numeral in ink (no hatch). Record moved to the
+right of the folio row: `9 notices · corrected through Notice 9` (+ contact when `[contact]` is set); phone
+prints `corrected through Notice 9`. Phone footer gets the same water body.
+
+## Gates (round 2)
+
+| gate | result |
+|---|---|
+| `build_assets.py` (full) | 38 files, 0 problems; my 24 files byte-identical on a second build |
+| `check.py --dev --tier fast --only soundings,log,instruments,footer` | **pass, exit 0 · 0 fail · 0 warn** (bounds, legend, flash, alt, contrast, strings, type, xml, size); unfiltered run adds only SIZE-TARGET warnings |
+| `checks/motion.py assets/v9/*.svg` | 0 findings |
+| `perf_check.js --warm=66 --seconds=10 footer-day` | **3.55 ms/frame**, max 4.67, 22 % CPU, pass (water body added ≈ 0 cost) |
+| `python3 -m unittest discover -s tests` | 178 OK (20 mine) |
+| motion report | footer ambient/11, log lights/1 at 2.0 repaints/s, soundings & instruments frozen/0 |
+
+Sizes (day / night, raw KB · gz KB): soundings 87.6 · 15.4 / 92.2 · 15.3 (1037 el); instruments 65.4 · 12.3 /
+68.0 · 12.0 (724 el); footer 80.7 · 26.2 / 81.5 · 26.4 (127 el); log unchanged 80.1 · 16.7 / 82.5 · 16.5.
+Size targets remain warnings on those three (footer 40/12, instruments 50/18 raw, soundings 80 raw): the
+round-2 additions (46 px caps, ruled register, water body, 1–6 index) cost 2–10 KB each; hard caps are met.
+
+PNGs inspected: `…/crit/build/S/png/r2-instruments-day.png`, `r2-instruments-night.png`, `r2-soundings-day.png`,
+`r2-footer-day.png`, `r2-footer-night.png`, `r2-footer-phone-day.png`.
+
+## Summary (round 2)
+
+1. Instruments: left third is a title block — `INSTRUMENTS · EQUIPMENT LIST`, LEAD/LOG/LOOKOUT as 46 px rotated condensed caps with plain-words glosses and hairlines; every item carries a legend mark (fix/waypoint, anchorage, light/station); bold = active with a one-line key.
+2. Soundings: register is a ruled tide-table block with a head row, cond-caps names, upright commits and 26 px sparklines on one baseline; curve, labels and traverse kept.
+3. Footer: tint-B water body under the swell down to the fall with the soundings and sloop in/on it; INDEX OF SHEETS 1–6 with 6 filled; `9 notices · corrected through Notice 9` right of the folio; motion unchanged at 3.55 ms/frame.
+4. Log untouched.
+5. Gates: full build 0 problems, check.py `--only` my four sheets exit 0 (size-target warnings only when unfiltered), motion 0, 24 files byte-identical, 178 tests OK.
+6. Sizes grew by 2–10 KB per changed sheet; still under all hard caps, over the raw targets on three sheets as documented.
