@@ -12,9 +12,9 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-import svgkit as k  # noqa: E402
+import svgkit_v8 as k  # noqa: E402
 import chartlib_v8 as c  # noqa: E402
-from svgkit import Theme  # noqa: E402
+from svgkit_v8 import Theme  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 OUT = os.path.join(ROOT, "assets")

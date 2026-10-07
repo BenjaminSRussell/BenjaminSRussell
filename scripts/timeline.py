@@ -53,6 +53,7 @@ LOOP_ATTRS = frozenset({"opacity", "transform"})
 TRANSFORM_KINDS = ("translate", "scale", "rotate", "skewX", "skewY")
 SYNCBASE = re.compile(r'begin="[^"]*(?:[A-Za-z_][\w-]*\.(?:end|begin|repeat)|repeatEvent|accessKey|click|mouse)')
 FLATTEN_PX = 1.0   # curves are flattened to chords no longer than this
+GRID_TOL = 0.0025  # a discrete instant within 2.5 ms of the grid is on it (6-decimal keyTimes × 96 s)
 
 
 # ----------------------------------------------------------------------------- small helpers
@@ -426,8 +427,7 @@ class Timeline:
 
     # ----------------------------------------------------------------- grid
     def on_grid(self, t: float) -> bool:
-        q = t / self.quantum
-        return abs(q - round(q)) < 1e-6
+        return abs(t - self.snap(t)) < GRID_TOL
 
     def snap(self, t: float) -> float:
         return round(round(t / self.quantum) * self.quantum, 6)
@@ -563,7 +563,8 @@ class Timeline:
             parts.append('additive="sum"')
         parts.append('values="' + ";".join(values) + '"')
         if key_times is not None or discrete:
-            parts.append('keyTimes="' + ";".join(_f(k, 4) for k in kts) + '"')
+            nd = 6 if (discrete or loop) else 4
+            parts.append('keyTimes="' + ";".join(_f(k, nd) for k in kts) + '"')
         tag = "animateTransform" if is_transform else "animate"
         return self._out(f"<{tag} {' '.join(parts)}/>")
 
@@ -642,7 +643,7 @@ class Timeline:
     def typed(self, s: str, x: float, y: float, role: str, begin: float, seed: int,
               pace: tuple[float, float] = (0.036, 0.06), space: float = 0.16, glyphs=None,
               dash: float = 0.22) -> tuple[str, float, list[float]]:
-        """Type `s` glyph by glyph from `begin`. `glyphs` is a callable
+        """Type `s` glyph by glyph from `begin` (returned inside `<g class="typed">`). `glyphs` is a callable
         `glyph_cb(s, x, y, role) -> list[(svg_fragment, x_advance)]` (one entry per character, ''
         fragment for a space) or that list prebuilt; typeset is never imported here. Times come
         from an LCG seeded on `seed` (a row index). Returns (svg, end, per-glyph times)."""
@@ -673,7 +674,8 @@ class Timeline:
         self._record(attr="opacity", kind=None, begin=begin, dur=end - begin, end=end, loop=False,
                      discrete=True, continuous=False, geometry=False, changes=len(times),
                      cls="typed-burst", still=1, name=None, values=[])
-        return "".join(out), end, times
+        # class="typed" marks the burst for checks/motion.py (its instants are off-grid by nature)
+        return f'<g class="typed">{"".join(out)}</g>', end, times
 
     def cursor(self, times: list[float], xs: list[float], y: float, w: float = 8, h: float = 15,
                blink_begin: float | None = None, fill: str = "currentColor", end_x: float | None = None,
@@ -704,7 +706,7 @@ class Timeline:
         if blink_begin is not None:
             blink = self.anim("opacity", [1, 0], 1.0, blink_begin, repeat="indefinite", key_times=[0, 0.5],
                               discrete=True, still=1, cls="loop", name=(name + "-blink") if name else None)
-        return (f'<rect x="0" y="{_f(y)}" width="{_f(w)}" height="{_f(h)}" fill="{fill}" '
+        return (f'<rect class="typed" x="0" y="{_f(y)}" width="{_f(w)}" height="{_f(h)}" fill="{fill}" '
                 f'transform="translate({_f(xs[0])} 0)">{ride}{blink}</rect>')
 
     # ----------------------------------------------------------------- lights
@@ -1069,5 +1071,5 @@ def _inject(inner: str, attr: str, child: str) -> str:
 __all__ = [
     "Timeline", "NullTimeline", "Sail", "Tack", "sample_path", "path_length", "flash_schedule",
     "parse_character", "ease_at", "ease_inverse", "ease_curve", "EASE", "LOOP_PERIODS", "QUANTUM",
-    "PAGE_PERIOD", "GEOMETRY_ATTRS", "LOOP_ATTRS", "SYNCBASE",
+    "PAGE_PERIOD", "GEOMETRY_ATTRS", "LOOP_ATTRS", "SYNCBASE", "GRID_TOL",
 ]

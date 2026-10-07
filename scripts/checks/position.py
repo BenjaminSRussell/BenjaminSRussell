@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 
-from checks import Finding, fail, warn
+from check import Finding, fail, warn
 
 TIER = "fast"
 _COMMENT = re.compile(r"<!--.*?-->", re.S)

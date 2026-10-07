@@ -114,7 +114,9 @@ def fmt(v: float, places: int = 1) -> str:
     """Compact number for attributes and path data: integers print bare, otherwise at most
     `places` decimals with trailing zeros stripped. `fmt(12.0) == "12"`, `fmt(12.25) == "12.3"`,
     `fmt(-0.04) == "0"`."""
-    r = round(float(v), places)
+    q = 10 ** places
+    a = math.floor(abs(float(v)) * q + 0.5) / q          # half away from zero, not banker's
+    r = -a if v < 0 else a
     if r == 0:
         return "0"
     if r == int(r):

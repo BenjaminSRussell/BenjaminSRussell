@@ -37,11 +37,15 @@ def now_utc() -> dt.datetime:
 
 
 def load_cache(path: str = STATS_PATH) -> dict:
+    """The last written model, or {} when there is none. A corrupted cache is a hard failure:
+    nothing can be re-stamped from it and nothing ships (T7 §4 "no cache and no clone")."""
     try:
         with open(path, encoding="utf-8") as fh:
             return json.load(fh)
     except FileNotFoundError:
         return {}
+    except ValueError as exc:
+        raise SystemExit(f"cache {path} is not valid JSON: {exc}")
 
 
 def cache_fields(cache: dict) -> dict:
@@ -216,8 +220,11 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         raise SystemExit("no repository list: no GraphQL and no cache")
     meta = gh.get("repo_meta") or github.rest_meta(owner, names, token)
     if meta and not gh.get("repo_meta"):
-        instruments["rest"] = "live"
-        if any(m.get("languages") for m in meta.values()):
+        # the REST instrument only counts as a fleet measurement when it answered for every repo;
+        # a partial sample must not pose as "languages by bytes" (keep the cached GraphQL shares)
+        complete = all(n in meta for n in names)
+        instruments["rest"] = "live" if complete else "partial"
+        if complete and any(m.get("languages") for m in meta.values()):
             gh["languages"] = github.languages_from_meta(meta)
     ed = pypi.edition(PYPI_PROJECT)
     if ed:
@@ -252,6 +259,11 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
                 failed.append(name)
                 continue
             m = meta.get(name) or {}
+            if (features.get(name) or {}).get("kind") != "harbour" and name != "Scrapy":
+                rec["stale_branch_count"] = len(rec.get("stale_branches") or [])
+                rec["stale_branches"] = []      # the list is charted only in the harbour (MASTERPLAN 25)
+            else:
+                rec["stale_branch_count"] = len(rec.get("stale_branches") or [])
             rec["archived"] = bool(m.get("archived", rec.get("archived", False)))
             rec["stars"] = m.get("stars", rec.get("stars"))
             rec["language"] = m.get("language", rec.get("language"))

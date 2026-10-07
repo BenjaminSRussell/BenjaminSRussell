@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 
-from checks import Finding, fail, warn
+from check import Finding, fail, warn
 
 TIER = "fast"
 SVG_NS = "{http://www.w3.org/2000/svg}"

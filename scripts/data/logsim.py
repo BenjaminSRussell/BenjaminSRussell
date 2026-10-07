@@ -249,7 +249,7 @@ def check_log(log: dict) -> list[str]:
                 cap = max(cap, MAX_RPS_PER_HOST * hosts * (row.t - prev.t) * 1.02) if measured else cap
                 if row.log - prev.log > cap + 1:
                     errs.append(f"entries[{i}] Δposition {row.log - prev.log} > rate·Δt·1.02 = {cap:.0f}")
-        if measured and row.kind not in ("cmd",) and row.t is not None and row.t >= 0 and "log" not in entries[i]:
+        if measured and row.kind not in ("cmd", "crawl") and row.t is not None and row.t >= 0 and "log" not in entries[i]:
             errs.append(f"entries[{i}] measured:true but no stored log")
         if row.log is not None:
             prev = row

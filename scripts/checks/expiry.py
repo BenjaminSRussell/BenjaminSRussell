@@ -6,7 +6,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 
-from checks import Finding, warn
+from check import Finding, warn
 
 TIER = "fast"
 _DATE = re.compile(r"^(\d{4})-(\d{2})(?:-(\d{2}))?$")

@@ -10,7 +10,7 @@ import random
 from collections import defaultdict
 from dataclasses import dataclass
 
-import svgkit as k
+import svgkit_v8 as k  # the v8 kit; the facade svgkit.py now carries the v9 API
 
 
 # ---------------------------------------------------------------- field + contours

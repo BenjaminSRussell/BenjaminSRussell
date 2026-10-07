@@ -10,8 +10,8 @@ Per file (MASTERPLAN 7.3, T4 §2.6):
   * no `filter` on an element with an animated ancestor (or on an animated element)
   * `repeatCount` only on `opacity` / `transform`; every loop period in tokens.LOOP_PERIODS
   * discrete instants (begin + keyTime·dur of calcMode="discrete" animations and loops, `<set>` begins)
-    on the 0.5 s grid — typing bursts (`<set>` inside a `<use>`/glyph group between 44 and 50 s) are
-    exempt, see T4 deviation note
+    on the 0.5 s grid — typing bursts (under an element with class="typed", 40–52 s) are exempt,
+    see T4 deviation note
   * no syncbase (`.end`, `.begin`, `repeatEvent`) in any `begin`/`end`
   * every opacity freeze-in has base opacity="0"
   * `*-still*.svg` and phone non-hero files contain zero <animate*>/<set>
@@ -28,23 +28,34 @@ import math
 import os
 import re
 import sys
-import xml.etree.ElementTree as ET
 from collections import namedtuple
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS = os.path.dirname(HERE)
 ROOT = os.path.dirname(SCRIPTS)
+# run as a script, this directory heads sys.path and checks/xml.py would shadow the stdlib `xml`
+while HERE in sys.path:
+    sys.path.remove(HERE)
 if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
 
-try:  # the runner's record when it has one
-    from check import Finding  # type: ignore
-except Exception:  # noqa: BLE001
-    Finding = namedtuple("Finding", "check level file message")
+import xml.etree.ElementTree as ET  # noqa: E402
+
+try:  # the runner's record (check.py registers itself as `check` when it runs as a script)
+    from check import Finding, fail, warn  # type: ignore
+except Exception:  # noqa: BLE001 — standalone: the same shape (level, code, msg, where)
+    Finding = namedtuple("Finding", "level code msg where")
+
+    def fail(code: str, msg: str, where: str = "") -> Finding:  # type: ignore[misc]
+        return Finding("fail", code, msg, where)
+
+    def warn(code: str, msg: str, where: str = "") -> Finding:  # type: ignore[misc]
+        return Finding("warn", code, msg, where)
 
 import tokens  # noqa: E402
 
-CHECK = "motion"
+NAME = "motion"
+TIER = "fast"
 QUANTUM = float(tokens.QUANTUM)
 LOOP_PERIODS = tuple(float(p) for p in tokens.LOOP_PERIODS)
 GEOMETRY_ATTRS = frozenset({
@@ -65,7 +76,7 @@ BUDGET = {
     "instruments": {"indefinite": 0, "repaints": 0.0},
     "footer": {"indefinite": 12, "repaints": None},   # the one ambient sheet; perf gate measures ms/frame
 }
-TYPED_WINDOW = (40.0, 52.0)   # typing bursts are off-grid by nature (MASTERPLAN 2.1: 44–48 s)
+TYPED_WINDOW = (40.0, 52.0)   # typing bursts (class="typed") may be off-grid, but only in this window
 
 
 def _local(tag: str) -> str:
@@ -86,9 +97,11 @@ def _secs(v: str | None) -> float | None:
     return x / 1000 if unit == "ms" else x * 60 if unit == "min" else x
 
 
+GRID_TOL = 0.0025   # same tolerance as timeline.GRID_TOL
+
+
 def _on_grid(t: float) -> bool:
-    q = t / QUANTUM
-    return abs(q - round(q)) < 1e-6
+    return abs(t - round(t / QUANTUM) * QUANTUM) < GRID_TOL
 
 
 def sheet_of(path: str) -> str:
@@ -108,43 +121,43 @@ def is_frozen_file(path: str) -> bool:
 def scan(svg_text: str, name: str = "<svg>") -> list[Finding]:
     """Lint one SVG document; `name` labels the findings (and decides frozen-file rules)."""
     out: list[Finding] = []
-    err = lambda msg: out.append(Finding(CHECK, "error", name, msg))  # noqa: E731
-    warn = lambda msg: out.append(Finding(CHECK, "warn", name, msg))  # noqa: E731
+    err = lambda msg, code="MOTION": out.append(fail(code, msg, name))  # noqa: E731
+    wrn = lambda msg, code="MOTION": out.append(warn(code, msg, name))  # noqa: E731
     try:
         root = ET.fromstring(svg_text.encode("utf-8") if isinstance(svg_text, str) else svg_text)
     except ET.ParseError as exc:
-        err(f"not well-formed XML: {exc}")
-        return out
+        return [Finding("error", "MOTION-XML", f"not well-formed XML: {exc}", name)]
 
     frozen = is_frozen_file(name)
-    anims: list[tuple[ET.Element, ET.Element]] = []  # (anim element, its parent)
+    anims: list[tuple[ET.Element, ET.Element, bool]] = []  # (anim element, its parent, under class="typed")
     instants: set[float] = set()
     loops = 0
 
-    def walk(el: ET.Element, animated_ancestor: bool):
+    def walk(el: ET.Element, animated_ancestor: bool, typed: bool):
         has_anim_child = any(_local(c.tag) in ANIM_TAGS for c in el)
+        typed = typed or "typed" in (el.get("class") or "").split()
         if "filter" in el.attrib and (animated_ancestor or has_anim_child):
-            err(f"<{_local(el.tag)} filter=…> under an animated ancestor (12: never filter what moves)")
+            err(f"<{_local(el.tag)} filter=…> under an animated ancestor (12: never filter what moves)", "MOTION-FILTER")
         for c in el:
             if _local(c.tag) in ANIM_TAGS:
-                anims.append((c, el))
-            walk(c, animated_ancestor or has_anim_child)
+                anims.append((c, el, typed))
+            walk(c, animated_ancestor or has_anim_child, typed)
 
-    walk(root, False)
+    walk(root, False, False)
 
     if frozen and anims:
-        err(f"frozen edition contains {len(anims)} animation element(s); stills carry zero <animate*>/<set>")
+        err(f"frozen edition contains {len(anims)} animation element(s); stills carry zero <animate*>/<set>", "MOTION-STILL")
 
-    for a, parent in anims:
+    for a, parent, typed in anims:
         tag = _local(a.tag)
         attr = a.get("attributeName", "")
         begin_raw = a.get("begin", "0s")
         end_raw = a.get("end")
         for raw in (begin_raw, end_raw):
             if raw and SYNCBASE.search(raw):
-                err(f"syncbase in {tag} {attr}: {raw!r}")
+                err(f"syncbase in {tag} {attr}: {raw!r}", "MOTION-SYNCBASE")
         if tag == "animateMotion":
-            err("animateMotion (re-rasters every frame while active, holds included)")
+            err("animateMotion (re-rasters every frame while active, holds included)", "MOTION-ANIMATEMOTION")
             continue
         begin = _secs(begin_raw)
         if begin is None:
@@ -154,9 +167,9 @@ def scan(svg_text: str, name: str = "<svg>") -> list[Finding]:
         loop = repeat is not None and repeat not in ("1",)
         dur = _secs(a.get("dur"))
         calc = a.get("calcMode", "linear")
+        typed = typed and TYPED_WINDOW[0] <= begin <= TYPED_WINDOW[1] and repeat in (None, "1")
         if tag == "set":
             where = _local(parent.tag)
-            typed = where in ("use", "text", "tspan", "path") and TYPED_WINDOW[0] <= begin <= TYPED_WINDOW[1]
             if not _on_grid(begin) and not typed:
                 err(f"<set {attr}> begins off the {QUANTUM:g} s grid at {begin:g} s")
             if attr == "opacity" and a.get("to") == "1" and parent.get("opacity") != "0":
@@ -169,25 +182,25 @@ def scan(svg_text: str, name: str = "<svg>") -> list[Finding]:
         if loop:
             loops += 1
             if attr_name not in LOOP_ATTRS:
-                err(f"repeatCount on {attr_name!r}: only opacity/transform may loop")
+                err(f"repeatCount on {attr_name!r}: only opacity/transform may loop", "MOTION-LOOP-ATTR")
             if dur is None or not any(abs(dur - p) < 1e-9 for p in LOOP_PERIODS):
                 err(f"loop period {a.get('dur')!r} on {attr_name} not in LOOP_PERIODS {tokens.LOOP_PERIODS}")
             if calc != "discrete" and sheet_of(name) != "footer":
                 err(f"continuous loop on {attr_name} ({calc}) outside the ambient sheet")
         if attr_name in GEOMETRY_ATTRS:
             if loop:
-                err(f"geometry attribute {attr_name!r} loops")
+                err(f"geometry attribute {attr_name!r} loops", "MOTION-GEOMETRY")
             elif dur is None or dur > GEOMETRY_MAX_DUR or a.get("fill") != "freeze":
-                err(f"geometry attribute {attr_name!r} animated for {a.get('dur')} (limit a frozen {GEOMETRY_MAX_DUR:g} s one-shot)")
+                err(f"geometry attribute {attr_name!r} animated for {a.get('dur')} (limit a frozen {GEOMETRY_MAX_DUR:g} s one-shot)", "MOTION-GEOMETRY")
             elif begin + dur > 60:
-                warn(f"geometry one-shot {attr_name!r} ends at {begin + dur:g} s (openings are ≤ 4 s after their group starts)")
+                wrn(f"geometry one-shot {attr_name!r} ends at {begin + dur:g} s (openings are ≤ 4 s after their group starts)", "MOTION-GEOMETRY")
         # opacity freeze-in: base must be 0
         if attr_name == "opacity" and not loop and a.get("fill") == "freeze":
             vals = (a.get("values") or "").split(";")
             if vals and vals[0].strip() == "0" and parent.get("opacity") != "0":
                 err(f"opacity freeze-in at {begin:g}s without base opacity=\"0\" on <{_local(parent.tag)}>")
-        # discrete instants on the grid
-        if calc == "discrete" or loop:
+        # discrete instants on the grid (typing bursts excepted: cadence is the point)
+        if (calc == "discrete" or loop) and not typed:
             if not _on_grid(begin):
                 err(f"{tag} {attr_name} begins off the grid at {begin:g} s")
             if calc == "discrete" and dur:
@@ -212,14 +225,14 @@ def scan(svg_text: str, name: str = "<svg>") -> list[Finding]:
     budget = BUDGET.get(sheet)
     if budget and not frozen:
         if loops > budget["indefinite"]:
-            err(f"{loops} indefinite animations, budget {budget['indefinite']} for {sheet}")
+            err(f"{loops} indefinite animations, budget {budget['indefinite']} for {sheet}", "MOTION-BUDGET")
         if budget["repaints"] is not None:
             if math.inf in instants:
-                err(f"continuous loop on {sheet}: budget is {budget['repaints']} repaints/s discrete")
+                err(f"continuous loop on {sheet}: budget is {budget['repaints']} repaints/s discrete", "MOTION-BUDGET")
             else:
                 rate = len(instants) / 96.0
                 if rate > budget["repaints"] + 1e-9:
-                    err(f"≈{rate:.2f} repaints/s after the opening, budget {budget['repaints']} for {sheet}")
+                    err(f"≈{rate:.2f} repaints/s after the opening, budget {budget['repaints']} for {sheet}", "MOTION-BUDGET")
     return out
 
 
@@ -227,7 +240,8 @@ def _files_from(ctx) -> list[str]:
     for key in ("svgs", "files", "paths"):
         v = getattr(ctx, key, None) if not isinstance(ctx, dict) else ctx.get(key)
         if v:
-            return [p for p in v if str(p).endswith(".svg")]
+            paths = list(v.values()) if isinstance(v, dict) else list(v)
+            return [p for p in paths if str(p).endswith(".svg")]
     d = getattr(ctx, "assets_dir", None) if not isinstance(ctx, dict) else ctx.get("assets_dir")
     cands = []
     for base in ([d] if d else []) + [os.path.join(ROOT, "assets", "v9"), os.path.join(ROOT, "assets")]:
@@ -261,7 +275,7 @@ def check(ctx=None) -> list[Finding]:
             with open(path, encoding="utf-8") as fh:
                 text = fh.read()
         except OSError as exc:
-            out.append(Finding(CHECK, "error", path, f"unreadable: {exc}"))
+            out.append(Finding("error", "MOTION-READ", f"unreadable: {exc}", path))
             continue
         out.extend(scan(text, os.path.relpath(path, ROOT) if path.startswith(ROOT) else path))
     rep = _report_from(ctx)
@@ -272,10 +286,10 @@ def check(ctx=None) -> list[Finding]:
             motion = {k: v.get("motion") for k, v in (rep.get("sheets") or {}).items() if isinstance(v, dict) and v.get("motion")}
         for sheet, m in motion.items():
             for v in (m or {}).get("violations") or []:
-                out.append(Finding(CHECK, "error", f"build-report:{sheet}", f"Timeline violation: {v}"))
+                out.append(fail("MOTION-REPORT", f"Timeline violation: {v}", f"build-report:{sheet}"))
             cls = (m or {}).get("class")
             if cls == "ambient" and not str(sheet).startswith("footer"):
-                out.append(Finding(CHECK, "error", f"build-report:{sheet}", "ambient class on a non-footer sheet"))
+                out.append(fail("MOTION-REPORT", "ambient class on a non-footer sheet", f"build-report:{sheet}"))
     return out
 
 
@@ -283,10 +297,10 @@ def main(argv: list[str]) -> int:
     ctx = {"svgs": argv} if argv else None
     findings = check(ctx)
     for f in findings:
-        print(f"{f.level:5s} {f.file}: {f.message}")
-    errors = sum(1 for f in findings if f.level == "error")
-    print(f"motion: {len(findings)} finding(s), {errors} error(s)")
-    return 1 if errors else 0
+        print(f"{f.level:5s} {f.code} {f.where}: {f.msg}")
+    fails = sum(1 for f in findings if f.level in ("fail", "error"))
+    print(f"motion: {len(findings)} finding(s), {fails} failure(s)")
+    return 1 if fails else 0
 
 
 if __name__ == "__main__":

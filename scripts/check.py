@@ -43,13 +43,76 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-import checks as _checks  # noqa: E402
-from checks import Finding, error  # noqa: E402
+import checks as _checks  # noqa: E402  (the plug-in package; its __init__ stays empty)
+
+# Plug-ins do `from check import Finding`; when this file runs as a script, hand them this module
+# rather than a second copy of it.
+sys.modules.setdefault("check", sys.modules[__name__])
 
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 TIERS = ("fast", "render", "perf")
 EDITION_SUFFIXES = ("phone-still-day", "phone-still-night", "still-day", "still-night",
                     "phone-day", "phone-night", "day", "night")
+
+
+LEVELS = ("fail", "warn", "error", "info")
+
+
+@dataclass(frozen=True)
+class Finding:
+    """One result. level: fail (exit 1) · warn (exit 2) · error = could not check (exit 3) · info."""
+    level: str
+    code: str
+    msg: str
+    where: str = ""
+
+    def __str__(self) -> str:
+        w = f" [{self.where}]" if self.where else ""
+        return f"{self.level.upper():5} {self.code}{w}: {self.msg}"
+
+
+def fail(code: str, msg: str, where: str = "") -> Finding:
+    return Finding("fail", code, msg, where)
+
+
+def warn(code: str, msg: str, where: str = "") -> Finding:
+    return Finding("warn", code, msg, where)
+
+
+def error(code: str, msg: str, where: str = "") -> Finding:
+    return Finding("error", code, msg, where)
+
+
+def info(code: str, msg: str, where: str = "") -> Finding:
+    return Finding("info", code, msg, where)
+
+
+_LEVEL_ALIASES = {"failure": "fail", "err": "fail", "warning": "warn", "skip": "error", "skipped": "error",
+                  "blocked": "error", "note": "info", "ok": "info", "pass": "info"}
+
+
+def normalise(obj, plugin: str) -> Finding:
+    """Accept the shapes plug-ins actually return: this Finding, a (level, code, msg[, where])
+    namedtuple, or motion.py's (check, level, file, message)."""
+    if isinstance(obj, Finding) and obj.level in LEVELS:
+        return obj
+    fields = [getattr(obj, a) for a in ("level", "code", "msg", "where") if hasattr(obj, a)]
+    if not fields and isinstance(obj, tuple):
+        fields = list(obj)
+    if hasattr(obj, "message") and hasattr(obj, "file"):          # (check, level, file, message)
+        fields = [getattr(obj, "check", plugin), obj.level, obj.file, obj.message]
+    fields = [str(x) if x is not None else "" for x in fields]
+    if len(fields) >= 3 and fields[0] not in LEVELS and fields[1] in LEVELS or (
+            len(fields) >= 3 and _LEVEL_ALIASES.get(fields[1]) and fields[0] not in LEVELS):
+        check_name, level, where, message = (fields + ["", ""])[:4]
+        return Finding(_LEVEL_ALIASES.get(level, level), check_name.upper(), message, where)
+    if len(fields) >= 3:
+        level, code, msg = fields[:3]
+        where = fields[3] if len(fields) > 3 else ""
+        level = _LEVEL_ALIASES.get(level, level)
+        if level in LEVELS:
+            return Finding(level, code, msg, where)
+    return error("PLUGIN-RESULT", f"{plugin} returned {obj!r}, not a Finding")
 
 
 @dataclass
@@ -72,6 +135,10 @@ class CheckCtx:
     tier: str = "fast"
     today: dt.date = field(default_factory=dt.date.today)
     _texts: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def get(self, key: str, default=None):
+        """Duck-typed access for plug-ins written against a dict-shaped ctx."""
+        return getattr(self, key, default)
 
     def svg_text(self, name: str) -> str:
         if name not in self._texts:
@@ -185,15 +252,7 @@ def run_plugin(p: Plugin, ctx: CheckCtx) -> list[Finding]:
     except Exception as exc:
         tb = traceback.format_exc(limit=3).strip().splitlines()[-1]
         return [error("PLUGIN-CRASH", f"{p.name} raised {type(exc).__name__}: {exc} ({tb})")]
-    out = []
-    for f in res or []:
-        if isinstance(f, Finding):
-            out.append(f)
-        elif isinstance(f, tuple) and len(f) >= 3:
-            out.append(Finding(*f[:4]))
-        else:
-            out.append(error("PLUGIN-RESULT", f"{p.name} returned {f!r}, not a Finding"))
-    return out
+    return [normalise(f, p.name) for f in (res or [])]
 
 
 def exit_code(findings: list[Finding]) -> int:

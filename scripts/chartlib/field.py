@@ -84,6 +84,7 @@ class FieldReport:
     residual_max: float = 0.0          # max |field(p_k) − value_k| over unfaded samples
     faded: list = dc_field(default_factory=list)      # sample indices with coast factor < 0.35
     on_feature: list = dc_field(default_factory=list)  # sample indices sitting on a feature's lift
+    clamped: list = dc_field(default_factory=list)     # samples < shoal_floor held at the floor by a shoal
     ridge_used: float = 0.0
     refine_steps: int = 0
     bracket_failures: list = dc_field(default_factory=list)
@@ -111,7 +112,7 @@ class Field:
     @classmethod
     def from_soundings(cls, w, h, samples, base, features=(), coast: Coast | None = None,
                        kernel: str = "bump", h_snd: float = 30.0, ridge: float = 1e-3,
-                       extra=(), level: float = 5.0, cell: float = 8.0, refine: int = 3) -> "Field":
+                       extra=(), level: float = 5.0, cell: float = 8.0, refine: int = 4) -> "Field":
         """samples: [(x, y, value)]; features: Feature objects (kind, x, y, r; amp/h are set here);
         extra: [(x, y, h, amp)] free land kernels (negative amp deepens: harbour basins, carves).
         Solves the sounding amplitudes so field(x_k, y_k) == value_k (zero weeks → floor)."""
@@ -168,12 +169,17 @@ class Field:
         for (x, y, _v), a in zip(samples, amps):
             self.kernels.append(Kernel(x, y, h_snd, a, "water"))
         self._grid = None
-        # residuals (unfaded samples only)
+        # residuals (unfaded samples only); a sounding shallower than shoal_floor inside a shoal's
+        # support is held at the floor (shoals never break the surface) and reported as clamped
         worst = 0.0
         for i, (x, y, v) in enumerate(samples):
             if i in self.report.faded:
                 continue
-            worst = max(worst, abs(self.value(x, y) - max(float(v), self.floor)))
+            res = abs(self.value(x, y) - max(float(v), self.floor))
+            if res > 1e-6 and float(v) < self.shoal_floor and self._lift(x, y)[1] > 0:
+                self.report.clamped.append(i)
+                continue
+            worst = max(worst, res)
         self.report.residual_max = worst
 
     # ---- evaluation
@@ -452,6 +458,8 @@ def _cell_segments(xs, ys, rows, level):
             else:
                 continue
             for A, B in pairs:
+                if abs(A[0] - B[0]) < 1e-9 and abs(A[1] - B[1]) < 1e-9:
+                    continue  # a node exactly on the level: degenerate
                 side = 0.0
                 for cx, cy, sh in corners:
                     if sh:
@@ -527,32 +535,37 @@ def closed_check(cs: list[Contour], levels=None, min_len: float = 30.0) -> list[
     return bad
 
 
-def band_of(cs: list[Contour], x, y, levels) -> float | None:
-    """The smallest level L such that (x, y) is inside a closed shallow L-polygon and not inside a
-    nested deep hole at L; None if the point is in open water deeper than every level."""
+def band_of(cs: list[Contour], x, y, levels, base: float | None = None) -> float | None:
+    """The smallest level L such that (x, y) is under L: inside an odd number of closed L-polygons
+    (evenodd nesting) when the ambient water is deeper than L, or inside an even number when the
+    ambient water (`base`) is itself under L. None = deeper than every level. With base=None the
+    unbounded region counts as deep."""
     for lv in sorted(levels):
-        inside = False
+        inside = base is not None and base < lv
         for c in cs:
             if c.level != lv or not c.closed:
                 continue
             if c.contains(x, y):
-                inside = not inside  # evenodd nesting
+                inside = not inside
         if inside:
             return lv
     return None
 
 
-def bracket_test(cs: list[Contour], samples, levels=DEFAULT_LEVELS, tie: float = 0.02) -> list[tuple]:
+def bracket_test(cs: list[Contour], samples, levels=DEFAULT_LEVELS, base: float | None = None,
+                 tie: float = 0.02, skip=()) -> list[tuple]:
     """Every numeral must sit inside the band labelled ≤ n and outside the next (T2 §2.4).
     Returns failures [(index, x, y, value, expected_band, found_band)]; near-ties (|v − L| < tie·L)
-    are skipped so the caller can nudge them."""
+    and indices in `skip` (faded soundings the sheet does not print) are not tested. Pass the
+    field's `base` so the unbounded open-water region is banded correctly."""
     fails = []
     lv = sorted(levels)
+    skip = set(skip)
     for i, (x, y, v) in enumerate(samples):
-        if any(abs(v - L) < max(tie * L, 1e-9) for L in lv):
+        if i in skip or any(abs(v - L) < max(tie * L, 1e-9) for L in lv):
             continue
         expected = next((L for L in lv if v < L), None)
-        found = band_of(cs, x, y, lv)
+        found = band_of(cs, x, y, lv, base)
         if expected != found:
             fails.append((i, round(x), round(y), v, expected, found))
     return fails
@@ -805,7 +818,7 @@ def break_anchor(c: Contour, i0: int, i1: int) -> tuple[float, float, float]:
         ang -= 180
     elif ang < -90:
         ang += 180
-    return (x, y, ang)
+    return (round(x, 1), round(y, 1), round(ang, 1))
 
 
 def broken_polylines(c: Contour, i0: int, i1: int) -> list[list]:

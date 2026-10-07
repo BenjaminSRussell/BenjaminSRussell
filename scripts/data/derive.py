@@ -28,8 +28,8 @@ VARIATION_MIN_DAYS = 60
 
 
 def sweep_threshold(n_repos: int, sweep_min: int = SWEEP_MIN_REPOS) -> int:
-    """A sweep day touches ≥ ⅓ of the fleet (T7) or ≥ `sweep_min` repos (whichever is fewer)."""
-    return max(1, min(sweep_min, math.ceil(n_repos / 3))) if n_repos else sweep_min
+    """A sweep day touches ≥ ⅓ of the fleet (T7) or ≥ `sweep_min` repos (whichever is fewer), never < 2."""
+    return max(2, min(sweep_min, math.ceil(n_repos / 3))) if n_repos else sweep_min
 
 
 def sweeps(repos: list[dict], threshold: int) -> list[dict]:
@@ -56,13 +56,19 @@ def activity(repo: dict, taken: dt.date, sweep_dates: set[str]) -> tuple[bool, b
 def weekly(repos: list[dict], taken: dt.date) -> list[dict]:
     starts = week_starts(taken)
     weeks = [{"start": s.isoformat(), "n": 0, "days": 0, "repos": {}} for s in starts]
+    idx = {s: i for i, s in enumerate(starts)}
+    dates: list[set[str]] = [set() for _ in starts]
     for r in repos:
         for i, n in enumerate(r.get("weeks") or [0] * WEEKS):
             if n:
                 weeks[i]["n"] += n
                 weeks[i]["repos"][r["name"]] = n
-        for i, d in enumerate(r.get("week_days") or [0] * WEEKS):
-            weeks[i]["days"] += d
+        for day in r.get("days") or []:
+            i = idx.get(week_start(dt.date.fromisoformat(day["d"])))
+            if i is not None:
+                dates[i].add(day["d"])
+    for i, w in enumerate(weeks):
+        w["days"] = len(dates[i])   # distinct commit-days in the week (≤ 7), not repo-days
     return weeks
 
 

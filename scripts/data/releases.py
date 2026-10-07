@@ -52,6 +52,17 @@ def from_commits(repo: str, commits: list[Commit], identity: dict | None = None,
     return out
 
 
+def hand_notice(n: dict) -> dict:
+    """chart.toml [[notices]] (Sailing Directions): month-dated, no tag/url; `body`/`cite` are kept."""
+    tag = n.get("tag") or (f"N{n['n']}" if n.get("n") is not None else "")
+    out = {"repo": n.get("repo") or "", "tag": str(tag), "date": n.get("date") or None, "title": n.get("title") or "",
+           "url": n.get("url") or "", "source": "hand"}
+    for key in ("body", "cite"):
+        if n.get(key):
+            out[key] = n[key]
+    return out
+
+
 def notices(flagship: str, pypi_edition: dict | None, profile_commits: list[Commit], hand: list[dict] = (),
             token: str | None = None, owner: str = LOGIN, profile_repo: str = LOGIN,
             identity: dict | None = None, cached: list[dict] | None = None) -> list[dict]:
@@ -62,7 +73,7 @@ def notices(flagship: str, pypi_edition: dict | None, profile_commits: list[Comm
         primary = rel
     else:
         primary = from_pypi(flagship, pypi_edition)
-    out = [dict(n, source=n.get("source") or "hand") for n in hand]
+    out = [hand_notice(n) for n in hand if isinstance(n, dict)]
     out += primary
     out += from_commits(profile_repo, profile_commits, identity, owner)
     seen = set()

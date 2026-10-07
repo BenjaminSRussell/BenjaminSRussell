@@ -11,7 +11,7 @@ import os
 import re
 
 import tokens
-from checks import Finding, fail, warn, error
+from check import Finding, fail, warn, error
 
 TIER = "fast"
 

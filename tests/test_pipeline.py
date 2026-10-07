@@ -94,24 +94,42 @@ class BuildAssets(unittest.TestCase):
 
 
 class Gate(unittest.TestCase):
+    """A throw-away repo root: chart.toml and stats.json copied, a clean README, the _blank build."""
+
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="gate-")
-        self.out = os.path.join(self.tmp, "v9")
-        self.report = os.path.join(self.tmp, "build-report.json")
-        self.assertEqual(build_assets.main(sheets=["_blank"], out=self.out, report_path=self.report, quiet=True), 0)
+        os.makedirs(os.path.join(self.tmp, "assets"))
+        shutil.copyfile(CFG, os.path.join(self.tmp, "chart.toml"))
+        shutil.copyfile(STATS, os.path.join(self.tmp, "assets", "stats.json"))
+        with open(os.path.join(self.tmp, "README.md"), "w", encoding="utf-8") as fh:
+            fh.write("# chart\n<!-- position:start -->\n<!-- position:end -->\n"
+                     "<sub>since <!-- n:account_since -->Oct 2024<!-- /n --></sub>\n")
+        self.out = os.path.join(self.tmp, "assets", "v9")
+        self.report = os.path.join(self.tmp, "assets", "build-report.json")
+        self.assertEqual(build_assets.main(sheets=["_blank"], out=self.out, report_path=self.report,
+                                           stats_path=os.path.join(self.tmp, "assets", "stats.json"), quiet=True), 0)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def run_gate(self, only):
-        return check.main(only=only, tiers=("fast",), out_dir=self.out, report_path=self.report, quiet=True)
+        return check.main(only=only, tiers=("fast",), root=self.tmp, quiet=True)
 
     def test_discovers_my_plugins(self):
         names = {p.name for p in check.discover()}
         self.assertTrue({"xml", "size", "strings", "position", "expiry"} <= names, names)
 
-    def test_clean_build_passes_xml_and_size(self):
-        self.assertEqual(self.run_gate(["xml", "size", "strings"]), 0)
+    def test_clean_build_passes_xml_size_strings(self):
+        self.assertEqual(self.run_gate(["xml", "size", "strings", "expiry"]), 0)
+
+    def test_readme_placeholder_and_banned_figure_fail(self):
+        readme = os.path.join(self.tmp, "README.md")
+        with open(readme, "a", encoding="utf-8") as fh:
+            fh.write("<p>⟨role⟩</p>\n")
+        self.assertEqual(self.run_gate(["position"]), 1)
+        with open(readme, "w", encoding="utf-8") as fh:
+            fh.write("# chart\n<sub>since Oct 2024</sub>\n")   # hand-typed figure outside n: markers
+        self.assertEqual(self.run_gate(["strings"]), 1)
 
     def test_position_empty_is_a_warning(self):
         self.assertEqual(self.run_gate(["position"]), 2)
@@ -136,7 +154,7 @@ class Gate(unittest.TestCase):
     def test_nothing_to_check_is_exit_3(self):
         empty = os.path.join(self.tmp, "empty")
         os.makedirs(empty)
-        self.assertEqual(check.main(only=["xml"], tiers=("fast",), out_dir=empty, report_path=self.report, quiet=True), 3)
+        self.assertEqual(check.main(only=["xml"], tiers=("fast",), root=self.tmp, out_dir=empty, quiet=True), 3)
 
 
 class Readme(unittest.TestCase):
@@ -177,7 +195,12 @@ class Readme(unittest.TestCase):
         self.assertIn("/footer-still-day.svg", once)
 
     def test_figures_from_v1_and_v2(self):
-        v1 = render_readme.figures(self.stats, self.cfg)
+        live = render_readme.figures(self.stats, self.cfg)     # whatever stats.json holds today
+        self.assertRegex(live["commits"], r"^\d{1,3}(,\d{3})*$")
+        self.assertTrue(int(live["repo_count"]) > 0)
+        self.assertRegex(live["taken"], r"^\d{1,2} [A-Z][a-z]{2} \d{4}$")
+        v1 = render_readme.figures({"commits": 1828, "repos": [{}] * 21, "since": "Oct 2024", "updated": "2026-10-07",
+                                    "seeded": True}, self.cfg)
         self.assertEqual((v1["commits"], v1["repo_count"], v1["account_since"], v1["taken"]), ("1,828", "21", "Oct 2024", "7 Oct 2026"))
         v2 = render_readme.figures({"repo_count": 24, "commits": 1700, "account_since": "2024-10-03",
                                     "taken": "2026-10-07", "updated_at": "2026-10-07T06:34:12Z"}, self.cfg)

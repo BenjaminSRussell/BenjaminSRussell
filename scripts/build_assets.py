@@ -158,11 +158,11 @@ def typeset_module():
 
 
 def begin_asset(k, sheet: str, ed: E.Edition) -> None:
-    """Reset the type engine's per-sheet registries (glyph defs, extents, FIGURES) if it has them."""
+    """Reset the type engine's per-sheet registries (glyph defs, runs, exclusions, FIGURES) if it has them."""
     fn = getattr(k, "begin_asset", None)
     if fn is None:
         return
-    for args in ((sheet, ed), (sheet,), ()):
+    for args in ((sheet,), ()):          # typeset.begin_asset(sheet, prefix="") — svg() does the prefixing
         try:
             fn(*args)
             return
@@ -272,6 +272,57 @@ def _rel(path: str) -> str:
     return os.path.abspath(path) if rel.startswith("..") else rel
 
 
+def typeset_report(ctx: Ctx, entry: dict) -> list[str]:
+    """What D's engine knows about the sheet just built: the text manifest, exclusion boxes, glyph
+    count, and its own lint (`check_type` → problems, `check_budget` → problems). Every call is
+    guarded: the engine is a collaborator, not a dependency."""
+    k = ctx.k
+    if k is None:
+        return []
+    out: list[str] = []
+    fn = getattr(k, "run_records", None)
+    if fn is not None:
+        try:
+            entry["text"] = fn()
+        except Exception as exc:
+            out.append(f"{ctx.sheet}-{ctx.ed.name}: typeset.run_records failed: {exc}")
+    fn = getattr(k, "exclusions", None)
+    if fn is not None:
+        try:
+            entry["exclusions"] = [{"name": n, "x": x, "y": y, "w": w, "h": h} for n, x, y, w, h in fn(named=True)]
+        except Exception:
+            try:
+                entry["exclusions"] = [{"x": x, "y": y, "w": w, "h": h} for x, y, w, h in fn()]
+            except Exception as exc:
+                out.append(f"{ctx.sheet}-{ctx.ed.name}: typeset.exclusions failed: {exc}")
+    fn = getattr(k, "glyph_count", None)
+    if fn is not None:
+        try:
+            entry["glyph_defs"] = fn()
+        except Exception:
+            pass
+    fn = getattr(k, "warnings", None)
+    if fn is not None:
+        try:
+            entry["type_warnings"] = list(fn())
+        except Exception:
+            pass
+    fn = getattr(k, "check_type", None)
+    if fn is not None:
+        try:
+            res = fn(ctx.ed, ctx.ed.scale, ctx.sheet)
+        except TypeError:
+            res = fn(ctx.ed.theme.edition)
+        out += [f"{ctx.sheet}-{ctx.ed.name}: type: {p}" for p in (res or [])]
+    fn = getattr(k, "check_budget", None)
+    if fn is not None:
+        try:
+            out += [f"{ctx.sheet}-{ctx.ed.name}: type budget: {p}" for p in (fn() or [])]
+        except Exception as exc:
+            out.append(f"{ctx.sheet}-{ctx.ed.name}: typeset.check_budget failed: {exc}")
+    return out
+
+
 def last_sentence(alt: str) -> str:
     parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", alt.strip()) if p.strip()]
     return parts[-1] if parts else ""
@@ -332,6 +383,7 @@ def build_one(mod, ed: E.Edition, data: dict, cfg: Cfg, log: dict | None, out_di
             entry["motion"] = rep()
         except Exception:
             entry["motion"] = None
+    problems += typeset_report(ctx, entry)
     for hook in list(report_hooks):
         hook(ctx, doc, entry)
     return doc, entry, problems

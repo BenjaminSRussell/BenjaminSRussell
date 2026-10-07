@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import re
 
-from checks import Finding, fail
+from check import Finding, fail
 
 TIER = "fast"
 

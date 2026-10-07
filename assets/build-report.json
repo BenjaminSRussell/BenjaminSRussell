@@ -1,0 +1,18 @@
+{
+ "built": "2026-10-07T19:47:47Z",
+ "release": "v9",
+ "stats_sha": "f9e11965cb8871b4cd1df2450a7792828f3884249efcbf1a3e7d9cf29834a422",
+ "stats": "assets/stats.json",
+ "no_sounding": false,
+ "motion_enabled": true,
+ "poem": [],
+ "sheets": {},
+ "problems": [
+  "no sheet module scripts/sheets/hero.py",
+  "no sheet module scripts/sheets/soundings.py",
+  "no sheet module scripts/sheets/approaches.py",
+  "no sheet module scripts/sheets/log.py",
+  "no sheet module scripts/sheets/instruments.py",
+  "no sheet module scripts/sheets/footer.py"
+ ]
+}
