@@ -32,7 +32,7 @@
 <!-- position:start — chart.toml [position] text; "" omits the line -->
 <!-- position:end -->
 
-| | |
+| At a glance | |
 |---|---|
 | **Ben Russell builds** | crawl and data infrastructure: web crawlers, discovery pipelines, raw-first storage, the dashboards that watch them |
 | **Languages** | Python, Rust; Swift, C, TypeScript, Go |
