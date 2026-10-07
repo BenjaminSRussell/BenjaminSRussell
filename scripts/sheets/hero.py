@@ -110,6 +110,8 @@ ROSE_BOX = (920, 80, 160, 206)    # rings, numerals and the two VAR lines
 LIMIT_X = 1080
 BAND = (1080, 24, 200, 692)       # neat line to neat line (round 3): the edge of the world, not a swatch
 SOUND_GAP = 28                    # printed week figures keep this apart (round 3); the rest stay kernels
+ZERO_GAP = 60                     # at most one printed "0" per 60 px of course (round 4)
+ZERO_CLEAR = 24                   # and none within 24 px of a non-zero figure
 GENERALISE_20 = 200               # closed 20-rings shorter than this are not drawn
 UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X … LIMIT_X+70
 PA_SHIFT = (14, -10)
@@ -556,6 +558,17 @@ def build(ctx) -> str:
             cand.append(i_)
             i_ += 1
     show: list[int] = []
+    # contour outlines (every drawn level) are exclusions for the figures: a sounding never sits on a line
+    line_pts = [pt_ for q in cs for pt_ in q.pts[::2]
+                if q.level in (20.0, 50.0) and not (q.level == 20.0 and q.closed and c.polyline_length(q.pts, True) < GENERALISE_20 * s)]
+
+    def on_a_line(b):
+        return any(b[0] - 2 <= px_ <= b[0] + b[2] + 2 and b[1] - 2 <= py_ <= b[1] + b[3] + 2 for px_, py_ in line_pts)
+
+    def arc_of(i_):
+        return (c.polyline_length(course[:4]) - SOUND_STOP * s) * i_ / len(values)
+
+    zero_arcs: list[float] = []
     for i_ in sorted(cand, key=lambda i: (-values[i], i)):      # the big weeks win the space (HW 358 first)
         x, y, v = sounds[i_]
         if x >= limit_x - 8 * s:
@@ -566,8 +579,14 @@ def build(ctx) -> str:
         # and no two figure boxes touching; the culled weeks remain kernels of the field
         if any((abs(y - sounds[j_][1]) < 10 * s and abs(x - sounds[j_][0]) < SOUND_GAP * s * 0.75) for j_ in show):
             continue
-        if any(_boxes_overlap(fb, ob) for ob in boxes):
+        if any(_boxes_overlap(fb, ob) for ob in boxes) or on_a_line(fb):
             continue
+        if v == 0:   # zeros: one per ZERO_GAP of course, clear of every non-zero figure (round 4)
+            if any(abs(arc_of(i_) - a_) < ZERO_GAP * s for a_ in zero_arcs):
+                continue
+            if any(values[j_] and math.hypot(x - sounds[j_][0], y - sounds[j_][1]) < ZERO_CLEAR * s for j_ in show):
+                continue
+            zero_arcs.append(arc_of(i_))
         show.append(i_)
         boxes.append(fb)
     if not phone:   # the pencil note's box is reserved early so names and contour figures keep clear of it
@@ -580,7 +599,7 @@ def build(ctx) -> str:
         big = f.r >= BIG_NAME_R * s
         land = f.kind in LAND_KINDS
         hx, hy = spot_default.get(f.name, (f.x, f.y - 10 * s))
-        big_shoal = (not land) and f.r >= BIG_NAME_R * s
+        big_shoal = (not land) and f.r >= BIG_NAME_R * s and (not phone or width(f.name, "place-water") < 1.5 * f.r)
         if f.kind == "harbour":
             hx, hy = f.x, f.y - 0.84 * f.r - 6 * s           # the basin and the anchorage take the middle
         elif named and land and not big:
@@ -594,7 +613,7 @@ def build(ctx) -> str:
         name_pos = None
         if named:
             if f.kind == "harbour":
-                name_pos = (f.x, f.y + 0.84 * f.r + (16 if not phone else 26), "middle")
+                name_pos = (f.x, f.y + 0.84 * f.r + (16 if not phone else 30), "middle")
             elif land and big:
                 name_pos = (f.x, f.y + (16 if not phone else 12), "middle")   # on the land
             elif big_shoal:
@@ -604,7 +623,7 @@ def build(ctx) -> str:
             else:
                 name_pos = (f.x, f.y + f.r + (16 if not phone else 26), "middle")
         role = ("label" if not phone else "place-land") if land else "place-water"
-        size = (17 if (big and land and not phone) else None)
+        size = (17 if (f.kind == "harbour" and not phone) else None)   # the harbour leads the hierarchy
         hw = width(f"{f.value}{f.sub if f.sub is not None else ''}", "label")
         boxes.append((hx - hw / 2, hy - sz_h * 0.8, hw, sz_h))
         if name_pos:
@@ -641,10 +660,11 @@ def build(ctx) -> str:
                 above = f.y - (1.2 * f.r if land else f.r) - 6 * s
                 right = (f.x + 1.2 * f.r + 8 * s, f.y + 4 * s, "start")
                 left = (f.x - 1.2 * f.r - 8 * s, f.y + 4 * s, "end")
-                for cand in ((nx_, above, anc), left, right):
-                    nb2 = box_at(*cand)
+                left_low = (f.x - 1.2 * f.r - 8 * s, f.y + 0.6 * f.r + 8 * s, "end")
+                for cand_ in ((nx_, above, anc), left, left_low, right):
+                    nb2 = box_at(*cand_)
                     if not clashes(nb2):
-                        name_pos, nb = cand, nb2
+                        name_pos, nb = cand_, nb2
                         break
             boxes.append(nb)
         letter[f.name] = {"height": (hx, hy), "name": name_pos, "role": role, "size": size, "big": big, "land": land,
@@ -682,7 +702,7 @@ def build(ctx) -> str:
         band_labels.append(up("soundings along the course: commits per week", band[0] + 34, band[1] + band[3] / 2,
                               "label-italic", fill=theme.ink2))
     else:   # inside the hatch like UNSURVEYED, clear of the lagoon's dashed shoals (round 3, addendum 2)
-        band_labels.append(up("SMALL-SCALE", band[0] + 90, band[1] + band[3] / 2, "label", fill=theme.ink2, caps=True))
+        band_labels.append(up("SMALL-SCALE EDITION", band[0] + 90, band[1] + band[3] / 2, "label", fill=theme.ink2, caps=True))
 
     # ---- tints (A 1.0, B 1.3), generalised: closed 10-rings under GENERALISE_10 are not tinted
     gen10 = GENERALISE_10[sc]
@@ -846,7 +866,7 @@ def build(ctx) -> str:
             nx_, ny_, anc = L_["name"]
             if L_["land"] and not phone:
                 parts.append(lbl(f.name, nx_, ny_, "label", anchor=anc, caps=True, size=L_["size"],
-                                 tracking=(1.0 if L_["big"] else caps_track)))
+                                 tracking=(1.0 if L_["size"] else caps_track)))
             elif L_["land"]:
                 parts.append(lbl(f.name, nx_, ny_, "place-land", anchor=anc))
             else:
