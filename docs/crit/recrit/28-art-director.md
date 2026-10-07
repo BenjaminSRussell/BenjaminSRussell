@@ -1,0 +1,69 @@
+# Re-crit 28 — Advertising art director (print and campaign)
+
+Judged the built v9 PNGs: readme-light/dark at 1100 (hero column 945), the six sheets at 870 day/night and 1080 phone, the 2x crops, the four filmstrips, check.md. Not the code; MASTERPLAN §2 decisions taken as given. Coordinates below are at the 1280 sheet width unless marked (870) or (phone).
+
+## 1. Scores J1–J12
+
+| # | Score | Evidence |
+|---|---|---|
+| J1 | 3 | "I survey a web that is wrong about itself." is one italic line, second read, 8px optical indent under the B (crops/hero-title.png). Said once in display; glossed once in prose ("Most of what I build is survey work…"); the footer's "The chart ends here. The web doesn't." is a coda, not a repeat. |
+| J2 | 2 | Cover the name: the hatched UNSURVEYED band is now 15% (x 1080→1260) with the rotated LIMIT OF SURVEY 2026, a contour and the rustmapper outline crossing it, and the pencil note "sitemap.xml lies again" (hero-day 870: 620,370). But the band is a floating rectangle (y 150→580, stops 110px short of the top neat line, 135px short of the bottom), the reported-vs-surveyed outlines are grey smudges, and in the README render none of the note, course labels or "SEE SHEET 3" has drawn yet. The picture gestures at the edge; it does not yet prove the error. |
+| J3 | 3 | Covered titles: name-and-islands / curve-over-grid / tall harbour-with-legend / ruled log paper / three rotated words / long line with a waterfall. Six silhouettes, no shared eyebrow (readme-light.png, whole page). |
+| J4 | 3 | Hero cartouche: SOUNDINGS IN COMMITS · DATUM: MAIN · IALA REGION B · CORRECTED THROUGH NOTICE 9; repeated outside the neat line top centre. Approaches: SOUNDINGS IN URLS · THOUSANDS, Datum: main, R nuns to starboard G cans to port with light characters, PA/ED/SD/Rep in the key. A hydrographer names all three on the two charts that matter. |
+| J5 | 2 | Approaches legend (crops/approaches-legend.png) gives every symbol a two-word job and it reads at 2x. On the phone the legend is gone: G "1" loses URLS, the boxed A/B/C read as table columns, and the hero phone carries an unexplained SMALL-SCALE beside UNSURVEYED (hero-phone 905,780). |
+| J6 | 3 | The same numbers appear on three sheets: 512/308/265/173/87 as island areas and in the Sheet 2 grid; the Sheet 2 tail 17 15 0 0 0 108 37 146 73 13 358 reappears as the soundings along the hero channel; chart no. 21 = 21 repositories; edition 0.1.3 = the PyPI release; the clock hand at VAR 14h. One source, visibly. |
+| J7 | 2 | Both instruments present and labelled (Sheet 2 colophon: 1,665 commits · 1,966 all hands · 1,828 by GitHub's calendar). Approaches open-water soundings are all sloping, honestly declared "not measured". But the footer's 9 8 7 5 4 3 have no unit anywhere on the sheet, and the hero channel's "0 0 0 0" read as a rendering fault, not as slack weeks, because nothing on the hero says what a channel sounding is. |
+| J8 | 2 | Filmstrips: every hero frame from t=4.1s is a finished sheet; the footer boat sails to the limit (t=64.1s) and returns; approaches shards sail the 38 SD line and hold. But the README capture (readme-light 560–1030 × 80–640) shows the hero mid-opening with its argument not yet drawn, and t=0/0.5s is a near-empty sea under a finished title: the chart surveys itself, but the proof is the last thing it draws. |
+| J9 | 2 | Headings glossed (Soundings stats, Approaches main projects, Notices to mariners five principles). No "Hi, I'm Ben", no dragons. But Notices 6–9 are four identical lines ("rustmapper 0.1.x on PyPI Rust-sitemap, 8 Nov 2025") under a heading that promises five, and "Nothing on fire." is the one joke in the log. |
+| J10 | 3 | Under the hero: a link row (rustmapper · Scrapy Harbor · PyPI · Email · How it's built) and a three-row table, "Ben Russell builds / Languages / Stack", all plain text, within the first screen (readme-light-top). |
+| J11 | 2 | Approaches night: the magenta halos on R"4"/G"3"/R"2"/G"1" and Grafana Lt are the brightest objects, ink recedes to blueprint (crops/approaches-channel-night.png). Footer night: the sail is the light. Hero night: the brightest things are the name and the clock; the two harbour lights are 6px halos and the pencil note disappears entirely (crops/hero-entrance-night.png, 540–810 × 230–260). |
+| J12 | 3 | Uncaptioned and true: the 52-week series sounded along the course; VAR 14h (2026) as the author's hour, resolved by the inner 24-bar ring; "Wk '25 fix/144-lean-docker-extras" as a wreck; the lateral marks named for pipeline stages; "Log closed 1550 · B.S.R."; "watch kept by cron"; Sheet 6 shaded in the index of sheets; "Obstn rep. 2026 (PA)" short of the edge. |
+
+**J-total: 30/36.** No zero; J1/J2/J7/J10 all ≥ 2. Passes the judged floor exactly, with no margin.
+
+## 2. The five-second test
+
+**870 px, day.** Second 1: a name, big, serif, cream paper, blue water. Second 2: the italic line, and it has a turn ("wrong about itself"). Seconds 3–4: a chart — a clock top right, a ring-shaped island labelled GAME ENGINE I., a dashed box labelled SCRAPY HARBOR, hatching at the right edge. Second 5: the eye drops under the picture and the table says "crawl and data infrastructure: web crawlers, discovery pipelines". Verdict in five seconds: a careful person with taste who maps things; the word *crawl* arrives from the HTML table, not the poster. The cartouche's "CRAWL AND DATA INFRASTRUCTURE · PYTHON AND RUST" is 11px at 870 and is the sixth read.
+
+**360 px (phone edition).** Name one line, thesis two lines — the break "I survey a web that / is wrong about itself." is a good one. Then the two loudest words on the sheet are GAME ENGINE I. and SCRAPY HARBOR, both in the same caps, both floating 90–100px left of their islands over open water. The read at 360 is "Ben Russell, surveyor… of a game engine?" There is no crawl word on the phone hero; the table under it is the rescue again.
+
+**Night.** The name goes silver, the paper goes to blueprint, the clock is the brightest drawn thing on the hero; the two harbour lights are small and the pencil note is gone. On Sheet 3 the halos win and the sheet reads as a working harbour after dark — this is the night poster the plan promised. The hero night is still the day hero with the lights off, not the day hero with the lights on.
+
+## 3. Top 5 defects, ranked
+
+**1. The hero's proof is the last thing it draws, so the README never shows it.**
+Where: readme-light.png and readme-dark.png, hero at 560–1030 × 80–640 (2x in my crop): no "sitemap.xml lies again", no 208°/233°/290°, no R"2" Fl R 4s / G"1" Fl G 4s, no SEE SHEET 3, no OCT 2025 / SEP 2025, no PA. All present in sheets/hero-day.png and crops/hero-entrance.png. Even there the note has lost its tail: it reads "sitemap.xml lies again" without "— see Notice 3", so it no longer points anywhere.
+Why: J2 and J8; STANDARDS 8 (every frame a finished sheet) and the thesis itself. A headline that alleges an error over an immaculate picture is a claim without evidence in frame, and the README is the surface most people will ever see.
+Fix: move the pencil note, the PA dashed outline of rustmapper and SEE SHEET 3 into the opening's first group (with the name and cartouche, ≤1.5 s), leaving only soundings, contours and the boat to arrive in course order; restore "— see Notice 3"; make the still variants carry the same layer; regenerate the README capture after the opening completes and check it against hero-day.png. Cost: S.
+
+**2. The UNSURVEYED band is a swatch, not a margin.**
+Where: hero, hatch at x 1080→1260, y 150→580 (social/hero-day.png; crops/hero-rose-band.png shows the top edge at 2x). Above it and below it is plain cream inside the neat line. The footer (sheets/footer-day.png) does it right: hatch to the frame.
+Why: STANDARDS thesis ("the edge of the survey is the structural idea on every sheet"); J2. A margin that stops is a rectangle somebody placed; a margin that runs to the frame is the end of the world.
+Fix: run the hatch and the dotted limit line from the inner neat line at top to the inner neat line at bottom (y 40→715 at 1280); give the clock a cream knock-out circle (r+8) where it overlaps, or shift it 40px left so it sits clear; keep UNSURVEYED where it is. Same rule on Sheet 3 phone, where the band is already full-width across the top and works. Cost: S.
+
+**3. The reported-vs-surveyed cluster reads as smudges and zeros.**
+Where: hero (1280) 730–900 × 430–520: eight grey double outlines with 10px grey numerals 37 358 73 146 108 15 13 17, and "0 0 0 0 0 1 0" strung along the channel at 940–1020 × 380–470 (crops/hero-entrance.png top half). On the phone it is "17 108" against grey loops at 700–780 × 800–840.
+Why: STANDARDS 1–3 (honesty is a convention, shoals are tinted water inside a dotted danger line, numerals upright or italic — not a third grey register); J7. This is the best idea on the sheet, the year sounded along the ship's track, and nobody can read it. Zero as a sounding means "dries"; five of them in a row means "bug".
+Fix: (a) one outline per shoal, dashed = as charted, solid = surveyed, the PA label once; (b) the week numerals in the sounding register (11px, ink, upright, subscript tenths like 265₅) not 10px grey; (c) the zero weeks drawn as the no-bottom dash "—" or a drying underline, never "0"; (d) one italic note beside VAR 14h: "track sounded weekly · commits". Cost: M.
+
+**4. Label hierarchy: the biggest word on the chart after the name is GAME ENGINE I.**
+Where: hero 740–880 × 350 (GAME ENGINE I.) and 695–825 × 617 (SCRAPY HARBOR), same caps, same size; hero-phone 330–600 × 705 and 285–575 × 890, where both labels float 90–100px left of their islands over empty water.
+Why: J10 and the 5-second cohort test (≥80% name the field); my read-order line. The honesty rule says the game engine stays the biggest island; nothing says it must have the loudest label.
+Fix: three label registers on the hero — display caps for the two systems only (SCRAPY HARBOR, rustmapper), 11px small caps for named islands (GAME ENGINE I. joins DATA-VISUALIZER I.), italic for banks and shoals. On the phone, anchor every label to its island's centroid, below the feature, with a 1px leader if displaced; drop SMALL-SCALE or gloss it. Cost: S.
+
+**5. Two production nubs the README reader will trip on.**
+Where: readme-light-bottom, Notices 6–9: four identical lines "rustmapper 0.1.x on PyPI Rust-sitemap, 8 Nov 2025" under "Notices to mariners five principles"; sheets/instruments-phone.png is a 1080×72 strip holding one rule and "CHART NO. 21 · SHEET 5".
+Why: STANDARDS 9 (say each thing once) and 5 (360px render still shows a sheet). A list that stutters four times reads as a template loop; an image that is only a chart number reads as a broken include.
+Fix: collapse the four release notices into one — "rustmapper 0.1.0–0.1.3 on PyPI · 8 Nov 2025" — or date them by actual release; at phone width drop the instruments image entirely and let the plain-text Languages / Stores / Deck line carry it. Also check the log's trailing cursor block (▮ after "21 repositories", every frame): STANDARDS 8 bans typing; if the line is static, the cursor is a costume. Cost: S.
+
+Lower, for the builder's list: Sheet 3's open-water soundings are a uniform italic lattice (no density near the track — evenness again); Sheet 3 phone has UNSURVEYED touching the neat line (1035,240) and "robots.txt" overprinting its box edge (440,437); the legend takes 25% of Sheet 3's height and is 7px texture in the README; Sheet 3 phone's "←— N" is correct for a rotated chart but needs the rose ring, not a bare arrow; the hatched zones-of-confidence inset is the one place hatching does not mean "unsurveyed" (STANDARDS 3).
+
+## 4. Three things that must not be touched
+
+1. **The name-and-line lock-up.** 176px Instrument Serif, the italic a hair indented under the B stem, nothing else above the water line. Read order is now name → thesis; the first problem in my first crit is solved and the whole page hangs off it.
+2. **The clock-rose.** Ticks, N, 00/06/12/18, a single red arrowhead, the 24-bar commit ring inside and the hour hand at VAR 14h. It was a second headline; now it is a hairline instrument that tells a story on the second look. Do not give it numerals back.
+3. **Sheet 3's harbour grammar.** Pipeline stages as lateral marks (R"4" SUMMARIZE, G"3" ANALYZE, R"2" SCOUT, G"1" URLS) with real light characters, the write-ahead log as a pier "one cell per sounding", Delta Lake as the anchorage, Prometheus as the church, and the magenta halos at night. This is the campaign's proof that the metaphor executes rather than decorates — and the footer's "The chart ends here. The web doesn't." over water going over the edge is its last line. Leave both alone.
+
+## 5. Does it look like months of a team's work?
+
+Mostly, yes — and more than any developer page I have seen. The system holds across six sheets: one hand, one number lock-up, one convention for honesty, two protagonists that trade places at night. The hero's title band, the clock, Sheet 3's harbour and the footer's waterfall look authored; a stranger would believe a studio and a hydrographer sat in the same room. What still looks like a template is small and specific: the hatched band that stops like a swatch, the three-cell source box with its A/B/C key (a diagram sitting on a painting), the uniform italic lattice of soundings on Sheet 3, the four-line stutter in the Notices, the 72px instruments nub on the phone, and GAME ENGINE I. in headline caps as if the generator, not the author, chose what to shout. None of these is a concept problem. They are the forty small cuts a team makes in the last fortnight, and the hero's one real cut — draw the proof first, in the frame, where the README reader will see it — is the difference between a page that is beautiful and a poster that argues.
