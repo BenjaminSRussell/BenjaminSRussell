@@ -403,7 +403,7 @@ def build(ctx) -> str:
     arc = [geo.p(*p) for p in ARC] if not phone else [tuple(p) for p in PHONE_ARC]
     if phone:
         rose_cx, rose_cy, rose_r = 600, 310, 56
-        rose_box = (536, 236, 130, 176)
+        rose_box = (500, 210, 200, 202)   # N above the ring, the VAR line below, both inside
         band = (E.I(limit_x), 412, w - E.I(limit_x), 228)
     else:
         rose_cx, rose_cy, rose_r = ROSE
@@ -529,6 +529,9 @@ def build(ctx) -> str:
     spot_default = {f.name: (x, y) for f, x, y, _a in c.spot_heights(feats, cs, clearance=8 * s)}
     letter: dict[str, dict] = {}
     boxes: list[tuple] = []        # (x, y, w, h) of every placed run, for contour_labels and collisions
+    for (x, y, v) in sounds:       # the soundings come first: names and figures keep clear of them
+        if x < limit_x:
+            boxes.append((x - 10 * s, y - 4 * s, 20 * s, 10 * s))
     sz_h = 13 if not phone else 26
     for f in ranked:
         named = f.r >= name_min_r if phone_named is None else f.name in phone_named
@@ -592,11 +595,11 @@ def build(ctx) -> str:
                 nx_ -= nb[0] + nb[2] - (band[0] - 6)
                 name_pos = (nx_, ny_, anc)
                 nb = box_at(nx_, ny_, anc)
-            if clashes(nb) and f.kind != "harbour" and not (land and big) and not big_shoal:
+            if clashes(nb) and f.kind != "harbour" and (phone or not (land and big)) and not big_shoal:
                 above = f.y - (1.2 * f.r if land else f.r) - 6 * s
                 right = (f.x + 1.2 * f.r + 8 * s, f.y + 4 * s, "start")
                 left = (f.x - 1.2 * f.r - 8 * s, f.y + 4 * s, "end")
-                for cand in ((nx_, above, anc), right, left):
+                for cand in ((nx_, above, anc), left, right):
                     nb2 = box_at(*cand)
                     if not clashes(nb2):
                         name_pos, nb = cand, nb2
@@ -604,9 +607,6 @@ def build(ctx) -> str:
             boxes.append(nb)
         letter[f.name] = {"height": (hx, hy), "name": name_pos, "role": role, "size": size, "big": big, "land": land,
                           "named": named}
-    for (x, y, v) in sounds:
-        if x < limit_x:
-            boxes.append((x - 10 * s, y - 4 * s, 20 * s, 10 * s))
     k.exclude("band", *band)
     k.exclude("rose", *rose_box)
 
@@ -736,7 +736,7 @@ def build(ctx) -> str:
         wk = weeks[i]
         frag = snd(v, x, y + (4 if not phone else 6), truth="measured", key=f"week:{wk.get('start', i)}",
                    fill=theme.ink2 if not night else theme.ink, opacity=round(o, 2))
-        body.append(tl.fade_in(frag, 1.4 + stagger * i, 0.25, rise=0))   # no rise: 42 translates cost 6 KB
+        body.append(tl.fade_in(frag, 1.4 + stagger * printed, 0.25, rise=0))   # course order; no rise (6 KB)
         printed += 1
     report["soundings_printed"] = printed
     figs = []
@@ -967,8 +967,8 @@ def build(ctx) -> str:
         core = c.lit_core(pos[0], pos[1] - top * ms, theme, lit_id, r=1.5 * ms, halo_r=halo_r, prefix=prefix)
         flash = tl.flash(char, begin=bg, still="lit", name=lit_id.replace("-lit", "-flash")) if not phone else ""
         body.append(tl.fade_in(use(kind, pos[0], pos[1], scale=ms) + f"<g>{flash}{core}</g>", 1.6, 0.65, rise=0))
-        lights.append({"id": f"{NAME}-{lit_id}", "character": char, "color": theme.accent if kind == "nun" else theme.ok,
-                       "bbox": [pos[0] - 8, pos[1] - 20, 16, 22]})
+        lights.append({"id": f"{NAME}-{lit_id}", "character": char, "color": theme.light_core,
+                       "body": theme.accent if kind == "nun" else theme.ok, "bbox": [pos[0] - 8, pos[1] - 20, 16, 22]})
     report["lights"] = lights
 
     # ---- the boat: sails WP1 → WP5 over 4–28 s and anchors (desk); plotted as 7 fixes (phone)
