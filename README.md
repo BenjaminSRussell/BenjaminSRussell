@@ -83,6 +83,11 @@ A longer shelf — some sharp, some exploratory. Featured work stays above; this
 - [go_go_go](https://github.com/BenjaminSRussell/go_go_go) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
 - [Spotify_to_apple_music](https://github.com/BenjaminSRussell/Spotify_to_apple_music)
 
+**Tools & systems**
+- [ggml-viz](https://github.com/BenjaminSRussell/ggml-viz) — ggml graph / tensor visualization
+- [Boxalarm-monorepo](https://github.com/BenjaminSRussell/Boxalarm-monorepo) — infra / UI / backend monorepo
+- [excel-and-vba](https://github.com/BenjaminSRussell/excel-and-vba) — spreadsheet automation
+
 </details>
 
 <details>
@@ -110,6 +115,7 @@ Day-to-day: prefer tools that are boring under load, inspectable when they fail,
 - This profile README is **markdown-first**. Images are soft supporting beats that match the dark field (`#0B0D10`) so they don't flash a different black than GitHub chrome.
 - Featured face: **Scrapy** + **Rust-sitemap**. The contribution field below is a live Platane/snk animation from the `output` branch — not a static fake seed.
 - Commit score above refreshes via Actions (GraphQL lifetime total). Clicking the field or score goes to the profile overview.
+- Badge playbook: see **Actions failure playbook** in `DESIGN.md`. Workflows: `score-commits`, `snake`, `links`. Fallback asset: `assets/score-commits-fallback.svg` if live score is stale >7 days.
 - No multi-act story, no steampunk machine theater, no funeral copy. Just the file, crafted.
 
 </details>
