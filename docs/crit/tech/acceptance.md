@@ -43,3 +43,16 @@ smaller panel re-scores the final render below.
 ## Five-second test
 
 _pending_ (shadow-profile cohorts are Ben's to run; the panel's own 5-second readings are recorded in lieu)
+
+## Shipping
+
+1. Merge `profile-v7` into `main` (squash or merge; the branch carries the full history of the build).
+2. The `chart` workflow runs on the push (paths include `scripts/**`, `chart.toml`, `README.md`): tests →
+   survey → build → render → `check.py --ci` → commit stats/README to main → publish the orphan `chart`
+   branch → social PNGs. Until that first run finishes the README's images point at a branch that does not
+   exist yet (a few minutes of broken pictures). To avoid the gap, publish first from the branch:
+   `python3 scripts/build_assets.py && python3 scripts/publish_chart.py` (a force-push to `refs/heads/chart`,
+   which this session was not permitted to do), then merge.
+3. Fill `chart.toml` `[position]` and `[contact]` (docs/BEN-TODO.md items 1–2); the gate warns until then.
+4. Delete the old `output` branch on GitHub; set the social preview from `social/hero-day.png` on the
+   `chart` branch.
