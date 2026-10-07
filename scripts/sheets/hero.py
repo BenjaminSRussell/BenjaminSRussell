@@ -671,13 +671,13 @@ def build(ctx) -> str:
                     tracking=caps_track if caps_ else None)
         return lbl(text, x, ymid + wdt / 2, role, anchor="start", rotate=-90, **kw)
 
-    band_labels = [up("UNSURVEYED", band[0] + band[2] * 0.6, band[1] + band[3] / 2, "label-caps")]
+    band_labels = [up("UNSURVEYED", band[0] + (band[2] * 0.6 if not phone else 40), band[1] + band[3] / 2, "label-caps")]
     if not phone:
         band_labels.append(up(limit_label, band[0] + 16, band[1] + band[3] / 2, "label", caps=True))
         band_labels.append(up("soundings along the course: commits per week", band[0] + 34, band[1] + band[3] / 2,
                               "label-italic", fill=theme.ink2))
-    else:
-        pass
+    else:   # inside the hatch like UNSURVEYED, clear of the lagoon's dashed shoals (round 3, addendum 2)
+        band_labels.append(up("SMALL-SCALE", band[0] + 90, band[1] + band[3] / 2, "label", fill=theme.ink2, caps=True))
 
     # ---- tints (A 1.0, B 1.3), generalised: closed 10-rings under GENERALISE_10 are not tinted
     gen10 = GENERALISE_10[sc]
@@ -784,6 +784,8 @@ def build(ctx) -> str:
                 best, arc = d_, cum[li_] + t_ * math.sqrt(L2)
         u = arc / course_len if course_len else 0.0
         t = SAIL[0] + SAIL[1] * ease_inverse("settle", u)
+        if phone:   # the phone boat steps every 4 s: the lead goes down on the same instants (no extra repaints)
+            t = SAIL[0] + 4.0 * round((t - SAIL[0]) / 4.0)
         return min(SAIL[0] + SAIL[1], max(SAIL[0], tl.snap(t)))
 
     phone_show = show if not phone else [i_ for k_, i_ in enumerate(show) if k_ % 2 == 0]
@@ -906,7 +908,8 @@ def build(ctx) -> str:
         rows_t = [
             (770, f"THE OPEN WEB · FROM SURVEYS {first_year}–{upd_year}", "label", theme.ink, False, None, None),
             (834, unit_line + " · DATUM: MAIN", "label-caps", theme.ink2, True, None, None),
-            (866, f"CHART NO. {N} · EDITION {ver} · NOTICE {notices_n}", "label", theme.ink2, False, "measured", "chart-edition"),
+            (866, f"CHART NO. {N} · EDITION {ver} · NOTICE {notices_n} · IALA REGION B", "label", theme.ink2, False, "measured",
+             "chart-edition"),
         ]
         for y, t, role, fill, is_caps_role, truth, key in rows_t:
             if is_caps_role:

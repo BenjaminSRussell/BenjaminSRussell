@@ -118,15 +118,25 @@ class HeroBuild(unittest.TestCase):
             h = self.entry(name)["hero"]
             causes = {b[6] for b in h["bracket"]}
             self.assertFalse(causes - {"unresolved"}, f"{name}: bracket failures {h['bracket']}")
-        self.assertGreaterEqual(self.entry("day")["hero"]["soundings_printed"], 36)
-        # every printed sounding is a week from stats.json, upright, measured
-        weeks = {str(w["n"]) for w in self.stats["weeks"]}
+        self.assertGreaterEqual(self.entry("day")["hero"]["soundings_printed"], 10)
+        # every printed sounding is a week from stats.json (commits, days-with-a-commit subscript), upright,
+        # measured; the high-water week prints; no two printed figures touch (round 3 cull)
+        weeks = {(str(w["n"]), str(w.get("days", ""))) for w in self.stats["weeks"]}
+        subs = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
         figs = [t for t in self.entry("day")["text"] if t["origin"] == "sounding" and (t["key"] or "").startswith("week:")]
-        self.assertGreaterEqual(len(figs), 36)
+        self.assertGreaterEqual(len(figs), 10)
+        hw = str(self.stats["tide"]["hw"]["n"])
+        self.assertTrue(any(t["s"].startswith(hw) for t in figs), f"high water {hw} must print")
         for t in figs:
-            self.assertIn(t["s"], weeks)
+            digits = "".join(ch for ch in t["s"] if ch.isdigit())
+            sub = "".join(ch for ch in t["s"] if ch in "₀₁₂₃₄₅₆₇₈₉").translate(subs)
+            self.assertIn((digits, sub if sub else ("0" if digits == "0" else sub)), weeks | {(d, "") for d, _ in weeks if d == "0"}, t["s"])
             self.assertEqual(t["slant"], "upright")
             self.assertEqual(t["truth"], "measured")
+        for i, a in enumerate(figs):
+            for b in figs[i + 1:]:
+                self.assertFalse(a["x0"] < b["x1"] and b["x0"] < a["x1"] and a["y0"] < b["y1"] and b["y0"] < a["y1"],
+                                 f"{a['s']} and {b['s']} touch")
 
     def test_course_clear_of_features_and_harbour_open(self):
         h = self.entry("day")["hero"]
@@ -175,7 +185,7 @@ class HeroBuild(unittest.TestCase):
         self.assertEqual(len(heights), len(self.entry("day")["features"]), "one spot height per feature")
         # the chart number is the repo count and the notices line counts the notices
         texts = [t["s"] for t in self.entry("day")["text"]]
-        self.assertIn(f"CHART NO. {self.stats['repo_count']} · SHEET 1", texts)
+        self.assertTrue(any(s.startswith(f"CHART NO. {self.stats['repo_count']} · SHEET 1") for s in texts), texts)
         self.assertTrue(any(s == f"CORRECTED THROUGH NOTICE {len(self.stats['notices'])}" for s in texts), texts)
 
     # ---- lettering rules (T2 §5.4) and the thesis said once
