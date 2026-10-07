@@ -1,135 +1,143 @@
-<!-- BSR∴profile v6 · Markdown First · dark field · README is the product -->
-<!-- Images cooperate with Markdown; they do not replace it. -->
+<!--
+  Hi. This page is generated art plus hand-written words.
+  Every image is an SVG with its type set as outlines, in a dark and a light
+  version, built by scripts/build_assets.py. Design notes live in DESIGN.md.
+-->
 
-<div align="center">
+<a href="https://github.com/BenjaminSRussell"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/hero-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/hero-light.svg" width="100%" alt="Ben Russell. I build crawlers that survive the open web, and the systems that make sense of what they bring back."></picture></a>
 
-# Ben Russell
+<p align="center">
+  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://pypi.org/project/rustmapper/">PyPI</a>
+  &nbsp;·&nbsp;
+  <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
+  &nbsp;·&nbsp;
+  <a href="#colophon">How this page is made</a>
+</p>
 
-scrapers · data systems · things that stay standing
+<br>
 
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/nameplate.svg" width="100%" alt=""/>
+**Hi, I'm Ben.** I'm a full-stack developer with a soft spot for the unglamorous middle of the stack: the part where a page that lies becomes a row you can trust. Almost everything I build points the same way. Crawlers that stay standing when the site changes. Storage that keeps the trail so you can re-derive anything. Surfaces that let you see what the machine is doing *before* it breaks.
 
-<a href="https://github.com/BenjaminSRussell">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/score-commits.svg" width="90%" alt="total commits"/>
-</a>
+I care about design the way I care about data contracts. If a tool is hard to look at, it is hard to operate, and I'd rather fix the surface than apologise for it. This page is my small proof of that: every image on it is generated from a design system, in a dark and a light version, with real typography set as outlines.
 
-</div>
+<br>
 
-<br/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/stats-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/stats-light.svg" width="100%" alt="Lifetime commits, public repos, followers, stars, and the language mix. Refreshed daily by GitHub Actions."></picture>
 
-## Work
+<br>
 
-Two projects I keep returning to — fetch messy signal, leave structure that ships.
+## Featured work
 
-### [Scrapy](https://github.com/BenjaminSRussell/Scrapy)
+Two projects I keep coming back to. One is the platform, the other is the engine.
 
-A scraping and data platform aimed at the hard part: turning unreliable fetches into rows you can trust.
+<a href="https://github.com/BenjaminSRussell/Scrapy"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/card-scrapy-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/card-scrapy-light.svg" width="100%" alt="Scrapy: a multi-stage crawler platform. URLs flow through scout, analyze and summarize stages into Delta Lake, with Prometheus and Grafana watching."></picture></a>
 
-- Pipelines that survive messy HTML and shifting layouts
-- Clean, validate, emit — without losing the trail
-- Built to be operated, not just demoed
+**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is the platform. A multi-stage crawler that discovers, analyzes and summarizes web content at scale, built to be operated rather than demoed.
 
-<a href="https://github.com/BenjaminSRussell/Scrapy">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/scrapy-card.svg" width="100%" alt="Scrapy — messy fetch to trusted rows"/>
-</a>
+- Scout spider with URL prioritisation, JS-heavy page detection and adaptive, domain-aware rate limits
+- Raw data lands in Delta Lake, metrics in PostgreSQL, queues in Redis, one storage interface over all three
+- Circuit breakers, health checks, live Grafana dashboards on Prometheus metrics
+- Typed configuration, 90%+ test coverage, Docker and Kubernetes manifests, one-command start
 
-### [Rust-sitemap](https://github.com/BenjaminSRussell/Rust-sitemap)
+<br>
 
-Fast sitemap structure in Rust — root to tree to something you can ship.
+<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/card-rustmapper-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/card-rustmapper-light.svg" width="100%" alt="rustmapper: a concurrent sitemap crawler in Rust. A root URL fans out through frontier shards to discovered pages, driven by up to 512 adaptive workers with a write-ahead log."></picture></a>
 
-- Parse and walk large sitemaps without drama
-- Clear tree shape over clever one-liners
-- Small surface, serious throughput
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is the engine. A concurrent sitemap crawler and URL discovery tool written in Rust and shipped as a Python package, so the fast path is one `pip install` away.
 
-<a href="https://github.com/BenjaminSRussell/Rust-sitemap">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/projects/rust-sitemap-card.svg" width="100%" alt="Rust-sitemap — root to tree to ship"/>
-</a>
+- Up to 512 concurrent workers with adaptive concurrency control and a sharded frontier
+- Persistent state with a write-ahead log, so a crawl can be stopped and resumed
+- Seeds from sitemaps, Certificate Transparency logs and the Common Crawl index, which is how you find the subdomains nobody links to
+- Optional Redis for distributed runs, native Rust CLI, Python API via maturin, published on [PyPI](https://pypi.org/project/rustmapper/)
 
-<br/>
+<br>
 
-## How I work
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/terminal-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/terminal-light.svg" width="100%" alt="An animated terminal: pip install rustmapper, then rustmapper crawl --start-url example.com --workers 512, seeding from sitemaps, CT logs and Common Crawl, crawling, and exporting sitemap.xml."></picture>
 
-I like systems that stay standing after the first good day.
+<br>
 
-Most of the interesting work sits between **fetch** and **structure**: pages that lie, encodings that drift, trees that grow uneven. The craft is making that boring — so the next person (often future me) can move without re-deriving the pain.
+## How I think about it
 
-Prefer: clear data contracts, boring operational paths, and tools that explain themselves when they break.
+Five rules I keep relearning, written down so I stop relearning them.
 
-<br/>
+1. **Boring under load.** The interesting version of a system is the one that is still running on day forty. Clever is for prototypes.
+2. **Keep the trail.** Raw before clean, always. The question you will want to answer next month is one you cannot imagine today.
+3. **Observable before fast.** A crawler you cannot watch is a crawler you cannot trust. Dashboards and breakers are part of version one, not the polish.
+4. **Contracts over heroics.** Clear data shapes beat clever parsing. I keep a personal golden rule for URLs: never regex what a parser already understands.
+5. **The surface is part of the system.** Design is not the last step. If the tool is ugly it is probably also confusing, and confusion is an operational cost.
 
-<details>
-<summary><strong>More projects</strong></summary>
+<br>
 
-<br/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/stack-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/stack-light.svg" width="100%" alt="Stack. Languages: Python, Rust, Swift, C, TypeScript, SQL. Data: Scrapy, Delta Lake, PostgreSQL, Redis, SQLite with GRDB, Parquet. Ops: Docker, Kubernetes, Prometheus, Grafana, GitHub Actions, tokio. Surfaces and ML: SwiftUI, MapKit, React Native, MLX, Qwen, Ollama."></picture>
 
-A longer shelf — some sharp, some exploratory. Featured work stays above; this is the rest of the field.
+<br>
 
-**Data & scrape**
-- [Elusive_trades_data](https://github.com/BenjaminSRussell/Elusive_trades_data) — trade-shaped datasets
-- [FashionDB](https://github.com/BenjaminSRussell/FashionDB) — structured fashion data
-- [Data-visualizer](https://github.com/BenjaminSRussell/Data-visualizer) — seeing the rows
-- [Data_science_dev](https://github.com/BenjaminSRussell/Data_science_dev) — notebooks & pipelines
-- [ideal-url-organizer](https://github.com/BenjaminSRussell/ideal-url-organizer) — URL hygiene
+## The shelf
 
-**ML / local models**
-- [mlx_Qwen_data_entry](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen on MLX for entry work
-- [MLX_convertion](https://github.com/BenjaminSRussell/MLX_convertion) — conversion utilities
-- [rust_llm_logger](https://github.com/BenjaminSRussell/rust_llm_logger) — LLM logging in Rust
-- [Ai_code_detector](https://github.com/BenjaminSRussell/Ai_code_detector) — signal vs noise in code
+The rest of the field. Some of it sharp, some of it exploratory, all of it real.
 
-**Interface & play**
-- [3d-swift-globe-widget](https://github.com/BenjaminSRussell/3d-swift-globe-widget) · [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets)
-- [game_engine](https://github.com/BenjaminSRussell/game_engine) · [cozy-game](https://github.com/BenjaminSRussell/cozy-game) · [Wheel](https://github.com/BenjaminSRussell/Wheel)
-- [go_go_go](https://github.com/BenjaminSRussell/go_go_go) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
-- [Spotify_to_apple_music](https://github.com/BenjaminSRussell/Spotify_to_apple_music)
+<details open>
+<summary><b>Scrape, search and data</b></summary>
+<br>
 
-</details>
-
-<details>
-<summary><strong>Tools & stack</strong></summary>
-
-<br/>
-
-Languages and runtimes I reach for most:
-
-- **Scrape & ETL** — Python, Scrapy-shaped pipelines, async fetch
-- **Structure** — Rust, sitemap / tree walkers, typed edges
-- **Data** — SQL-ish stores, parquet-friendly paths, careful schemas
-- **Interface** — Swift widgets, small web surfaces
-- **Local ML** — MLX, Qwen-family experiments, logging that doesn't lie
-
-Day-to-day: prefer tools that are boring under load, inspectable when they fail, and quiet when they work.
+- [**Elusive_trades_data**](https://github.com/BenjaminSRussell/Elusive_trades_data) — a deterministic, file-based HVAC parts search that pulls from several supplier APIs and matches part numbers with zero-shot classification. No database, no Docker, no passwords.
+- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — twenty-five-plus ways to organise a pile of URLs, by domain, crawl depth, subdomain and actual page content. Home of the "no regex" rule.
+- [**FashionDB**](https://github.com/BenjaminSRussell/FashionDB) — scrapes Reddit and the web for fashion rules, then runs them through an NLP pipeline.
+- [**Data-visualizer**](https://github.com/BenjaminSRussell/Data-visualizer) — a lightweight, Superset-inspired exploration UI over PostgreSQL. Display only, by design.
+- [**Data_science_dev**](https://github.com/BenjaminSRussell/Data_science_dev) — notebooks and pipelines where ideas get tried before they get a repo.
 
 </details>
 
-<details>
-<summary><strong>Notes</strong></summary>
+<details open>
+<summary><b>Local models and tooling</b></summary>
+<br>
 
-<br/>
-
-- This profile README is **markdown-first**. Images are soft supporting beats that match the dark field (`#0B0D10`) so they don't flash a different black than GitHub chrome.
-- Featured face: **Scrapy** + **Rust-sitemap**. The contribution field below is a live Platane/snk animation from the `output` branch — not a static fake seed.
-- Commit score above refreshes via Actions (GraphQL lifetime total). Clicking the field or score goes to the profile overview.
-- No multi-act story, no steampunk machine theater, no funeral copy. Just the file, crafted.
+- [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers in Rust, Axum and Tower. A stream-tee forwards tokens to the client while parsing them for metrics, so logging costs the caller nothing.
+- [**mlx_Qwen_data_entry**](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen-DBA: profiles database workloads and uses Qwen on Apple MLX to recommend optimisations, with a human in the loop.
+- [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry and structure to git history patterns.
+- [**MLX_convertion**](https://github.com/BenjaminSRussell/MLX_convertion) — utilities for getting models onto Apple silicon.
 
 </details>
 
-<br/>
+<details open>
+<summary><b>Surfaces and play</b></summary>
+<br>
+
+- [**3d-swift-globe-widget**](https://github.com/BenjaminSRussell/3d-swift-globe-widget) — Titan: a native macOS 3D globe in MapKit and SwiftUI with permanent night mode, glowing data centres and packets arcing NYC to LA.
+- [**Spotify_to_apple_music**](https://github.com/BenjaminSRussell/Spotify_to_apple_music) — bidirectional library migration with ISRC, fuzzy text and duration matching, a SwiftUI face and a CLI.
+- [**game_engine**](https://github.com/BenjaminSRussell/game_engine) — a voxel game engine in C with its own physics. The kind of thing you build to understand why engines are hard.
+- [**cozy-game**](https://github.com/BenjaminSRussell/cozy-game) — Cozy Haven, a peaceful farming game in React Native and Expo.
+- [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets) · [Wheel](https://github.com/BenjaminSRussell/Wheel) · [go_go_go](https://github.com/BenjaminSRussell/go_go_go) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
+
+</details>
+
+<br>
 
 <div align="center">
-
-<a href="https://github.com/BenjaminSRussell">
-  <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/output/github-contribution-grid-snake-dark.svg" width="90%" alt="contribution field"/>
-</a>
-
-<sub>contribution field</sub>
-
+<a href="https://github.com/BenjaminSRussell"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/output/github-contribution-grid-snake-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/output/github-contribution-grid-snake.svg" width="100%" alt="Contribution graph, eaten daily by a snake."></picture></a>
+<sub>a year of commits, eaten nightly</sub>
 </div>
 
-<br/>
+<br>
 
-<div align="center">
+## Colophon
 
-<sub>Ben Russell · build things that stay standing</sub>
+This page is designed, not templated, and it is built the same way I build everything else.
 
-</div>
+- **Type.** Inter Display for headlines, Inter for copy, DejaVu Sans Mono for captions. Set as outlines inside every SVG, so it looks the same on every machine.
+- **Colour.** One warm signal orange on GitHub's own background. Mint only ever means *done*. Blue only ever means *the web*. Nothing else is coloured.
+- **Themes.** Every image ships in a dark and a light version and follows your system setting through `<picture>`.
+- **Motion.** SMIL only, slow and purposeful. Packets travel pipelines, rows resolve in order, the terminal types, a small boat crosses the footer.
+- **Build.** `scripts/build_assets.py` generates the artwork; `scripts/build_stats.py` fetches live numbers and a GitHub Action refreshes them daily. Tokens and rules are in [DESIGN.md](DESIGN.md).
+
+If you like it, the generator is MIT-friendly to borrow. Change the name, the copy and the palette, and it is yours.
+
+<br>
+
+**Off the clock.** The avatar is a sailboat about to go over a waterfall at golden hour. I'm told that's a mood. Mostly it's a reminder that the view is best right before the drop, and that it pays to have checked the chart.
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer-dark.svg"><img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/main/assets/footer-light.svg" width="100%" alt="A small sailboat crossing a horizon line. Fair winds."></picture>

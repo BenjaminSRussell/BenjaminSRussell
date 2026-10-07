@@ -1,0 +1,18 @@
+{
+  "system": "benjaminsrussell/profile",
+  "version": "7.0.0",
+  "codename": "Signal & Structure",
+  "background": "transparent (GitHub page colour, both themes)",
+  "themes": {
+    "dark":  { "ink": "#F3EFE7", "ink2": "#B9BCC6", "muted": "#7D8290", "hair": "#2A2F3A", "grid": "#1F232C", "panel": "#13161C", "panel2": "#0E1014", "accent": "#FF5A1F", "ok": "#4ADE9B", "cool": "#6FB7FF" },
+    "light": { "ink": "#131417", "ink2": "#454A55", "muted": "#7A7F8C", "hair": "#DCDFE5", "grid": "#E6E8EC", "panel": "#F6F7F9", "panel2": "#FBFBFC", "accent": "#E8501A", "ok": "#15A86D", "cool": "#2E86E6" }
+  },
+  "type": {
+    "display": "Inter Display Bold, tracking -4..-2",
+    "text": "Inter Regular / Medium / SemiBold",
+    "caption": "DejaVu Sans Mono 11-12px, uppercase, tracking +1.6"
+  },
+  "grid": { "canvas": 1280, "margin": 48, "gutter": 24, "dots": 22 },
+  "motion": { "engine": "SMIL", "loops": "6s-14s", "footer-boat": "75s", "rule": "slow, purposeful, never flashing" },
+  "source": "scripts/build_assets.py, scripts/build_stats.py, scripts/svgkit.py"
+}
