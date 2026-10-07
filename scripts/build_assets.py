@@ -200,7 +200,8 @@ def card_scrapy(t: Theme) -> str:
                      f'<animate attributeName="width" values="8;40;16;34;8" dur="{5+i}s" repeatCount="indefinite"/></rect>')
     # packets travelling the line
     for d in (0, 2.3, 4.1):
-        b.append(f'<circle r="4" fill="{t.accent}"><animateMotion dur="6.5s" begin="{d}s" repeatCount="indefinite" path="M{xs[0]},{yy} H{xs[-1]}"/></circle>')
+        b.append(f'<circle r="4" fill="{t.accent}" opacity="0"><set attributeName="opacity" to="1" begin="{d}s"/>'
+                 f'<animateMotion dur="6.5s" begin="{d}s" repeatCount="indefinite" path="M{xs[0]},{yy} H{xs[-1]}"/></circle>')
     # monitoring strip: sparkline + 'breaker closed'
     sx, sy = 760, 238
     rng = random.Random(7)
@@ -246,7 +247,9 @@ def card_rustmapper(t: Theme) -> str:
             b.append(f'<circle cx="{leaves_x}" cy="{ly}" r="3.2" fill="{t.ink2}" opacity=".9"/>')
             paths.append(d2)
     for i, d in enumerate(paths):
-        b.append(f'<circle r="3" fill="{t.accent}"><animateMotion dur="{2.4 + (i*0.37)%1.6:.2f}s" begin="{(i*0.53)%2.2:.2f}s" repeatCount="indefinite" path="{d}"/></circle>')
+        begin = f"{(i*0.53)%2.2:.2f}s"
+        b.append(f'<circle r="3" fill="{t.accent}" opacity="0"><set attributeName="opacity" to="1" begin="{begin}"/>'
+                 f'<animateMotion dur="{2.4 + (i*0.37)%1.6:.2f}s" begin="{begin}" repeatCount="indefinite" path="{d}"/></circle>')
     b.append(label(t, "root", rx, ry + 32, anchor="middle"))
     b.append(label(t, "shards", 900, 262, anchor="middle"))
     b.append(label(t, "discovered", leaves_x + 8, 262, anchor="middle"))
