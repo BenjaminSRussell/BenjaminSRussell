@@ -98,12 +98,12 @@ SEE_SHEET = (687, 484)            # inside the box, top-left (open water)
 CALM = (40, 40, 800, 280)
 TITLE_BOX = (70, 540, 540, 130)
 ROSE = (1000, 160, 72)
-ROSE_BOX = (920, 80, 160, 195)
+ROSE_BOX = (920, 80, 160, 206)    # rings, numerals and the two VAR lines
 LIMIT_X = 1080
 BAND = (1080, 150, 200, 430)
 UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X … LIMIT_X+70
 PA_SHIFT = (14, -10)
-NOTE_AT = (898, 556, -7)          # pencil note anchor and rotation
+NOTE_AT = (910, 558, -7)          # pencil note anchor and rotation
 PHONE_S = 0.55
 PHONE_ORIGIN = (19, 300)          # where the desk drawable's corner lands on the phone sheet
 SAIL = (4.0, 24.0)                # begin, dur (MASTERPLAN 2.1: 4–28 s)
@@ -403,7 +403,7 @@ def build(ctx) -> str:
     arc = [geo.p(*p) for p in ARC] if not phone else [tuple(p) for p in PHONE_ARC]
     if phone:
         rose_cx, rose_cy, rose_r = 600, 310, 56
-        rose_box = (536, 236, 130, 170)
+        rose_box = (536, 236, 130, 176)
         band = (E.I(limit_x), 412, w - E.I(limit_x), 228)
     else:
         rose_cx, rose_cy, rose_r = ROSE
@@ -590,6 +590,7 @@ def build(ctx) -> str:
             nb = box_at(nx_, ny_, anc)
             if nb[0] + nb[2] > band[0] - 6:                 # a name never runs into the unsurveyed band
                 nx_ -= nb[0] + nb[2] - (band[0] - 6)
+                name_pos = (nx_, ny_, anc)
                 nb = box_at(nx_, ny_, anc)
             if clashes(nb) and f.kind != "harbour" and not (land and big) and not big_shoal:
                 above = f.y - (1.2 * f.r if land else f.r) - 6 * s
@@ -634,9 +635,9 @@ def build(ctx) -> str:
 
     band_labels = [up("UNSURVEYED", band[0] + band[2] * 0.6, band[1] + band[3] / 2, "label-caps")]
     if not phone:
-        band_labels.append(up(limit_label, band[0] - 14, band[1] + band[3] / 2, "label", caps=True))
+        band_labels.append(up(limit_label, band[0] + 16, band[1] + band[3] / 2, "label", caps=True))
     else:
-        band_labels.append(up("SOUNDINGS THINNED", band[0] + 26, band[1] + band[3] / 2, "label", fill=theme.muted, caps=True))
+        band_labels.append(up("SMALL-SCALE", band[0] + 26, band[1] + band[3] / 2, "label", fill=theme.muted, caps=True))
 
     # ---- tints (A 1.0, B 1.3), generalised: closed 10-rings under GENERALISE_10 are not tinted
     gen10 = GENERALISE_10[sc]
@@ -677,8 +678,8 @@ def build(ctx) -> str:
             dx, dy = PA_SHIFT
             water_svg.append(f'<path d="{c.compact_path(poly, True, 1)}" fill="none" transform="translate({dx} {dy})" '
                              f'{c.stroke("PEN", theme.ink, INK["mid"], "PECK", jit.sub("pa"))}/>')
-            ne = max(poly, key=lambda p: p[0] - p[1])
-            pa_label = lbl("PA", ne[0] + dx + 4, ne[1] + dy + 2, "label-italic", fill=theme.ink2)
+            wpt = min(poly, key=lambda p: p[0])
+            pa_label = lbl("PA", wpt[0] + dx - 3, wpt[1] + dy + 4, "label-italic", fill=theme.ink2, anchor="end")
     land_svg.append(use("anchorage", *course[-1]))
     if not phone:
         cov = COVERAGE
@@ -725,7 +726,7 @@ def build(ctx) -> str:
     thin = set()
     if phone:
         inner = [i for i, (x, y, v) in enumerate(sounds) if abs(rows[i % 4]) < 30 and x < limit_x]
-        thin = set(inner[::2]) if len(inner) > 16 else set(inner)
+        thin = set(inner[::3]) if len(inner) > 12 else set(inner)
     stagger = 0.04 if not phone else 0.06
     for i, (x, y, v) in enumerate(sounds):
         if x >= limit_x or (phone and i not in thin):
@@ -790,7 +791,7 @@ def build(ctx) -> str:
         ben = k.text("Ben", nx, ny, "display", edition=ed, scale=sc)
         wb = k.text_width("Ben ", "display", edition=ed, scale=sc)
         russ = k.text("Russell", nx + wb, ny, "display", edition=ed, scale=sc)
-        body.append(ben + russ + k.text(thesis, 72, 296, "thesis", fill=theme.ink2, edition=ed, scale=sc))
+        body.append(ben + russ + k.text(thesis, 72, 306, "thesis", fill=theme.ink2, edition=ed, scale=sc))
     else:
         nx, ny = 40, 150
         ben = k.text("Ben", nx, ny, "display", edition=ed, scale=sc)
@@ -800,8 +801,8 @@ def build(ctx) -> str:
         words = thesis.split()
         cut = len(words) // 2 + 1
         l1, l2 = " ".join(words[:cut]), " ".join(words[cut:])
-        body.append(k.text(l1, 44, 212, "thesis", fill=theme.ink2, edition=ed, scale=sc)
-                    + k.text(l2, 44, 258, "thesis", fill=theme.ink2, edition=ed, scale=sc))
+        body.append(k.text(l1, 44, 222, "thesis", fill=theme.ink2, edition=ed, scale=sc)
+                    + k.text(l2, 44, 268, "thesis", fill=theme.ink2, edition=ed, scale=sc))
 
     # ---- title block, source diagram, margin captions (3.3)
     block = []
@@ -861,32 +862,32 @@ def build(ctx) -> str:
     block.append(var_svg)
     body.append("".join(block))                             # the title block is printed, not revealed
 
-    # ---- bearings, mark labels, fix labels, pencil notes (3.6)
+    # ---- mark labels, fix labels, pencil notes, then bearings clear of all of them (3.6)
     late = []
-    centres = [(f.x, f.y) for f in feats]
-    legs = list(zip(course, course[1:]))
-    for li, (p, q) in enumerate(legs):
-        if phone:
-            break
-        brg = c.compass_bearing(p, q)
-        mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
-        L = math.hypot(q[0] - p[0], q[1] - p[1]) or 1
-        nx_, ny_ = -(q[1] - p[1]) / L, (q[0] - p[0]) / L
-        if li == len(legs) - 1:
-            best = (mx - 20 * s, my + 28 * s)            # the entrance is busy: label in the basin's south arm
+    late_boxes: list[tuple] = []
+
+    def late_text(text, x, y, role, anchor="start", rotate=0, **kw):
+        """A late label, its box recorded so the bearings can keep clear of it."""
+        wdt = width(str(text).upper() if kw.get("caps") else str(text), role,
+                    tracking=caps_track if kw.get("caps") else None)
+        hgt = 17 if role == "note" else 13
+        x0 = x - wdt / 2 if anchor == "middle" else (x - wdt if anchor == "end" else x)
+        if rotate:
+            ang = math.radians(rotate)
+            xs = [x0, x0 + wdt * math.cos(ang)]
+            ys = [y, y + wdt * math.sin(ang)]
+            late_boxes.append((min(xs), min(ys) - hgt * 0.8, max(xs) - min(xs), max(ys) - min(ys) + hgt))
         else:
-            cands = [(mx + nx_ * 12 * s * side, my + ny_ * 12 * s * side) for side in (1, -1)]
-            best = max(cands, key=lambda pt: min((math.hypot(pt[0] - cx, pt[1] - cy) for cx, cy in centres), default=0))
-        if best[0] < limit_x - 10:
-            late.append(lbl(f"{round(brg) % 360:03d}°", round(best[0], 1), round(best[1] + 4, 1), "label", anchor="middle",
-                            truth="measured", key="bearing"))
+            late_boxes.append((x0, y - hgt * 0.8, wdt, hgt))
+        return lbl(text, x, y, role, anchor=anchor, rotate=rotate, **kw)
+
     # the lateral pair: labels slope (floating things), characters as charted
     r2 = geo.pi(*MARK_R2)
     g1 = geo.pi(*MARK_G1)
     ms = 1.0 if not phone else 1.3
     if not phone:   # the phone entrance is 24 px wide: the bodies and lit cores carry the marks there
-        late.append(lbl('R "2" Fl R 4s', r2[0], r2[1] - 22 * ms, "label-italic", fill=theme.ink, anchor="middle"))
-        late.append(lbl('G "1" Fl G 4s', g1[0] + 10 * ms, g1[1] + 14 * ms, "label-italic", fill=theme.ink))
+        late.append(late_text('R "2" Fl R 4s', r2[0], r2[1] - 22 * ms, "label-italic", fill=theme.ink, anchor="middle"))
+        late.append(late_text('G "1" Fl G 4s', g1[0] + 10 * ms, g1[1] + 14 * ms, "label-italic", fill=theme.ink))
     # dated fixes: the first-commit month of the feature each fix is taken off (WP2 off rustmapper, WP4 the harbour)
     for wp, f, side in ((course[1], vessel_ground, -1), (course[3], harbour, 1)):
         if f is None or phone:
@@ -902,14 +903,14 @@ def build(ctx) -> str:
                     if not any(_boxes_overlap(fb, b) for b in boxes):
                         break
                     fy -= 6
-                late.append(lbl(_month(first), wp[0] - 14, fy, "label", fill=theme.ink2, truth="measured",
-                                key=f"first:{f.alias}", anchor="end"))
+                late.append(late_text(_month(first), wp[0] - 14, fy, "label", fill=theme.ink2, truth="measured",
+                                      key=f"first:{f.alias}", anchor="end"))
             else:
-                late.append(lbl(_month(first), wp[0] + 7, wp[1] - 10, "label", fill=theme.ink2, truth="measured",
-                                key=f"first:{f.alias}"))
+                late.append(late_text(_month(first), wp[0] + 7, wp[1] - 10, "label", fill=theme.ink2, truth="measured",
+                                      key=f"first:{f.alias}"))
     if not phone:
         nxp, nyp, rot = NOTE_AT
-        late.append(lbl("sitemap.xml lies again", nxp, nyp, "note", fill=theme.muted, rotate=rot))
+        late.append(late_text("sitemap.xml lies again", nxp, nyp, "note", fill=theme.muted, rotate=rot))
         if vessel_ground is not None:
             nw = k.text_width("sitemap.xml lies again", "note", edition=ed, scale=sc)
             ex_, ey_ = nxp + nw * math.cos(math.radians(rot)) + 6, nyp + nw * math.sin(math.radians(rot)) - 4
@@ -918,7 +919,9 @@ def build(ctx) -> str:
             late.append(f'<path d="M{_fmt(ex_)} {_fmt(ey_)}L{_fmt(tx_)} {_fmt(ty_)}" fill="none" '
                         f'{c.stroke("HAIR", theme.muted, 0.8)}/>')
         late.append(pa_label)
-        late.append(lbl("SEE SHEET 3", *SEE_SHEET, "label", fill=theme.muted, caps=True))
+        if vessel_ground is not None and pa_label:
+            late_boxes.append((vessel_ground.x + PA_SHIFT[0] - vessel_ground.r - 20, vessel_ground.y + PA_SHIFT[1] - 8, 20, 14))
+        late.append(late_text("SEE SHEET 3", *SEE_SHEET, "label", fill=theme.muted, caps=True))
     if ctx.no_sounding or data.get("no_sounding"):
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
         note = f"no soundings tonight — figures as surveyed {_date(taken)}"
@@ -927,6 +930,34 @@ def build(ctx) -> str:
                             fill=theme.muted, rotate=-3, caps=True))
         else:
             late.append(lbl(note, 40, 735, "label", fill=theme.muted, rotate=-2, caps=True))
+    # bearings: 54 px off the leg (outside the sounding rows), the side and distance that clear every box
+    legs = list(zip(course, course[1:]))
+    for li, (p, q) in enumerate(legs):
+        if phone:
+            break
+        brg = c.compass_bearing(p, q)
+        text = f"{round(brg) % 360:03d}°"
+        bw = width(text, "label")
+        mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
+        L = math.hypot(q[0] - p[0], q[1] - p[1]) or 1
+        nx_, ny_ = -(q[1] - p[1]) / L, (q[0] - p[0]) / L
+        if li == len(legs) - 1:
+            cands = [(mx - 20 * s, my + 28 * s)]             # the entrance is busy: label in the basin's south arm
+        else:
+            cands = [(mx + nx_ * d * side, my + ny_ * d * side) for d in (54 * s, 66 * s, 78 * s) for side in (1, -1)]
+        for bx_, by_ in cands:
+            bb = (bx_ - bw / 2, by_ - 6, bw, 13)
+            if bx_ + bw / 2 > limit_x - 10:
+                continue
+            if any(_boxes_overlap(bb, ob) for ob in boxes + late_boxes + [rose_box]):
+                continue
+            if li < len(legs) - 1 and any(
+                    math.hypot(min(max(o.x, bb[0]), bb[0] + bb[2]) - o.x, min(max(o.y, bb[1]), bb[1] + bb[3]) - o.y) < o.r * 1.15 + 2
+                    for o in feats):
+                continue
+            late.append(late_text(text, round(bx_, 1), round(by_ + 4, 1), "label", anchor="middle", truth="measured",
+                                  key="bearing"))
+            break
     body.append(tl.fade_in("".join(late), 3.6, 0.4, rise=0))
 
     # ---- lateral marks with their lights (lit from t = 0; G begins 0, R begins 2; one loop each)
