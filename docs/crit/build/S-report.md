@@ -337,3 +337,63 @@ PNGs: `…/crit/build/S/png/r4-instruments-day.png`, `r4-instruments-night.png`,
 4. Log signs only a measured session; the computed log closes "computed from settings · unsigned" on desk, phone and in the alt.
 5. Month letters and log column heads in ink2; night muted token picked up by the rebuild.
 6. Gates green: 38 files / 0 problems, check.py --only exit 0, motion 0, byte-identical, 21 tests OK, footer 3.44 ms/frame.
+
+---
+
+# Round 4 (re-crit panel: 07, 09, 18, 36)
+
+Files changed: instruments.py, soundings.py, log.py, tests/test_supporting.py (footer desk untouched).
+
+1. **Instruments type.** Item names cond 17 (`label`, size 17 on the scale: 11.6 px at 870), dates cond 13 in
+   ink2, row pitch 34 (six rows 80–250 in the 290 px sheet), group heads 13 px caps in ink2, marks at 0.9. Bold
+   = active kept as a .45 px spread stroke in the fill colour on the one active name (TypeScript) — the
+   condensed family has no bold cut; one-line key under the title: `bold · underway this quarter (1 of 21) ·
+   date · first commit of its repository`. The rotated LEAD / LOG / LOOKOUT block with glosses stays.
+2. **Instruments phone 720×200** (`SIZES["phone"]` changed): three stacked groups, the word as a 26 px caps head
+   (`LEAD`) and its fittings after it at the phone label role, wrapped to the width (LEAD 1 line, LOG 2,
+   LOOKOUT 2), no leaders; folio bottom-right. `alt()` unchanged (it already describes three groups).
+3. **Soundings aliases.** Register names and the HW cause print `chart.toml [[features]].aliases[0]` where one
+   exists (`SCRAPY HARBOR`, `RUSTMAPPER`, `PROFILE SHOAL`, and the hero's new `DATA SCIENCE BANK`, `GAME ENGINE I.`,
+   `FASHIONDB BANK`), the repo name otherwise; the alt uses the alias too and falls back to the repo name if
+   that would exceed 25 words.
+4. **Log honesty.** The signature is gated on `log.measured`: computed → `Log closed 1550 · computed from
+   settings · unsigned` (digits italic, words upright muted — a fully italic sentence added a second italic
+   alphabet and broke the 40 KB glyph budget); measured → typed close + `B.S.R.` in serif italic as before.
+   Phone: `Log closed 1550 · unsigned`. Alt: "…computed from settings, unsigned." The heartbeat row stays.
+5. **Ink.** Soundings month letters and the log column heads in ink2; the new night `muted` is picked up.
+
+Tests: `test_log_signature_is_gated_on_measured` added; fittings/phone/alias assertions updated (21 tests).
+
+# Round 5 (mobile critic addendum)
+
+(a) Footer phone: `corrected through Notice 9` moved inside the frame under the prose (24, 162); the phone neat
+line's foot raised to 284 (water/limit/falls/hatch end at 278) so the folio row at 314 sits clear below it.
+(b) Night phone editions: names and figures in `ink`, not `ink2` (instruments items, footer soundings /
+UNSURVEYED / `14 · good holding`, soundings footnote, log sign-off). (c) Instruments phone: the two group
+hairlines removed — no full-width rule on the phone sheet.
+
+## Gates (rounds 4–5)
+
+| gate | result |
+|---|---|
+| `build_assets.py` (full) | my 24 files built, 0 problems of mine (the tree's `approaches.py` was absent mid-run: 1 problem, P's); 24 files byte-identical on rebuild |
+| `check.py --dev --tier fast --only soundings,log,instruments,footer` | pass, exit 0 · 0 fail · 0 warn |
+| `checks/motion.py assets/v9/*.svg` | 0 findings |
+| `perf_check.js --warm=66 footer-day` | 3.44 ms/frame (max 4.35), pass — footer desk unchanged since round 3 |
+| unit suite | my 21 OK; 2 failures in `test_hero` (H's) |
+
+Sizes (day / night raw·gz KB): instruments **64.2·12.2 / 67.3·12.2** (708 el), instruments-phone **25.1·5.5 /
+27.1·5.6** (720×200); soundings 88.0·15.4 / 92.6·15.3; log 78.7·15.9 / 81.2·15.8; footer 80.9·26.3 / 81.7·26.5.
+
+PNGs: `…/crit/build/S/png/r4-instruments-day.png`, `r4-instruments-night.png`, `r4-instruments-phone-day.png`,
+`r4-instruments-phone-night.png`, `r4-soundings-day.png`, `r4-log-day.png`, `r4-log-phone-day.png`,
+`r4-footer-phone-night.png`.
+
+## Summary (rounds 4–5)
+
+1. Instruments: names cond 17 / dates 13 ink2 at pitch 34, heads 13 caps ink2, faux-bold for the active fitting, marks on every item; 64.2/12.2 KB day, 67.3/12.2 night.
+2. Instruments phone is a real 720×200 sheet: LEAD/LOG/LOOKOUT heads with their fittings stacked, no hairlines; 25.1/5.5 KB.
+3. Soundings prints the chart's aliases (Scrapy Harbor, rustmapper, Profile Shoal…) so one thing has one name; month letters ink2.
+4. Log: signature gated on `measured` — computed log reads "Log closed 1550 · computed from settings · unsigned"; heads ink2; alt says unsigned.
+5. Phone: footer record inside the frame, night phone text in full ink.
+6. Gates: check.py `--only` my sheets exit 0, motion 0, byte-identical, footer 3.44 ms/frame, my 21 tests OK; approaches.py was missing from the tree during the full build (not mine).

@@ -349,7 +349,7 @@ def _phone(ctx) -> str:
     lxx = min(max(lx, X0 + lw_w / 2), X1 - lw_w / 2)
     out.append(tx(lw_label, lxx, BASE + 30, "label", fill=t.muted, anchor="middle", truth="measured", key="tide.lw"))
     out.append(tx(_copy(ctx.cfg, "log_footnote", "Heights observed, not predicted."),
-                  X0, 312, "place-water", fill=t.ink2))
+                  X0, 312, "place-water", fill=t.ink if ed.dark else t.ink2))
     if stale:
         out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X1, 312, "label-italic",
                       fill=t.ink2, anchor="end"))

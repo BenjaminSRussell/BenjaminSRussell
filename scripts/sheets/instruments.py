@@ -201,15 +201,14 @@ def _phone(ctx) -> str:
         return T.text_use(s, x, y, role, edition=ed, **kw)
 
     out: list[str] = []
+    ink2 = t.ink if ed.dark else t.ink2      # phone night: semantic text in full ink (10)
     y, X_ITEMS, PITCH = 42, 150, 30
     for gi, (code, _gloss) in enumerate(groups[:3]):
         names = [str(i.get("name", "")) for i in items if i.get("group") == code]
         lines = _wrap(names, W_ - 16 - X_ITEMS, lambda s_: T.text_width(s_, "label", edition=ed))
-        if gi:
-            out.append(f'<path d="M16 {y - 23}H{W_ - 16}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
         out.append(tx(code.upper(), 16, y, "label", fill=t.ink))
         for ln in lines:
-            out.append(tx(ln, X_ITEMS, y, "label", fill=t.ink2))
+            out.append(tx(ln, X_ITEMS, y, "label", fill=ink2))
             y += PITCH
     out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 704, H_ - 8, "label-caps", fill=t.muted, anchor="end", key="folio"))
     return E.svg(ed, W_, H_, "".join(out), T.glyph_defs(), sheet=NAME)

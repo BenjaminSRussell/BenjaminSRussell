@@ -244,7 +244,8 @@ def _phone(ctx) -> str:
         y += 38
     so = log.get("signoff") or {}
     if log.get("measured") and so.get("initials"):
-        out.append(tx(f"{so.get('text', 'Log closed')} {close} · {so.get('initials')}", 104, y, "place-water", fill=t.ink2))
+        out.append(tx(f"{so.get('text', 'Log closed')} {close} · {so.get('initials')}", 104, y, "place-water",
+                      fill=t.ink if ed.dark else t.ink2))
     else:
         out.append(_mixed(ed, f"{so.get('text', 'Log closed')} {close} · unsigned", 104, y, "machine", t.muted, italic=True)[0])
     y += 38

@@ -274,32 +274,34 @@ def _phone(ctx) -> str:
     def tx(s, x, y, role="label", **kw):
         return T.text_use(s, x, y, role, edition=ed, **kw)
 
+    ink2 = t.ink if ed.dark else t.ink2      # phone night: semantic text in full ink (10)
     defs = [_symbols(t, ed.name, ("anchorage",))]
     out: list[str] = []
-    for i, rect in enumerate(((LIM, 60, 144, 140), (640, HYP, 64, 90))):
+    for i, rect in enumerate(((LIM, 60, 144, 128), (640, HYP, 64, 78))):
         x, y, w, h = rect
         out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{t.land}"/>')
         hd, hb = C.hatch(rect, t, jit.sub(f"hatch{i}"), "unsurveyed", clip_id=f"unsurv{i}")
         defs.append(hd)
         out.append(hb)
     uw = T.text_width("UNSURVEYED", "label", edition=ed)
-    out.append(tx("UNSURVEYED", 686, 130 + uw / 2, "label", fill=t.ink2, rotate=-90))
-    out.append(_shelf(16, HYP, LIM - 24, LIM, EDG, 290, t))
+    out.append(tx("UNSURVEYED", 686, 124 + uw / 2, "label", fill=ink2, rotate=-90))
+    out.append(_shelf(16, HYP, LIM - 24, LIM, EDG, 278, t))
     out.append(f'<path d="M16 {HYP}H{EDG}" fill="none" {C.stroke("LINE", t.ink, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDG - 16) // 48))
     out.append(f'<path d="M16 {HYP + 9}{waves}" fill="none" {C.stroke("HAIR", t.ink, 0.45)}/>')
     out.append(f'<path d="M{EDG} {HYP}c10 0 16 4 19 12c3 8 4 24 4 42" fill="none" {C.stroke("BRUSH", t.ink, 0.9)}/>')
-    out.append(f'<path d="M606 {HYP + 14}L604 290M613 {HYP + 16}L615 290M620 {HYP + 20}L626 290" fill="none" '
+    out.append(f'<path d="M606 {HYP + 14}L604 278M613 {HYP + 16}L615 278M620 {HYP + 20}L626 278" fill="none" '
                f'{C.stroke("HAIR", t.ink, 0.6, "TRACK")}/>')
-    for x, y, v in ((380, 246, 7), (452, 258, 5), (512, 240, 3)):
-        out.append(T.sounding(v, x, y, truth="illustrative", edition=ed, fill=t.ink2))
+    for x, y, v in ((380, 240, 7), (452, 250, 5), (512, 236, 3)):
+        out.append(T.sounding(v, x, y, truth="illustrative", edition=ed, fill=ink2))
     out.append(f'<g transform="translate({BX} {HYP - 1})">{_sloop_parts(t, tl, None, scale=1.4)}</g>')
-    out.append(f'<path d="M{BX + 25} {HYP - 4}L{BX + 32} 282" fill="none" {C.stroke("HAIR", t.ink, 0.8, "APPROX")}/>')
-    out.append(C.use("anchorage", BX + 32, 278, NAME, scale=1.1))
-    out.append(tx("14 · good holding", 540, 290, "label-italic", fill=t.ink2, anchor="end"))
-    out.append(f'<path d="M{LIM} 60V290" fill="none" {C.stroke("PEN", t.ink, 0.85 if ed.dark else None, "LIMIT")}/>')
+    out.append(f'<path d="M{BX + 25} {HYP - 4}L{BX + 32} 270" fill="none" {C.stroke("HAIR", t.ink, 0.8, "APPROX")}/>')
+    out.append(C.use("anchorage", BX + 32, 266, NAME, scale=1.1))
+    out.append(tx("14 · good holding", 540, 278, "label-italic", fill=ink2, anchor="end"))
+    out.append(f'<path d="M{LIM} 60V278" fill="none" {C.stroke("PEN", t.ink, 0.85 if ed.dark else None, "LIMIT")}/>')
     out.append(tx(_copy(cfg, "limit_label", "LIMIT OF SURVEY 2026"), 704, 50, "label-caps", fill=t.ink, anchor="end"))
-    out.append(f'<path d="M10 10H710V150M710 290V296H10V10" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
+    # neat line broken at the fall; its foot at 284 so the folio row (baseline 314) sits clear below it
+    out.append(f'<path d="M10 10H710V150M710 278V284H10V10" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
     line = _copy(cfg, "footer_line", "The chart ends here. The web doesn't.")
     parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", line) if p.strip()]
     if len(parts) == 1:
@@ -307,9 +309,10 @@ def _phone(ctx) -> str:
     for i, p in enumerate(parts[:2]):
         out.append(tx(p, 24, 72 + 46 * i, "thesis", fill=t.ink))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 6", 16, H_ - 6, "label-caps", fill=t.muted, key="folio"))
+    # the record inside the frame, under the prose and above the water (10: nothing sits across the neat line)
     rec = f"corrected through Notice {n_notices}" if n_notices else ""
     if rec:
-        out.append(tx(rec, 704, H_ - 6, "label", fill=t.muted, anchor="end", truth="measured", key="record"))
+        out.append(tx(rec, 24, 162, "label", fill=t.muted, truth="measured", key="record"))
     return E.svg(ed, W_, H_, "".join(out), "".join(defs) + T.glyph_defs(), sheet=NAME)
 
 
