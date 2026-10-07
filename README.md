@@ -133,3 +133,5 @@ Day-to-day: prefer tools that are boring under load, inspectable when they fail,
 <sub>Ben Russell · build things that stay standing</sub>
 
 </div>
+
+<!-- CI: .github/workflows/links.yml (lychee) checks shelf hrefs; weekly cron Mon 12:00 UTC. -->
