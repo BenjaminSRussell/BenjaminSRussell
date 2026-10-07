@@ -181,7 +181,7 @@ Python and Rust most days; Swift, C, TypeScript and Go when the work asks for th
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-day.svg" width="100%" alt="Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-day.svg" width="100%" alt="Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.">
 </picture>
 <!-- picture:instruments:end -->
 <!-- instruments:start -->

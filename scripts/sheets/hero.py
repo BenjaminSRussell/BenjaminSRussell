@@ -902,7 +902,7 @@ def build(ctx) -> str:
         block.append(lbl(str(N), 1262, 14, "label", anchor="end", fill=theme.muted, truth="measured", key="chart-number"))
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
         imprint = (f"CHART NO. {N} · SHEET 1 · Published at github.com/{login} · {_date(taken)} · "
-                   f"superintendence: build_assets.py")
+                   f"under the superintendence of B. Russell · redrawn nightly")
         block.append(lbl(imprint, 1256, 735, "label-caps", anchor="end", fill=theme.ink2, key="folio"))
         corr = data.get("corrections") or {}
         if corr:

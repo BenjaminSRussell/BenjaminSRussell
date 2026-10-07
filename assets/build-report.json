@@ -10,23 +10,23 @@
   "Below, one line per repository.",
   "The soundings fill in behind the vessel.",
   "Types once; only the cursor keeps time.",
-  "The daily driver in bold; the rest when asked.",
+  "Bold: underway this quarter; the rest when asked.",
   "The chart ends here; the web doesn't."
  ],
  "sheets": {
   "hero-day": {
    "svg": "assets/v9/hero-day.svg",
-   "sha256": "f77c396acc9dae2b8fbfa4d3f18f108005c3f6c24c5f7424038fe723c3533307",
+   "sha256": "36a1cc788ee2497901e31fe0556bc973bf1c5b2dc3c9bfd020c2baa9b88fa62e",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 171232,
-   "gz": 42459,
-   "elements": 1200,
-   "paths": 221,
+   "bytes": 172076,
+   "gz": 42541,
+   "elements": 1217,
+   "paths": 220,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -1608,8 +1608,8 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x0": 503.5,
+     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 338.5,
      "x1": 1256.0,
      "y": 735,
      "y0": 725.6,
@@ -2331,10 +2331,10 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x": 503.50400000000013,
+     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 338.5380000000001,
      "y": 725.56304,
-     "w": 752.4959999999999,
+     "w": 917.4619999999999,
      "h": 12.296960000000013
     },
     {
@@ -2814,7 +2814,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 137,
+   "glyph_defs": 136,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -2888,17 +2888,17 @@
   },
   "hero-night": {
    "svg": "assets/v9/hero-night.svg",
-   "sha256": "d6a9a6607ca2a8843df3ca920d4200aaed46efb759260c3c70c1c85cd9e333f0",
+   "sha256": "bc28d1d9c1477056e9b88250424ed72f5f7c34081d6932a8bc486ee1c25c92d6",
    "w": 1280,
    "h": 740,
    "form": "desk",
    "edition": "night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 168874,
-   "gz": 40497,
-   "elements": 1200,
-   "paths": 220,
+   "bytes": 169795,
+   "gz": 40577,
+   "elements": 1217,
+   "paths": 219,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -4480,8 +4480,8 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x0": 513.8,
+     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 350.2,
      "x1": 1256.0,
      "y": 735,
      "y0": 725.6,
@@ -5203,10 +5203,10 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x": 513.7740000000001,
+     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 350.1600000000001,
      "y": 725.56304,
-     "w": 742.2259999999999,
+     "w": 905.8399999999999,
      "h": 12.296960000000013
     },
     {
@@ -5686,7 +5686,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 137,
+   "glyph_defs": 136,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -5760,17 +5760,17 @@
   },
   "hero-still-day": {
    "svg": "assets/v9/hero-still-day.svg",
-   "sha256": "ff1123386436711eb35958da40cc61cc0c35bd05ff14299bac03f6b4c84c30fd",
+   "sha256": "25a6bce31146aae659ee6108f9f873d14394cba679a0b93710bf05e8a0fdb5a4",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-day",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 165748,
-   "gz": 41187,
-   "elements": 1152,
-   "paths": 221,
+   "bytes": 166592,
+   "gz": 41270,
+   "elements": 1169,
+   "paths": 220,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -7352,8 +7352,8 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x0": 503.5,
+     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 338.5,
      "x1": 1256.0,
      "y": 735,
      "y0": 725.6,
@@ -8075,10 +8075,10 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x": 503.50400000000013,
+     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 338.5380000000001,
      "y": 725.56304,
-     "w": 752.4959999999999,
+     "w": 917.4619999999999,
      "h": 12.296960000000013
     },
     {
@@ -8554,7 +8554,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 137,
+   "glyph_defs": 136,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -8628,17 +8628,17 @@
   },
   "hero-still-night": {
    "svg": "assets/v9/hero-still-night.svg",
-   "sha256": "78a4a822b655aa613fc7408a377052564dfbf4b63fb269f4dd19cc29b6ce5afc",
+   "sha256": "e67f406b74812d117ab9f11724cf7e3153270deb82bb879d28b1adfea9d1a009",
    "w": 1280,
    "h": 740,
    "form": "still",
    "edition": "still-night",
    "sheet": "hero",
    "kind": "chart",
-   "bytes": 163390,
-   "gz": 39249,
-   "elements": 1152,
-   "paths": 220,
+   "bytes": 164311,
+   "gz": 39331,
+   "elements": 1169,
+   "paths": 219,
    "breaks": [
     [
      "Caps lines in role `label`",
@@ -10220,8 +10220,8 @@
      "tracking": 0.0
     },
     {
-     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x0": 513.8,
+     "s": "CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x0": 350.2,
      "x1": 1256.0,
      "y": 735,
      "y0": 725.6,
@@ -10943,10 +10943,10 @@
      "h": 12.29696
     },
     {
-     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · SUPERINTENDENCE: BUILD_ASSETS.PY",
-     "x": 513.7740000000001,
+     "name": "text:CHART NO. 21 · SHEET 1 · PUBLISHED AT GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026 · UNDER THE SUPERINTENDENCE OF B. RUSSELL · REDRAWN NIGHTLY",
+     "x": 350.1600000000001,
      "y": 725.56304,
-     "w": 742.2259999999999,
+     "w": 905.8399999999999,
      "h": 12.296960000000013
     },
     {
@@ -11422,7 +11422,7 @@
    "bracket_failures": 3,
    "lock_drift": [],
    "area_law": "area∝commits",
-   "glyph_defs": 137,
+   "glyph_defs": 136,
    "type_warnings": [],
    "hero": {
     "field": {
@@ -72620,8 +72620,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD · LANGUAGES",
@@ -74033,8 +74033,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD · LANGUAGES",
@@ -75446,8 +75446,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD · LANGUAGES",
@@ -76859,8 +76859,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD · LANGUAGES",
@@ -78272,8 +78272,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD",
@@ -78587,8 +78587,8 @@
      "the left third is the sheet's title block, not blank paper (round 2)"
     ]
    ],
-   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.",
-   "alt_words": 25,
+   "alt": "Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. Bold: underway this quarter; the rest when asked.",
+   "alt_words": 24,
    "text": [
     {
      "s": "LEAD",

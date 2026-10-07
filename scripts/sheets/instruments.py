@@ -223,7 +223,7 @@ def alt(data, cfg) -> str:
     groups, items = _fittings(cfg)
     glosses = [g[1].lower() for g in groups[:3]] or ["languages", "stores and queues", "deck"]
     return (f"Instruments carried, {len(items)} fittings in three columns: {', '.join(glosses)}; dated by first commit. "
-            f"The daily driver in bold; the rest when asked.")
+            f"Bold: underway this quarter; the rest when asked.")
 
 
 # ------------------------------------------------------------------ build-report hook: symbols used
