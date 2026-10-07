@@ -284,7 +284,7 @@ def _phone(ctx) -> str:
         defs.append(hd)
         out.append(hb)
     uw = T.text_width("UNSURVEYED", "label", edition=ed)
-    out.append(tx("UNSURVEYED", 686, 124 + uw / 2, "label", fill=ink2, rotate=-90))
+    out.append(tx("UNSURVEYED", 686, 150 + uw / 2, "label", fill=ink2, rotate=-90))   # clear of the limit label (round 6)
     out.append(_shelf(16, HYP, LIM - 24, LIM, EDG, 278, t))
     out.append(f'<path d="M16 {HYP}H{EDG}" fill="none" {C.stroke("LINE", t.ink, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDG - 16) // 48))

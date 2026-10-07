@@ -72592,15 +72592,15 @@
   },
   "instruments-day": {
    "svg": "assets/v9/instruments-day.svg",
-   "sha256": "93eae27da9d1b1a9bdd8ef30354244b00fa83f18296d124028d5d58529bbc372",
+   "sha256": "72172e3ff8f65c337e8178da3ccc4fb6fbfc5b4ea1f33058eaebc81632a6e936",
    "w": 1280,
    "h": 290,
    "form": "desk",
    "edition": "day",
    "sheet": "instruments",
    "kind": "strip",
-   "bytes": 65746,
-   "gz": 12478,
+   "bytes": 65792,
+   "gz": 12470,
    "elements": 708,
    "paths": 138,
    "breaks": [
@@ -73465,11 +73465,11 @@
     },
     {
      "s": "bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x0": 48,
-     "x1": 435.5,
-     "y": 56,
-     "y0": 46.6,
-     "y1": 58.9,
+     "x0": 875.5,
+     "x1": 1263.0,
+     "y": 40,
+     "y0": 30.6,
+     "y1": 42.9,
      "size": 13,
      "font": "cond",
      "slant": "upright",
@@ -73915,8 +73915,8 @@
     },
     {
      "name": "text:bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x": 48,
-     "y": 46.56304,
+     "x": 875.522,
+     "y": 30.56304,
      "w": 387.47799999999995,
      "h": 12.296959999999999
     },
@@ -73968,6 +73968,13 @@
      "y": 275.56304,
      "w": 137.029,
      "h": 12.296960000000013
+    },
+    {
+     "name": "rotated-groups",
+     "x": 48,
+     "y": 70,
+     "w": 414,
+     "h": 188
     }
    ],
    "symbols_used": [
@@ -74005,15 +74012,15 @@
   },
   "instruments-night": {
    "svg": "assets/v9/instruments-night.svg",
-   "sha256": "68ad5ab87fdb512650299757d4264fb3bdc22dee77d4a337a6c78b1528acc024",
+   "sha256": "6f1499abc38c1f7eceabce1439b6145dfd56e3803aa1a69e08ffd9c887479c93",
    "w": 1280,
    "h": 290,
    "form": "desk",
    "edition": "night",
    "sheet": "instruments",
    "kind": "strip",
-   "bytes": 68919,
-   "gz": 12451,
+   "bytes": 68972,
+   "gz": 12443,
    "elements": 708,
    "paths": 138,
    "breaks": [
@@ -74878,11 +74885,11 @@
     },
     {
      "s": "bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x0": 48,
-     "x1": 429.1,
-     "y": 56,
-     "y0": 46.6,
-     "y1": 58.9,
+     "x0": 881.9,
+     "x1": 1263.0,
+     "y": 40,
+     "y0": 30.6,
+     "y1": 42.9,
      "size": 13,
      "font": "cond-light",
      "slant": "upright",
@@ -75328,8 +75335,8 @@
     },
     {
      "name": "text:bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x": 48,
-     "y": 46.56304,
+     "x": 881.879,
+     "y": 30.56304,
      "w": 381.121,
      "h": 12.296959999999999
     },
@@ -75381,6 +75388,13 @@
      "y": 275.56304,
      "w": 135.57299999999998,
      "h": 12.296960000000013
+    },
+    {
+     "name": "rotated-groups",
+     "x": 48,
+     "y": 70,
+     "w": 414,
+     "h": 188
     }
    ],
    "symbols_used": [
@@ -75418,15 +75432,15 @@
   },
   "instruments-still-day": {
    "svg": "assets/v9/instruments-still-day.svg",
-   "sha256": "0c1c4436256a762fb3398441522d9a89a7228e9cdd0661ed49e81e883921d654",
+   "sha256": "a86347f0d926f4bb759f7c935e38538c9d47ecaa68114e795a3e1b5296839814",
    "w": 1280,
    "h": 290,
    "form": "still",
    "edition": "still-day",
    "sheet": "instruments",
    "kind": "strip",
-   "bytes": 65758,
-   "gz": 12484,
+   "bytes": 65804,
+   "gz": 12475,
    "elements": 708,
    "paths": 138,
    "breaks": [
@@ -76291,11 +76305,11 @@
     },
     {
      "s": "bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x0": 48,
-     "x1": 435.5,
-     "y": 56,
-     "y0": 46.6,
-     "y1": 58.9,
+     "x0": 875.5,
+     "x1": 1263.0,
+     "y": 40,
+     "y0": 30.6,
+     "y1": 42.9,
      "size": 13,
      "font": "cond",
      "slant": "upright",
@@ -76741,8 +76755,8 @@
     },
     {
      "name": "text:bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x": 48,
-     "y": 46.56304,
+     "x": 875.522,
+     "y": 30.56304,
      "w": 387.47799999999995,
      "h": 12.296959999999999
     },
@@ -76794,6 +76808,13 @@
      "y": 275.56304,
      "w": 137.029,
      "h": 12.296960000000013
+    },
+    {
+     "name": "rotated-groups",
+     "x": 48,
+     "y": 70,
+     "w": 414,
+     "h": 188
     }
    ],
    "symbols_used": [
@@ -76831,15 +76852,15 @@
   },
   "instruments-still-night": {
    "svg": "assets/v9/instruments-still-night.svg",
-   "sha256": "c416abd728a6e35531b179d6ee91e7513592495b9e0f622129fae5aabeabf0f0",
+   "sha256": "47c67e6331f590f5cf9056ad491a4af38fee57d20cbea0c70097cff24a432c3a",
    "w": 1280,
    "h": 290,
    "form": "still",
    "edition": "still-night",
    "sheet": "instruments",
    "kind": "strip",
-   "bytes": 68931,
-   "gz": 12457,
+   "bytes": 68984,
+   "gz": 12449,
    "elements": 708,
    "paths": 138,
    "breaks": [
@@ -77704,11 +77725,11 @@
     },
     {
      "s": "bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x0": 48,
-     "x1": 429.1,
-     "y": 56,
-     "y0": 46.6,
-     "y1": 58.9,
+     "x0": 881.9,
+     "x1": 1263.0,
+     "y": 40,
+     "y0": 30.6,
+     "y1": 42.9,
      "size": 13,
      "font": "cond-light",
      "slant": "upright",
@@ -78154,8 +78175,8 @@
     },
     {
      "name": "text:bold · underway this quarter (1 of 21) · date · first commit of its repository",
-     "x": 48,
-     "y": 46.56304,
+     "x": 881.879,
+     "y": 30.56304,
      "w": 381.121,
      "h": 12.296959999999999
     },
@@ -78207,6 +78228,13 @@
      "y": 275.56304,
      "w": 135.57299999999998,
      "h": 12.296960000000013
+    },
+    {
+     "name": "rotated-groups",
+     "x": 48,
+     "y": 70,
+     "w": 414,
+     "h": 188
     }
    ],
    "symbols_used": [
@@ -81702,7 +81730,7 @@
   },
   "footer-phone-day": {
    "svg": "assets/v9/footer-phone-day.svg",
-   "sha256": "2fa33fc60824f136a3e0b34e92eb5cf1261f0805518bd95dd6bbb193fa525325",
+   "sha256": "e2db6e2569fa43b5fe83241be08cf9d72ac466db91911420a2217201c37a37bd",
    "w": 720,
    "h": 320,
    "form": "phone",
@@ -81747,9 +81775,9 @@
      "s": "UNSURVEYED",
      "x0": 667.1,
      "x1": 691.7,
-     "y": 197.9,
-     "y0": 50.1,
-     "y1": 197.9,
+     "y": 223.9,
+     "y0": 76.1,
+     "y1": 223.9,
      "size": 26,
      "font": "cond",
      "slant": "upright",
@@ -81958,7 +81986,7 @@
     {
      "name": "text:UNSURVEYED",
      "x": 667.12608,
-     "y": 50.108000000000004,
+     "y": 76.108,
      "w": 24.593920000000026,
      "h": 147.784
     },
@@ -82057,7 +82085,7 @@
   },
   "footer-phone-night": {
    "svg": "assets/v9/footer-phone-night.svg",
-   "sha256": "ba266f0985c02dcedea79b3a720f60665f1e40e3bd3cf5d5478346fbd7096168",
+   "sha256": "bd302b4a5c26c82afb042940643f229a13aa0ad0ade99cf935e1ea613c0b899e",
    "w": 720,
    "h": 320,
    "form": "phone",
@@ -82065,7 +82093,7 @@
    "sheet": "footer",
    "kind": "edge",
    "bytes": 32832,
-   "gz": 8903,
+   "gz": 8901,
    "elements": 219,
    "paths": 83,
    "breaks": [
@@ -82102,9 +82130,9 @@
      "s": "UNSURVEYED",
      "x0": 667.1,
      "x1": 691.7,
-     "y": 196.7,
-     "y0": 51.3,
-     "y1": 196.7,
+     "y": 222.7,
+     "y0": 77.3,
+     "y1": 222.7,
      "size": 26,
      "font": "cond-light",
      "slant": "upright",
@@ -82313,7 +82341,7 @@
     {
      "name": "text:UNSURVEYED",
      "x": 667.12608,
-     "y": 51.303999999999945,
+     "y": 77.30399999999995,
      "w": 24.593920000000026,
      "h": 145.39200000000005
     },

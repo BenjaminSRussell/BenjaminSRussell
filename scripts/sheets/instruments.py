@@ -163,9 +163,11 @@ def _desk(ctx) -> str:
     # with their plain-words gloss, hairlines between
     out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.ink2))
     n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
-    out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
-                  48, y_first - 24, "label", fill=t.ink2, truth="measured", key="active_count"))
     band_w = 142
+    # the key sits top-right above the column heads, clear of the rotated block (round 6)
+    out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
+                  COL_X[2] + DATE_X, 40, "label", fill=t.ink2, anchor="end", truth="measured", key="active_count"))
+    T.exclude("rotated-groups", 48, y_first - 10, 3 * band_w - 12, y_bot - (y_first - 10))
     for gi, (code, _gloss) in enumerate(groups[:3]):
         bx = 48 + gi * band_w
         if gi:
