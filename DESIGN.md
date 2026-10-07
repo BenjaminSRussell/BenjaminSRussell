@@ -1,73 +1,86 @@
-# Design notes — profile v7 "Signal & Structure"
+# Design notes — "Chart"
 
-The README is a designed page, not a template. These notes keep it coherent.
+The README is a nautical chart of the open web. Every image is a sheet from the
+same chart: one typeface pairing, one ink, one paper, one set of symbols.
 
-## Idea
+## Why a chart
 
-Everything I build points the same way: the open web goes in messy, trusted
-rows come out. The hero draws exactly that (a tangle of nodes → a parser → rows),
-and every other asset reuses the same three ingredients: hairline structure,
-one warm signal color, and small tracked mono captions.
+The avatar is a sailboat. The work is survey work: crawlers take soundings of a
+badly charted web and come back with rows you can trust. A chart gives that story
+a visual language nobody else on GitHub is using, and it is dense with the kind of
+detail that rewards a second look: bathymetric contours, soundings, a compass rose
+with rhumb lines, lateral buoys, a lighthouse, a title cartouche, minute bars on
+the neat line.
+
+## Sheets
+
+| Sheet | File              | Size        | What it shows |
+|-------|-------------------|-------------|---------------|
+| 1     | hero              | 1280 × 640  | Chart No. 27: name, tagline, cartouche, compass, plotted course with a sailing boat, islands named for the projects |
+| 2     | soundings         | 1280 × 268  | Live figures in Instrument Serif, a language depth-scale, a tide curve of 52 weeks of contributions |
+| 3     | approach-scrapy   | 1280 × 420  | Harbor approach: a buoyed channel through the pipeline stages, past the Grafana light, into Delta Lake anchorage |
+| 4     | survey-rustmapper | 1280 × 420  | Survey: a vessel sounds a shoal along a fan of lines; depths fill in, contours resolve |
+| 5     | log               | 1280 × 440  | Ship's log: a ruled logbook page that types a real rustmapper session |
+| 6     | legend            | 1280 × ~318 | Legend and symbols: the stack, each column with its chart symbol |
+| 7     | footer            | 1280 × 200  | The edge of the chart: a boat sails toward a waterfall it never reaches |
+
+Every sheet is a paper rectangle with a double neat-line, so the page reads as one
+document laid on GitHub's background. Only the hero carries minute bars.
 
 ## Palette
 
-Backgrounds are transparent. Artwork sits on GitHub's own page color, so there
-is never a "different black" seam, and every asset ships in two themes selected
-with `<picture>` + `prefers-color-scheme`.
+Two editions, chosen by `<picture>` + `prefers-color-scheme`.
 
-| Token    | Dark      | Light     | Use                                   |
-|----------|-----------|-----------|---------------------------------------|
-| ink      | `#F3EFE7` | `#131417` | display type, primary text            |
-| ink2     | `#B9BCC6` | `#454A55` | body copy inside artwork              |
-| muted    | `#7D8290` | `#7A7F8C` | captions, mono labels                 |
-| hair     | `#2A2F3A` | `#DCDFE5` | hairlines, chip borders, meters       |
-| line     | `#3A4150` | `#C4C9D2` | diagram strokes, one step above hair  |
-| soft     | `#4B5160` | `#C3C7CF` | quiet fills that still have to read   |
-| panel    | `#13161C` | `#F6F7F9` | chip and node fills                   |
-| accent   | `#FF5A1F` | `#E8501A` | the signal: packets, cursors, numbers |
-| ok       | `#4ADE9B` | `#15A86D` | "clean / done" states only            |
-| cool     | `#6FB7FF` | `#2E86E6` | the open web, fetch                   |
+| Token  | Day (light) | Night (dark) | Use |
+|--------|-------------|--------------|-----|
+| paper  | `#F4EEE1`   | `#0F1A2B`    | the sheet |
+| land   | `#E6DCC6`   | `#172740`    | islands and coast, hatched |
+| ink    | `#1B2A41`   | `#DCE4F0`    | type, contours, symbols |
+| ink2   | `#34465F`   | `#B4C0D4`    | secondary type |
+| muted  | `#6B7A90`   | `#7F8FA9`    | captions |
+| hair   | `#CDC3AE`   | `#2A3A55`    | rules, sheet edge |
+| accent | `#D9442B`   | `#FF6A3D`    | red cans, the north point, the cursor, the signal |
+| ok     | `#2F8F5B`   | `#4ADE9B`    | green cones, "done" |
+| cool   | `#2E6FB0`   | `#7CB8FF`    | reserved |
 
-One accent. Green only means "ok". Blue only means "web". Nothing else is colored;
-the language bar in the stats strip is a tonal ramp from the accent through the inks.
+Red and green appear only as lateral marks and status. Everything else is ink.
 
 ## Type
 
-- Display: **Inter Display Bold**, tight tracking (−4 to −2 px), for the name and card titles.
-- Text: **Inter** Regular / Medium / SemiBold for copy inside artwork.
-- Captions: **DejaVu Sans Mono**, 12–12.5 px, uppercase, +1.6 px tracking. Sized for the
-  profile page, where the README column is about two thirds of the 1280 canvas.
+- **Instrument Serif** Regular for titles and figures, Italic for the asides.
+- **IBM Plex Mono** Regular / Medium for captions, soundings, bearings and the log.
+- Captions are uppercase, 9–11 px, tracked +1.8 px.
 
-All type inside SVGs is converted to outlines by `scripts/svgkit.py`, so it renders
-identically everywhere (GitHub serves `<img>` SVGs without web fonts). Subsetted
-fonts live in `scripts/fonts/` (SIL OFL / Bitstream licenses included).
+All type is converted to outlines by `scripts/svgkit.py`. Repeated glyphs
+(soundings, captions) are defined once and placed with `<use>`, which is what
+keeps a sheet full of numbers under 300 KB. Subsetted fonts and their licenses
+live in `scripts/fonts/`.
 
-## Grid and sizes
+## Chart engine
 
-Every asset is 1280 wide and shown at 100% width, so one horizontal grid holds
-across the page: 48 px outer margin, 24 px gutters, 22 px dot-grid in diagrams.
+`scripts/chartlib.py` draws the chart furniture:
 
-| Asset             | Size       |
-|-------------------|------------|
-| hero              | 1280 × 420 |
-| stats             | 1280 × 226 |
-| project cards     | 1280 × 318 |
-| terminal          | 1280 × 384 |
-| stack             | 1280 × 220 (height follows the chip rows) |
-| footer            | 1280 × 150 |
+- a scalar field of Gaussian blobs, traced with marching squares and smoothed
+  through Catmull-Rom into Béziers; closed polygons above the land level fill
+  and hatch as islands, and the largest ones are labelled;
+- soundings scattered over open water, kept clear of text boxes and the course;
+- graticule, rhumb lines, compass rose, cartouche, neat-line with minute bars;
+- a boat, lateral buoys, waypoints, a dashed course with bearings.
+
+Fields can be larger than the sheet and drawn with an offset so a coastline
+closes off-canvas and still fills as land (the Scrapy approach does this).
 
 ## Motion
 
-SMIL only (no JS runs inside README images). Slow and purposeful:
-packets travel pipelines (6–9 s loops), rows resolve in sequence, a terminal types
-and loops every 14 s, the sailboat crosses the footer in 75 s. Nothing flashes.
+SMIL only. Slow: the hero boat takes 48 s to sail its course, the packet boat 16 s,
+the survey fills in over 14 s, the light sweeps every 9 s, the footer boat takes 70 s.
 
 ## Build
 
 ```
-python3 scripts/build_assets.py        # all static assets, dark + light; warns if text leaves the safe area
-python3 scripts/build_stats.py         # live numbers (GITHUB_TOKEN) → stats SVGs
+python3 scripts/build_assets.py        # every sheet, both editions; warns if text leaves the safe area
+python3 scripts/build_stats.py         # live figures (GITHUB_TOKEN) → soundings sheet
 ```
 
-`.github/workflows/profile.yml` refreshes the stats daily; `snake.yml` regenerates
-the contribution snake on the `output` branch in the same palette.
+`.github/workflows/profile.yml` refreshes the soundings daily. `snake.yml` draws
+the contribution snake on the `output` branch in the chart's palette.

@@ -39,6 +39,14 @@ query($login: String!) {
     }
   }
 }"""
+QUERY_TIDE = """
+query($login: String!) {
+  user(login: $login) {
+    contributionsCollection {
+      contributionCalendar { weeks { contributionDays { contributionCount } } }
+    }
+  }
+}"""
 QUERY_YEAR = """
 query($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
@@ -81,7 +89,10 @@ def fetch(token: str) -> dict:
     languages = [{"name": n, "share": round(v / total, 4)} for n, v in top]
     if other > 0:
         languages.append({"name": "Other", "share": round(other / total, 4)})
+    tide = gql(token, QUERY_TIDE, {"login": LOGIN})["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    weeks = [sum(d["contributionCount"] for d in w["contributionDays"]) for w in tide]
     return {
+        "weeks": weeks,
         "updated": now.strftime("%Y-%m-%d"),
         "since": created.strftime("%b %Y"),
         "commits": commits,
@@ -98,13 +109,19 @@ def fmt(n: int) -> str:
 
 
 def render(t: Theme, s: dict) -> str:
-    H = 226
-    b = []
-    b.append(f'<circle cx="52" cy="46" r="3.5" fill="{t.accent}"/>')
-    b.append(k.text("BY THE NUMBERS", 66, 50, MONO, 12.5, t.ink2, tracking=1.6))
-    note = f"refreshed daily by actions · {s['updated']}" + ("  ·  seeded, first refresh pending" if s.get("seeded") else "")
-    b.append(k.text(note.upper(), W - 48, 50, MONO, 12, t.muted, anchor="end", tracking=1.4))
-    b.append(f'<path d="M48,64 H{W-48}" stroke="{t.hair}"/>')
+    """Sheet 2 — Soundings. Figures set in Instrument Serif, a tide curve of the last 52 weeks."""
+    import chartlib as c  # noqa: F401  (same drawing vocabulary as the other sheets)
+    H = 268
+    b = [f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="10" fill="{t.paper}" stroke="{t.hair}"/>',
+         f'<rect x="14" y="14" width="{W-28}" height="{H-28}" fill="none" stroke="{t.ink}" stroke-width="0.9" stroke-opacity=".8"/>',
+         f'<rect x="19" y="19" width="{W-38}" height="{H-38}" fill="none" stroke="{t.ink}" stroke-width="0.5" stroke-opacity=".6"/>']
+
+    def cap(txt, x, y, size=10, fill=None, anchor="start", tracking=1.8):
+        return k.text_use(txt.upper(), x, y, "plex", size, fill or t.muted, anchor=anchor, tracking=tracking)
+
+    b.append(k.text("Soundings", 48, 70, "serif-italic", 30, t.ink))
+    note = f"Sheet 2  ·  refreshed daily  ·  {s['updated']}" + ("  ·  seeded, first refresh pending" if s.get("seeded") else "")
+    b.append(cap(note, W - 44, 66, 9.5, t.muted, anchor="end"))
 
     cells = [
         (fmt(s["commits"]), "lifetime commits"),
@@ -113,39 +130,63 @@ def render(t: Theme, s: dict) -> str:
         (fmt(s["stars"]), "stars earned") if s.get("stars", 0) >= 5 else (str(len(s["languages"])), "languages in play"),
         (s["since"], "on github since"),
     ]
-    cw = (W - 96) / len(cells)
-    for i, (big, cap) in enumerate(cells):
+    cw = 152
+    for i, (big, capt) in enumerate(cells):
         x = 48 + i * cw
-        b.append(k.text(big, x, 118, "display-semi", 42, t.ink, tracking=-1.6))
-        b.append(k.text(cap.upper(), x + 1, 141, MONO, 12, t.muted, tracking=1.4))
+        b.append(k.text(big, x - 2, 150, "serif", 58, t.ink, tracking=-1))
+        b.append(cap(capt, x, 174, 9.5, t.muted))
         if i:
-            b.append(f'<path d="M{x-24},84 V144" stroke="{t.hair}"/>')
+            b.append(f'<line x1="{x-18}" y1="112" x2="{x-18}" y2="180" stroke="{t.ink}" stroke-width="0.6" stroke-opacity=".5"/>')
 
-    # language bar
-    y = 174
-    x = 48
-    total_w = W - 96
-    cols = [t.accent, t.ink, t.ink2, t.muted, t.soft, t.hair]  # tonal ramp, not a category palette
-    b.append(f'<rect x="{x}" y="{y}" width="{total_w}" height="8" rx="4" fill="{t.hair}"/>')
-    gap = 3
-    lx = x
+    # language mix as a depth scale (tonal ramp, one accent)
+    y = 208
+    x0, total_w = 48, 5 * cw - 22
+    cols = [t.accent, t.ink, t.ink2, t.muted, t.soft, t.hair]
+    b.append(f'<rect x="{x0}" y="{y}" width="{total_w}" height="6" fill="none" stroke="{t.ink}" stroke-width="0.6" stroke-opacity=".6"/>')
+    lx = x0
     legend = []
     for i, lang in enumerate(s["languages"]):
-        w = max(total_w * lang["share"] - gap, 2)
+        w = max(total_w * lang["share"], 2)
         col = cols[i % len(cols)]
-        b.append(f'<rect x="{lx:.1f}" y="{y}" width="{w:.1f}" height="8" rx="4" fill="{col}">'
-                 f'<animate attributeName="width" values="0;{w:.1f}" dur="1.4s" begin="{i*0.12:.2f}s" fill="freeze"/></rect>')
+        b.append(f'<rect x="{lx:.1f}" y="{y}" width="{w:.1f}" height="6" fill="{col}"/>')
         legend.append((lang["name"], f"{round(lang['share']*100)}%", col))
-        lx += w + gap
-    tx = x
+        lx += w
+    tx = x0
     for name, pct, col in legend:
-        b.append(f'<rect x="{tx:.1f}" y="195" width="9" height="9" rx="2" fill="{col}"/>')
-        b.append(k.text(name, tx + 15, 204, "text-medium", 13.5, t.ink2))
-        tx += k.text_width(name, "text-medium", 13.5) + 20
-        b.append(k.text(pct, tx, 204, MONO, 12, t.muted))
-        tx += k.text_width(pct, MONO, 12) + 28
+        b.append(f'<rect x="{tx:.1f}" y="226" width="7" height="7" fill="{col}"/>')
+        b.append(k.text_use(name, tx + 12, 233, "plex", 10.5, t.ink2))
+        tx += k.text_width(name, "plex", 10.5) + 16
+        b.append(k.text_use(pct, tx, 233, "plex", 10, t.muted))
+        tx += k.text_width(pct, "plex", 10) + 22
+
+    # tide curve: contributions per week, last 52 weeks
+    tx0, ty0, tw, th = 846, 96, 386, 96
+    weeks = s.get("weeks") or []
+    b.append(f'<line x1="{tx0}" y1="{ty0+th}" x2="{tx0+tw}" y2="{ty0+th}" stroke="{t.ink}" stroke-width="0.8" stroke-opacity=".7"/>')
+    for i in range(0, 53, 13):
+        xx = tx0 + tw * i / 52
+        b.append(f'<line x1="{xx:.1f}" y1="{ty0+th}" x2="{xx:.1f}" y2="{ty0+th+5}" stroke="{t.ink}" stroke-width="0.8" stroke-opacity=".7"/>')
+    if len(weeks) >= 8:
+        hi = max(weeks) or 1
+        pts = [(tx0 + tw * i / (len(weeks) - 1), ty0 + th - th * v / hi) for i, v in enumerate(weeks)]
+        import chartlib as cl
+        curve = cl.smooth_path(pts, False)
+        area = curve + f" L{tx0+tw},{ty0+th} L{tx0},{ty0+th} Z"
+        b.append(f'<path d="{area}" fill="{t.ink}" fill-opacity=".08"/>')
+        b.append(f'<path d="{curve}" fill="none" stroke="{t.ink}" stroke-width="1.3"/>')
+        hx, hy = max(pts, key=lambda p: -p[1])
+        b.append(f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="3" fill="{t.accent}"/>')
+        b.append(cap(f"high water {hi}", min(hx + 8, tx0 + tw - 90), hy - 6, 8.5, t.accent))
+        b.append(cap(f"contributions · last 52 weeks · {sum(weeks):,} total", tx0, ty0 + th + 22, 9, t.muted))
+    else:
+        b.append(f'<line x1="{tx0}" y1="{ty0+th-28}" x2="{tx0+tw}" y2="{ty0+th-28}" stroke="{t.ink}" stroke-width="0.8" stroke-dasharray="2 6" stroke-opacity=".5"/>')
+        b.append(cap("tide table arrives with the first refresh", tx0, ty0 + th + 22, 9, t.muted))
+    b.append(cap("52 wks ago", tx0, ty0 + th + 36, 8, t.muted))
+    b.append(cap("now", tx0 + tw, ty0 + th + 36, 8, t.muted, anchor="end"))
+    b.append(cap("tide", tx0, ty0 - 2, 9, t.ink2))
+
     label = f"{fmt(s['commits'])} commits, {s['repos']} public repos, {s['followers']} followers, on GitHub since {s['since']}"
-    return k.svg(W, H, "".join(b), label)
+    return k.svg(W, H, "".join(b), label, k.glyph_defs())
 
 
 def main() -> None:
@@ -160,12 +201,12 @@ def main() -> None:
         with open(CACHE, encoding="utf-8") as fh:
             stats = json.load(fh)
         print("no GITHUB_TOKEN; rendering cached", CACHE)
-    for t in k.THEMES:
+    for t in k.CHART_THEMES:
         k.begin_asset()
         out = render(t, stats)
-        for problem in k.check_bounds(W):
-            print("WARNING stats:", problem)
-        k.write(os.path.join(ROOT, "assets", f"stats-{t.name}.svg"), out)
+        for problem in k.check_bounds(W, 30):
+            print("WARNING soundings:", problem)
+        k.write(os.path.join(ROOT, "assets", f"soundings-{t.name}.svg"), out)
 
 
 if __name__ == "__main__":

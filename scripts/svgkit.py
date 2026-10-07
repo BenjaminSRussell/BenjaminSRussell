@@ -18,6 +18,12 @@ FONT_DIR_INTER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts
 FONT_DIR_MONO = FONT_DIR_INTER
 
 FONTS = {
+    # chart typography
+    "serif": f"{FONT_DIR_INTER}/InstrumentSerif-Regular.ttf",
+    "serif-italic": f"{FONT_DIR_INTER}/InstrumentSerif-Italic.ttf",
+    "plex": f"{FONT_DIR_INTER}/IBMPlexMono-Regular.ttf",
+    "plex-medium": f"{FONT_DIR_INTER}/IBMPlexMono-Medium.ttf",
+    # earlier system (kept for the generator's history)
     "display": f"{FONT_DIR_INTER}/InterDisplay-Bold.otf",
     "display-semi": f"{FONT_DIR_INTER}/InterDisplay-SemiBold.otf",
     "display-medium": f"{FONT_DIR_INTER}/InterDisplay-Medium.otf",
@@ -77,6 +83,60 @@ def _font(key: str):
     return f, cmap, gs, upm, hmtx, kern
 
 
+def _ntos(v: float) -> str:
+    """Compact number formatting for path data: one decimal, no trailing zeros."""
+    r = round(v, 1)
+    if r == int(r):
+        return str(int(r))
+    return f"{r:.1f}"
+
+
+def _ntos0(v: float) -> str:
+    return str(int(round(v)))
+
+
+# Glyph library: text_use() draws each glyph once into <defs> and places it with <use>.
+# Ideal for soundings and repeated labels (digits, bearings). Call glyph_defs() when
+# assembling the asset and reset with begin_asset().
+_GLYPHS: dict[str, str] = {}
+
+
+def glyph_defs() -> str:
+    return "".join(f'<path id="{gid}" d="{d}"/>' for gid, d in _GLYPHS.items())
+
+
+def text_use(s: str, x: float, y: float, font: str = "plex", size: float = 10, fill: str = "#000",
+             anchor: str = "start", tracking: float = 0.0, opacity: float | None = None) -> str:
+    f, cmap, gs, upm, hmtx, kern = _font(font)
+    scale = size / upm
+    total = text_width(s, font, size, tracking)
+    if anchor == "middle":
+        x -= total / 2
+    elif anchor == "end":
+        x -= total
+    _EXTENTS.append((s, x, x + total, y))
+    out = []
+    pen_x = x
+    prev = None
+    szkey = str(size).replace(".", "p")
+    for ch in s:
+        g = cmap.get(ord(ch), ".notdef")
+        if prev is not None:
+            pen_x += kern.get((prev, g), 0) * scale
+        if ch != " ":
+            gid = f"g-{font}-{szkey}-{ord(ch)}"
+            if gid not in _GLYPHS:
+                sp = SVGPathPen(gs, ntos=_ntos)
+                tp = TransformPen(sp, (scale, 0, 0, -scale, 0, 0))
+                gs[g].draw(tp)
+                _GLYPHS[gid] = sp.getCommands()
+            out.append(f'<use href="#{gid}" x="{pen_x:.1f}" y="{y:.1f}"/>')
+        pen_x += hmtx[g][0] * scale + tracking
+        prev = g
+    op = f' opacity="{opacity}"' if opacity is not None else ""
+    return f'<g fill="{fill}"{op}>{"".join(out)}</g>'
+
+
 def text_width(s: str, font: str, size: float, tracking: float = 0.0) -> float:
     f, cmap, gs, upm, hmtx, kern = _font(font)
     scale = size / upm
@@ -99,6 +159,7 @@ _EXTENTS: list[tuple[str, float, float, float]] = []
 
 def begin_asset() -> None:
     _EXTENTS.clear()
+    _GLYPHS.clear()
 
 
 def check_bounds(w: float, margin: float = 24.0) -> list[str]:
@@ -129,7 +190,7 @@ def text(s: str, x: float, y: float, font: str = "text", size: float = 16, fill:
         if prev is not None:
             pen_x += kern.get((prev, g), 0) * scale
         if ch != " ":
-            sp = SVGPathPen(gs)
+            sp = SVGPathPen(gs, ntos=_ntos0 if size >= 40 else _ntos)
             tp = TransformPen(sp, (scale, 0, 0, -scale, pen_x, y))
             gs[g].draw(tp)
             d = sp.getCommands()
@@ -158,6 +219,9 @@ class Theme:
     field: str      # page background (for occasional solid fills only)
     line: str       # diagram strokes (a step stronger than hair)
     soft: str       # quiet filled shapes that still need to be seen
+    paper: str = "#F4EEE1"   # chart sheet
+    land: str = "#E8DFCB"    # islands / shoals fill
+    water: str = "#F4EEE1"   # open water (same as paper on a classic chart)
 
 
 DARK = Theme(
@@ -173,6 +237,23 @@ LIGHT = Theme(
     ok="#15A86D", cool="#2E86E6", field="#FFFFFF", line="#C4C9D2", soft="#C3C7CF",
 )
 THEMES = [DARK, LIGHT]
+
+# v8 "Chart": a navy-ink sea chart on cream paper by day, a red-light-safe night chart after dark.
+CHART_LIGHT = Theme(
+    name="light",
+    ink="#1B2A41", ink2="#34465F", muted="#6B7A90", hair="#CDC3AE", grid="#D9D0BC",
+    panel="#FBF8F1", panel2="#FFFDF8", accent="#D9442B", accent_soft="#E8785F",
+    ok="#2F8F5B", cool="#2E6FB0", field="#FFFFFF", line="#1B2A41", soft="#B8AD95",
+    paper="#F4EEE1", land="#E6DCC6", water="#F4EEE1",
+)
+CHART_DARK = Theme(
+    name="dark",
+    ink="#DCE4F0", ink2="#B4C0D4", muted="#7F8FA9", hair="#2A3A55", grid="#22314A",
+    panel="#13213A", panel2="#0C1627", accent="#FF6A3D", accent_soft="#FF8F6B",
+    ok="#4ADE9B", cool="#7CB8FF", field="#0D1117", line="#DCE4F0", soft="#3B4D6B",
+    paper="#0F1A2B", land="#172740", water="#0F1A2B",
+)
+CHART_THEMES = [CHART_DARK, CHART_LIGHT]
 
 
 def svg(w: int, h: int, body: str, label: str, defs: str = "") -> str:
