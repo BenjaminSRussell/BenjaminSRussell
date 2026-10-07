@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/BenjaminSRussell/BenjaminSRussell/scripts/data/log_schema.json",
+  "title": "assets/log.json v2 — one rustmapper session (T9 shape + T7 source/machine)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "vessel", "version", "target", "hosts", "date", "measured", "source", "machine", "profile",
+               "start", "entries", "signoff", "heartbeat"],
+  "properties": {
+    "schema": {"const": 2},
+    "vessel": {"type": "string"},
+    "version": {"type": "string"},
+    "target": {"type": "string"},
+    "hosts": {"type": "integer", "minimum": 1},
+    "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "measured": {"type": "boolean"},
+    "source": {"enum": ["computed", "session", "cc-index"]},
+    "machine": {"type": "object", "additionalProperties": false, "required": ["cores", "host"],
+      "properties": {"cores": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 1}]},
+                     "host": {"anyOf": [{"type": "null"}, {"type": "string"}]}}},
+    "profile": {"type": "object", "additionalProperties": false,
+      "required": ["rate_rps", "ramp_s", "p95_fetch_ms", "wal_fsync_p95_ms", "urls_total", "failed_ratio",
+                   "timeout_ratio", "r429_ratio", "permits", "shards"],
+      "properties": {
+        "rate_rps": {"type": "number", "minimum": 0},
+        "ramp_s": {"type": "number", "minimum": 0},
+        "p95_fetch_ms": {"type": "number", "minimum": 0},
+        "wal_fsync_p95_ms": {"type": "number", "minimum": 0},
+        "urls_total": {"type": "integer", "minimum": 0},
+        "failed_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "timeout_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "r429_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+        "permits": {"type": "integer", "minimum": 1},
+        "shards": {"type": "integer", "minimum": 1}
+      }},
+    "start": {"type": "string", "pattern": "^\\d{4}$"},
+    "entries": {"type": "array", "maxItems": 10, "items": {"type": "object", "required": ["time", "kind"],
+      "properties": {
+        "time": {"type": "string", "pattern": "^(\\d{4}|complete|\\+\\d+[ms])$"},
+        "kind": {"enum": ["cmd", "out", "crawl", "health", "remark", "beat", "watch"]},
+        "text": {"type": "string"},
+        "log": {"type": "integer", "minimum": 0},
+        "speed": {"type": "number", "minimum": 0},
+        "wind": {"type": "string"}
+      }}},
+    "signoff": {"type": "object", "required": ["initials", "time"],
+      "properties": {"text": {"type": "string"}, "time": {"type": "string"}, "initials": {"type": "string"}}},
+    "heartbeat": {"type": "object", "required": ["template"], "properties": {"template": {"type": "string"}}}
+  }
+}

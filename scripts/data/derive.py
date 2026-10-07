@@ -1,0 +1,208 @@
+"""derive — everything the sheets read that is computed from the per-repo measurements.
+
+    derive(repos, taken, calendar=None, sweep_min=5) -> dict
+      weeks[52], tide, variation, sweeps, hours[24], weekdays[7], tz_offsets, commits, all_hands,
+      first_commit, days_surveyed, active/dormant written onto each repo (copies), sweep_threshold
+    corrections(commits, identity) -> {year: [{n, date, title}]}
+    unsurveyed(known, surveyed, failed) -> [{name, reason}]
+
+Units (MASTERPLAN decision 18): weeks[].n = commits (author-filtered), weeks[].days = commit-days;
+hours and weekdays are commit-days in author-local time. Active = commit-days in ≥ 3 of the last
+12 weeks; dormant = no commit-day in 90 days; both after sweep days are removed (T7 decision 10).
+"""
+from __future__ import annotations
+
+import copy
+import datetime as dt
+import math
+import statistics
+from collections import Counter, defaultdict
+
+from .survey import Commit, WEEKS, is_ben, week_start, week_starts
+
+SWEEP_MIN_REPOS = 5
+ACTIVE_WEEKS = 12
+ACTIVE_MIN = 3
+DORMANT_DAYS = 90
+VARIATION_MIN_DAYS = 60
+
+
+def sweep_threshold(n_repos: int, sweep_min: int = SWEEP_MIN_REPOS) -> int:
+    """A sweep day touches ≥ ⅓ of the fleet (T7) or ≥ `sweep_min` repos (whichever is fewer)."""
+    return max(1, min(sweep_min, math.ceil(n_repos / 3))) if n_repos else sweep_min
+
+
+def sweeps(repos: list[dict], threshold: int) -> list[dict]:
+    touched: dict[str, list[str]] = defaultdict(list)
+    for r in repos:
+        for day in r.get("days") or []:
+            touched[day["d"]].append(r["name"])
+    out = [{"date": d, "repos": len(names), "names": sorted(names)} for d, names in touched.items()
+           if len(names) >= threshold]
+    out.sort(key=lambda s: s["date"])
+    return out
+
+
+def activity(repo: dict, taken: dt.date, sweep_dates: set[str]) -> tuple[bool, bool]:
+    """(active, dormant) on the repo's commit-days with sweep days removed."""
+    days = [dt.date.fromisoformat(d["d"]) for d in repo.get("days") or [] if d["d"] not in sweep_dates]
+    starts = week_starts(taken, ACTIVE_WEEKS)
+    recent = {week_start(d) for d in days if d >= starts[0]}
+    active = len(recent) >= ACTIVE_MIN
+    dormant = not any((taken - d).days <= DORMANT_DAYS for d in days)
+    return active, dormant
+
+
+def weekly(repos: list[dict], taken: dt.date) -> list[dict]:
+    starts = week_starts(taken)
+    weeks = [{"start": s.isoformat(), "n": 0, "days": 0, "repos": {}} for s in starts]
+    for r in repos:
+        for i, n in enumerate(r.get("weeks") or [0] * WEEKS):
+            if n:
+                weeks[i]["n"] += n
+                weeks[i]["repos"][r["name"]] = n
+        for i, d in enumerate(r.get("week_days") or [0] * WEEKS):
+            weeks[i]["days"] += d
+    return weeks
+
+
+def consecutive_run(dates: list[dt.date], lo: dt.date, hi: dt.date) -> int:
+    """Length of the longest run of consecutive commit-days that intersects [lo, hi]."""
+    best = 0
+    ds = sorted(set(dates))
+    i = 0
+    while i < len(ds):
+        j = i
+        while j + 1 < len(ds) and (ds[j + 1] - ds[j]).days == 1:
+            j += 1
+        if ds[i] <= hi and ds[j] >= lo:
+            best = max(best, j - i + 1)
+        i = j + 1
+    return best
+
+
+def tide(weeks: list[dict], repos: list[dict]) -> dict:
+    n = [w["n"] for w in weeks]
+    hi = max(range(len(n)), key=lambda i: (n[i], i))
+    hw_week = weeks[hi]
+    cause, cause_days, share = None, 0, 0.0
+    if hw_week["repos"]:
+        cause = max(hw_week["repos"].items(), key=lambda kv: (kv[1], kv[0]))[0]
+        share = hw_week["repos"][cause] / hw_week["n"] if hw_week["n"] else 0.0
+        repo = next(r for r in repos if r["name"] == cause)
+        lo = dt.date.fromisoformat(hw_week["start"])
+        cause_days = consecutive_run([dt.date.fromisoformat(d["d"]) for d in repo.get("days") or []],
+                                     lo, lo + dt.timedelta(days=6))
+    complete = weeks[:-1] if len(weeks) > 1 else weeks
+    lo_i = min(range(len(complete)), key=lambda i: (complete[i]["n"], -i))
+    median = statistics.median([w["n"] for w in complete]) if complete else 0
+    median = int(median) if float(median).is_integer() else float(median)
+    # slack water: the lowest rolling four-week sum over complete weeks
+    win = 4 if len(complete) >= 4 else len(complete)
+    sums = [sum(w["n"] for w in complete[i:i + win]) for i in range(len(complete) - win + 1)]
+    si = min(range(len(sums)), key=lambda i: (sums[i], -i)) if sums else 0
+    s_start = dt.date.fromisoformat(complete[si]["start"])
+    s_end = dt.date.fromisoformat(complete[si + win - 1]["start"]) + dt.timedelta(days=6)
+    mid = s_start + (s_end - s_start) / 2
+    return {
+        "hw": {"start": hw_week["start"], "n": hw_week["n"], "cause": cause, "cause_days": cause_days,
+               "cause_share": round(share, 3)},
+        "lw": {"start": complete[lo_i]["start"], "n": complete[lo_i]["n"]},
+        "median": median,
+        "slack": {"start": s_start.isoformat(), "end": s_end.isoformat(), "month": mid.strftime("%Y-%m"),
+                  "n": sums[si] if sums else 0},
+    }
+
+
+def circ_diff(a: int, b: int) -> int:
+    """a − b on the 24-hour dial, in −12…12."""
+    d = (a - b) % 24
+    return d - 24 if d > 12 else d
+
+
+def variation(repos: list[dict], taken: dt.date, min_days: int = VARIATION_MIN_DAYS) -> dict:
+    cur, prior = Counter(), Counter()
+    lo_cur, lo_prior = taken - dt.timedelta(days=365), taken - dt.timedelta(days=730)
+    for r in repos:
+        for day in r.get("days") or []:
+            d = dt.date.fromisoformat(day["d"])
+            if lo_cur < d <= taken:
+                cur[day["h"]] += 1
+            elif lo_prior < d <= lo_cur:
+                prior[day["h"]] += 1
+
+    def modal(c: Counter) -> int | None:
+        if not c:
+            return None
+        top = max(c.values())
+        return min(h for h, k in c.items() if k == top)
+
+    hour, prior_hour = modal(cur), modal(prior)
+    basis = [sum(cur.values()), sum(prior.values())]
+    change = circ_diff(hour, prior_hour) if (hour is not None and prior_hour is not None
+                                            and basis[0] >= min_days and basis[1] >= min_days) else None
+    return {"hour": hour, "year": taken.year, "prior_hour": prior_hour, "annual_change": change,
+            "basis_days": basis, "min_basis_days": min_days}
+
+
+def derive(repos: list[dict], taken: dt.date, calendar: list[dict] | None = None,
+           sweep_min: int = SWEEP_MIN_REPOS) -> dict:
+    """The derived block. Repos are copied; active/dormant are written on the copies ("repos")."""
+    repos = [copy.deepcopy(r) for r in repos]
+    thr = sweep_threshold(len(repos), sweep_min)
+    sw = sweeps(repos, thr)
+    sweep_dates = {s["date"] for s in sw}
+    for r in repos:
+        r["active"], r["dormant"] = activity(r, taken, sweep_dates)
+    weeks = weekly(repos, taken)
+    firsts = [r["first"] for r in repos if r.get("first")]
+    first_commit = min(firsts) if firsts else None
+    offsets: Counter = Counter()
+    for r in repos:
+        offsets.update(r.get("tz_offsets") or {})
+    out = {
+        "repos": repos,
+        "commits": sum(r.get("commits", 0) for r in repos),
+        "all_hands": sum(r.get("all_hands", 0) for r in repos),
+        "first_commit": first_commit,
+        "days_surveyed": (taken - dt.date.fromisoformat(first_commit)).days if first_commit else None,
+        "hours": [sum((r.get("hours") or [0] * 24)[h] for r in repos) for h in range(24)],
+        "weekdays": [sum((r.get("weekdays") or [0] * 7)[d] for r in repos) for d in range(7)],
+        "hours_basis": "author-local commit-days",
+        "tz_offsets": dict(offsets.most_common()),
+        "variation": variation(repos, taken),
+        "weeks": weeks,
+        "tide": tide(weeks, repos) if repos else None,
+        "sweeps": sw,
+        "sweep_threshold": thr,
+    }
+    if calendar:
+        out["calendar_check"] = calendar_check(weeks, calendar)
+    return out
+
+
+def calendar_check(weeks: list[dict], calendar: list[dict]) -> dict:
+    """Σ clone weeks vs Σ GraphQL calendar over the overlapping span; check.py warns at > 10 %."""
+    starts = {w["start"] for w in weeks}
+    cal = sum(c["n"] for c in calendar if week_start(dt.date.fromisoformat(c["start"])).isoformat() in starts)
+    clone = sum(w["n"] for w in weeks)
+    ratio = abs(clone - cal) / cal if cal else None
+    return {"clone": clone, "calendar": cal, "disagreement": None if ratio is None else round(ratio, 3)}
+
+
+def corrections(commits: list[Commit], identity: dict | None = None) -> dict[str, list[dict]]:
+    """Small corrections: the profile repo's own human commits, enumerated per year, upright."""
+    mine = sorted((c for c in commits if is_ben(c.name, c.email, identity)), key=lambda c: c.when)
+    out: dict[str, list[dict]] = {}
+    for i, c in enumerate(mine, 1):
+        out.setdefault(str(c.local_date.year), []).append(
+            {"n": i, "date": c.local_date.isoformat(), "title": c.subject.strip()[:120]})
+    return out
+
+
+def unsurveyed(known: list[str], surveyed: list[str], failed: list[str] = ()) -> list[dict]:
+    """GraphQL repos that returned no history (ED), plus clone failures with no cached record."""
+    have = set(surveyed)
+    out = [{"name": n, "reason": "clone failed"} for n in failed if n not in have]
+    out += [{"name": n, "reason": "no history"} for n in known if n not in have and n not in failed]
+    return sorted(out, key=lambda u: u["name"])

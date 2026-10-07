@@ -1,77 +1,63 @@
 #!/usr/bin/env python3
-"""Survey the repositories themselves: commit counts, dates, hour-of-day and weekday rhythms.
+"""Survey the repositories themselves — a thin CLI over data.survey.
 
-    python3 scripts/fetch_repodata.py [repo ...]     # defaults to the list in assets/stats.json
+    python3 scripts/fetch_repodata.py [repo ...] [--json out.json]   # defaults to the repos in assets/stats.json
 
-Uses bare, blobless clones (cheap) so the chart can be drawn from real history. Results are
-merged into assets/stats.json under "repos", "hours" and "weekdays".
+Bare, blobless clones; `%aI` author dates; Ben's identity from chart.toml [identity] (defaults in
+data.survey); hours and weekdays per author-local COMMIT-DAY; 52 weeks of author-filtered commits.
+Prints a table and optionally dumps the records. It does not write assets/stats.json: build_stats does.
 """
 from __future__ import annotations
 
+import argparse
+import datetime as dt
 import json
 import os
-import subprocess
 import sys
 import tempfile
-from collections import Counter
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
-STATS = os.path.join(ROOT, "assets", "stats.json")
-OWNER = "BenjaminSRussell"
-
-
-def survey(repo: str, workdir: str) -> dict | None:
-    dest = os.path.join(workdir, repo + ".git")
-    url = f"https://github.com/{OWNER}/{repo}.git"
-    r = subprocess.run(["git", "clone", "-q", "--bare", "--filter=blob:none", url, dest],
-                       capture_output=True, text=True, timeout=180)
-    if r.returncode != 0:
-        print(f"  skip {repo}: {r.stderr.strip()[:80]}")
-        return None
-    git = ["git", f"--git-dir={dest}"]
-    head = subprocess.run(git + ["rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True).stdout.strip()
-    log = subprocess.run(git + ["log", "--format=%at %an", head], capture_output=True, text=True).stdout.strip().splitlines()
-    if not log:
-        return None
-    stamps = [int(l.split(" ", 1)[0]) for l in log]
-    authors = Counter(l.split(" ", 1)[1] for l in log)
-    import datetime as dt
-    first = dt.datetime.fromtimestamp(min(stamps), dt.timezone.utc)
-    last = dt.datetime.fromtimestamp(max(stamps), dt.timezone.utc)
-    hours = Counter(dt.datetime.fromtimestamp(s, dt.timezone.utc).hour for s in stamps)
-    weekdays = Counter(dt.datetime.fromtimestamp(s, dt.timezone.utc).isoweekday() for s in stamps)
-    return {
-        "name": repo,
-        "commits": len(stamps),
-        "first": first.strftime("%Y-%m-%d"),
-        "last": last.strftime("%Y-%m-%d"),
-        "authors": len(authors),
-        "hours": [hours.get(h, 0) for h in range(24)],
-        "weekdays": [weekdays.get(d, 0) for d in range(1, 8)],
-    }
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from data import STATS_PATH, load_chart_toml  # noqa: E402
+from data.survey import identity_from_toml, survey, survey_all  # noqa: E402,F401  (survey re-exported: T7 interface)
 
 
-def main(repos: list[str]) -> None:
-    with open(STATS, encoding="utf-8") as fh:
-        stats = json.load(fh)
-    repos = repos or [r["name"] for r in stats.get("repos", [])]
-    out = []
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("repos", nargs="*")
+    ap.add_argument("--json", dest="json_out", help="write the records (without history) to this file")
+    ap.add_argument("--workers", type=int, default=6)
+    a = ap.parse_args(argv)
+    names = a.repos
+    if not names:
+        with open(STATS_PATH, encoding="utf-8") as fh:
+            names = [r["name"] for r in json.load(fh).get("repos", [])]
+    identity = identity_from_toml(load_chart_toml())
+    taken = dt.datetime.now(dt.timezone.utc).date()
     with tempfile.TemporaryDirectory() as tmp:
-        for repo in repos:
-            print("surveying", repo)
-            d = survey(repo, tmp)
-            if d:
-                out.append(d)
-    out.sort(key=lambda r: -r["commits"])
-    stats["repos"] = out
-    stats["hours"] = [sum(r["hours"][h] for r in out) for h in range(24)]
-    stats["weekdays"] = [sum(r["weekdays"][d] for r in out) for d in range(7)]
-    stats["commits_surveyed"] = sum(r["commits"] for r in out)
-    with open(STATS, "w", encoding="utf-8") as fh:
-        json.dump(stats, fh, indent=2)
-        fh.write("\n")
-    print(f"{len(out)} repos, {stats['commits_surveyed']} commits; busiest hour UTC {max(range(24), key=lambda h: stats['hours'][h])}")
+        res = survey_all(names, tmp, identity, taken, identity["login"], workers=a.workers)
+    rows = []
+    print(f"{'repo':28} {'ben':>5} {'all':>5} {'days':>5} {'modal h':>7}  first        last        others")
+    for name in names:
+        r = res.get(name)
+        if not r:
+            print(f"{name:28} {'—':>5} {'—':>5} {'—':>5} {'—':>7}  clone failed or no history")
+            continue
+        r.pop("_commits", None); r.pop("_git_dir", None)
+        modal = max(range(24), key=lambda h: (r["hours"][h], -h)) if r["commit_days"] else None
+        others = ", ".join(f"{o['name']} {o['commits']}{'·bot' if o['bot'] else ''}" for o in r["others"])
+        print(f"{name:28} {r['commits']:>5} {r['all_hands']:>5} {r['commit_days']:>5} {str(modal):>7}  {r['first']}  {r['last']}  {others}")
+        rows.append(r)
+    total_days = sum(r["commit_days"] for r in rows)
+    hours = [sum(r["hours"][h] for r in rows) for h in range(24)]
+    print(f"{len(rows)} repos · {sum(r['commits'] for r in rows)} commits (author-filtered) · "
+          f"{sum(r['all_hands'] for r in rows)} all hands · {total_days} commit-days · "
+          f"modal author-local hour {max(range(24), key=lambda h: (hours[h], -h))}h")
+    if a.json_out:
+        with open(a.json_out, "w", encoding="utf-8") as fh:
+            json.dump(rows, fh, indent=1)
+            fh.write("\n")
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    sys.exit(main())

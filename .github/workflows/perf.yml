@@ -1,0 +1,75 @@
+# The expensive gate: Playwright traces, filmstrips, silhouettes, the browser matrix and OCR.
+# Runs when the generator changes and on Sundays, not on the daily cron (T1 decision 14).
+name: perf
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/perf.yml"
+  schedule:
+    - cron: "40 7 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: perf
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pinned requirements
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers and tesseract
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium webkit firefox
+          sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
+
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Draw every sheet from the committed cache
+        run: python3 scripts/build_assets.py
+
+      - name: Render the README (not committed here)
+        run: python3 scripts/render_readme.py --check || true
+
+      - name: Release gate (check.py --release; exit 2 = warnings only, allowed)
+        run: |
+          set +e
+          python3 scripts/check.py --release
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+
+      - name: Upload filmstrips, contact sheet, perf JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-${{ github.run_id }}
+          path: |
+            assets/build-report.json
+            out/check/
+            out/perf/
+          if-no-files-found: ignore
+          retention-days: 30

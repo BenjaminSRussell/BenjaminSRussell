@@ -1,45 +1,129 @@
-name: daily soundings
+# The chart's nightly job: take the soundings, redraw the sheets, render the README, pass the gate,
+# commit the small JSON + README to main, publish the sheets to the orphan `chart` branch.
+# A failed sounding publishes yesterday's figures with the dated pencil note; a failed gate publishes
+# nothing and the job is red. Nothing is half-published: the publish is one force-push.
+name: chart
 
 on:
   schedule:
     - cron: "20 6 * * *"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check, but commit and push nothing"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
       - "scripts/**"
+      - "chart.toml"
+      - "assets/log.json"
+      - "requirements.txt"
       - ".github/workflows/profile.yml"
+  repository_dispatch:
+    types: [release-published]
+
+concurrency:
+  group: chart
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
 jobs:
-  stats:
+  chart:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
+          cache: pip
 
-      - name: Install fonttools
-        run: pip install --quiet fonttools
+      - name: Install pinned requirements
+        run: pip install -r requirements.txt
 
-      - name: Take the day's soundings and redraw the data-driven sheets
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Take the day's soundings (stats.json, log.json)
+        id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/build_stats.py
 
-      - name: Commit refreshed stats
+      - name: Draw every sheet in every edition
+        id: assets
+        run: python3 scripts/build_assets.py --heartbeat
+
+      - name: Render the README's build-written regions
+        id: readme
+        run: python3 scripts/render_readme.py
+
+      - name: Gate (check.py --ci; exit 2 = warnings only, allowed)
+        id: gate
+        run: |
+          set +e
+          python3 scripts/check.py --ci
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+
+      - name: Upload check artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-${{ github.run_id }}
+          path: |
+            assets/build-report.json
+            out/check/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Commit stats, log, lock and README to main
+        if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/stats.json assets/*.svg
+          git add assets/stats.json assets/log.json assets/layout.lock.json README.md 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "No change"
+            echo "main: no change"
             exit 0
           fi
-          git commit -m "chore(chart): daily soundings"
-          git push
+          git commit -m "chart: soundings $(date -u +%F)"
+          for attempt in 1 2; do
+            git pull --rebase origin main && git push origin HEAD:main && break
+            echo "push attempt $attempt failed; retrying"
+            sleep 5
+          done
+
+      - name: Publish sheets to the orphan chart branch
+        if: ${{ !inputs.dry_run }}
+        run: python3 scripts/publish_chart.py
+
+      - name: Publish, dry run
+        if: ${{ inputs.dry_run }}
+        run: python3 scripts/publish_chart.py --dry-run
+
+      # The sounding failed: yesterday's figures, the dated pencil note and the dashed datum rule.
+      # Still gated, still one push. Anything that fails after the sounding stays unpublished.
+      - name: Pencil-note edition (the sounding failed)
+        if: ${{ failure() && steps.stats.outcome == 'failure' && !inputs.dry_run }}
+        run: |
+          python3 scripts/build_assets.py --no-sounding --heartbeat
+          python3 scripts/render_readme.py
+          set +e
+          python3 scripts/check.py --ci
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
+          python3 scripts/publish_chart.py
