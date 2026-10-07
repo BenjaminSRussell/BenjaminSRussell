@@ -98,16 +98,16 @@ def fmt(n: int) -> str:
 
 
 def render(t: Theme, s: dict) -> str:
-    H = 212
+    H = 226
     b = []
     b.append(f'<circle cx="52" cy="46" r="3.5" fill="{t.accent}"/>')
-    b.append(k.text("BY THE NUMBERS", 66, 50, MONO, 11.5, t.ink2, tracking=1.6))
+    b.append(k.text("BY THE NUMBERS", 66, 50, MONO, 12.5, t.ink2, tracking=1.6))
     note = f"refreshed daily by actions · {s['updated']}" + ("  ·  seeded, first refresh pending" if s.get("seeded") else "")
-    b.append(k.text(note.upper(), W - 48, 50, MONO, 11.5, t.muted, anchor="end", tracking=1.6))
+    b.append(k.text(note.upper(), W - 48, 50, MONO, 12, t.muted, anchor="end", tracking=1.4))
     b.append(f'<path d="M48,64 H{W-48}" stroke="{t.hair}"/>')
 
     cells = [
-        (fmt(s["commits"]), "commits, lifetime"),
+        (fmt(s["commits"]), "lifetime commits"),
         (fmt(s["repos"]), "public repos"),
         (fmt(s["followers"]), "followers"),
         (fmt(s["stars"]), "stars earned") if s.get("stars", 0) >= 5 else (str(len(s["languages"])), "languages in play"),
@@ -117,15 +117,15 @@ def render(t: Theme, s: dict) -> str:
     for i, (big, cap) in enumerate(cells):
         x = 48 + i * cw
         b.append(k.text(big, x, 118, "display-semi", 42, t.ink, tracking=-1.6))
-        b.append(k.text(cap.upper(), x + 1, 140, MONO, 11, t.muted, tracking=1.4))
+        b.append(k.text(cap.upper(), x + 1, 141, MONO, 12, t.muted, tracking=1.4))
         if i:
             b.append(f'<path d="M{x-24},84 V144" stroke="{t.hair}"/>')
 
     # language bar
-    y = 172
+    y = 174
     x = 48
     total_w = W - 96
-    cols = [t.accent, t.cool, t.ok, t.ink2, t.muted, t.hair]
+    cols = [t.accent, t.ink, t.ink2, t.muted, t.soft, t.hair]  # tonal ramp, not a category palette
     b.append(f'<rect x="{x}" y="{y}" width="{total_w}" height="8" rx="4" fill="{t.hair}"/>')
     gap = 3
     lx = x
@@ -139,11 +139,11 @@ def render(t: Theme, s: dict) -> str:
         lx += w + gap
     tx = x
     for name, pct, col in legend:
-        b.append(f'<rect x="{tx:.1f}" y="190" width="8" height="8" rx="2" fill="{col}"/>')
-        b.append(k.text(name, tx + 14, 198, "text-medium", 12.5, t.ink2))
-        tx += k.text_width(name, "text-medium", 12.5) + 18
-        b.append(k.text(pct, tx, 198, MONO, 11, t.muted))
-        tx += k.text_width(pct, MONO, 11) + 26
+        b.append(f'<rect x="{tx:.1f}" y="195" width="9" height="9" rx="2" fill="{col}"/>')
+        b.append(k.text(name, tx + 15, 204, "text-medium", 13.5, t.ink2))
+        tx += k.text_width(name, "text-medium", 13.5) + 20
+        b.append(k.text(pct, tx, 204, MONO, 12, t.muted))
+        tx += k.text_width(pct, MONO, 12) + 28
     label = f"{fmt(s['commits'])} commits, {s['repos']} public repos, {s['followers']} followers, on GitHub since {s['since']}"
     return k.svg(W, H, "".join(b), label)
 
@@ -161,7 +161,11 @@ def main() -> None:
             stats = json.load(fh)
         print("no GITHUB_TOKEN; rendering cached", CACHE)
     for t in k.THEMES:
-        k.write(os.path.join(ROOT, "assets", f"stats-{t.name}.svg"), render(t, stats))
+        k.begin_asset()
+        out = render(t, stats)
+        for problem in k.check_bounds(W):
+            print("WARNING stats:", problem)
+        k.write(os.path.join(ROOT, "assets", f"stats-{t.name}.svg"), out)
 
 
 if __name__ == "__main__":

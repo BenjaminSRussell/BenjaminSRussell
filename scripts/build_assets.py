@@ -24,7 +24,7 @@ W = 1280  # canvas width shared by every asset; README shows them at 100%
 MONO = "mono"
 
 
-def label(t: Theme, s: str, x: float, y: float, fill: str | None = None, size: float = 11.5,
+def label(t: Theme, s: str, x: float, y: float, fill: str | None = None, size: float = 12.5,
           anchor: str = "start", opacity: float | None = None) -> str:
     """Small tracked mono caption."""
     return k.text(s.upper(), x, y, MONO, size, fill or t.muted, anchor=anchor, tracking=1.6, opacity=opacity)
@@ -39,8 +39,8 @@ def dot(t: Theme, x: float, y: float, r: float = 4, pulse: bool = True, dur: flo
 
 # ---------------------------------------------------------------- hero
 def hero(t: Theme) -> str:
-    H = 440
-    defs, grid = k.dot_grid(t, 760, 20, 520, 400, step=22, r=1.1, gid="hg")
+    H = 420
+    defs, grid = k.dot_grid(t, 760, 10, 520, 400, step=22, r=1.1, gid="hg")
     b = [grid]
 
     # eyebrow
@@ -77,24 +77,56 @@ def hero(t: Theme) -> str:
         near = sorted(range(len(nodes)), key=lambda j: (nodes[j][0]-x1)**2 + (nodes[j][1]-y1)**2)[1:3]
         for j in near:
             edges.add(tuple(sorted((i, j))))
+    # make sure the graph is one component, then walk it along real edges
+    def dist2(a, b):
+        return (nodes[a][0]-nodes[b][0])**2 + (nodes[a][1]-nodes[b][1])**2
+    def components():
+        seen, comps = set(), []
+        for s0 in range(len(nodes)):
+            if s0 in seen:
+                continue
+            stack, comp = [s0], set()
+            while stack:
+                v = stack.pop()
+                if v in comp:
+                    continue
+                comp.add(v)
+                stack.extend(w for e in edges if v in e for w in e if w != v)
+            seen |= comp
+            comps.append(comp)
+        return comps
+    comps = components()
+    while len(comps) > 1:
+        a, b = comps[0], comps[1]
+        i, j = min(((i, j) for i in a for j in b), key=lambda p: dist2(*p))
+        edges.add(tuple(sorted((i, j))))
+        comps = components()
+    adj = {i: sorted(w for e in edges if i in e for w in e if w != i) for i in range(len(nodes))}
+    walk, seen = [], set()
+    def dfs(v):
+        seen.add(v)
+        walk.append(v)
+        for w in adj[v]:
+            if w not in seen:
+                dfs(w)
+                walk.append(v)
+    dfs(0)
     for i, j in sorted(edges):
         (x1, y1), (x2, y2) = nodes[i], nodes[j]
-        b.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{t.hair}" stroke-width="1.2"/>')
-    # pulse path wandering the tangle
-    order = [0, 4, 7, 2, 9, 5, 11, 1, 8, 3, 12, 6, 10, 0]
-    pd = "M" + " L".join(f"{nodes[i][0]},{nodes[i][1]}" for i in order)
-    b.append(f'<path d="{pd}" fill="none" stroke="{t.accent}" stroke-width="1.3" stroke-opacity=".32" stroke-dasharray="5 11">'
+        b.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{t.line}" stroke-width="1.3"/>')
+    pd = "M" + " L".join(f"{nodes[i][0]},{nodes[i][1]}" for i in walk)
+    b.append(f'<path d="{pd}" fill="none" stroke="{t.accent}" stroke-width="1.3" stroke-opacity=".38" stroke-dasharray="4 12">'
              f'<animate attributeName="stroke-dashoffset" from="0" to="-160" dur="9s" repeatCount="indefinite"/></path>')
     for i, (x, y) in enumerate(nodes):
         b.append(f'<circle cx="{x}" cy="{y}" r="4.2" fill="{t.field}" stroke="{t.ink2}" stroke-width="1.3">'
                  f'<animate attributeName="stroke" values="{t.ink2};{t.accent};{t.ink2}" begin="{(i*0.61)%8:.2f}s" dur="8s" repeatCount="indefinite"/></circle>')
-    b.append(f'<circle r="5" fill="{t.accent}"><animateMotion dur="9s" repeatCount="indefinite" path="{pd}"/></circle>')
+    b.append(f'<circle r="5" fill="{t.accent}"><animateMotion dur="{len(walk)*0.55:.1f}s" repeatCount="indefinite" path="{pd}"/></circle>')
     b.append(label(t, "the open web", 905, 372, anchor="middle"))
 
     # funnel into the parser
     px, py = 1046, 222
     for yy in (150, 222, 294):
-        b.append(f'<path d="M1012,{yy} C1030,{yy} 1026,{py} {px-14},{py}" fill="none" stroke="{t.hair}" stroke-width="1.2"/>')
+        b.append(f'<path d="M1012,{yy} C1030,{yy} 1026,{py} {px-14},{py}" fill="none" stroke="{t.line}" stroke-width="1.2"/>')
     b.append(f'<rect x="{px-14}" y="{py-14}" width="28" height="28" rx="7" fill="{t.panel}" stroke="{t.ink2}" stroke-width="1.3"/>')
     b.append(f'<path d="M{px-6},{py} h12 M{px},{py-6} v12" stroke="{t.accent}" stroke-width="2" stroke-linecap="round">'
              f'<animateTransform attributeName="transform" type="rotate" from="0 {px} {py}" to="90 {px} {py}" dur="3s" repeatCount="indefinite"/></path>')
@@ -114,9 +146,9 @@ def hero(t: Theme) -> str:
         b.append(f'<g opacity="0">{anim}'
                  f'<rect x="{rx}" y="{y}" width="14" height="12" rx="3" fill="{t.accent}"/>'
                  f'<rect x="{rx+20}" y="{y}" width="{w1}" height="12" rx="3" fill="{t.ink2}" opacity=".75"/>'
-                 f'<rect x="{rx+26+w1}" y="{y}" width="{w2}" height="12" rx="3" fill="{t.hair}"/>'
+                 f'<rect x="{rx+26+w1}" y="{y}" width="{w2}" height="12" rx="3" fill="{t.soft}" opacity=".7"/>'
                  f'</g>')
-    b.append(f'<path d="M{px+14},{py} H{rx-16}" stroke="{t.hair}" stroke-width="1.2"/>')
+    b.append(f'<path d="M{px+14},{py} H{rx-16}" stroke="{t.line}" stroke-width="1.2"/>')
     b.append(f'<circle r="3" fill="{t.ok}"><animateMotion dur="2s" repeatCount="indefinite" path="M{px+14},{py} H{rx-16}"/></circle>')
     b.append(label(t, "trusted rows", rx + 72, 372, anchor="middle"))
 
@@ -126,12 +158,12 @@ def hero(t: Theme) -> str:
 # ---------------------------------------------------------------- shared card chrome
 def chip(t: Theme, s: str, x: float, y: float, accent: bool = False) -> tuple[str, float]:
     """Rounded chip with mono label; returns (svg, width)."""
-    pad = 10
-    w = k.text_width(s, MONO, 11, 0.6) + pad * 2
+    pad = 11
+    w = k.text_width(s, MONO, 12, 0.5) + pad * 2
     stroke = t.accent if accent else t.hair
     fill = t.ink if accent else t.ink2
-    out = (f'<rect x="{x}" y="{y}" width="{w:.1f}" height="24" rx="12" fill="{t.panel}" stroke="{stroke}" stroke-width="1"/>'
-           + k.text(s, x + pad, y + 16, MONO, 11, fill, tracking=0.6))
+    out = (f'<rect x="{x}" y="{y}" width="{w:.1f}" height="26" rx="13" fill="{t.panel}" stroke="{stroke}" stroke-width="1"/>'
+           + k.text(s, x + pad, y + 17.5, MONO, 12, fill, tracking=0.5))
     return out, w
 
 
@@ -142,7 +174,7 @@ def chips(t: Theme, items: list[str], x: float, y: float, accent_first: bool = F
     for i, s in enumerate(items):
         c, w = chip(t, s, x, y, accent=(accent_first and i == 0))
         if max_x and x + w > max_x and x > x0:
-            x, y = x0, y + 32
+            x, y = x0, y + 34
             c, w = chip(t, s, x, y, accent=(accent_first and i == 0))
         out.append(c)
         x += w + gap
@@ -154,9 +186,9 @@ def card_left(t: Theme, index: str, title: str, lines: list[str], tags: list[str
     b.append(k.text(title, 48, y_title, "display", 58, t.ink, tracking=-2.2))
     y = y_title + 40
     for ln in lines:
-        b.append(k.text(ln, 50, y, "text", 17, t.ink2, tracking=-0.1))
-        y += 25
-    b.append(chips(t, tags, 50, y + 10, accent_first=True, max_x=690))
+        b.append(k.text(ln, 50, y, "text", 18, t.ink2, tracking=-0.15))
+        y += 26
+    b.append(chips(t, tags, 50, y + 8, accent_first=True, max_x=690))
     return "".join(b)
 
 
@@ -169,14 +201,14 @@ def card_scrapy(t: Theme) -> str:
         "A multi-stage crawler platform: discover, analyze, summarize,",
         "land it in Delta Lake. Dashboards and circuit breakers included,",
         "because a crawler you cannot watch is a crawler you cannot trust.",
-    ], ["Python 3.11", "Scrapy", "Delta Lake", "PostgreSQL", "Redis", "Prometheus", "Grafana", "Docker · K8s"]))
+    ], ["Python 3.11", "Scrapy", "Delta Lake", "PostgreSQL", "Redis", "Prometheus", "Grafana", "Docker", "Kubernetes"]))
 
     # pipeline diagram
     stages = ["urls", "scout", "analyze", "summarize", "delta lake"]
-    x0, x1, yy = 762, 1212, 128
+    x0, x1, yy = 762, 1194, 128
     n = len(stages)
     xs = [x0 + i * (x1 - x0) / (n - 1) for i in range(n)]
-    b.append(f'<path d="M{xs[0]},{yy} H{xs[-1]}" stroke="{t.hair}" stroke-width="1.4"/>')
+    b.append(f'<path d="M{xs[0]},{yy} H{xs[-1]}" stroke="{t.line}" stroke-width="1.4"/>')
     for i, (x, name) in enumerate(zip(xs, stages)):
         last = i == n - 1
         if i == 0:
@@ -226,7 +258,7 @@ def card_rustmapper(t: Theme) -> str:
         "A concurrent sitemap crawler in Rust: up to 512 adaptive workers,",
         "a sharded frontier, write-ahead persistence, optional Redis for",
         "distributed runs. Seeds from sitemaps, CT logs and Common Crawl.",
-    ], ["pip install rustmapper", "Rust 2024", "tokio", "reqwest", "redb", "rkyv", "maturin"]))
+    ], ["pip install rustmapper", "Rust 2024", "tokio", "reqwest", "redb", "maturin"]))
 
     # tree fan-out: root -> 4 -> 12
     rx, ry = 778, 150
@@ -238,12 +270,12 @@ def card_rustmapper(t: Theme) -> str:
     for i, (mx, my) in enumerate(mids):
         d = f"M{rx+9},{ry} C{rx+60},{ry} {mx-60},{my} {mx-7},{my}"
         paths.append(d)
-        b.append(f'<path d="{d}" fill="none" stroke="{t.hair}" stroke-width="1.4"/>')
+        b.append(f'<path d="{d}" fill="none" stroke="{t.line}" stroke-width="1.4"/>')
         b.append(f'<circle cx="{mx}" cy="{my}" r="6" fill="{t.panel}" stroke="{t.ink2}" stroke-width="1.4"/>')
         for j in range(3):
             ly = my - 16 + j * 16
             d2 = f"M{mx+6},{my} C{mx+40},{my} {leaves_x-40},{ly} {leaves_x-4},{ly}"
-            b.append(f'<path d="{d2}" fill="none" stroke="{t.hair}" stroke-width="1.2"/>')
+            b.append(f'<path d="{d2}" fill="none" stroke="{t.line}" stroke-width="1.2"/>')
             b.append(f'<circle cx="{leaves_x}" cy="{ly}" r="3.2" fill="{t.ink2}" opacity=".9"/>')
             paths.append(d2)
     for i, d in enumerate(paths):
@@ -255,7 +287,7 @@ def card_rustmapper(t: Theme) -> str:
     b.append(label(t, "discovered", leaves_x + 8, 262, anchor="middle"))
 
     # worker meter
-    wx, wy = 1062, 64
+    wx, wy = 1040, 64
     cols, rows = 16, 4
     for r in range(rows):
         for c in range(cols):
@@ -272,25 +304,25 @@ def card_rustmapper(t: Theme) -> str:
         b.append(f'<rect x="{wx + 34 + i*11}" y="170" width="8" height="9" rx="1.5" fill="{t.ok}" opacity=".25">'
                  f'<animate attributeName="opacity" values=".25;.25;1;1" keyTimes="0;{i/14:.3f};{(i+1)/14:.3f};1" dur="5s" repeatCount="indefinite"/></rect>')
     b.append(label(t, "seeds", wx, 212))
-    b.append(k.text("sitemaps · CT logs · Common Crawl", wx, 234, "text-medium", 12.5, t.ink2))
+    b.append(k.text("sitemaps · CT logs · Common Crawl", wx, 234, "text-medium", 12, t.ink2))
     return k.svg(W, H, "".join(b), "rustmapper — concurrent sitemap crawler in Rust", defs)
 
 
 # ---------------------------------------------------------------- terminal
 def terminal(t: Theme) -> str:
-    H = 392
+    H = 384
     LOOP = 14.0
-    FS = 15.5
+    FS = 17
     cw = k.text_width("x", MONO, FS)  # mono advance
-    X0, Y0 = 44, 96
-    LH = 28
+    X0, Y0 = 44, 98
+    LH = 30
     b = []
     # window
     b.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" fill="{t.panel2}" stroke="{t.hair}"/>')
     b.append(f'<path d="M0.5,52 H{W-0.5}" stroke="{t.hair}"/>')
     for i, c in enumerate((t.accent, t.muted, t.ok)):
         b.append(f'<circle cx="{28 + i*22}" cy="27" r="6" fill="{c}" opacity=".9"/>')
-    b.append(label(t, "ben@studio  —  rustmapper  —  a typical afternoon", W / 2, 31, anchor="middle"))
+    b.append(label(t, "ben@local  —  rustmapper  —  a typical afternoon", W / 2, 31, anchor="middle"))
 
     def keyt(t0: float, t1: float | None = None):
         t1 = t1 or t0 + 0.02
@@ -303,18 +335,18 @@ def terminal(t: Theme) -> str:
         """Prompt + command revealed left-to-right between t0 and t1."""
         y = Y0 + row * LH
         wid = k.text_width(s, MONO, FS)
-        clip = (f'<clipPath id="{gid}"><rect x="{X0+2*cw}" y="{y-20}" width="0" height="28">'
+        clip = (f'<clipPath id="{gid}"><rect x="{X0+2*cw}" y="{y-22}" width="0" height="30">'
                 f'<animate attributeName="width" values="0;0;{wid:.0f};{wid:.0f};0" {keyt(t0, t1)} dur="{LOOP}s" repeatCount="indefinite"/></rect></clipPath>')
         g = (f'<g opacity="0">{appear(t0)}' + k.text("$", X0, y, "mono-bold", FS, t.accent) + "</g>"
              + f'<g clip-path="url(#{gid})">' + k.text(s, X0 + 2 * cw, y, MONO, FS, t.ink) + "</g>")
         # cursor block that follows the typing then parks
-        g += (f'<rect y="{y-15}" width="{cw:.1f}" height="19" fill="{t.accent}" opacity="0">'
+        g += (f'<rect y="{y-16}" width="{cw:.1f}" height="21" fill="{t.accent}" opacity="0">'
               f'<animate attributeName="x" values="{X0+2*cw:.1f};{X0+2*cw:.1f};{X0+2*cw+wid:.1f};{X0+2*cw+wid:.1f}" keyTimes="0;{t0/LOOP:.4f};{t1/LOOP:.4f};1" dur="{LOOP}s" repeatCount="indefinite"/>'
               f'<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;{t0/LOOP:.4f};{(t0+0.01)/LOOP:.4f};{(t1+0.7)/LOOP:.4f};{(t1+0.72)/LOOP:.4f};1" dur="{LOOP}s" repeatCount="indefinite"/></rect>')
         return clip, g
 
     def line(parts: list[tuple[str, str]], row: int, t0: float) -> str:
-        """Output line made of (text, colour) runs."""
+        """Output line made of (text, color) runs."""
         y = Y0 + row * LH
         x = X0
         out = [f'<g opacity="0">{appear(t0)}']
@@ -335,15 +367,15 @@ def terminal(t: Theme) -> str:
     # progress bar line
     y = Y0 + 5 * LH
     b.append(f'<g opacity="0">{appear(6.5)}' + k.text("crawl     ", X0, y, MONO, FS, t.muted)
-             + f'<rect x="{X0+10*cw:.1f}" y="{y-13}" width="{28*cw:.1f}" height="14" rx="3" fill="{t.hair}"/>'
-             + f'<rect x="{X0+10*cw:.1f}" y="{y-13}" width="0" height="14" rx="3" fill="{t.accent}">'
+             + f'<rect x="{X0+10*cw:.1f}" y="{y-14}" width="{28*cw:.1f}" height="15" rx="3" fill="{t.hair}"/>'
+             + f'<rect x="{X0+10*cw:.1f}" y="{y-14}" width="0" height="15" rx="3" fill="{t.accent}">'
              + f'<animate attributeName="width" values="0;0;{28*cw:.1f};{28*cw:.1f}" keyTimes="0;{6.6/LOOP:.4f};{10.6/LOOP:.4f};1" dur="{LOOP}s" repeatCount="indefinite"/></rect>'
              + k.text("48,213 discovered  ·  512 in flight", X0 + 40 * cw, y, MONO, FS, t.ink2) + "</g>")
     b.append(line([("export    ", t.muted), ("sitemap.xml", t.ink), ("  48,213 urls  ", t.ink2), ("done", t.ok), ("  4m 12s", t.muted)], 6, 10.9))
     # closing prompt with blinking cursor
     y = Y0 + 7 * LH
     b.append(f'<g opacity="0">{appear(11.6)}' + k.text("$", X0, y, "mono-bold", FS, t.accent)
-             + f'<rect x="{X0+2*cw:.1f}" y="{y-15}" width="{cw:.1f}" height="19" fill="{t.ink}">'
+             + f'<rect x="{X0+2*cw:.1f}" y="{y-16}" width="{cw:.1f}" height="21" fill="{t.ink}">'
              f'<animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.5;1" dur="1.1s" repeatCount="indefinite"/></rect></g>')
     b.append(label(t, "numbers are illustrative · the package is real", W - 44, H - 22, anchor="end", opacity=.9))
     return k.svg(W, H, "".join(b), "terminal: pip install rustmapper; rustmapper crawl --start-url example.com --workers 512", "".join(defs))
@@ -358,23 +390,25 @@ def stack(t: Theme) -> str:
         ("surfaces & ml", ["SwiftUI", "MapKit", "React Native", "MLX", "Qwen", "Ollama"]),
     ]
     colw = (W - 96) / 4
-    H = 150
     b = []
+    bottom = 0
     for ci, (head, items) in enumerate(cols):
         x = 48 + ci * colw
         b.append(dot(t, x + 4, 48, r=3, pulse=False))
         b.append(label(t, head, x + 16, 52, t.ink2))
         b.append(f'<path d="M{x},68 H{x+colw-24}" stroke="{t.hair}"/>')
-        # flow chips, wrapping within column
+        # flow chips, wrapping within the column
         cx, cy = x, 86
         for i, s in enumerate(items):
             c, w = chip(t, s, cx, cy, accent=(i == 0))
             if cx + w > x + colw - 24 and cx > x:
-                cy += 32
+                cy += 34
                 cx = x
                 c, w = chip(t, s, cx, cy, accent=(i == 0))
             b.append(c)
             cx += w + 8
+        bottom = max(bottom, cy + 26)
+    H = int(bottom + 40)  # height follows the content so nothing is ever clipped
     return k.svg(W, H, "".join(b), "Stack: Python, Rust, Swift, C, TypeScript; Scrapy, Delta Lake, PostgreSQL, Redis; Docker, Kubernetes, Prometheus, Grafana; SwiftUI, React Native, MLX")
 
 
@@ -408,7 +442,13 @@ def main(only: list[str] | None = None) -> None:
         if only and name not in only:
             continue
         for t in k.THEMES:
-            k.write(os.path.join(OUT, f"{name}-{t.name}.svg"), fn(t))
+            k.begin_asset()
+            out = fn(t)
+            problems = k.check_bounds(W)
+            if problems:
+                print(f"WARNING {name}-{t.name}: text outside the safe area")
+                print("\n".join(problems))
+            k.write(os.path.join(OUT, f"{name}-{t.name}.svg"), out)
 
 
 if __name__ == "__main__":

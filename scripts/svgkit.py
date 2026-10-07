@@ -2,7 +2,7 @@
 
 Text is set as real glyph outlines (Inter / DejaVu Sans Mono via fontTools),
 so every asset renders identically on every machine, with no font fallback.
-Backgrounds are transparent so the artwork sits on GitHub's own page colour.
+Backgrounds are transparent so the artwork sits on GitHub's own page color.
 """
 from __future__ import annotations
 
@@ -91,6 +91,25 @@ def text_width(s: str, font: str, size: float, tracking: float = 0.0) -> float:
     return w - tracking if s else 0.0
 
 
+# Every text run records its horizontal extent so builders can assert nothing
+# leaves the canvas or the 48 px margin. Reset with begin_asset(), read with
+# check_bounds().
+_EXTENTS: list[tuple[str, float, float, float]] = []
+
+
+def begin_asset() -> None:
+    _EXTENTS.clear()
+
+
+def check_bounds(w: float, margin: float = 24.0) -> list[str]:
+    """Return human-readable warnings for text that crosses the safe area."""
+    out = []
+    for s, x0, x1, y in _EXTENTS:
+        if x0 < margin or x1 > w - margin:
+            out.append(f"  text {s!r} spans x={x0:.0f}..{x1:.0f} at y={y:.0f} (safe {margin:.0f}..{w-margin:.0f})")
+    return out
+
+
 def text(s: str, x: float, y: float, font: str = "text", size: float = 16, fill: str = "#000",
          anchor: str = "start", tracking: float = 0.0, opacity: float | None = None, extra: str = "") -> str:
     """Return a <path> for the string, baseline at (x, y)."""
@@ -101,6 +120,7 @@ def text(s: str, x: float, y: float, font: str = "text", size: float = 16, fill:
         x -= total / 2
     elif anchor == "end":
         x -= total
+    _EXTENTS.append((s, x, x + total, y))
     d_parts = []
     pen_x = x
     prev = None
@@ -136,19 +156,21 @@ class Theme:
     ok: str         # mint for "clean / ok"
     cool: str       # cool blue for "web / fetch"
     field: str      # page background (for occasional solid fills only)
+    line: str       # diagram strokes (a step stronger than hair)
+    soft: str       # quiet filled shapes that still need to be seen
 
 
 DARK = Theme(
     name="dark",
     ink="#F3EFE7", ink2="#B9BCC6", muted="#7D8290", hair="#2A2F3A", grid="#1F232C",
     panel="#13161C", panel2="#0E1014", accent="#FF5A1F", accent_soft="#FF8A5B",
-    ok="#4ADE9B", cool="#6FB7FF", field="#0D1117",
+    ok="#4ADE9B", cool="#6FB7FF", field="#0D1117", line="#3A4150", soft="#4B5160",
 )
 LIGHT = Theme(
     name="light",
     ink="#131417", ink2="#454A55", muted="#7A7F8C", hair="#DCDFE5", grid="#E6E8EC",
     panel="#F6F7F9", panel2="#FBFBFC", accent="#E8501A", accent_soft="#FF7A45",
-    ok="#15A86D", cool="#2E86E6", field="#FFFFFF",
+    ok="#15A86D", cool="#2E86E6", field="#FFFFFF", line="#C4C9D2", soft="#C3C7CF",
 )
 THEMES = [DARK, LIGHT]
 
