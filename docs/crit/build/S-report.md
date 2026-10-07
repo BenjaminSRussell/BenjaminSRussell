@@ -397,3 +397,24 @@ PNGs: `…/crit/build/S/png/r4-instruments-day.png`, `r4-instruments-night.png`,
 4. Log: signature gated on `measured` — computed log reads "Log closed 1550 · computed from settings · unsigned"; heads ink2; alt says unsigned.
 5. Phone: footer record inside the frame, night phone text in full ink.
 6. Gates: check.py `--only` my sheets exit 0, motion 0, byte-identical, footer 3.44 ms/frame, my 21 tests OK; approaches.py was missing from the tree during the full build (not mine).
+
+---
+
+# Round 6 (two collisions under the corrected rotated-run registration)
+
+1. **Instruments**: the key line `bold · underway this quarter (1 of 21) · date · first commit of its repository`
+   moved from under the title (where it ran into the rotated LOOKOUT's box) to the top-right of the sheet,
+   right-aligned at the LOOKOUT column's date edge (1263, 40), above the column heads. No exclusion was needed
+   (a trial exclusion around the rotated block was itself crossed by LOOKOUT's ascender and was dropped).
+2. **Footer phone**: `UNSURVEYED` (rotated, x 686) centred at y 150 instead of 124, so it sits deeper in the
+   hatch and clear of `LIMIT OF SURVEY 2026` (y 30–56).
+
+Gates: full default build 38 files, 0 problems; `check.py --release --tier fast --only instruments,footer`
+**0 FAIL** (exit 2: 9 SIZE-TARGET warnings); `--only soundings,log,instruments,footer` 0 fail; `motion.py` 0;
+24 files byte-identical on rebuild; suite 180 OK. PNGs: `…/crit/build/S/png/r6-instruments-day.png`,
+`r6-footer-phone-day.png`.
+
+## Summary (round 6)
+
+1. Instruments key line now top-right above the column heads; phone UNSURVEYED lowered into the hatch — both bounds collisions cleared.
+2. Rebuilt into assets/v9 (38/0); `check.py --release --tier fast --only instruments,footer` 0 FAIL (size-target warnings only), motion 0, byte-identical, 180 tests OK.

@@ -167,7 +167,6 @@ def _desk(ctx) -> str:
     # the key sits top-right above the column heads, clear of the rotated block (round 6)
     out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
                   COL_X[2] + DATE_X, 40, "label", fill=t.ink2, anchor="end", truth="measured", key="active_count"))
-    T.exclude("rotated-groups", 48, y_first - 10, 3 * band_w - 12, y_bot - (y_first - 10))
     for gi, (code, _gloss) in enumerate(groups[:3]):
         bx = 48 + gi * band_w
         if gi:
