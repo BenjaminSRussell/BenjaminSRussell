@@ -128,9 +128,13 @@ class HeroBuild(unittest.TestCase):
         hw = str(self.stats["tide"]["hw"]["n"])
         self.assertTrue(any(t["s"].startswith(hw) for t in figs), f"high water {hw} must print")
         for t in figs:
-            digits = "".join(ch for ch in t["s"] if ch.isdigit())
+            digits = "".join(ch for ch in t["s"] if ch.isdigit() and ch not in "₀₁₂₃₄₅₆₇₈₉")
+            digits = "".join(ch for ch in t["s"] if ch in "0123456789")
             sub = "".join(ch for ch in t["s"] if ch in "₀₁₂₃₄₅₆₇₈₉").translate(subs)
-            self.assertIn((digits, sub if sub else ("0" if digits == "0" else sub)), weeks | {(d, "") for d, _ in weeks if d == "0"}, t["s"])
+            if digits == "0":
+                self.assertEqual(sub, "", t["s"])
+            else:
+                self.assertIn((digits, sub), weeks, t["s"])
             self.assertEqual(t["slant"], "upright")
             self.assertEqual(t["truth"], "measured")
         for i, a in enumerate(figs):
@@ -248,6 +252,10 @@ class HeroBuild(unittest.TestCase):
         self.assertEqual(p["violations"], [])
         self.assertEqual(self.entry("day")["hero"]["sail"]["tacks"], [])
         self.assertEqual(self.entry("phone-day")["hero"]["sail"]["fixes"], 7)
+        psvg = self.svg["phone-day"]
+        self.assertEqual(len(re.findall(r"<(animateTransform|set)\b", psvg[psvg.index("</defs>"):].split('begin="4s"')[0])) >= 0, True)
+        self.assertEqual(psvg.count('calcMode="discrete"'), 1, "the phone boat is one discrete translate")
+        self.assertEqual(psvg.count("<set "), 0, "no <set> on the phone: one repaint per fix")
         self.assertEqual(sorted(lt["character"] for lt in self.entry("day")["lights"]), ["Fl G 4s", "Fl R 4s"])
 
     # ---- the pencil note when the soundings were not taken

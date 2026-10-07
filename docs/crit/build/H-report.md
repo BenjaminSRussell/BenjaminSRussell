@@ -294,3 +294,68 @@ Note for the orchestrator: `assets/build-report.json` is shared and `build_asset
 with that sheet only; at hand-back it listed the footer's six entries (builder S's last run), so `check.py` flags
 the hero files REPORT-MISSING until a full `python3 scripts/build_assets.py` runs. The hero SVGs in `assets/v9/`
 are the final ones (byte-identical to the scratch set in `…/H/`, whose `build-report.json` carries the hero entries).
+
+---
+
+# Round 3 (re-crit panel 28 / 13 / 18 + addenda 7–8, mobile, perf)
+
+Files: `scripts/sheets/hero.py`, `tests/test_hero.py`. Rebuilt into scratch and `assets/v9/` (byte-identical, 0 problems).
+
+1. **Harbour-mouth cluster.** Week soundings are now the standard sounding: `texture` 11 upright in ink (no grey,
+   no opacity ramp), subscript = `weeks[].days` (days with a commit in the week; legend row to add on Sheet 3:
+   "108₄ · commits in the week, days with a commit"). Runs of zero weeks collapse to one "0" (no subscript) per
+   run; the printed set is chosen biggest-first with box clearance and a 21 px same-line rule, so the high water
+   358₁ always prints; 11 figures print on the desk (3₃ 296₅ 0 1₁ 0 17₁ 15₂ 108₄ 37₂ 146₄ 358₁), 5 on the phone;
+   every week stays a kernel of the field. Closed 20-rings under 200 px are generalised away (the doubled grey
+   rings around the pits); rustmapper keeps one pecked PA outline. Italic gloss inside the band beside the limit
+   line: "soundings along the course: commits per week" (`label-italic`). BOUNDS-TEXTURE warnings 20 → 4.
+2. **Band** runs neat line to neat line (1080, 24, 200, 692), frame right rule broken over its whole height; the
+   rose and VAR lines end at x 1072 so nothing is knocked out; LIMIT OF SURVEY and the gloss sit inside the hatch
+   edge; phone band y 412 → 712 with UNSURVEYED at +40 and SMALL-SCALE at +90, both inside the hatch (addendum 2).
+3. **Proof layer by 1.5 s**: mark labels, bearings, SEE SHEET 3, PA, the pencil note fade in at 1.1–1.5 s
+   (frame t 1.5: coverage 0.995). Note reads "sitemap.xml lies again — see Sheet 3", placed under the harbour box
+   (700, 672, −7°), no leader (its tail points); its box is reserved before names and contour figures are placed.
+4. **Marginalia**: SMALL CORRECTIONS 2026 — 169…173 bottom-left outside the neat line; chart number top-right;
+   folio folded into the imprint line, right-aligned bottom: "CHART NO. 21 · SHEET 1 · PUBLISHED AT … ·
+   SUPERINTENDENCE: BUILD_ASSETS.PY" (role label-caps, key folio); CORRECTED THROUGH NOTICE 9 stays in the block.
+5. **Hachure** only on land with r ≥ 40 and the harbour (Game Engine I., Scrapy Harbor); the small islands carry
+   coastline + tint.
+6. **Phone**: land names in `place-land` 30 (serif upright) — "Game Engine I." on its island with 512₁ above,
+   "Scrapy Harbor" adjacent; IALA REGION B back in the phone cartouche line 4.
+7. **Addendum 7 — the chart surveys itself**: the printed week figures and the two dated fixes are discrete
+   reveals (`tl.reveal`, 0.5 s grid) at the instant the boat passes abeam (arc fraction through the sail's
+   `settle` ease): 5, 5, 5, 5.5, 6.5, 7, 8, 8, 9, 9, 9.5, 10, 13.5 s. With the settle ease the boat covers 95 % of
+   the course by ~12 s and creeps the last 5 % to anchor at 28, so the last figure lands at 13.5 s, not 28 —
+   the honest abeam timing; the stills show them all. Opening 0–4 s unchanged (water draws in).
+   Phone: the figures are printed (static) and the boat is ONE discrete `animateTransform` through 7 fixes every
+   4 s with no `<set>` (the waypoint ⊙ are already plotted by `course()`): perf 360 px DPR 3 `--warm=6 --seconds=8`
+   = **0.25 repaints/s, pass** (was 0.50 with fixes()' mark reveals + my week reveals).
+8. **Addendum 8**: title-block secondary lines, source key, VAR lines, imprint and corrections in `ink2`; role
+   line in ink. Night lanterns: core r 2.2 (sheet 3 uses 2.0, halo 14 both).
+
+Gates: build 0 problems, scratch ≡ assets/v9; motion lint 0; bounds (run against the hero report with
+`--out-dir/--report`, since the shared report keeps being overwritten by single-sheet builds) **0 FAIL**, 4
+BOUNDS-TEXTURE warnings; tests `test_hero` 15/15 OK (full suite: 1 setUpClass error in `test_approaches`, not
+mine); perf hero-day 1.0 repaints/s, 30.9 ms/repaint, pass; hero-phone 0.25/s pass; still 0; frames vs still desk
+t 0 0.671 · 1.5 0.995 · 4.1 0.997 · 8 0.999 · 14 1.001 · 28.1 1.000 · 95 1.000; phone t 0 0.804 · 1.5 1.000.
+Sizes: hero-day 167.2 / 41.5 KB (1200 el), night 164.9 / 39.5, still 161.9 / 40.2, phone 112.6 / 30.6 (598 el),
+phone-still 109.5 / 30.1; glyph defs 137 desk / 91 phone (budget 160; defs 39 KB — the serif subscript glyphs and
+the phone's serif land names ate the headroom: at the next name change the 40 KB cap may bite). Area ratios
+0.972–1.061 (drawn 0.946–1.031), all 21 placed, bracket 3 unresolved.
+
+Needs: Sheet 3 legend row for the week subscript (days); typeset defs budget (see round 1); the abeam-timing vs
+"last figure at 28 s" tension is the sail's own ease — if the plan wants the lead down at the anchor, the course
+soundings would have to extend into the basin (decision 17 stops them at the entrance).
+
+PNGs inspected: `…/H/r3-still-day.png`, `r3-still-night.png`, `r3-phone-still-day.png`, `r3-phone-still-night.png`,
+`r3-crop-entrance-2x.png`, `r3-crop-entrance-night-2x.png`, `r3-crop-band-2x.png`, `r3-phone-360.png`,
+`frames/strip.png` (t 0, 1.5, 4.1, 8, 14, 28.1, 95), `frames-phone/strip.png`.
+
+## Summary (round 3)
+
+1. Week soundings are standard soundings (ink, upright, days subscript), zero runs collapse to one 0, 11 figures print with 358₁ first; one pecked PA outline; pit rings generalised; an italic gloss names the instrument.
+2. The unsurveyed band runs neat line to neat line; marginalia follow chart practice (corrections bottom-left, chart number top-right, folio in the imprint line).
+3. The proof layer (note with its "see Sheet 3" tail, bearings, light characters, SEE SHEET 3, PA) is on the sheet by 1.5 s; hachure only on the two big land features.
+4. Week figures and dated fixes surface as the boat passes them (discrete reveals 5–13.5 s); phone boat is one discrete step per 4 s, 0.25 repaints/s.
+5. Phone land names in the serif land role on the land, SMALL-SCALE inside the hatch, IALA line restored; secondary lines in ink2; lanterns enlarged.
+6. All gates pass (bounds 0 FAIL, 4 texture warnings; motion 0; perf desk 1.0/s, phone 0.25/s; hero tests OK); 167/41.5 KB desk, 113/30.6 KB phone.

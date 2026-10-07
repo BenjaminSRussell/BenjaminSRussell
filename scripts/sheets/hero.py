@@ -113,7 +113,8 @@ SOUND_GAP = 28                    # printed week figures keep this apart (round 
 GENERALISE_20 = 200               # closed 20-rings shorter than this are not drawn
 UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X … LIMIT_X+70
 PA_SHIFT = (14, -10)
-NOTE_AT = (910, 558, -7)          # pencil note anchor and rotation
+NOTE_AT = (700, 672, -7)          # pencil note anchor and rotation: below the harbour box, clear of the band
+NOTE_TEXT = "sitemap.xml lies again — see Sheet 3"
 PHONE_S = 0.55
 PHONE_ORIGIN = (19, 300)          # where the desk drawable's corner lands on the phone sheet
 SAIL = (4.0, 24.0)                # begin, dur (MASTERPLAN 2.1: 4–28 s)
@@ -569,6 +570,10 @@ def build(ctx) -> str:
             continue
         show.append(i_)
         boxes.append(fb)
+    if not phone:   # the pencil note's box is reserved early so names and contour figures keep clear of it
+        nw_ = width(NOTE_TEXT, "note")
+        ang_ = math.radians(NOTE_AT[2])
+        boxes.append((NOTE_AT[0] - 2, NOTE_AT[1] + nw_ * math.sin(ang_) - 14, nw_ * math.cos(ang_) + 4, 14 - nw_ * math.sin(ang_) + 4))
     sz_h = 13 if not phone else 26
     for f in ranked:
         named = f.r >= name_min_r if phone_named is None else f.name in phone_named
@@ -794,7 +799,10 @@ def build(ctx) -> str:
         wk = weeks[i_]
         frag = snd(v, x, y + (4 if not phone else 6), sub=(wk.get("days") if v else None), truth="measured",
                    key=f"week:{wk.get('start', i_)}", fill=theme.ink)
-        body.append(tl.reveal(frag, pass_time(x, y)))      # the lead goes down where the ship is
+        if phone:   # one repaint per fix on the phone: the figures are printed, the boat alone steps
+            body.append(frag)
+        else:
+            body.append(tl.reveal(frag, pass_time(x, y)))  # the lead goes down where the ship is
         printed += 1
     report["soundings_printed"] = printed
     figs = []
@@ -971,14 +979,7 @@ def build(ctx) -> str:
                                                      truth="measured", key=f"first:{f.alias}"), pass_time(*wp)))
     if not phone:
         nxp, nyp, rot = NOTE_AT
-        late.append(late_text("sitemap.xml lies again — see Sheet 3", nxp, nyp, "note", fill=theme.muted, rotate=rot))
-        if vessel_ground is not None:
-            nw = k.text_width("sitemap.xml lies again — see Sheet 3", "note", edition=ed, scale=sc)
-            ex_, ey_ = nxp + nw * math.cos(math.radians(rot)) + 6, nyp + nw * math.sin(math.radians(rot)) - 4
-            tx_ = vessel_ground.x + PA_SHIFT[0] - 0.72 * vessel_ground.r
-            ty_ = vessel_ground.y + PA_SHIFT[1] + 0.72 * vessel_ground.r
-            late.append(f'<path d="M{_fmt(ex_)} {_fmt(ey_)}L{_fmt(tx_)} {_fmt(ty_)}" fill="none" '
-                        f'{c.stroke("HAIR", theme.muted, 0.8)}/>')
+        late.append(late_text(NOTE_TEXT, nxp, nyp, "note", fill=theme.muted, rotate=rot))   # the tail points; no leader
         late.append(pa_label)
         if vessel_ground is not None and pa_label:
             late_boxes.append((vessel_ground.x + PA_SHIFT[0] - vessel_ground.r - 20, vessel_ground.y + PA_SHIFT[1] - 8, 20, 14))
@@ -1048,10 +1049,15 @@ def build(ctx) -> str:
         report["sail"] = {"begin": SAIL[0], "end": sail.end, "facing": sail.facing, "tacks": sail.tacks,
                           "scale": BOAT_SCALE}
     else:
-        pts = [(x, y) for x, y, _h in c.course_samples(course, 7)]
+        pts = [(E.I(x), E.I(y)) for x, y, _h in c.course_samples(course, 7)]
         glyph = f'<g transform="scale(-1 1)">{use("sloop-glyph", 0, 0, scale=1.4)}</g>'
-        mark = use("fix", 0, 0)
-        body.append(f'<g color="{theme.ink}">{tl.fixes(pts, SAIL[0], every=4.0, boat=glyph, mark=mark, name="sail")}</g>')
+        # seven fixes every 4 s as ONE discrete translate (the waypoint ⊙ are already plotted by course()):
+        # exactly one repaint per fix, 0.25/s, the phone budget (MASTERPLAN 7.3)
+        vals = [f"{x} {y}" for x, y in pts]
+        kts = [i / (len(pts) - 1) for i in range(len(pts))]
+        step = tl.xform("translate", vals, 24.0, SAIL[0], key_times=kts, discrete=True, cls="fixes", name="sail")
+        at = pts[-1] if ed.still else pts[0]
+        body.append(f'<g transform="translate({at[0]} {at[1]})">{step}{glyph}</g>')
         report["sail"] = {"begin": SAIL[0], "end": SAIL[0] + 24.0, "fixes": len(pts)}
 
     report["symbols_used"] = sorted(symbols_used)
