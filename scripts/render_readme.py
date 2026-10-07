@@ -170,7 +170,8 @@ def n(key: str, value: str) -> str:
 
 
 def figures_block(figs: dict) -> str:
-    parts = [f"{n('commits', figs['commits'])} commits",
+    parts = [f"{n('commits', figs['commits'])} commits of mine",
+             f"{n('all_hands', figs['all_hands'])} all hands",
              f"{n('repo_count', figs['repo_count'])} repositories surveyed"]
     if figs["account_since"]:
         parts.append(f"since {n('account_since', figs['account_since'])}")
@@ -187,8 +188,10 @@ def notices_block(cfg: dict, stats: dict) -> str:
         cite = f" *{nt['cite']}*" if nt.get("cite") else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
     k = len(hand)
+    hand_titles = {h.get("title", "").strip() for h in hand}
     for nt in stats.get("notices", []):
-        if nt.get("source") == "toml":
+        # stats.json carries the hand notices too (source "hand"/"toml"); the README prints chart.toml's richer copy
+        if nt.get("source") in ("toml", "hand") or (nt.get("title") or "").strip() in hand_titles:
             continue
         k += 1
         title = nt.get("title") or f"{nt.get('repo', '')} {nt.get('tag', '')}".strip()

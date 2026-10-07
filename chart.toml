@@ -143,8 +143,8 @@ source = "toml"
 # wins when it exists. ≤ 25 words, plain register, first word not "The".
 [alt]
 hero = "Chart of Ben Russell's repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors."
-soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated, one large commit figure. Below, one line per repository."
-approaches = "Chart of two systems: rustmapper's survey lines left, a buoyed channel into Scrapy Harbor right, legend below. The soundings fill in behind the vessel."
+soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated. Below, one line per repository."
+approaches = "Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel."
 log = "Ship's log on ruled paper: one rustmapper run, entry by entry, from install to exported sitemap. Types once; only the cursor keeps time."
 instruments = "Equipment list in three columns: languages, stores and queues, deck; the date each was first fitted. The daily driver in bold; the rest when asked."
 footer = "Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't."
