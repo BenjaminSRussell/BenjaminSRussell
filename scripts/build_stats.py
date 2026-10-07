@@ -134,7 +134,7 @@ def fmt(n: int) -> str:
 def render_all() -> None:
     """Delegate drawing to the sheet modules so the soundings sheet is designed with the rest."""
     import subprocess
-    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "build_assets.py"), "soundings", "hero", "instruments"], check=False)
+    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "build_assets.py")], check=True)
 
 
 def main() -> None:

@@ -39,7 +39,8 @@ def main(only=None) -> int:
         try:
             mod = importlib.import_module(name)
         except ModuleNotFoundError:
-            print(f"(no module for {name} yet)")
+            print(f"ERROR: no sheet module for {name}")
+            problems += 1
             continue
         editions = getattr(mod, "EDITIONS", ("dark", "light"))
         for t in k.CHART_THEMES:
