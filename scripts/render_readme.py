@@ -187,18 +187,23 @@ def notices_block(cfg: dict, stats: dict) -> str:
         body = f" {nt['body']}" if nt.get("body") else ""
         cite = f" *{nt['cite']}*" if nt.get("cite") else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
-    k = len(hand)
     hand_titles = {h.get("title", "").strip() for h in hand}
-    for nt in stats.get("notices", []):
-        # stats.json carries the hand notices too (source "hand"/"toml"); the README prints chart.toml's richer copy
-        if nt.get("source") in ("toml", "hand") or (nt.get("title") or "").strip() in hand_titles:
-            continue
-        k += 1
-        title = nt.get("title") or f"{nt.get('repo', '')} {nt.get('tag', '')}".strip()
-        if nt.get("url"):
-            title = f"[{title}]({nt['url']})"
-        when = fmt_date(nt.get("date"))
-        rows.append(f"{nt.get('n', k)}. **{title}** *{nt.get('repo', '')}, {when}.*")
+    # stats.json carries the hand notices too (source "hand"/"toml"); the README prints chart.toml's richer
+    # copy above, and folds the dated release notices (PyPI uploads, GitHub Releases) into one trailing line
+    # so "five principles" stays five (reviewer 18).
+    releases = [nt for nt in stats.get("notices", [])
+                if nt.get("source") not in ("toml", "hand") and (nt.get("title") or "").strip() not in hand_titles]
+    if releases:
+        first, last = len(hand) + 1, len(hand) + len(releases)
+        links = []
+        for nt in releases:
+            title = nt.get("title") or f"{nt.get('repo', '')} {nt.get('tag', '')}".strip()
+            short = title.replace(" on PyPI", "")
+            links.append(f"[{short}]({nt['url']})" if nt.get("url") else short)
+        dates = sorted({fmt_date(nt.get("date")) for nt in releases if nt.get("date")})
+        when = dates[0] if len(dates) == 1 else f"{dates[0]} – {dates[-1]}"
+        rng = f"Notice {first}" if first == last else f"Notices {first}–{last}"
+        rows.append(f"\n<sub>{rng}, editions: {' · '.join(links)} · *{when}*.</sub>")
     return "\n".join(rows)
 
 
@@ -259,7 +264,7 @@ def inline_keys(text: str) -> list[str]:
     return sorted(set(re.findall(r"<!--\s*n:([\w.-]+)\s*-->", text)))
 
 
-_PICTURE_RE = re.compile(r"<picture>.*?</picture>", re.S)
+_PICTURE_RE = re.compile(r"^<picture>.*?</picture>", re.S | re.M)    # element at line start; a `<picture>` in prose is not one
 
 
 def migrate_pictures(text: str, sheets: list[str] = SHEETS) -> str:

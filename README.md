@@ -10,7 +10,7 @@
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Chart of Ben Russell's repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Chart of Ben Russell's 21 repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors.">
 </picture>
 <!-- picture:hero:end -->
 <sub>One feature per public repository, area by commits. The chart number is the public repository count; the edition is the rustmapper release.</sub>
@@ -52,7 +52,7 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-day.svg" width="100%" alt="Tide table: fifty-two weeks of commits as a curve, high and low water dated. Below, one line per repository.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-day.svg" width="100%" alt="Tide table of weekly commits: high water 358 the week of 5 Oct, Data_science_dev; low water 0; typical week 0. Below, one line per repository.">
 </picture>
 <!-- picture:soundings:end -->
 <!-- figures:start -->
@@ -73,7 +73,7 @@ One sheet, read from seaward. rustmapper goes out first and finds the coastline.
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-day.svg" width="100%" alt="Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-day.svg" width="100%" alt="Sheet 3, Approaches: rustmapper's survey ground east, buoyed channel west into Scrapy Harbor, every symbol in the legend. The soundings fill in behind the vessel.">
 </picture>
 <!-- picture:approaches:end -->
 <sub>Soundings in URLs. The legend on this sheet defines every symbol used on the page and says which figures are measured.</sub>
@@ -113,7 +113,7 @@ One rustmapper run, entered the way a log is kept.
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg" width="100%" alt="Ship's log on ruled paper: one rustmapper run, entry by entry, from install to exported sitemap. Types once; only the cursor keeps time.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg" width="100%" alt="Ship's log, rustmapper 0.1.3: 10 entries, 1402 to 1550, 12,440 URLs on 1 host, closed by B.S.R.. Types once; only the cursor keeps time.">
 </picture>
 <!-- picture:log:end -->
 <sub>Entered from <a href="assets/log.json">assets/log.json</a>.</sub>
@@ -131,10 +131,8 @@ Figures correct themselves nightly. These five I had to be told.
 3. **Lights before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy Harbor, Sep 2025: Prometheus and Grafana.*
 4. **Parse, don't pattern-match.** *ideal-url-organizer, Nov 2025.*
 5. **The surface is part of the system.** A tool that confuses its operator is already failing. *This page, Nov 2025: its earlier editions read as a template.*
-6. **[rustmapper 0.1.0 on PyPI](https://pypi.org/project/rustmapper/0.1.0/)** *Rust-sitemap, 8 Nov 2025.*
-7. **[rustmapper 0.1.1 on PyPI](https://pypi.org/project/rustmapper/0.1.1/)** *Rust-sitemap, 8 Nov 2025.*
-8. **[rustmapper 0.1.2 on PyPI](https://pypi.org/project/rustmapper/0.1.2/)** *Rust-sitemap, 8 Nov 2025.*
-9. **[rustmapper 0.1.3 on PyPI](https://pypi.org/project/rustmapper/0.1.3/)** *Rust-sitemap, 8 Nov 2025.*
+
+<sub>Notices 6–9, editions: [rustmapper 0.1.0](https://pypi.org/project/rustmapper/0.1.0/) · [rustmapper 0.1.1](https://pypi.org/project/rustmapper/0.1.1/) · [rustmapper 0.1.2](https://pypi.org/project/rustmapper/0.1.2/) · [rustmapper 0.1.3](https://pypi.org/project/rustmapper/0.1.3/) · *8 Nov 2025*.</sub>
 <!-- notices:end -->
 
 Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new); corrections are entered as notices.
@@ -181,7 +179,7 @@ Python and Rust most days; Swift, C, TypeScript and Go when the work asks for th
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-day.svg" width="100%" alt="Equipment list in three columns: languages, stores and queues, deck; the date each was first fitted. The daily driver in bold; the rest when asked.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/instruments-day.svg" width="100%" alt="Instruments carried, 18 fittings in three columns: languages, stores and queues, deck; dated by first commit. The daily driver in bold; the rest when asked.">
 </picture>
 <!-- picture:instruments:end -->
 <!-- instruments:start -->
@@ -196,14 +194,26 @@ Python and Rust most days; Swift, C, TypeScript and Go when the work asks for th
 <br>
 
 - **Type.** Instrument Serif for titles and the italic asides; IBM Plex Sans Condensed for names and notes; IBM Plex Mono for soundings, labels and the log. Set as outlines in every sheet, so they look the same on every machine.
-- **Editions.** Navy ink on cream paper by day; after dark, a night sheet on which the lights are the brightest things. Your system picks the edition through `<!-- picture:footer:start -->
+- **Editions.** Navy ink on cream paper by day; after dark, a night sheet on which the lights are the brightest things. Your system picks the edition through `<picture>`; a phone gets a sheet redrawn for its width, and a request for reduced motion gets every sheet finished and still.
+- **Motion.** SMIL only, and slow. The boat sails in once in the first half-minute and anchors; after that only the lights keep time.
+- **Variation.** The compass rose's inner ring is a 24-hour clock of my commits, counted in my own timezone; the arrow points at the busiest hour. That is the variation.
+- **Figures.** Upright numerals are measured; italic numerals are not; an underlined figure is above datum. The chart number includes this repository; the chart is one of the things it charts.
+- **Build.** [`scripts/build_assets.py`](scripts/build_assets.py) draws every sheet from the day's figures, which [`scripts/build_stats.py`](scripts/build_stats.py) surveys each morning, and [`scripts/check.py`](scripts/check.py) refuses to publish a sheet that breaks a rule. Conventions, tokens and the motion spec are in [DESIGN.md](DESIGN.md).
+<!-- license:start -->
+- **License.** Code MIT; sheets and copy CC BY 4.0; fonts under their own licenses in [`scripts/fonts/`](scripts/fonts/). To draw your own, fork the repository, fill in `chart.toml` and run the workflow; the sheets redraw from your repositories.
+<!-- license:end -->
+
+</details>
+
+<br>
+
+<!-- picture:footer:start -->
 <picture>
 <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-phone-night.svg">
 <source media="(max-width: 767px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-phone-day.svg">
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-day.svg" width="100%" alt="Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/footer-day.svg" width="100%" alt="Limit of survey: hatched ground beyond a dotted line, a sailboat anchored at it, 21 repositories charted. The chart ends here; the web doesn't.">
 </picture>
-<!-- picture:footer:end -->
 <!-- picture:footer:end -->
