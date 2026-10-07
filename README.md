@@ -52,7 +52,7 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-day.svg" width="100%" alt="Tide table of weekly commits: high water 358 the week of 5 Oct, Data_science_dev; low water 0; typical week 0. Below, one line per repository.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/soundings-day.svg" width="100%" alt="Tide table of commits: high water 358, week of 5 Oct, Data Science Bank; low water 0; typical week 0. Below, one line per repository.">
 </picture>
 <!-- picture:soundings:end -->
 <!-- figures:start -->
@@ -115,7 +115,7 @@ A rustmapper run as the log would record it, entered the way a log is kept. The 
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg" width="100%" alt="Ship's log, rustmapper 0.1.3: 10 entries, 1402 to 1550, 12,440 URLs on 1 host, closed by B.S.R.. Types once; only the cursor keeps time.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg" width="100%" alt="Ship's log, rustmapper 0.1.3: 10 entries, 1402 to 1550, 12,440 URLs on 1 host, computed from settings, unsigned. Types once; only the cursor keeps time.">
 </picture>
 <!-- picture:log:end -->
 <sub>Entered from <a href="assets/log.json">assets/log.json</a>.</sub>

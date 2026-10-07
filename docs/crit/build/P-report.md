@@ -328,3 +328,94 @@ the per-sheet budget it should use, so approaches fails with "171 glyph defs (bu
    46–49 KB gz desk, 94 KB phone, ≤ 2874 elements, 171 glyph defs within the new budget.
 6. One remaining fail is D's report-side glyph check comparing against the global 160 instead of the per-sheet
    budget (one-line patch above); phone rotation kept — legible at 360 px.
+
+---
+
+# Round 3 (re-crit panel: 07, 13, 09, 28, + 10-mobile addendum)
+
+Changes in `scripts/sheets/approaches.py` (rewritten in place; the round-2 file is kept at scratch
+`P/approaches.round2.py`) and `tests/test_approaches.py` (17 tests). Rebuilt into scratch and merged into `assets/v9/`
+and the shared `assets/build-report.json`.
+
+## What changed
+
+1. **Legend and notes at 17 px.** Role `label` with `size=17` (17 is on SCALE; the lint accepts it) for every legend
+   definition, the legend's convention line and both notes bodies; symbol cells scaled ×1.3 to match. The strip is
+   reflowed: the two notes blocks side by side (36/644, 524, 600 × 194) over a full-width four-column legend
+   (36, 724, 1208 × 212), 32 rows × 8 per column, pitch 19. The headline stays "SYMBOLS · CHART NO. 21 · EVERY SHEET"
+   (17 px, tracked) with the upright/sloping/underlined line beneath. The four rows the legend plug-in allows as drawn
+   things (Sloop, Packet boat, Flare, Halo) are gone, as 07 and 13 asked; nothing else renamed or re-explained.
+   The map gave up the height: the T3 geography (680 tall) is compressed into 500 (`_y()`, k = 0.735) with the
+   channel re-derived from ANCH so the leading line stays exactly 290°; the survey ground is (680,124,400,386).
+2. **Phone legend and margins.** The phone edition keeps the rotation (legible at 360 px: `phone360-r3.png`) and
+   now ends in a compact two-column legend of its own symbols — 12 rows at the phone label role (G can, R nun,
+   Light, Ldg line, Anchorage, Wk, Rep, ED, SD, Danger line, Restricted, Limit of survey) with the convention line;
+   `SIZES["phone"] = (720, 1880)`. Per 10-mobile: neat-line rules 50/55, so the unit line, chart number and folio sit
+   24 px inside the sheet edge; the title is open and centre-stacked (no box, no hatch behind) with the IALA line
+   "IALA Region B · marks numbered from seaward"; chart scale 1.2, band cropped to 54 px of desk; buoy labels
+   'G "1"' … 'R "4"' are `label-italic` 26 (G "1" above its can, R "4" below, clear of the mole).
+3. **Light characters.** G "1" Fl G 4s (0), R "2" Fl R 4s (2) — the hero's pair; the entrance gate G "3" Fl(2) G 10s (0)
+   and R "4" Fl(2) R 10s (2) through `ctx.tl.flash`. Timeline.report 1.323 repaints/s; trace after 44 s: 1.4 per s
+   (budget ≤ 2) → PASS. 7 indefinite animations (5 lights + packet boat ×2). Legend row "Light · its character" kept.
+4. **Sounding lattice.** Survey-ground soundings jittered (seeded) ±9 px in column spacing and ±3 px along the track,
+   ±1 across; one figure dropped at random on each of the two lines the pencil note crosses and half the figures under
+   the note's span; the SD doubt mark now sits on a lattice node of line 7 (the lead's own figure, doubted). The
+   note itself sits between track lines 1 and 2, ending west of the restricted area. BOUNDS plug-in: clean.
+5. **Zones of confidence** as a ruled block: hairlines between rows, plain letters, no mini-sheet, no hatch, no boxes.
+   Zone letters stay boxed only on the limit line. Also from 13: the outer-leg bearing (294°) is sloping — a drawn
+   angle; 290° stays upright as the construction it is.
+
+## Gates (final, assets/v9)
+
+`build_assets --sheets approaches`: 6 files; the only problems are the glyph-library budget (below).
+`check.py --release --tier fast --only approaches`: approaches findings = SIZE-TARGET warnings + D's report-side
+TYPE line (same bug as round 2, now against 200); BOUNDS, LEGEND, FLASH, CONTRAST, XML, STRINGS, MOTION clean.
+README-STALE is the README, not the sheet. `checks/motion.py`: 0. Perf: day 1.4 repaints/s, 62.8 ms per repaint,
+cpu 9 % → PASS; phone/still 0 repaints. Frames vs still at 0.5/28.1/36.1/42.1/95 s: coverage 0.996–1.0, changed
+≤ 0.14 %; the 42.1 s frame shows the mole complete and the eight soundings laid. Tests: 17 OK (determinism,
+budgets, legend == charted symbols and used ⊆ legend ∪ allowed, phone legend ≥ 8 rows, honesty, motion plan incl.
+Fl(2) 10s durations, buoyage geometry, data → geometry, phone floors, legend/notes at 17).
+
+| edition | raw | gz | elements | glyph defs | motion |
+|---|---|---|---|---|---|
+| day / night | 274.9 / 277.2 KB | 53.0 / 50.8 KB | 2794 / 2803 | 248 | lights, 7 indefinite, 1.32 repaints/s |
+| still-day / still-night | 271.7 / 274.1 KB | 52.5 / 50.3 KB | 2757 / 2766 | 248 | still |
+| phone-day / phone-night (720 × 1880) | 115.2 / 118.1 KB | 25.4 KB | 932 / 940 | 113 | frozen |
+
+## Needs
+
+- **typeset.BUDGET_BY_SHEET (D / orchestrator):** the 17 px cond set is a new glyph size key, so approaches is at
+  248 defs / 87 KB against the round-2 ceiling of 200 / 72. Please set
+  `BUDGET_BY_SHEET["approaches"] = {"glyph_defs": 260, "defs_kb": 92}`. It is the only build problem on the sheet.
+  The phone editions are at 113 / 58 KB (within). And `checks/type.py check_report()` still compares against the
+  global `BUDGET["glyph_defs"]` (round-2 patch stands).
+- Phone raw is 115–118 KB against the 120 KB gate: the vignette and the coast swell pass are desk-only now and the
+  phone legend's convention line is upright to keep the italic glyph set small; a further phone row or label will
+  need the phone budget looked at.
+
+## PNGs inspected (round 3)
+
+`day7.png` … `day9.png`, `night7.png` … `night9.png`, `phone7.png` … `phone9.png`, `phone360-r3.png` (360 px, DPR 3),
+`frames-r4/f42-crop.png`.
+
+## Summary (round 3)
+
+1. Legend and both notes blocks are now 17 px (11.6 px rendered in the README column): a full-width four-column
+   32-row legend under two side-by-side notes blocks; the map gave up 180 px of middle water and kept its 290° line.
+2. The phone edition (720 × 1880) keeps the rotation, gains an open title with the IALA line, a 12-row two-column
+   legend of its own symbols at the phone label role, buoy numbers at 26 px, and 24 px head/foot margins.
+3. Light characters differ by pair: Fl G 4s / Fl R 4s outer, Fl(2) G 10s / Fl(2) R 10s at the entrance gate;
+   1.4 repaints/s measured after 44 s.
+4. The survey lattice has the lead's irregularity and thins under the pencil note; the ZOC is a hairline-ruled block;
+   the outer-leg bearing is sloping.
+5. All sheet gates clean (bounds, legend, flash, contrast, motion, xml, strings, tests, frames, perf); sizes
+   272–277 KB / 50–53 KB gz desk, 115–118 KB phone.
+6. One engine ask: raise the approaches glyph budget to 260 defs / 92 KB (the sheet's only build problem).
+
+### Round 3 addendum — the hero's week soundings in the legend
+A 33rd legend row: the HW week's figure from stats.json (358₁: commits in the week, days with a commit — upright,
+measured) with the text "Sheet 1 · week's commits, days" beside the existing "4₂ · Sounding · 1000s, 100s", so the one
+legend explains both instruments; the convention line stays. Legend now 9 rows × 4 columns (pitch 18.3, cartouche
+36,718,1208×218; notes blocks 188 tall, pitch 17). Final: day 278.3 KB / 53.4 gz / 2828 el, night 280.9 / 51.3 / 2837,
+stills 275–278 KB, phones 115–118 KB; glyph defs 251 / 88 KB (the budget ask becomes 260 / 92 — unchanged). Tests 17 OK;
+motion 0; release fast tier: no approaches findings beyond the TYPE budget line and SIZE-TARGET warnings.

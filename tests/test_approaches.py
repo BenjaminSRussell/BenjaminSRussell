@@ -167,10 +167,11 @@ class Approaches(unittest.TestCase):
                     if t.get("key") in ALLOWED_MEASURED_KEYS:
                         continue
                     self.assertEqual(t["origin"], "sounding", (name, t["s"]))
-                    self.assertTrue(t["s"].startswith(str(scrapy["commits"])), (name, t["s"]))
+                    hw = max(w["n"] for w in self.stats["weeks"])
+                    self.assertTrue(t["s"].startswith(str(scrapy["commits"])) or t["s"].startswith(str(hw)), (name, t["s"]))
                 if t["origin"] == "sounding" and t["slant"] == "upright":
                     upright_soundings.append(t["s"])
-            self.assertLessEqual(len(upright_soundings), 1, (name, upright_soundings))
+            self.assertLessEqual(len(upright_soundings), 2, (name, upright_soundings))   # 265₅ and the HW week
             shards = [t for t in self.texts(name) if t.get("key") == "shards"]
             self.assertEqual(len(shards), 1, name)
             expect = "upright" if self.log.get("measured") else "italic"

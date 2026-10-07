@@ -110,9 +110,9 @@ MOLE_A, MOLE_B = (238, ANCH[1] - 34), (366, ANCH[1] - 10)
 
 # the strip: two notes blocks over a full-width legend
 STRIP_Y = 524
-BLOCK_RM = (36, STRIP_Y, 600, 194)
-BLOCK_SH = (644, STRIP_Y, 600, 194)
-LEGEND = (36, 724, 1208, 212)
+BLOCK_RM = (36, STRIP_Y, 600, 188)
+BLOCK_SH = (644, STRIP_Y, 600, 188)
+LEGEND = (36, 718, 1208, 218)
 TITLE_C = (470, 50)
 ZOC = (680, 26, 400, 86)
 PANEL_SIZE = 17                               # legend definitions and notes bodies (on SCALE)
@@ -906,7 +906,7 @@ class _Sheet:
 
     def draw_blocks(self):
         Pn = self.layers["panels"]
-        pitch = 18
+        pitch = 17
         # ---- rustmapper
         x, y, w, h = BLOCK_RM
         avail = w - 32
@@ -925,12 +925,12 @@ class _Sheet:
             [("label", "5  Seeds A · B · C · robots crawl-delay kept")],
         ]
         for i, parts in enumerate(notes):
-            Pn.append(self.note_line(parts, x + 16, y + 100 + i * pitch, BLOCK_RM, avail))
+            Pn.append(self.note_line(parts, x + 16, y + 98 + i * pitch, BLOCK_RM, avail))
         wheels = self.edition_v.get("wheels") or []
         if wheels:
             tag = str(wheels[0]).replace("cp313-cp313-", "cp313 · ")
             Pn.append(self.body(self.fit(f"Wheel · {tag} · elsewhere pip builds from source", "label", avail, size=PANEL_SIZE),
-                                x + 16, y + 190, within=BLOCK_RM, truth="measured", key="wheel"))
+                                x + 16, y + 182, within=BLOCK_RM, truth="measured", key="wheel"))
         # ---- Scrapy Harbor
         x, y, w, h = BLOCK_SH
         Pn.append(self.cartouche(x, y, w, h, "block-scrapy"))
@@ -951,7 +951,7 @@ class _Sheet:
                  "5  Breakers wrap http · delta · redis",
                  "6  BART-large-CNN summaries on the worker"]
         for i, s in enumerate(notes):
-            Pn.append(self.body(self.fit(s, "label", avail, size=PANEL_SIZE), x + 16, y + 100 + i * pitch, within=BLOCK_SH))
+            Pn.append(self.body(self.fit(s, "label", avail, size=PANEL_SIZE), x + 16, y + 98 + i * pitch, within=BLOCK_SH))
 
     def legend_rows(self):
         """(draw(cx, cy, k), text) rows: every charted symbol id in chartlib.symbol_defs (vessels, halo and flare
@@ -965,6 +965,8 @@ class _Sheet:
 
         months = self.scrapy.get("months_active")
         commits = self.scrapy.get("commits")
+        weeks = [w for w in (self.data.get("weeks") or []) if isinstance(w, dict) and w.get("n")]
+        hw = max(weeks, key=lambda w: w["n"]) if weeks else None
         sym = lambda name, dx=0, dy=0, sc=1.0: (lambda cx, cy, kk: self.use_legend(name, cx + dx * kk, cy + dy * kk, scale=sc * kk))  # noqa: E731
         return [
             (sym("can", 0, 6), "G can · port, returning"),
@@ -1016,6 +1018,9 @@ class _Sheet:
                                  if commits and months else self.snd(4, cx, cy + 4 * kk, sub=2, truth="illustrative", role="label")),
              "Height · commits, months" if commits and months else "Sounding · 1000s, 100s"),
             (lambda cx, cy, kk: self.snd(4, cx, cy + 4 * kk, sub=2, truth="illustrative", role="label"), "Sounding · 1000s, 100s"),
+            (lambda cx, cy, kk: (self.snd(hw["n"], cx, cy + 4 * kk, sub=hw.get("days", 0), truth="measured", role="label")
+                                 if hw else self.snd(108, cx, cy + 4 * kk, sub=4, truth="illustrative", role="label")),
+             "Sheet 1 · week's commits, days"),
         ]
 
     def draw_legend(self):
@@ -1031,7 +1036,7 @@ class _Sheet:
         per = math.ceil(len(rows) / ncol)
         col_w = (w - 28) / ncol
         avail = col_w - 54
-        y0, pitch = y + 68, 19
+        y0, pitch = y + 66, 18.3
         kk = 1.3
         for i, (draw, text) in enumerate(rows):
             ci, ri = divmod(i, per)
