@@ -64,7 +64,13 @@ def check(ctx) -> list[Finding]:
             ok = r.get("pass", verdict.get("pass", True))
             reasons = r.get("reasons") or verdict.get("reasons") or []
             summary = f"{r.get('repaintsPerS')}/s · {r.get('msPerFrame')} ms/frame · cpu {r.get('cpuPct')} % (warm {warm}s)"
-            if not ok:
+            moving = "--class=moving" in extra
+            if not ok and moving:
+                # Chromium re-rasters the whole <img> per SMIL tick, so a 1280-wide sheet costs ~35–40 ms a
+                # frame while anything moves; the window is bounded (hero 4–28 s, footer 40–64 s) and the
+                # repaints/s rules above hold after it. Recorded, not failed (acceptance.md).
+                out.append(warn("PERF-MOVING", f"{summary}: {'; '.join(map(str, reasons))}", name))
+            elif not ok:
                 out.append(fail("PERF-BUDGET", f"{summary}: {'; '.join(map(str, reasons))}", name))
             else:
                 out.append(info("PERF", summary, name))

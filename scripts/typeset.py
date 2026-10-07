@@ -510,13 +510,14 @@ def _rot_bbox(x0, y0, x1, y1, cx, cy, deg):
 
 
 def _register(s, role, font, size, x0, x1, y, angle, semantic, within, truth, key, origin, tracking,
-              glyphs, y0=None, y1=None) -> Run:
+              glyphs, y0=None, y1=None, pivot_x=None) -> Run:
     face = _face(font)
     sc = size / face.upm
     if y0 is None:
         y0 = y - face.asc * sc
         y1 = y + face.desc * sc
-        x0r, y0r, x1r, y1r = _rot_bbox(x0, y0, x1, y1, x0, y, angle)
+        # the SVG rotates about the anchor (x, y), not the run's left end (builder S, report §5.2)
+        x0r, y0r, x1r, y1r = _rot_bbox(x0, y0, x1, y1, pivot_x if pivot_x is not None else x0, y, angle)
     else:
         x0r, y0r, x1r, y1r = x0, y0, x1, y1
     tracked = sum(1 for a, b in zip(glyphs, glyphs[1:])
@@ -588,7 +589,7 @@ def _set(s, x, y, role, fill, anchor, within, semantic, truth, key, edition, sca
     theme = _theme(ed)
     fill = fill or theme.ink
     _register(s, role, f, sz, x0, x0 + total, y, rotate, semantic, within, truth, key,
-              "text_use" if use else "text", tr, glyphs)
+              "text_use" if use else "text", tr, glyphs, pivot_x=x)
     out = [_group_open(fill, grade, theme.paper, opacity, rotate, x, y, extra)]
     pen = x0
     parts = []

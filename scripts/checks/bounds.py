@@ -24,7 +24,7 @@ def _box(r: dict) -> tuple[float, float, float, float] | None:
         return None
     y0 = float(r.get("y0", y - 0.75 * float(r.get("size", 0))))
     y1 = float(r.get("y1", y))
-    if r.get("rot"):
+    if r.get("rot") and "y0" not in r:   # typeset's manifest already holds the rotated box
         # rotated run: use the bounding box of the rotated rectangle around its origin (x0, y)
         a = math.radians(float(r["rot"]))
         pts = [(x0, y0), (x1, y0), (x0, y1), (x1, y1)]
