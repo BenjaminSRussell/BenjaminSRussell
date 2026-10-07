@@ -380,3 +380,230 @@ def border(x: float, y: float, w: float, h: float, ink: str, step: float = 20) -
         yy += step
         i += 1
     return "".join(out)
+
+
+# ================================================================ v9 primitives
+# Shared chart furniture for every sheet. All take explicit colours so day/night editions differ.
+
+def fill_closed(field: Field, level: float, fill: str, opacity: float, grid=None, offset=(0, 0)) -> str:
+    """Fill every CLOSED contour polygon at `level` (shallow-water tint). Stack several levels for bands."""
+    (_, paths), = contours(field, [level], grid)
+    ox, oy = offset
+    out = []
+    for d, closed, _pts in paths:
+        if closed:
+            out.append(f'<path d="{d}" fill="{fill}" fill-opacity="{opacity}" stroke="none"/>')
+    body = "".join(out)
+    return f'<g transform="translate({-ox},{-oy})">{body}</g>' if (ox or oy) else body
+
+
+def danger_lines(field: Field, level: float, ink: str, grid=None, offset=(0, 0), opacity: float = 0.9) -> str:
+    """Dotted danger line around every closed feature at `level` (the chart symbol for a shoal/foul area)."""
+    (_, paths), = contours(field, [level], grid)
+    ox, oy = offset
+    out = []
+    for d, closed, _pts in paths:
+        if closed:
+            out.append(f'<path d="{d}" fill="none" stroke="{ink}" stroke-width="1.1" stroke-dasharray="0.1 4.2" '
+                       f'stroke-linecap="round" stroke-opacity="{opacity}"/>')
+    body = "".join(out)
+    return f'<g transform="translate({-ox},{-oy})">{body}</g>' if (ox or oy) else body
+
+
+def unsurveyed_band(x: float, y: float, w: float, h: float, ink: str, hid: str = "unsurv", label: str = "UNSURVEYED",
+                    label_font: str = "plex", fade_w: float = 90) -> tuple[str, str]:
+    """(defs, body): a hatched margin where the survey stops, fading in from the left; label set along it."""
+    defs = (hatch_defs(hid, ink, spacing=7, angle=-45, opacity=0.28)
+            + f'<linearGradient id="{hid}-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/>'
+            f'<stop offset="{min(1, fade_w / max(w, 1)):.2f}" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="1"/></linearGradient>'
+            f'<mask id="{hid}-m"><rect x="{x}" y="{y}" width="{w}" height="{h}" fill="url(#{hid}-g)"/></mask>')
+    body = f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="url(#{hid})" mask="url(#{hid}-m)"/>'
+    if label:
+        lx, ly = x + w - 14, y + h / 2
+        body += (f'<g transform="translate({lx},{ly}) rotate(-90)">'
+                 + k.text_use(label, 0, 4, label_font, 11, ink, anchor="middle", tracking=2.2, opacity=0.8) + "</g>")
+    return defs, body
+
+
+def two_ring_rose(cx: float, cy: float, r: float, ink: str, accent: str, hours: list[int] | None = None,
+                  var_label: str | None = None, label_font: str = "plex", settle: bool = True) -> str:
+    """Modern two-ring rose. Outer: 360° true, 10° ticks, 30° numerals. Inner: a 24-hour commit clock whose
+    busiest hour is rotated to north (the 'variation'). No star, no rhumb lines, 'N' only."""
+    out = ['<g>']
+    if settle:  # the needle overshoots north on load and damps back: the chart is on a boat
+        out.append(f'<animateTransform attributeName="transform" type="rotate" values="-12 {cx} {cy};4 {cx} {cy};-1.5 {cx} {cy};0 {cx} {cy}" '
+                   f'keyTimes="0;0.45;0.75;1" dur="1.6s" begin="0.3s" calcMode="spline" keySplines="{k.EASE["sea"]};{k.EASE["sea"]};{k.EASE["sea"]}" fill="freeze"/>')
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{ink}" stroke-width="0.9" stroke-opacity=".8"/>')
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="{r-13}" fill="none" stroke="{ink}" stroke-width="0.5" stroke-opacity=".6"/>')
+    for deg in range(0, 360, 2):
+        a = math.radians(deg - 90)
+        if deg % 30 == 0:
+            r1 = r - 11
+        elif deg % 10 == 0:
+            r1 = r - 7
+        else:
+            r1 = r - 3.5
+        out.append(f'<line x1="{cx + r1*math.cos(a):.1f}" y1="{cy + r1*math.sin(a):.1f}" x2="{cx + r*math.cos(a):.1f}" y2="{cy + r*math.sin(a):.1f}" '
+                   f'stroke="{ink}" stroke-width="{0.9 if deg % 30 == 0 else 0.45}" stroke-opacity=".75"/>')
+    for deg in range(30, 360, 30):
+        a = math.radians(deg - 90)
+        rr = r - 22
+        out.append(k.text_use(f"{deg:03d}", cx + rr * math.cos(a), cy + rr * math.sin(a) + 3.5, label_font, 9.5, ink, anchor="middle", opacity=0.85))
+    out.append(f'<path d="M{cx},{cy - r - 2} l-5,-11 h10 z" fill="{accent}"/>')
+    out.append(k.text_use("N", cx, cy - r - 17, label_font, 11, ink, anchor="middle"))
+    ri = r - 34
+    if hours and sum(hours) > 0:
+        peak = max(range(24), key=lambda h: hours[h])
+        mx = max(hours)
+        out.append(f'<circle cx="{cx}" cy="{cy}" r="{ri}" fill="none" stroke="{ink}" stroke-width="0.5" stroke-opacity=".5"/>')
+        for h in range(24):
+            a = math.radians((h - peak) * 15 - 90)
+            L = 4 + (ri - 10) * (hours[h] / mx) ** 0.6
+            col = accent if h == peak else ink
+            out.append(f'<line x1="{cx + (ri - L)*math.cos(a):.1f}" y1="{cy + (ri - L)*math.sin(a):.1f}" x2="{cx + (ri - 2)*math.cos(a):.1f}" y2="{cy + (ri - 2)*math.sin(a):.1f}" '
+                       f'stroke="{col}" stroke-width="{2.2 if h == peak else 1.4}" stroke-opacity="{0.95 if h == peak else 0.55}" stroke-linecap="round"/>')
+        for h in (0, 6, 12, 18):
+            a = math.radians((h - peak) * 15 - 90)
+            out.append(k.text_use(f"{h:02d}", cx + (ri + 8) * math.cos(a), cy + (ri + 8) * math.sin(a) + 3, label_font, 8, ink, anchor="middle", opacity=0.7))
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="2" fill="{ink}"/>')
+    out.append("</g>")
+    if var_label:
+        out.append(k.text_use(var_label, cx, cy + r + 30, label_font, 10, ink, anchor="middle", tracking=1.2, opacity=0.85))
+    return "".join(out)
+
+
+def _period(character: str, default: float = 4.0) -> float:
+    last = character.split()[-1]
+    return float(last.rstrip("s")) if last.endswith("s") else default
+
+
+def lateral_mark(x: float, y: float, side: str, number: str, ink: str, red: str, green: str,
+                 character: str | None = None, night: bool = False, label_font: str = "plex", scale: float = 1.0) -> str:
+    """IALA Region B: 'starboard' = red nun (cone, even numbers), 'port' = green can (cylinder, odd numbers).
+    Draws the mark, its number, its light character, and (if `character`) a flashing light."""
+    s = scale
+    red_mark = side == "starboard"
+    col = red if red_mark else green
+    out = [f'<g transform="translate({x},{y}) scale({s})">']
+    if red_mark:
+        out.append(f'<path d="M-6,0 L6,0 L0,-14 Z" fill="{col}"/>')
+    else:
+        out.append(f'<rect x="-5.5" y="-13" width="11" height="13" rx="1" fill="{col}"/>')
+    out.append(f'<line x1="-9" y1="2" x2="9" y2="2" stroke="{ink}" stroke-width="0.8" stroke-opacity=".7"/>')
+    if character:
+        per = _period(character)
+        char = character.split()[0]
+        out.append(f'<circle cx="0" cy="-16" r="{15 if night else 10}" fill="{col}" fill-opacity="{0.55 if night else 0.35}" opacity="0">' + k.flash(char, per) + "</circle>")
+        out.append(f'<circle cx="0" cy="-16" r="2.2" fill="{col}" opacity="0">' + k.flash(char, per) + "</circle>")
+    out.append("</g>")
+    out.append(k.text_use(f'{"R" if red_mark else "G"} "{number}"', x + 12 * s, y - 2, label_font, 10, ink))
+    if character:
+        out.append(k.text_use(character, x + 12 * s, y + 10, label_font, 9, ink, opacity=0.8))
+    return "".join(out)
+
+
+def light_structure(x: float, y: float, ink: str, accent: str, paper: str, character: str = "Fl(3) 10s",
+                    night: bool = False, s: float = 1.0) -> str:
+    """A lighthouse that flashes its labelled character (no sweeping beam). Night: a soft halo."""
+    out = [f'<g transform="translate({x},{y}) scale({s})">']
+    out.append(f'<path d="M-7,10 L-5,-18 H5 L7,10 Z" fill="{paper}" stroke="{ink}" stroke-width="1.2"/>')
+    out.append(f'<path d="M-7,-2 H7 M-6,-10 H6" stroke="{ink}" stroke-width="1"/>')
+    out.append(f'<rect x="-5" y="-26" width="10" height="8" fill="{accent}" fill-opacity=".35"/>')
+    out.append(f'<path d="M-6,-26 L0,-32 L6,-26 Z" fill="{ink}"/>')
+    out.append(f'<path d="M-10,10 H10" stroke="{ink}" stroke-width="1.2"/>')
+    per = _period(character, 10)
+    char = character.split()[0]
+    out.append(f'<circle cx="0" cy="-22" r="{34 if night else 18}" fill="{accent}" fill-opacity="{0.42 if night else 0.22}" opacity="0">' + k.flash(char, per) + "</circle>")
+    out.append(f'<rect x="-5" y="-26" width="10" height="8" fill="{accent}" opacity="0">' + k.flash(char, per) + "</rect>")
+    out.append("</g>")
+    return "".join(out)
+
+
+def sector_light(x: float, y: float, r: float, ink: str, red: str, white: str, red_from: float, red_to: float,
+                 lit_red: bool = False) -> str:
+    """Sector light: white arc with a red sector (bearings in degrees, 0 = north). The red sector is lit only
+    when the hazard is active (circuit breaker open); otherwise it is an unlit dashed outline."""
+    def pt(deg, rr):
+        a = math.radians(deg - 90)
+        return x + rr * math.cos(a), y + rr * math.sin(a)
+    out = [f'<circle cx="{x}" cy="{y}" r="{r}" fill="none" stroke="{ink}" stroke-width="0.6" stroke-dasharray="2 3" stroke-opacity=".6"/>']
+    x1, y1 = pt(red_from, r)
+    x2, y2 = pt(red_to, r)
+    large = 1 if (red_to - red_from) % 360 > 180 else 0
+    d = f"M{x},{y} L{x1:.1f},{y1:.1f} A{r},{r} 0 {large} 1 {x2:.1f},{y2:.1f} Z"
+    if lit_red:
+        out.append(f'<path d="{d}" fill="{red}" fill-opacity=".28" stroke="{red}" stroke-width="0.8"/>')
+    else:
+        out.append(f'<path d="{d}" fill="none" stroke="{red}" stroke-width="0.9" stroke-dasharray="3 3" stroke-opacity=".8"/>')
+    out.append(f'<circle cx="{x}" cy="{y}" r="3" fill="{white}" stroke="{ink}" stroke-width="0.8"/>')
+    return "".join(out)
+
+
+def track_lines(x0: float, y0: float, x1: float, y1: float, n: int, spacing: float, ink: str,
+                cross: int = 2, opacity: float = 0.55):
+    """Parallel survey track lines (hydrographic survey geometry) with cross-lines for checks.
+    Returns (svg, [((xa,ya),(xb,yb)), ...]) so a vessel can be animated along them."""
+    out, lines = [], []
+    dx, dy = x1 - x0, y1 - y0
+    L = math.hypot(dx, dy) or 1
+    nx, ny = -dy / L, dx / L
+    for i in range(n):
+        off = (i - (n - 1) / 2) * spacing
+        a = (x0 + nx * off, y0 + ny * off)
+        b = (x1 + nx * off, y1 + ny * off)
+        lines.append((a, b))
+        out.append(f'<line x1="{a[0]:.1f}" y1="{a[1]:.1f}" x2="{b[0]:.1f}" y2="{b[1]:.1f}" stroke="{ink}" stroke-width="0.6" stroke-dasharray="1 4" stroke-opacity="{opacity}"/>')
+    for j in range(cross):
+        t = (j + 1) / (cross + 1)
+        cx_, cy_ = x0 + dx * t, y0 + dy * t
+        half = (n - 1) / 2 * spacing + spacing * 0.6
+        out.append(f'<line x1="{cx_ + nx*half:.1f}" y1="{cy_ + ny*half:.1f}" x2="{cx_ - nx*half:.1f}" y2="{cy_ - ny*half:.1f}" stroke="{ink}" stroke-width="0.6" stroke-dasharray="1 4" stroke-opacity="{opacity*0.8}"/>')
+    return "".join(out), lines
+
+
+def wreck(x: float, y: float, ink: str, label: str | None = "Wk", s: float = 1.0) -> str:
+    """Wreck symbol (hull with a mast, dangerous to navigation) and an italic 'Wk' label."""
+    out = (f'<g transform="translate({x},{y}) scale({s})" stroke="{ink}" stroke-width="1.1" fill="none" stroke-linecap="round">'
+           f'<path d="M-9,2 Q0,7 9,2"/><path d="M-9,2 L-6,-3 L6,-3 L9,2"/><path d="M0,-3 V-11"/><path d="M-4,-8 H4"/></g>')
+    if label:
+        out += k.text_use(label, x + 13 * s, y + 4, "plex-italic", 10, ink, opacity=0.85)
+    return out
+
+
+def anchorage(x: float, y: float, ink: str, s: float = 1.0) -> str:
+    return (f'<g transform="translate({x},{y}) scale({s})" fill="none" stroke="{ink}" stroke-width="1.3" stroke-linecap="round">'
+            f'<circle cx="0" cy="-9" r="2.4"/><path d="M0,-6.5 V9"/><path d="M-6,-1 H6"/><path d="M-8,4 Q-8,10 0,10 Q8,10 8,4"/></g>')
+
+
+def source_diagram(x: float, y: float, w: float, h: float, ink: str, paper: str, blocks, title: str = "SOURCE DIAGRAM",
+                   label_font: str = "plex") -> str:
+    """Inset showing which parts of the sheet were surveyed by which source. blocks = (letter, fx, fy, fw, fh, hatch_id|'')
+    in fractions of the inset; the caption lines explaining the letters are drawn by the caller."""
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{paper}" stroke="{ink}" stroke-width="0.8"/>']
+    for letter, fx, fy, fw, fh, hid in blocks:
+        bx, by, bw, bh = x + fx * w, y + fy * h, fw * w, fh * h
+        fill = f"url(#{hid})" if hid else "none"
+        out.append(f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="{bh:.1f}" fill="{fill}" stroke="{ink}" stroke-width="0.6"/>')
+        out.append(k.text_use(letter, bx + bw / 2, by + bh / 2 + 4, label_font, 10, ink, anchor="middle"))
+    out.append(k.text_use(title, x, y - 5, label_font, 8.5, ink, tracking=1.6, opacity=0.85))
+    return "".join(out)
+
+
+def marginalia(text: str, x: float, y: float, ink: str, angle: float = -4, size: float = 14, font: str = "serif-italic") -> str:
+    """A pencilled note in the margin: small italic serif, slightly rotated, a second register of voice."""
+    return f'<g transform="translate({x},{y}) rotate({angle})">' + k.text(text, 0, 0, font, size, ink, opacity=0.78) + "</g>"
+
+
+def serpent(x: float, y: float, ink: str, s: float = 1.0) -> str:
+    """A sea-serpent's back breaking the surface: three humps and a head with one eye. Silent."""
+    return (f'<g transform="translate({x},{y}) scale({s})" fill="none" stroke="{ink}" stroke-width="2.2" stroke-linecap="round">'
+            f'<path d="M-70,0 Q-55,-26 -40,0"/><path d="M-26,0 Q-11,-30 4,0"/><path d="M18,0 Q30,-22 42,-6 Q50,2 58,-4"/>'
+            f'<circle cx="52" cy="-7" r="1.4" fill="{ink}" stroke="none"/></g>')
+
+
+def out_and_back(path_d: str, dur: float = 96, hold: float = 0.06) -> str:
+    """animateMotion that sails a path forward, holds, and sails back, so there is never a seam."""
+    f = (1 - 2 * hold) / 2
+    return (f'<animateMotion dur="{dur}s" repeatCount="indefinite" rotate="auto" path="{path_d}" '
+            f'keyPoints="0;1;1;0;0" keyTimes="0;{f:.4f};{f+hold:.4f};{2*f+hold:.4f};1" '
+            f'calcMode="spline" keySplines="{k.EASE["sea"]};0 0 1 1;{k.EASE["sea"]};0 0 1 1"/>')

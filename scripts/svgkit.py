@@ -23,6 +23,8 @@ FONTS = {
     "serif-italic": f"{FONT_DIR_INTER}/InstrumentSerif-Italic.ttf",
     "plex": f"{FONT_DIR_INTER}/IBMPlexMono-Regular.ttf",
     "plex-medium": f"{FONT_DIR_INTER}/IBMPlexMono-Medium.ttf",
+    "plex-semibold": f"{FONT_DIR_INTER}/IBMPlexMono-SemiBold.ttf",
+    "plex-italic": f"{FONT_DIR_INTER}/IBMPlexMono-Italic.ttf",   # illustrative numerals (chart convention)
     # earlier system (kept for the generator's history)
     "display": f"{FONT_DIR_INTER}/InterDisplay-Bold.otf",
     "display-semi": f"{FONT_DIR_INTER}/InterDisplay-SemiBold.otf",
@@ -286,3 +288,97 @@ def write(path: str, content: str) -> None:
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(content)
     print(f"wrote {path} ({len(content.encode()) // 1024} KB)")
+
+
+# ---------------------------------------------------------------- motion system
+# Three named easings (see DESIGN.md): settle = things arriving, draw = pen on paper, sea = the only
+# easing allowed on loops. Loop durations live on a 10 / 24 / 48 / 96 s scale so sheets phase-align.
+EASE = {"settle": "0.16 0.84 0.44 1", "draw": "0.4 0 0.2 1", "sea": "0.37 0 0.63 1", "linear": "0 0 1 1"}
+LOOP = {"short": 10, "medium": 24, "long": 48, "page": 96}
+
+
+def anim(attr: str, values, dur: float, begin=None, ease: str | None = None, freeze: bool = False,
+         repeat: str | None = None, key_times=None, aid: str | None = None, extra: str = "") -> str:
+    """<animate> with spline easing. `values` is a list or a ';'-joined string. Default: one-shot, freeze."""
+    if isinstance(values, (list, tuple)):
+        values = ";".join(str(v) for v in values)
+    n = values.count(";")
+    parts = [f'attributeName="{attr}"', f'values="{values}"', f'dur="{dur}s"']
+    if aid:
+        parts.insert(0, f'id="{aid}"')
+    if begin is not None:
+        parts.append(f'begin="{begin}"' if isinstance(begin, str) else f'begin="{begin}s"')
+    if key_times is not None:
+        if isinstance(key_times, (list, tuple)):
+            key_times = ";".join(f"{t:.4f}" if isinstance(t, float) else str(t) for t in key_times)
+        parts.append(f'keyTimes="{key_times}"')
+    if ease and ease != "linear" and n >= 1:
+        parts.append('calcMode="spline"')
+        parts.append(f'keySplines="{";".join([EASE[ease]] * n)}"')
+    if freeze:
+        parts.append('fill="freeze"')
+    if repeat:
+        parts.append(f'repeatCount="{repeat}"')
+    if extra:
+        parts.append(extra)
+    return f'<animate {" ".join(parts)}/>'
+
+
+def set_at(attr: str, to, begin) -> str:
+    b = begin if isinstance(begin, str) else f"{begin}s"
+    return f'<set attributeName="{attr}" to="{to}" begin="{b}"/>'
+
+
+def draw_in(path_attrs: str, dur: float = 1.6, begin: float | str = 0, ease: str = "draw", aid: str | None = None) -> str:
+    """Return a <path> that traces itself in. `path_attrs` is everything inside the tag (d, stroke, ...)."""
+    return (f'<path {path_attrs} pathLength="1" stroke-dasharray="1" stroke-dashoffset="1">'
+            + anim("stroke-dashoffset", [1, 0], dur, begin, ease, freeze=True, aid=aid) + "</path>")
+
+
+def appear(inner: str, begin: float | str, dur: float = 0.25, rise: float = 3.0, ease: str = "settle") -> str:
+    """Fade (and lift) a group in once, then stay."""
+    b = begin if isinstance(begin, str) else f"{begin}s"
+    g = f'<g opacity="0">' + anim("opacity", [0, 1], dur, b, ease, freeze=True)
+    if rise:
+        g += (f'<animateTransform attributeName="transform" type="translate" values="0 {rise};0 0" dur="{dur}s" '
+              f'begin="{b}" calcMode="spline" keySplines="{EASE[ease]}" fill="freeze"/>')
+    return g + inner + "</g>"
+
+
+def flash(character: str, dur: float, begin=0, color_attr: str = "opacity", lit: str = "1", dark: str = "0") -> str:
+    """Light character as an opacity sequence: character like 'Fl(3)' or 'Fl' or 'Oc' or 'Iso' or 'Q'."""
+    import re as _re
+    m = _re.match(r"(Fl|Oc|Iso|Q|LFl)(?:\((\d+)\))?", character)
+    kind, n = (m.group(1), int(m.group(2) or 1)) if m else ("Fl", 1)
+    vals, times = [], []
+    if kind == "Iso":
+        vals, times = [lit, lit, dark, dark], [0, 0.5, 0.5, 1]
+    elif kind == "Oc":
+        vals, times = [lit, lit, dark, dark, lit], [0, 0.7, 0.7, 0.85, 0.85]
+        vals, times = [lit, lit, dark, dark, lit, lit], [0, 0.72, 0.72, 0.86, 0.86, 1]
+    elif kind == "Q":
+        n = max(n, int(dur))  # quick: ~1 flash per second
+        step = 1 / n
+        for i in range(n):
+            t0 = i * step
+            vals += [dark, lit, lit, dark]
+            times += [t0, t0 + step * 0.05, t0 + step * 0.45, t0 + step * 0.5]
+        vals.append(dark); times.append(1)
+    else:  # Fl / LFl group flashing: n flashes of ~0.35 s spaced 1.2 s, then dark
+        fl = (0.8 if kind == "LFl" else 0.35) / dur
+        gap = 1.2 / dur
+        t = 0.02
+        vals, times = [dark], [0]
+        for i in range(n):
+            vals += [dark, lit, lit, dark]
+            times += [t, t + 0.01, t + fl, t + fl + 0.01]
+            t += fl + gap
+        vals.append(dark); times.append(1)
+    times = [min(max(x, 0), 1) for x in times]
+    # keyTimes must be non-decreasing and end at 1
+    fixed = []
+    last = 0
+    for x in times:
+        x = max(x, last); fixed.append(x); last = x
+    fixed[-1] = 1
+    return anim(color_attr, vals, dur, begin, None, False, "indefinite", fixed, extra='calcMode="discrete"')
