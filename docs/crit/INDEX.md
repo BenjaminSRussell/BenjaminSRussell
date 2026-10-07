@@ -11,6 +11,6 @@ Two panels reviewed the profile before the rebuild, then a technical team turned
   narrative designer, brand strategist, recruiter, Rust engineer, data engineer, SRE, crawling expert,
   OSS maintainer, poet, comedy writer, sailor, exhibition designer, art director, UX researcher, design
   systems, illustrator, data journalist, design educator, philosopher, profile curator, owner's advocate.
-- `TECH-BRIEF.md`, `tech/` — the ten technical leads' sections and the integrated `MASTERPLAN.md`.
+- `TECH-BRIEF.md`, `tech/T1–T10` — the ten technical leads' sections; `tech/MASTERPLAN.md` — the integrated, decision-logged build plan (read this first).
 
 Each review ends with its five most important lines; the technical team read those first.
