@@ -4,8 +4,8 @@ A chart's instrument inventory in three columns, LEAD · LOG · LOOKOUT (languag
 queues; deck), each line a fitting from chart.toml [fittings] with the first commit of the
 repository that carries it as its commissioning date. Bold = the repository is underway this
 quarter (stats.json repos[].active). Full-width 1280×290; the columns hang on the right two
-thirds, the left third carries the reading key and the folio. No motion. Phone: a rule and the
-folio (the stack itself is in the README's plain text).
+thirds, the left third carries the title, key and the three groups as large rotated caps. No motion.
+Phone (720×200): three stacked lines, the group word as a caps head and its fittings after it.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from edition import fmt
 
 NAME = "instruments"
 KIND = "strip"
-SIZES = {"desk": (1280, 290), "phone": (720, 48)}
+SIZES = {"desk": (1280, 290), "phone": (720, 200)}
 BREAKS: list[tuple[str, str, str]] = [
     ("Right-hung columns", "columns at x 480→1280, the left third nearly empty",
      "the one broken hang on the page; the silhouette names the sheet (27, decision 2)"),
@@ -68,10 +68,10 @@ def _repo_index(data: dict) -> dict:
 
 
 def _mark(kind: str, x: float, y: float, theme) -> str:
-    """A legend mark in the row's gutter, centred on x, at 0.8 (the same <use> ids the legend defines)."""
+    """A legend mark in the row's gutter, centred on x, at 0.9 (the same <use> ids the legend defines)."""
     if kind not in MARK_NAMES:
         return ""
-    return C.use(kind, x, y - 4, NAME, scale=0.8)
+    return C.use(kind, x, y - 5, NAME, scale=0.9)
 
 
 def _mark_for(item: dict, code: str) -> str | None:
@@ -111,6 +111,12 @@ def _symbols(theme, edition: str, names) -> str:
 
 
 
+def _bold(svg: str, color: str) -> str:
+    """Faux-bold for the one condensed cut: a .45 px spread stroke in the fill colour (typeset's grade trick)."""
+    return svg.replace(f'<g fill="{color}"', f'<g fill="{color}" stroke="{color}" stroke-width="0.45" paint-order="stroke" '
+                       f'stroke-linejoin="round"', 1)
+
+
 def _desk(ctx) -> str:
     ed, t, data, cfg = ctx.ed, ctx.ed.theme, ctx.data, ctx.cfg
     W_, H_ = SIZES["desk"]
@@ -124,25 +130,23 @@ def _desk(ctx) -> str:
     out: list[str] = []
     defs = _symbols(t, ed.name, MARK_NAMES)
     rows = max([sum(1 for i in items if i.get("group") == g[0]) for g in groups] + [6])
-    y_top, pitch, y_first = 40, 28, 76
-    y_bot = y_first + (rows - 1) * pitch + 20
-    # column rules
+    y_top, pitch, y_first = 44, 34, 80            # six rows at 34 px: 80 … 250 (17 px names read at 870)
+    y_bot = y_first + (rows - 1) * pitch + 8
     for x in (COL_X[1] - 1, COL_X[2] - 1):
         out.append(f'<path d="M{x} {y_top}V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
     for gi, (code, gloss) in enumerate(groups[:3]):
         cx = COL_X[gi]
-        # the group head: the instrument's name and its plain gloss, typed and tracked, above the column
-        out.append(tx(f"{code} · {gloss.upper()}", cx + NAME_X, y_first - 24, "machine", fill=t.muted, tracking=1.0))
+        out.append(tx(f"{code} · {gloss.upper()}", cx + NAME_X, y_first - 24, "machine", fill=t.ink2, tracking=1.0))
         col_items = [i for i in items if i.get("group") == code]
         for ri, item in enumerate(col_items):
             y = y_first + ri * pitch
             name = str(item.get("name", ""))
             repo = repos.get(str(item.get("repo", ""))) or repos.get(str(item.get("repo", "")).lower())
             active = bool(repo and repo.get("active"))
-            role = "machine-strong" if active else "machine"
             fill = t.ink if active else t.ink2
-            out.append(tx(name, cx + NAME_X, y, role, fill=fill, opacity=(0.9 if ed.dark and not active else None)))
-            pen = cx + NAME_X + T.text_width(name, role, edition=ed)
+            run = tx(name, cx + NAME_X, y, "label", fill=fill, size=17)
+            out.append(_bold(run, fill) if active else run)
+            pen = cx + NAME_X + T.text_width(name, "label", size=17, edition=ed)
             mark = _mark_for(item, code)
             if mark:
                 out.append(_mark(mark, cx + MARK_X, y, t))
@@ -153,33 +157,61 @@ def _desk(ctx) -> str:
                 out.append(f'<path d="M{fmt(pen + 8)} {fmt(y - 1)}H{fmt(lead_end)}" fill="none" '
                            f'{C.stroke("HAIR", t.ink2, 0.9, "TRACK")}/>')
             if fitted:
-                out.append(tx(fitted, cx + DATE_X, y, "label", fill=t.muted, anchor="end", truth="measured",
+                out.append(tx(fitted, cx + DATE_X, y, "label", fill=t.ink2, anchor="end", truth="measured",
                               key=f"fitted.{name}"))
-    # the left third (decision 2): the sheet's name, the three groups as large rotated condensed caps with
-    # their plain-words gloss, hairlines between, and the reading key
-    out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.muted))
+    # the left third (decision 2): the sheet's name and key, the three groups as large rotated condensed caps
+    # with their plain-words gloss, hairlines between
+    out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.ink2))
+    n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
+    out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
+                  48, y_first - 24, "label", fill=t.ink2, truth="measured", key="active_count"))
     band_w = 142
     for gi, (code, _gloss) in enumerate(groups[:3]):
         bx = 48 + gi * band_w
         if gi:
-            out.append(f'<path d="M{bx - 12} 52V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
+            out.append(f'<path d="M{bx - 12} {y_first - 10}V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
         out.append(tx(code.upper(), bx + 34, y_bot - 4, "label", fill=t.ink2, size=46, tracking=2.0, rotate=-90))
-        out.append(tx(GLOSS.get(code, _gloss.lower()), bx, y_bot + 18, "label", fill=t.muted))
-    n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
-    out.append(tx(f"bold · carried by a repository underway this quarter ({n_active} of {chart_no}) · "
-                  "date · first commit of its repository", 48, H_ - 20, "label", fill=t.muted, truth="measured", key="active_count"))
+        out.append(tx(GLOSS.get(code, _gloss.lower()), bx, y_bot + 14, "label", fill=t.ink2))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
     return E.svg(ed, W_, H_, "".join(out), defs + T.glyph_defs(), sheet=NAME)
 
 
+def _wrap(words: list[str], width: float, measure) -> list[str]:
+    lines, cur = [], ""
+    for w in words:
+        cand = f"{cur}, {w}" if cur else w
+        if cur and measure(cand) > width:
+            lines.append(cur)
+            cur = w
+        else:
+            cur = cand
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def _phone(ctx) -> str:
-    """A rule and the folio: the stack is in the Markdown line above (T9 §5.6)."""
-    ed, t, data = ctx.ed, ctx.ed.theme, ctx.data
+    """Three stacked lines: the group word as a 26 px caps head, its fittings after it, wrapped."""
+    ed, t, data, cfg = ctx.ed, ctx.ed.theme, ctx.data, ctx.cfg
     W_, H_ = SIZES["phone"]
+    groups, items = _fittings(cfg)
     chart_no = int(data.get("repo_count") or len(data.get("repos") or []))
-    out = [f'<path d="M16 12H704" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>',
-           T.text_use(f"CHART NO. {chart_no} · SHEET 5", 704, 40, "label-caps", fill=t.muted, anchor="end",
-                      edition=ed, key="folio")]
+
+    def tx(s, x, y, role="label", **kw):
+        return T.text_use(s, x, y, role, edition=ed, **kw)
+
+    out: list[str] = []
+    y, X_ITEMS, PITCH = 42, 150, 30
+    for gi, (code, _gloss) in enumerate(groups[:3]):
+        names = [str(i.get("name", "")) for i in items if i.get("group") == code]
+        lines = _wrap(names, W_ - 16 - X_ITEMS, lambda s_: T.text_width(s_, "label", edition=ed))
+        if gi:
+            out.append(f'<path d="M16 {y - 23}H{W_ - 16}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
+        out.append(tx(code.upper(), 16, y, "label", fill=t.ink))
+        for ln in lines:
+            out.append(tx(ln, X_ITEMS, y, "label", fill=t.ink2))
+            y += PITCH
+    out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 704, H_ - 8, "label-caps", fill=t.muted, anchor="end", key="folio"))
     return E.svg(ed, W_, H_, "".join(out), T.glyph_defs(), sheet=NAME)
 
 

@@ -289,3 +289,51 @@ PNGs: `…/crit/build/S/png/r3-footer-day.png`, `r3-footer-night.png`, `r3-foote
 1. Footer sea is paper; tint A fringe + tint B shelf before the lip follow the swell line, limit line on the A/B boundary; motion unchanged.
 2. Perf 3.64 ms/frame (library prose measured 3.95 and was reverted for headroom); size 80.9/26.3 KB — the 40 KB target is unreachable without the inline lettering, so reported as a warning.
 3. Rebuilt into assets/v9 (38 files, 0 problems); check.py `--only` my sheets exit 0, motion 0, byte-identical, 178 tests OK.
+
+---
+
+# Round 4 (re-crit panel: 07 type, 09 accessibility, 18 recruiter, 36 owner's advocate)
+
+Files changed: `scripts/sheets/instruments.py`, `soundings.py`, `log.py`, `tests/test_supporting.py`. Full default
+build into `assets/v9` (38 files, 0 problems).
+
+1. **Instruments type.** Item names cond 17 (`label`, size 17), dates cond 13 in ink2 (not muted), row pitch 34
+   (rows at y 80…250, six per column within 290), group heads 13 px mono caps ink2. Bold = active via a .45 px
+   spread stroke in the fill colour (the condensed family has no bold cut; typeset's own grade trick) — only
+   TypeScript, with the key `bold · underway this quarter (1 of 21) · date · first commit of its repository`
+   under the title. Rotated LEAD/LOG/LOOKOUT block kept (words from y 254 upward, glosses at y 270). Marks at 0.9.
+   Rendered in the README column the names are now ≈ 11.6 px, the dates ≈ 8.8 px.
+2. **Instruments phone 720×200** (`SIZES["phone"]`): three stacked groups, the word as a 26 px caps head (`LEAD`),
+   fittings after it at the phone label role (ink2), wrapped at the sheet width (LOG and LOOKOUT take two lines),
+   hairlines between groups, folio bottom-right; no leaders. The alt already describes three columns; unchanged.
+3. **Soundings aliases.** Register names and the HW cause print `[[features]].aliases[0]` where one exists
+   (`SCRAPY HARBOR`, `RUSTMAPPER`, `PROFILE SHOAL`, and the hero's `DATA SCIENCE BANK`, `GAME ENGINE I.`,
+   `FASHIONDB BANK`), the repo name otherwise; the alt uses the alias too and falls back to the repo name if it
+   would exceed 25 words (`test_soundings_unit_and_both_instruments` asserts the aliases and that bare SCRAPY is gone).
+4. **Log honesty.** Sign-off gated on `log.measured`: computed → `Log closed 1550 · computed from settings ·
+   unsigned` (muted machine, digits italic; a fully italic sentence would have added a second italic alphabet
+   and broken typeset's 40 KB glyph budget — the words carry the meaning), no initials anywhere on the sheet or
+   the phone edition (`Log closed 1550 · unsigned`); measured → typed close + serif-italic initials as before.
+   Alt: "…computed from settings, unsigned." Heartbeat `watch kept by cron` unchanged.
+   `test_log_signature_is_gated_on_measured` added.
+5. **Contrast.** Soundings month letters and the log's column heads are ink2; rebuilt with the new night muted.
+
+Gates: full build 38 files / 0 problems; `check.py --dev --tier fast --only soundings,log,instruments,footer`
+pass, exit 0, 0 fail / 0 warn; `motion.py` 0; my 24 files byte-identical on rebuild; `tests.test_supporting`
+21 OK (full suite 179: two failures in `test_hero`, H's); footer perf 3.44 ms/frame (max 4.35).
+
+Sizes (raw · gz KB): instruments-day 64.2 · 12.2, night 67.3 · 12.2, phone 25.3 · 5.6 / 27.1 · 5.6 (720×200,
+261 el); soundings 88.0 · 15.4 / 92.6 · 15.3; log 78.7 · 15.9 / 81.2 · 15.8, phone 32.0 · 9.4; footer unchanged
+80.9 · 26.3.
+
+PNGs: `…/crit/build/S/png/r4-instruments-day.png`, `r4-instruments-night.png`, `r4-instruments-phone-day.png`,
+`r4-soundings-day.png`, `r4-log-day.png`, `r4-log-phone-day.png`.
+
+## Summary (round 4)
+
+1. Instruments: names cond 17, dates cond 13 ink2, pitch 34, heads 13 caps ink2, bold-by-stroke for the active fitting; rotated LEAD/LOG/LOOKOUT kept. Sizes 64.2/12.2 KB day, 67.3/12.2 night.
+2. Instruments phone is a real 720×200 sheet: three stacked groups, caps heads, every fitting named — 25.3/5.6 KB.
+3. Soundings register and HW cause print the chart's feature aliases (Scrapy Harbor, rustmapper, Profile Shoal…); alt follows with a 25-word fallback.
+4. Log signs only a measured session; the computed log closes "computed from settings · unsigned" on desk, phone and in the alt.
+5. Month letters and log column heads in ink2; night muted token picked up by the rebuild.
+6. Gates green: 38 files / 0 problems, check.py --only exit 0, motion 0, byte-identical, 21 tests OK, footer 3.44 ms/frame.

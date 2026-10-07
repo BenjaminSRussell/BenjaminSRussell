@@ -201,6 +201,20 @@ class SupportingSheets(unittest.TestCase):
             hb = [t for t in Built.text_of(f"log-{ed}") if t.get("key") == "heartbeat"]
             self.assertTrue(hb and all(t["slant"] == "upright" for t in hb))
 
+    def test_log_signature_is_gated_on_measured(self):
+        """36: a computed log is closed but unsigned; only a measured session carries the initials."""
+        with open(os.path.join(ROOT, "assets", "log.json"), encoding="utf-8") as fh:
+            log = json.load(fh)
+        for ed in ("day", "phone-day"):
+            texts = [t["s"] for t in Built.text_of(f"log-{ed}")]
+            if log.get("measured"):
+                self.assertIn(log["signoff"]["initials"], texts)
+            else:
+                self.assertNotIn(log["signoff"]["initials"], texts)
+                self.assertTrue(any("unsigned" in s for s in texts), ed)
+        if not log.get("measured"):
+            self.assertIn("unsigned", Built.report["sheets"]["log-day"]["alt"])
+
     def test_log_remarks_stay_in_their_column(self):
         for t in Built.text_of("log-day"):
             if t.get("within"):
@@ -239,7 +253,7 @@ class SupportingSheets(unittest.TestCase):
             for tag in ("<text", "<tspan", "<textPath", "<pattern", "<filter", "<animateMotion", "<script", "<style"):
                 self.assertNotIn(tag, text, f"{tag} in {f}")
             for m in re.finditer(r'stroke-width="([\d.]+)"', text):
-                self.assertIn(float(m.group(1)), (*tokens.W.values(), 0.8, 0.22, 0.18), f"{f}: stroke {m.group(1)}")
+                self.assertIn(float(m.group(1)), (*tokens.W.values(), 0.8, 0.22, 0.18, 0.45), f"{f}: stroke {m.group(1)}")
 
     def test_512_is_never_upright_on_the_log(self):
         """Decision 14: the worker count is disputed, so 512 appears only in the log, italic (the soundings
@@ -270,9 +284,15 @@ class SupportingSheets(unittest.TestCase):
         weeks = [t for t in runs if (t.get("key") or "").startswith("week.")]
         self.assertEqual(len(weeks), len(stats["weeks"]))
         self.assertTrue(all(t["origin"] == "sounding" and t["slant"] == "upright" for t in weeks))
-        # one line per repository in the register
+        # one line per repository in the register, under the chart's own names where chart.toml gives one
         reg = [t for t in runs if (t.get("key") or "").startswith("repo.")]
         self.assertEqual(len(reg), len(stats["repos"]))
+        names = {t["s"] for t in runs}
+        cfg = build_assets.load_cfg()
+        for f in cfg["features"]:
+            if f.get("aliases") and any(r["name"] == f["repo"] for r in stats["repos"]):
+                self.assertIn(f["aliases"][0].upper(), names, f["repo"])
+        self.assertNotIn("SCRAPY", names)
 
     def test_changing_a_sounding_moves_the_tide_and_no_weeks_fails(self):
         """T9 §5.2."""
@@ -326,11 +346,20 @@ class SupportingSheets(unittest.TestCase):
             self.assertIn(item["repo"], repos, item)
             run = by_text.get(item["name"])
             self.assertIsNotNone(run, item["name"])
-            self.assertEqual(run["role"], "machine-strong" if repos[item["repo"]]["active"] else "machine", item["name"])
+            self.assertEqual((run["role"], run["size"]), ("label", 17), item["name"])
             self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in runs}, item["name"])
-        # the phone edition is a rule plus the folio
+        # bold = active: the one active fitting carries the spread stroke
+        svg = Built.files["instruments-day.svg"].decode()
+        active = [i["name"] for i in cfg["fittings"]["items"] if repos[i["repo"]]["active"]]
+        self.assertEqual(svg.count('stroke-width="0.45" paint-order="stroke"'), len(active))
+        # the phone edition stacks the three groups: a caps head per group and every fitting named
         phone = Built.text_of("instruments-phone-day")
-        self.assertEqual([t["key"] for t in phone], ["folio"])
+        texts = " ".join(t["s"] for t in phone)
+        for code, _gloss in cfg["fittings"]["groups"]:
+            self.assertIn(code.upper(), [t["s"] for t in phone])
+        for item in cfg["fittings"]["items"]:
+            self.assertIn(item["name"], texts)
+        self.assertEqual([t["key"] for t in phone if t.get("key")], ["folio"])
 
     def test_folio_on_every_sheet(self):
         for name, e in Built.report["sheets"].items():

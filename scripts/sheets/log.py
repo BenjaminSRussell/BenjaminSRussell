@@ -145,7 +145,7 @@ def _desk(ctx) -> str:
     heads = (("TIME", 44, "start"), ("LOG · URLS", LOG_X, "end"), ("SPEED · REQ/S", SPEED_X, "end"), ("WIND", WIND_X, "start"),
              ("REMARKS", REMARKS_X, "start"))
     for s, x, a in heads:
-        out.append(tx(s, x, 100, "machine", fill=t.muted, anchor=a, tracking=1.0))
+        out.append(tx(s, x, 100, "machine", fill=t.ink2, anchor=a, tracking=1.0))
     # entries
     for i, r in enumerate(rows[:10]):
         y = 140 + 30 * i
@@ -174,14 +174,20 @@ def _desk(ctx) -> str:
         if pen + w > REMARKS_X + REMARKS_W:
             raise ValueError(f"log remark {i} is {pen + w - REMARKS_X:.0f} px wide; the column holds {REMARKS_W}")
         out.append(svg)
-    # sign-off: the clerk types the closing, the officer signs (serif italic initials)
+    # sign-off: a measured session is closed by the clerk and signed by the officer (serif italic initials);
+    # a computed one says so and nobody signs it (36: the system may not forge the person's initials)
     so = log.get("signoff") or {}
     initials = str(so.get("initials") or "")
-    sig_w = T.text_width(initials, "note", edition=ed) if initials else 0
-    if initials:
+    if measured and initials:
+        sig_w = T.text_width(initials, "note", edition=ed)
         out.append(tx(initials, 1236, 440, "note", fill=t.ink2, anchor="end"))
-    out.append(_mixed(ed, f"{so.get('text', 'Log closed')} {close}" + (" · " if initials else ""), 1236 - sig_w, 440,
-                      "machine", t.muted, anchor="end", italic=italic)[0])
+        out.append(_mixed(ed, f"{so.get('text', 'Log closed')} {close} · ", 1236 - sig_w, 440, "machine", t.muted,
+                          anchor="end", italic=False)[0])
+    else:
+        # digits italic as everywhere on the page; the words say the rest (a whole italic sentence would add a
+        # second italic alphabet to the glyph library and break its 40 KB budget)
+        out.append(_mixed(ed, f"{so.get('text', 'Log closed')} {close} · computed from settings · unsigned", 1236, 440,
+                          "machine", t.muted, anchor="end", italic=True, truth="illustrative", key="signoff")[0])
     # the heartbeat row: typed once at 44 s, upright (it is the one measured line on the page)
     line = _heartbeat_line(ctx) if ctx.heartbeat else ""
     HB_Y, HB_X = 470, 120
@@ -237,7 +243,10 @@ def _phone(ctx) -> str:
         out.append(_mixed(ed, r.text, 104, y, "machine", t.ink, italic=italic, within=(104, y - 24, 600, 34))[0])
         y += 38
     so = log.get("signoff") or {}
-    out.append(tx(f"{so.get('text', 'Log closed')} {close} · {so.get('initials', '')}".rstrip(" ·"), 104, y, "place-water", fill=t.ink2))
+    if log.get("measured") and so.get("initials"):
+        out.append(tx(f"{so.get('text', 'Log closed')} {close} · {so.get('initials')}", 104, y, "place-water", fill=t.ink2))
+    else:
+        out.append(_mixed(ed, f"{so.get('text', 'Log closed')} {close} · unsigned", 104, y, "machine", t.muted, italic=True)[0])
     y += 38
     upd = str(data.get("updated_at") or "")
     commits = data.get("commits")
@@ -269,6 +278,7 @@ def alt(data, cfg) -> str:
     total = max((r.log for r in rows if r.log is not None), default=0)
     so = log.get("signoff") or {}
     hosts = int(log.get("hosts") or 1)
+    closed = f"closed by {so.get('initials', 'B.S.R.')}" if log.get("measured") else "computed from settings, unsigned"
     return (f"Ship's log, {log.get('vessel', 'rustmapper')} {log.get('version', '')}: {len(rows)} entries, {first} to {close}, "
-            f"{total:,} URLs on {hosts} host{'s' if hosts != 1 else ''}, closed by {so.get('initials', 'B.S.R.')}. "
+            f"{total:,} URLs on {hosts} host{'s' if hosts != 1 else ''}, {closed}. "
             f"Types once; only the cursor keeps time.")

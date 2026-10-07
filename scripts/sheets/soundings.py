@@ -56,6 +56,20 @@ def _pretty(name: str) -> str:
     return name.replace("_", " ").replace("-", " ")
 
 
+def _aliases(cfg) -> dict:
+    """repo → chart name from chart.toml [[features]] aliases[0] (rustmapper, Scrapy Harbor, Profile Shoal)."""
+    out = {}
+    for f in (cfg.get("features") or []) if cfg else []:
+        al = f.get("aliases") or []
+        if f.get("repo") and al:
+            out[str(f["repo"])] = str(al[0])
+    return out
+
+
+def _chart_name(name: str, cfg) -> str:
+    return _aliases(cfg).get(name) or _pretty(name)
+
+
 def _days_between(a: str, b: str) -> int:
     import datetime as dt
     try:
@@ -186,7 +200,7 @@ def _desk(ctx) -> str:
     out.append(f'<path d="M{fmt(bx0)} {BASE + 9}v-4H{fmt(bx1)}v4" fill="none" {C.stroke("HAIR", t.ink2, 0.9, caps="butt")}/>')
 
     # labels (HW with its cause, LW, typical week, slack water)
-    hw_label = f"HW {_n(td['hw_n'])} · wk of {_dm(starts[td['hw_i']])} · {_pretty(td['cause'])}{td['sprint']}"
+    hw_label = f"HW {_n(td['hw_n'])} · wk of {_dm(starts[td['hw_i']])} · {_chart_name(td['cause'], ctx.cfg)}{td['sprint']}"
     if hx > (X0 + X1) / 2:
         out.append(tx(hw_label, hx - 9, hy + 4, "label", fill=t.ink, anchor="end", truth="measured", key="tide.hw"))
     else:
@@ -229,7 +243,7 @@ def _desk(ctx) -> str:
     d = "".join(f"M{fmt(xs[i])} {TRV + 4}v5" for i, _ in ticks)
     out.append(f'<path d="{d}" fill="none" {C.stroke("HAIR", t.ink, 0.7, caps="butt")}/>')
     for i, letter in ticks:
-        out.append(tx(letter, xs[i], 236, "label", fill=t.muted, anchor="middle"))
+        out.append(tx(letter, xs[i], 236, "label", fill=t.ink2, anchor="middle"))
 
     # fleet register as a tide-table block: ruled rows and columns, one 52-week line per repository on
     # one shared scale with its own baseline, name in caps, commits as a spot height
@@ -251,7 +265,7 @@ def _desk(ctx) -> str:
             c, rr = k % cols, k // cols
             cx, cy = X0 + c * pitch_x, y0 + rr * pitch_y
             active = bool(r.get("active"))
-            name = _pretty(r["name"]).upper()
+            name = _chart_name(r["name"], ctx.cfg).upper()
             count = _n(r.get("commits") or 0)
             cw = T.text_width(count, "label", edition=ed)
             room = cell_w - cw - 6
@@ -354,6 +368,10 @@ def alt(data, cfg) -> str:
         td = _tide(data)
     except ValueError:
         return "Tide table of weekly commits, fifty-two weeks, high and low water dated. Below, one line per repository."
-    return (f"Tide table of weekly commits: high water {_n(td['hw_n'])} the week of {_dm(td['starts'][td['hw_i']])}, "
-            f"{td['cause']}; low water {_n(td['lw_n'])}; typical week {_n(td['median'])}. "
-            f"Below, one line per repository.")
+    def alt_for(cause: str) -> str:
+        return (f"Tide table of commits: high water {_n(td['hw_n'])}, week of {_dm(td['starts'][td['hw_i']])}, {cause}; "
+                f"low water {_n(td['lw_n'])}; typical week {_n(td['median'])}. Below, one line per repository.")
+    text = alt_for(_aliases(cfg).get(td["cause"], td["cause"]))
+    if len(text.split()) > 25:
+        text = alt_for(td["cause"])
+    return text
