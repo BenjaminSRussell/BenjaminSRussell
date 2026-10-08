@@ -28,6 +28,7 @@ import edition as E
 from timeline import ease_inverse
 import tokens
 from tokens import INK
+import gazetteer
 
 NAME = "hero"
 KIND = "chart"
@@ -348,14 +349,7 @@ def _features(data: dict, cfg, k_area: float) -> tuple[list, dict]:
             kind = c.kind_of(r0, bool(r.get("active")), printed or r["name"], bool(r.get("archived")))
         if kind == "islet" and r0 >= 16:
             kind = "island"
-        if printed:
-            name = printed
-        elif kind == "shoal":
-            name = f"{_display_name(r['name'])} Shoal"
-        elif kind == "island":
-            name = f"{_display_name(r['name'])} I."
-        else:
-            name = _display_name(r["name"])
+        name = gazetteer.name(r, s)          # one gazetteer for every sheet (v9.2)
         f = c.Feature(name, commits, kind, alias=r["name"], sub=r.get("months_active"))
         f.r = r0
         f.ratio = 1.6 if kind in LAND_KINDS else 1.82
