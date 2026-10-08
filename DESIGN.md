@@ -39,6 +39,19 @@ re-rasters a whole sheet, so nothing else is allowed to move); no `animateMotion
 after that only the lights keep time. The footer is the only ambient sheet. A still edition is the
 sheet at 95 s, and every frame at every instant must read as a finished sheet.
 
+## Actions playbook
+
+| Workflow | File | Purpose |
+|---|---|---|
+| chart | `.github/workflows/profile.yml` | nightly 06:20 UTC and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
+| perf | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
+| README links | `.github/workflows/links.yml` | lychee over README.md weekly and on pull requests |
+
+When a sheet is stale or missing: open **Actions → chart → Run workflow**. A red run never publishes; the
+previous `chart` branch stays up and the README keeps rendering it. If the survey fails (GraphQL quota, a
+clone timing out), the run falls back to the cached figures and draws the pencil-note edition; it does not
+invent numbers. Do not hammer re-runs: the survey clones every public repository.
+
 ## Tokens
 
 | Token | Day | Night | Use |
@@ -48,7 +61,7 @@ sheet at 95 s, and every frame at every instant must read as a finished sheet.
 | land | `#E9DFCA` | `#1F2730` | islands, coast |
 | ink | `#1B2A41` | `#BBC5D1` | type, primary strokes |
 | ink2 | `#34465F` | `#8894A6` | secondary type, lines |
-| muted | `#56657B` | `#8A96A8` | captions |
+| muted | `#56657B` | `#98A7BF` | captions |
 | shallow_a | `#D8E7F1` | `#10294A` | water under 10 |
 | shallow_b | `#BEDAEC` | `#123A5E` | water under 5 |
 | accent | `#D73626` | `#FF6853` | red lateral marks |

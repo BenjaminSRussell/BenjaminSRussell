@@ -152,7 +152,7 @@ Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/Benjami
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry down to git-history patterns.
 
 <details>
-<summary><b>Below the waterline</b> · 12 more repositories: Swift widgets, a C game engine, games, tooling</summary>
+<summary><b>Below the waterline</b> · 15 more repositories: Swift widgets, a C game engine, games, tooling</summary>
 <br>
 
 - [**3d-swift-globe-widget**](https://github.com/BenjaminSRussell/3d-swift-globe-widget) — Titan: a native macOS 3D globe in MapKit and SwiftUI, permanent night mode, packets arcing from NYC to LA.
@@ -163,6 +163,9 @@ Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/Benjami
 - [**Wheel**](https://github.com/BenjaminSRussell/Wheel) — a Three.js prize wheel with a physics-based spin and an LED rim. Lands on a programming language.
 - [**FashionDB**](https://github.com/BenjaminSRussell/FashionDB) — scrapes Reddit and the web for fashion rules and runs them through an NLP pipeline.
 - [**Data-visualizer**](https://github.com/BenjaminSRussell/Data-visualizer) — a lightweight, Superset-inspired exploration UI over PostgreSQL. Display only, by design.
+- [**ggml-viz**](https://github.com/BenjaminSRussell/ggml-viz) — ggml graph and tensor visualization.
+- [**Boxalarm-monorepo**](https://github.com/BenjaminSRussell/Boxalarm-monorepo) — infrastructure, UI and backend in one repository.
+- [**excel-and-vba**](https://github.com/BenjaminSRussell/excel-and-vba) — spreadsheet automation.
 - Also: [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets) · [MLX_convertion](https://github.com/BenjaminSRussell/MLX_convertion) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
 
 </details>
