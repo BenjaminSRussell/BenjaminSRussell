@@ -19,8 +19,7 @@
       "properties": {"cores": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 1}]},
                      "host": {"anyOf": [{"type": "null"}, {"type": "string"}]}}},
     "profile": {"type": "object", "additionalProperties": false,
-      "required": ["rate_rps", "ramp_s", "p95_fetch_ms", "wal_fsync_p95_ms", "urls_total", "failed_ratio",
-                   "timeout_ratio", "r429_ratio", "permits", "shards"],
+      "required": ["rate_rps", "ramp_s", "urls_total", "permits", "shards"],
       "properties": {
         "rate_rps": {"type": "number", "minimum": 0},
         "ramp_s": {"type": "number", "minimum": 0},

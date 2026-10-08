@@ -221,7 +221,10 @@ class LogSim(unittest.TestCase):
     def test_arithmetic(self):
         p = self.log["profile"]
         self.assertEqual(logsim.rate_of(p), 2.0)
-        self.assertEqual(logsim.in_flight(p), 2)                            # 2 × 0.812 → 2 of 512 permits
+        self.assertIsNone(logsim.in_flight(p))                              # v9.2: no p95 in the settings, no Little's law
+        self.assertEqual(logsim.in_flight({**p, "p95_fetch_ms": 812}), 2)   # a measured p95 brings it back: 2 of 512
+        self.assertEqual(logsim.wind(p), "")                                # no measured ratios: the sheet prints a dash
+        self.assertEqual(logsim.wind({**p, "failed_ratio": 0.004}), "light")
         self.assertAlmostEqual(logsim.position(120, p), 230)                # 1405
         self.assertAlmostEqual(logsim.position(1620, p), 3230)              # 1430
         self.assertAlmostEqual(logsim.position(5, p), 2.5)                  # inside the ramp: r·t²/2·ramp
@@ -234,10 +237,14 @@ class LogSim(unittest.TestCase):
         rows = logsim.simulate(self.log["profile"], self.log["entries"], 1, "1403")
         by = {(r.time, r.kind): r for r in rows}
         self.assertEqual(by[("1405", "health")].log, 230)
-        self.assertIn("2 of 512 permits", by[("1405", "health")].text)
+        self.assertEqual(by[("1405", "health")].text, "fetched 230 · 512 permits")   # v9.2: settings only
+        for word in ("p95", "fsync", "failed", "timeout", " of 512"):
+            self.assertNotIn(word, by[("1405", "health")].text)
+        self.assertIsNone(by[("1405", "health")].wind)
         self.assertEqual(by[("1546", "out")].log, 12440)
         self.assertEqual(by[("1546", "out")].speed, 0.0)
-        self.assertIn("12,440 urls · 1h 43m", by[("1546", "out")].text)
+        self.assertEqual(by[("1546", "out")].text, "crawl complete · plateau · 12,440 urls")   # no elapsed time
+        self.assertNotIn("1h 43m", " ".join(r.text for r in rows))
         self.assertIsNone(by[("1402", "cmd")].log)
         self.assertIn("frontier 8 shards", by[("1403", "out")].text)
         logs = [r.log for r in rows if r.log is not None]

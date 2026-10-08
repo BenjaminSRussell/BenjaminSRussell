@@ -1,16 +1,17 @@
 """footer — Sheet 6: Limit of survey (T9 §2D, MASTERPLAN §2.1).
 
 The water leaves the sheet through a break in the neat line. The sloop is under way at t = 0,
-arrives 40–64 s, levels, luffs the main once and anchors short of the limit line in good holding;
-beyond the line the ground is hatched UNSURVEYED. The only ambient sheet: a 10 s swell, the hull
+arrives 40–64 s, levels, luffs the main once and anchors short of the limit line in good holding
+(a dotted PEN cable to the anchor symbol, no depth figure: the shelf is drawn, not sounded); beyond
+the line the ground is hatched UNSURVEYED. The only ambient sheet: a 10 s swell, the hull
 riding it, three mist arcs at the fall; and once every 96 s (first at 84 s, when the boat is
 anchored to witness it) a serpent rises head-first where "Obstn rep. 2026 (PA)" is charted,
 holds, sinks, and leaves three ripples. An index of adjoining sheets shows the hero's extent as
 the one surveyed cell. Still = anchored state. Eleven indefinite animations, ≤ 4 ms/frame.
 
-Sizes (desk, v9.1 scale): the line of prose 41 (thesis); UNSURVEYED, the index caption and figures,
-the chart note, good holding, the record and folio 19 (label / label-italic / label-caps); the six
-illustrative soundings 16 (texture-italic). Phone: thesis 40, labels 26, soundings 18.
+Sizes (desk, v9.1 scale): the line of prose 41 (thesis); UNSURVEYED, the index figures, the chart
+note, good holding, the limit label, the record and folio 19 (label / label-italic / label-caps).
+Phone: thesis 40, labels 26.
 """
 from __future__ import annotations
 
@@ -31,9 +32,13 @@ NAME = "footer"
 KIND = "edge"
 SIZES = {"desk": (1280, 270), "phone": (720, 320)}
 BREAKS: list[tuple[str, str, str]] = [
-    ("Broken neat line", "the right rule stops where the water falls off the sheet", "the chart ends here (16, 27)"),
+    ("Broken neat line", "chartlib.frame 'broken' (minute bars at 14/20, the foot at 240 so the folio row sits clear below); "
+     "the right rules stop where the water falls off the sheet", "the chart ends here (16, 27); v9.2: the set's one neat line"),
     ("Ambient motion", "swell, hull, mist and a 96 s serpent loop continuously", "the one ambient sheet, ≤ 4 ms/frame (12, decision 10)"),
-    ("Illustrative soundings", "six italic depths thinning toward the limit", "texture, not data: italic by the Sheet 3 convention"),
+    ("No figures on the shelf", "`good holding` at the anchor, no depth, no soundings toward the limit",
+     "v9.2 (art 9, J4): a figure wants a unit line and this sheet's one caps run is the limit label; the shelf is drawn, not sounded"),
+    ("Cable and lip at PEN", "the anchor cable a dotted PEN line from the stern to the anchor ring; the lip of the fall at PEN",
+     "v9.2 (art 9): the BRUSH lip read as a stray black hook at the anchorage pool"),
     ("The sloop is drawn, not <use>d", "hull, main, jib from chartlib.SLOOP_DETAIL", "the main must luff on its own; the anchor is the sheet's <use> symbol"),
     ("Inline lettering on the desk editions", "typeset.text(), one <path> per run, no glyph library",
      "the only sheet that repaints every frame: 3.3 ms/frame instead of 4.2 (12's 4 ms budget), +20 KB raw"),
@@ -183,7 +188,7 @@ def _desk(ctx) -> str:
     T.exclude("index", IX, IY, IW, IH)
 
     # ---- unsurveyed ground beyond the limit: land under hand-ruled hatch
-    for i, rect in enumerate(((LIMIT_X, 30, 266, 120), (1120, HY, 146, 76))):
+    for i, rect in enumerate(((LIMIT_X, 30, 260, 120), (1120, HY, 146, 76))):
         x, y, w, h = rect
         out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{t.land}"/>')
         hd, hb = C.hatch(rect, t, jit.sub(f"hatch{i}"), "unsurveyed", clip_id=f"unsurv{i}")
@@ -201,7 +206,7 @@ def _desk(ctx) -> str:
     a, base = _loop(tl, "translate", [(0, "0 0", "sea"), (10, "-48 0")], 0.0, 10.0, "0 0", "0 0")
     out.append(f'<g clip-path="url(#swell)"><path d="M{WX0} {HY + 9}{waves}" fill="none" transform="translate({base})" '
                f'{C.stroke("HAIR", t.ink, 0.45)}>{a}</path></g>')
-    out.append(f'<path d="M{EDGE} {HY}c10 0 16 4 19 12c3 8 4 24 4 42" fill="none" {C.stroke("BRUSH", t.ink, 0.9)}/>')
+    out.append(f'<path d="M{EDGE} {HY}c10 0 16 4 19 12c3 8 4 24 4 42" fill="none" {C.stroke("PEN", t.ink, 0.9 if dark else None)}/>')
     falls = f"M1046 {HY + 14}L1044 226M1053 {HY + 16}L1055 226M1060 {HY + 20}L1066 226"
     out.append(f'<path d="{falls}" fill="none" {C.stroke("HAIR", t.ink, 0.6, "TRACK")}/>')
     # mist at the fall: three arcs fading on the 10 s grid, drifting up together
@@ -214,9 +219,6 @@ def _desk(ctx) -> str:
     mist.append("</g>")
     out.append("".join(mist))
 
-    # ---- six illustrative soundings thinning toward the limit (italic: texture, not data)
-    for x, y, v in ((700, 212, 9), (760, 190, 8), (818, 216, 7), (872, 196, 5), (924, 206, 4), (966, 188, 3)):
-        out.append(T.sounding(v, x, y, truth="illustrative", edition=ed, fill=t.ink2))
     # the chart note sits above the serpent's rise (head to y≈114) and clear of the anchored sloop's rig
     out.append(tx("Obstn rep. 2026 (PA)", ANCHOR_X - 24, 106, "label-italic", fill=t.muted, anchor="end", opacity=0.7))
 
@@ -236,17 +238,19 @@ def _desk(ctx) -> str:
     parts = _sloop_parts(t, tl, luff_at=sail.end if tl.motion else None)
     out.append(sail.wrap(f'<g transform="translate({bbase})">{ba}{parts}</g>', pitch=-4.0, mirror=False))
     T.exclude("boat", ANCHOR_X - 18, HY - 41, 37, 46)
-    rode = (f'<path d="M{ANCHOR_X + 18} {HY - 3}L{ANCHOR_X + 26} 224" fill="none" {C.stroke("HAIR", t.ink, 0.8, "APPROX")}/>'
-            + C.use("anchorage", ANCHOR_X + 26, 220, NAME, scale=0.8)
-            + tx("14 · good holding", ANCHOR_X - 2, 236, "label-italic", fill=t.ink2, anchor="end"))
+    # the cable from the stern to the anchor ring, the anchor 4 px clear of the limit label's foot (x 978)
+    rode = (f'<path d="M{ANCHOR_X + 14} {HY - 2}L{ANCHOR_X + 18} 211" fill="none" {C.stroke("PEN", t.ink, 0.8, "TRACK")}/>'
+            + C.use("anchorage", ANCHOR_X + 18, 220, NAME, scale=0.8)
+            + tx("good holding", ANCHOR_X - 6, 228, "label-italic", fill=t.ink2, anchor="end"))
     out.append(tl.fade_in(f"<g>{rode}</g>", sail.end, dur=0.65, rise=0))
 
     # ---- the limit of survey
     out.append(f'<path d="M{LIMIT_X} 30V226" fill="none" {C.stroke("PEN", t.ink, 0.85 if dark else None, "LIMIT")}/>')
     out.append(tx(_copy(cfg, "limit_label", "LIMIT OF SURVEY 2026"), LIMIT_X - 8, 226, "label-caps", fill=t.ink, rotate=-90))
 
-    # ---- neat line, broken where the water leaves; the one line of prose
-    out.append(f'<path d="M14 14H1266V112M1266 226V240H14V14" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
+    # ---- neat line (the set's minute bars, 14/20), broken where the water leaves, its foot at 240 so the folio row
+    # below sits clear of it; the one line of prose
+    out.append(C.frame(W_, 254, t, "broken", gaps=[("right", 112, 226)], rules=(14, 20)))
     # role thesis at its 41 px (on the v9.1 scale, serif floor met) carries no grade stroke; inline like every
     # other run here (through the glyph library the sheet is lighter but 3.95 instead of 3.55 ms/frame: measured)
     out.append(tx(_copy(cfg, "footer_line", "The chart ends here. The web doesn't."), 48, 78, "thesis", fill=t.ink))
@@ -255,7 +259,7 @@ def _desk(ctx) -> str:
     out.append(tx(f"CHART NO. {chart_no} · SHEET 6", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
     # the chart's record, right of the folio: notices and any contact set in chart.toml (the taken date
     # is on the soundings dateline, T9 §5.9); every glyph here repaints 57 times a second
-    record = [f"{n_notices} notices · corrected through Notice {n_notices}"] if n_notices else []
+    record = [f"corrected through Notice {n_notices}"] if n_notices else []
     contact = cfg.get("contact") or {}
     for key in ("linkedin", "resume"):
         v = str(contact.get(key) or "").strip()
@@ -296,19 +300,17 @@ def _phone(ctx) -> str:
     out.append(f'<path d="M16 {HYP}H{EDG}" fill="none" {C.stroke("LINE", t.ink, caps="butt")}/>')
     waves = "".join("q24 -5 48 0" for _ in range((EDG - 16) // 48))
     out.append(f'<path d="M16 {HYP + 9}{waves}" fill="none" {C.stroke("HAIR", t.ink, 0.45)}/>')
-    out.append(f'<path d="M{EDG} {HYP}c10 0 16 4 19 12c3 8 4 24 4 42" fill="none" {C.stroke("BRUSH", t.ink, 0.9)}/>')
+    out.append(f'<path d="M{EDG} {HYP}c10 0 16 4 19 12c3 8 4 24 4 42" fill="none" {C.stroke("LINE", t.ink, 0.9 if ed.dark else None)}/>')
     out.append(f'<path d="M606 {HYP + 14}L604 278M613 {HYP + 16}L615 278M620 {HYP + 20}L626 278" fill="none" '
                f'{C.stroke("HAIR", t.ink, 0.6, "TRACK")}/>')
-    for x, y, v in ((380, 240, 7), (452, 250, 5), (512, 236, 3)):
-        out.append(T.sounding(v, x, y, truth="illustrative", edition=ed, fill=ink2))
     out.append(f'<g transform="translate({BX} {HYP - 1})">{_sloop_parts(t, tl, None, scale=1.4)}</g>')
-    out.append(f'<path d="M{BX + 25} {HYP - 4}L{BX + 32} 270" fill="none" {C.stroke("HAIR", t.ink, 0.8, "APPROX")}/>')
+    out.append(f'<path d="M{BX + 25} {HYP - 4}L{BX + 32} 253" fill="none" {C.stroke("PEN", t.ink, 0.8, "TRACK")}/>')
     out.append(C.use("anchorage", BX + 32, 266, NAME, scale=1.1))
-    out.append(tx("14 · good holding", 540, 278, "label-italic", fill=ink2, anchor="end"))
+    out.append(tx("good holding", 540, 272, "label-italic", fill=ink2, anchor="end"))
     out.append(f'<path d="M{LIM} 60V278" fill="none" {C.stroke("PEN", t.ink, 0.85 if ed.dark else None, "LIMIT")}/>')
     out.append(tx(_copy(cfg, "limit_label", "LIMIT OF SURVEY 2026"), 704, 50, "label-caps", fill=t.ink, anchor="end"))
-    # neat line broken at the fall; its foot at 284 so the folio row (baseline 314) sits clear below it
-    out.append(f'<path d="M10 10H710V150M710 278V284H10V10" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
+    # neat line (minute bars at 10/16) broken at the fall; its foot at 288 so the folio row (baseline 314) sits clear below it
+    out.append(C.frame(W_, 298, t, "broken", gaps=[("right", 150, 278)], rules=(10, 16)))
     line = _copy(cfg, "footer_line", "The chart ends here. The web doesn't.")
     parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", line) if p.strip()]
     if len(parts) == 1:
