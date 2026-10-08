@@ -475,10 +475,17 @@ def build(ctx) -> str:
                                 clear_edge=24 * s, clear_pair=44 * s, clear_course=CLEAR_COURSE * s, name_w=_name_w)
         if dropped:   # whatever the arc could not take goes through chartlib's Halton search (reported)
             rest = [f for f in feats if not f.placed and f.kind != "wreck"]
-            fallback = c.place_features(placed + rest, drawable, excl, course, seed, slots, cap=64,
-                                        clear_edge=24 * s, clear_pair=36 * s, clear_course=CLEAR_COURSE * s,
-                                        islet_min_x=drawable[0], tries=3000)
-            dropped = list(fallback.dropped)
+            for _cp, _ce in ((36, 24), (30, 20), (26, 18)):   # the search tightens before anything is dropped
+                fallback = c.place_features(placed + rest, drawable, excl, course, seed, slots, cap=64,
+                                            clear_edge=_ce * s, clear_pair=_cp * s, clear_course=CLEAR_COURSE * s,
+                                            islet_min_x=drawable[0], tries=3000)
+                dropped = list(fallback.dropped)
+                placed = placed + [f for f in rest if f.placed]     # this pass's placements are fixed ground for the next
+                rest = [f for f in rest if not f.placed]
+                if not dropped:
+                    break
+            if dropped:   # one feature per public repository is the sheet's promise (v9.1): never silently fewer
+                raise RuntimeError(f"hero: no ground for {dropped}; the archipelago needs room")
         feats = [f for f in feats if f.placed]
         for f in feats:
             f.axis = (0.0, 2 * f.r, f.x, f.y)
