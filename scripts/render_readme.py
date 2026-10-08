@@ -6,8 +6,11 @@
     python3 scripts/render_readme.py --stdout   # print the rendered README
 
 Block markers (MASTERPLAN decision 3): `<!-- name:start -->…<!-- name:end -->` with names
-`picture:<sheet>`, `position`, `contact`, `figures`, `notices`, `instruments`, `license`.
-Inline figures: `<!-- n:key -->…<!-- /n -->`. The opening marker may carry a note after the name
+`picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10); `figures`,
+`instruments` and `log_lede` are still filled, empty, when a README carries them. A block the README
+does not carry is skipped: since v10 (round 4, D1) the page is the hero and written text, and a
+picture block is written only for a sheet whose markers are present. Inline figures:
+`<!-- n:key -->…<!-- /n -->`. The opening marker may carry a note after the name
 (`<!-- contact:start — Ben: … -->`); it is kept verbatim. Everything outside the markers is T8's
 and is never touched. Idempotent: rendering twice is a no-op.
 
@@ -32,8 +35,9 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 README = os.path.join(ROOT, "README.md")
 CFG = os.path.join(ROOT, "chart.toml")
 STATS = os.path.join(ROOT, "assets", "stats.json")
-SHEETS = ["hero", "soundings", "approaches", "log", "instruments", "footer"]
+SHEETS = ["hero", "soundings", "approaches", "log", "instruments", "footer"]   # every sheet the build knows
 ALT_MAX_WORDS = 25
+NOTICES_ON_PAGE = 4          # round 4, D8: notices 1–4; no release line
 
 # decision 9: most specific first; the hero prepends the two phone stills.
 SOURCES = [
@@ -131,6 +135,10 @@ def picture(sheet: str, cfg: dict, alt: str) -> str:
     for media, ed in srcs:
         lines.append(f'<source media="{media.format(bp=bp)}" srcset="{base}{sheet}-{ed}.svg">')
     alt_attr = alt.replace("&", "&amp;").replace('"', "&quot;")
+    # width="100%" and no height: D8 asked for width and height so the page does not jump, but GitHub's
+    # markdown CSS (`img {max-width: 100%}` with no `height: auto`) keeps a pixel height while it narrows
+    # the width, and the sheet letterboxes inside a column-wide × 740 px box. A ratio hint is not possible
+    # without a style attribute, which GitHub strips.
     lines.append(f'<img src="{base}{sheet}-day.svg" width="100%" alt="{alt_attr}">')
     lines.append("</picture>")
     return "\n".join(lines)
@@ -151,8 +159,9 @@ def alt_for(sheet: str, stats: dict, cfg: dict, figs: dict, use_sheets: bool = T
 
 
 def position_block(cfg: dict) -> str:
+    """The position slot, inline after the role line (D8: field · languages · position)."""
     text = (cfg.get("position", {}).get("text") or "").strip()
-    return f'<p align="center">{text}</p>' if text else ""
+    return f"&nbsp;· <i>{text}</i>" if text else ""
 
 
 def contact_block(cfg: dict) -> str:
@@ -184,30 +193,15 @@ def _figures_block_retired(figs: dict) -> str:
     return "<sub>" + " · ".join(parts) + "</sub>"
 
 
-def notices_block(cfg: dict, stats: dict) -> str:
+def notices_block(cfg: dict, stats: dict, limit: int = NOTICES_ON_PAGE) -> str:
+    """The first `limit` hand notices from chart.toml, as the page prints them (v10: four, and no release
+    line; the editions live in stats.json for the chart, not on the page)."""
     rows = []
-    hand = sorted(cfg.get("notices", []), key=lambda x: x.get("n", 0))
+    hand = sorted(cfg.get("notices", []), key=lambda x: x.get("n", 0))[:limit]
     for i, nt in enumerate(hand, 1):
         body = f" {nt['body']}" if nt.get("body") else ""
         cite = f" *{nt['cite']}*" if nt.get("cite") else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
-    hand_titles = {h.get("title", "").strip() for h in hand}
-    # stats.json carries the hand notices too (source "hand"/"toml"); the README prints chart.toml's richer
-    # copy above, and folds the dated release notices (PyPI uploads, GitHub Releases) into one trailing line
-    # so "five principles" stays five (reviewer 18).
-    releases = [nt for nt in stats.get("notices", [])
-                if nt.get("source") not in ("toml", "hand") and (nt.get("title") or "").strip() not in hand_titles]
-    if releases:
-        first, last = len(hand) + 1, len(hand) + len(releases)
-        links = []
-        for nt in releases:
-            title = nt.get("title") or f"{nt.get('repo', '')} {nt.get('tag', '')}".strip()
-            short = title.replace(" on PyPI", "")
-            links.append(f"[{short}]({nt['url']})" if nt.get("url") else short)
-        dates = sorted({fmt_date(nt.get("date")) for nt in releases if nt.get("date")})
-        when = dates[0] if len(dates) == 1 else f"{dates[0]} – {dates[-1]}"
-        rng = f"Notice {first}" if first == last else f"Notices {first}–{last}"
-        rows.append(f"\n<sub>{rng}, editions: {' · '.join(links)} · *{when}*.</sub>")
     return "\n".join(rows)
 
 
@@ -233,9 +227,55 @@ def _instruments_block_retired(cfg: dict, fittings: list[dict] | None = None) ->
     return "<sub>" + " &nbsp;&nbsp; ".join(cols) + "</sub>"
 
 
-LICENSE_LINE = ("- **License.** Code MIT; sheets and copy CC BY 4.0; fonts under their own licenses in "
+LICENSE_LINE = ("<sub>**License** Code MIT; sheets and copy CC BY 4.0; fonts under their own licenses in "
                 "[`scripts/fonts/`](scripts/fonts/). To draw your own, fork the repository, fill in `chart.toml` "
-                "and run the workflow; the sheets redraw from your repositories.")
+                "and run the workflow; the sheets redraw from your repositories.</sub>")
+
+INSTRUMENT_WORDS = {"live": "live", "cache": "cached", "partial": "partial", "none": "not read"}
+INSTRUMENT_NAMES = {"clones": "clones", "graphql": "GraphQL", "rest": "REST", "pypi": "PyPI", "releases": "releases"}
+
+
+def survey_block(stats: dict, figs: dict | None = None) -> str:
+    """The survey's own log (D5): what was cloned, whose commits, when, which instruments were live or cached.
+    Every figure comes from stats.json; a key that is missing is left out, never guessed."""
+    figs = figs or figures(stats, {})
+    prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
+    parts: list[str] = []
+    when = figs.get("taken") or ""
+    if figs.get("taken_time"):
+        when = f"{when}, {figs['taken_time']}" if when else figs["taken_time"]
+    if when:
+        parts.append(f"taken {when}")
+    if prov.get("mode") == "cache-failed":
+        failed = fmt_date(prov.get("failed_at"))
+        parts.append(f"the survey failed{' on ' + failed if failed else ''}; these are the previous survey's figures")
+    repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
+    if repo_count:
+        cloned = "cloned" if prov.get("instruments", {}).get("clones") == "live" else "read from the last clone"
+        parts.append(f"{repo_count} public repositories {cloned}, author's commits only")
+    if stats.get("commits"):
+        parts.append(f"{figs['commits']} commits")
+    if stats.get("all_hands"):
+        parts.append(f"{figs['all_hands']} all hands")
+    if stats.get("calendar_total"):
+        parts.append(f"{figs['calendar_total']} by GitHub's calendar")
+    inst = prov.get("instruments") if isinstance(prov.get("instruments"), dict) else {}
+    readings = [f"{INSTRUMENT_NAMES.get(k, k)} {INSTRUMENT_WORDS.get(str(v), str(v))}"
+                for k, v in inst.items() if v is not None]
+    if readings:
+        parts.append("instruments: " + ", ".join(readings))
+    st = prov.get("soundings_taken") if isinstance(prov.get("soundings_taken"), dict) else None
+    if st and st.get("of"):
+        parts.append(f"surveyed on {st.get('taken', 0)} of the last {st['of']} days")
+    ed = stats.get("edition") if isinstance(stats.get("edition"), dict) else {}
+    if ed.get("project") and ed.get("version"):
+        line = f"{ed['project']} {ed['version']}"
+        if ed.get("date"):
+            line += f", {fmt_date(ed['date'])}"
+        parts.append(line)
+    if not parts:
+        return ""
+    return "<sub><b>Survey log</b> · " + " · ".join(parts) + ".</sub>"
 
 
 LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
@@ -309,6 +349,12 @@ def migrate_pictures(text: str, sheets: list[str] = SHEETS) -> str:
     return _PICTURE_RE.sub(sub, text)
 
 
+def page_sheets(text: str) -> list[str]:
+    """The sheets whose picture markers the README carries, in SHEETS order (unknown names after)."""
+    found = re.findall(r"<!--\s*picture:([\w-]+):start\b", text)
+    return [s for s in SHEETS if s in found] + [s for s in dict.fromkeys(found) if s not in SHEETS]
+
+
 # ------------------------------------------------------------------ main
 
 def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None, root: str = ROOT,
@@ -316,7 +362,7 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     warnings = warnings if warnings is not None else []
     figs = figures(stats, cfg)
     text = migrate_pictures(readme)
-    for sheet in SHEETS:
+    for sheet in page_sheets(text):
         alt = alt_for(sheet, stats, cfg, figs, use_sheet_alts)
         if len(alt.split()) > ALT_MAX_WORDS:
             warnings.append(f"alt for {sheet} is {len(alt.split())} words (> {ALT_MAX_WORDS})")
@@ -328,6 +374,7 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "figures", figures_block(figs))
     text, _ = fill_block(text, "notices", notices_block(cfg, stats))
     text, _ = fill_block(text, "instruments", instruments_block(cfg, fittings))
+    text, _ = fill_block(text, "survey", survey_block(stats, figs))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     for key in inline_keys(text):

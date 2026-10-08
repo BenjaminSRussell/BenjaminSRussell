@@ -49,7 +49,7 @@ def check(ctx) -> list[Finding]:
         if not m:
             out.append(fail("POSITION-BLOCK", "chart.toml has a position but README.md has no position:start/end block"))
         else:
-            shown = visible(m.group(1))
+            shown = visible(m.group(1)).lstrip("· ")      # v10: the slot follows the role line, after a separator
             if shown != re.sub(r"\s+", " ", text).strip():
                 out.append(fail("POSITION-MISMATCH", f"README shows {shown!r}, chart.toml says {text!r}"))
     elif m and visible(m.group(1)):

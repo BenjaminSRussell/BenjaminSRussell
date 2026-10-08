@@ -1,9 +1,11 @@
 """readme — README.md structure (reviewer 18's finding on the colophon).
 
-Six picture blocks, each with exactly one start and one end marker and a <picture> that opens and
-closes inside it; no picture block inside <details>; <details> balanced; the license block present
-when LICENSE and LICENSE-ASSETS.md exist; render_readme --check clean (the committed README is what
-the renderer would write)."""
+The hero's picture block is required; any other sheet's block is checked only when the README carries
+it (round 4, D1: the page is the hero and written text; the supporting sheets are off the page). Each
+block has exactly one start and one end marker and a <picture> that opens and closes inside it; no
+picture block inside <details>; <details> balanced; the license block present when LICENSE and
+LICENSE-ASSETS.md exist; render_readme --check clean (the committed README is what the renderer
+would write)."""
 from __future__ import annotations
 
 import os
@@ -12,7 +14,12 @@ import re
 from check import Finding, fail, warn
 
 TIER = "fast"
-SHEETS = ("hero", "soundings", "approaches", "log", "instruments", "footer")
+REQUIRED = ("hero",)
+
+
+def page_sheets(text: str) -> list[str]:
+    found = re.findall(r"<!--\s*picture:([\w-]+):(?:start|end)\b", text)
+    return list(REQUIRED) + [s for s in dict.fromkeys(found) if s not in REQUIRED]
 
 
 def check(ctx) -> list[Finding]:
@@ -20,7 +27,7 @@ def check(ctx) -> list[Finding]:
     text = ctx.readme or ""
     if not text:
         return [warn("README-MISSING", "README.md not found")]
-    for sheet in SHEETS:
+    for sheet in page_sheets(text):
         starts = len(re.findall(rf"<!--\s*picture:{sheet}:start\b", text))
         ends = len(re.findall(rf"<!--\s*picture:{sheet}:end\s*-->", text))
         if starts != 1 or ends != 1:

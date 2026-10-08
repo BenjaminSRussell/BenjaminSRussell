@@ -1,5 +1,6 @@
 """strings — the banned phrases, case-insensitive, over the SVGs, the report's text manifest,
-README.md and chart.toml (T10 check 6 + STANDARDS 1).
+README.md and chart.toml (T10 check 6 + STANDARDS 1); and, since v10 (round 4, D5: nothing unmeasured
+is printed), no text run on the hero whose report `truth` is anything but measured.
 
 Figures inside `<!-- n:key -->…<!-- /n -->` markers are build-written and exempt ("Oct 2024" is
 banned as a hand-typed figure, not as a date)."""
@@ -36,6 +37,23 @@ def _patterns() -> list[tuple[str, re.Pattern]]:
 
 
 PATTERNS = _patterns()
+PAGE_SHEETS = ("hero",)      # the sheets on the page; a figure there is measured or it is not printed
+MEASURED = ("measured",)
+
+
+def unmeasured(report: dict | None) -> list[Finding]:
+    """Every text run on a page sheet whose `truth` is set and is not measured (illustrative, computed…)."""
+    out: list[Finding] = []
+    for name, e in (report or {}).get("sheets", {}).items():
+        if name.split("-")[0] not in PAGE_SHEETS:
+            continue
+        for t in e.get("text", []):
+            if not isinstance(t, dict):
+                continue
+            truth = t.get("truth")
+            if truth is not None and str(truth) not in MEASURED:
+                out.append(fail("STRINGS-UNMEASURED", f"{str(t.get('s', ''))!r} is {truth}, not measured (D5)", name))
+    return out
 
 
 def scan(text: str, where: str, code: str = "STRINGS-BANNED") -> list[Finding]:
@@ -56,6 +74,7 @@ def check(ctx) -> list[Finding]:
         manifest = "\n".join(str(t.get("s", "")) for t in e.get("text", []) if isinstance(t, dict))
         out += scan(manifest, f"{name} text manifest", "STRINGS-MANIFEST")
         out += scan(str(e.get("alt", "")), f"{name} alt", "STRINGS-ALT")
+    out += unmeasured(ctx.report)
     if ctx.readme:
         readme = _N_SPAN.sub("", ctx.readme)
         readme = _MARKER.sub("", readme)
