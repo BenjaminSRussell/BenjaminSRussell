@@ -87,11 +87,14 @@ class Approaches(unittest.TestCase):
     def test_contract_and_alt(self):
         self.assertEqual(A.NAME, "approaches")
         self.assertEqual(A.KIND, "chart")
-        self.assertEqual(A.SIZES, {"desk": (1280, 1120), "phone": (720, 1880)})
+        self.assertEqual(A.SIZES, {"desk": (1280, 892), "phone": (720, 1960)})
         self.assertTrue(A.BREAKS and all(len(b) == 3 for b in A.BREAKS))
         alt = A.alt(self.stats, self.cfg)
         self.assertLessEqual(len(alt.split()), 25, alt)
         self.assertFalse(alt.startswith("The"), alt)
+        # true of every edition: the phone is rotated and its key is its own (no "east"/"west", no "every symbol")
+        for word in ("east", "west", "legend"):
+            self.assertNotIn(word, alt, alt)
         self.assertTrue(alt.endswith(self.cfg["alt"]["alt_poem"][2]), alt)   # the sheet's line of the poem
 
     def test_only_the_documented_glyph_budget_problems(self):
@@ -124,7 +127,8 @@ class Approaches(unittest.TestCase):
 
     # ------------------------------------------------------------- the legend
     def test_legend_defines_every_symbol_and_covers_every_use(self):
-        every = set(c.SYMBOL_NAMES) - {"sloop", "sloop-glyph", "halo", "flare"}   # drawn things the legend plug-in allows
+        # drawn things the legend plug-in allows; "correction" has no referent on any sheet, so no row (v9.2)
+        every = set(c.SYMBOL_NAMES) - {"sloop", "sloop-glyph", "halo", "flare", "correction"}
         allow = {"sloop", "sloop-glyph", "halo", "flare"}
         for name, data in self.svgs.items():
             text = data.decode()
@@ -139,6 +143,7 @@ class Approaches(unittest.TestCase):
             else:
                 self.assertTrue(used <= every | allow, (name, used - every - allow))
                 self.assertGreaterEqual(len(e["legend"]), 8, name)        # the phone carries its own compact legend
+                self.assertNotIn("correction", used, name)
             # every symbol id a <use> points at is defined once in the file
             for sym in used:
                 self.assertEqual(text.count(f'id="approaches-c-sym-{sym}"'), 1, (name, sym))
@@ -169,43 +174,56 @@ class Approaches(unittest.TestCase):
                     self.assertEqual(t["origin"], "sounding", (name, t["s"]))
                     hw = max(w["n"] for w in self.stats["weeks"])
                     self.assertTrue(t["s"].startswith(str(scrapy["commits"])) or t["s"].startswith(str(hw)), (name, t["s"]))
-                if t.get("truth") == "datum":
-                    # the legend's underlined sample is the real commit count, not an invented figure
-                    self.assertEqual(t["origin"], "sounding", (name, t["s"]))
-                    self.assertEqual(t["s"], str(scrapy["commits"]), (name, t["s"]))
+                # nothing on any sheet is above datum, so nothing is underlined (v9.2)
+                self.assertNotEqual(t.get("truth"), "datum", (name, t["s"]))
                 if t["origin"] == "sounding" and t["slant"] == "upright":
                     upright_soundings.append(t["s"])
-            # 265₅ and the HW week, plus the legend's upright and underlined samples (both the real 265)
-            self.assertLessEqual(len(upright_soundings), 4, (name, upright_soundings))
+            # the legend's 265₅, the HW week and the upright sample (the real 265)
+            self.assertLessEqual(len(upright_soundings), 3, (name, upright_soundings))
             self.assertTrue(all(s.startswith(str(scrapy["commits"])) or s.startswith(str(max(w["n"] for w in self.stats["weeks"])))
                                 for s in upright_soundings), (name, upright_soundings))
-            shards = [t for t in self.texts(name) if t.get("key") == "shards"]
-            self.assertEqual(len(shards), 1, name)
-            expect = "upright" if self.log.get("measured") else "italic"
-            self.assertEqual(shards[0]["slant"], expect, name)
-            self.assertEqual(shards[0]["s"], str((self.log.get("profile") or {}).get("shards", 8)))
-            # the PyPI edition line and Scrapy's commit count are upright and real
-            ed = [t for t in self.texts(name) if t.get("key") == "edition"]
-            self.assertEqual(len(ed), 1)
-            self.assertIn(self.stats["edition"]["version"], ed[0]["s"])
-            self.assertEqual(ed[0]["slant"], "upright")
-            cm = [t for t in self.texts(name) if t.get("key") == "scrapy_commits"]
-            self.assertEqual(cm[0]["s"], f"{scrapy['commits']:,}")
+            # the shard count is drawn (track lines, mole cells), never printed (v9.2: show, don't tell)
+            self.assertEqual([t for t in self.texts(name) if t.get("key") == "shards"], [], name)
+            # light characters: Grafana's goes upright only on a measured claim; the mole head's and the leading
+            # lights' F are never measured and slope
+            claim = (self.stats.get("claims") or {}).get("scrape_interval") or {}
+            grafana = [t for t in self.texts(name) if t["s"].startswith("Fl ") and t["x0"] < 400]
+            self.assertEqual(len(grafana), 1, (name, grafana))
+            if claim.get("measured") and claim.get("sha"):
+                self.assertEqual((grafana[0]["slant"], grafana[0].get("key"), grafana[0].get("truth")),
+                                 ("upright", "scrape_interval", "measured"), name)
+            else:
+                self.assertEqual((grafana[0]["slant"], grafana[0].get("truth")), ("italic", "illustrative"), name)
+            fs = [t for t in self.texts(name) if t["s"] == "F"]
+            self.assertEqual(len(fs), 2, (name, fs))                       # the mole head and the leading line
+            self.assertTrue(all(t["slant"] == "italic" and t.get("truth") == "illustrative" for t in fs), name)
+            # the survey line slopes while no run is recorded
+            srv = [t for t in self.texts(name) if t["s"].startswith("Surveyed by rustmapper")]
+            self.assertEqual(len(srv), 1, name)
+            self.assertEqual(srv[0]["slant"], "upright" if isinstance(self.stats.get("trial"), dict) else "italic", name)
 
-    def test_legend_and_notes_at_17(self):
+    def test_legend_at_19_and_no_notes_or_captions(self):
         for name in ("day", "night"):
             recs = self.texts(name)
             legend = [r for r in recs if r["within"] == list(A.LEGEND) and r["role"] == "label"]
             self.assertGreaterEqual(len(legend), 30, name)
-            # show, don't tell: the figure convention is three legend entries, not a sentence
+            # show, don't tell: the figure convention is two legend entries, not a sentence; the legend defines
+            # every symbol used and nothing it does not use (v9.2)
             texts = {r["s"] for r in legend}
-            for want in ("Upright · measured", "Sloping · not measured", "Underlined · above datum"):
+            for want in ("Upright · measured", "Sloping · not measured", "Obstn · reported obstruction",
+                         "Inset · larger scale, Sheet 3", "Zone · seed source", "Track line · one shard"):
                 self.assertIn(want, texts, (name, want))
+            for gone in ("Underlined · above datum", "Correction · revised"):
+                self.assertNotIn(gone, texts, (name, gone))
             self.assertFalse(any("upright figures are measured" in r["s"] for r in recs), name)
             self.assertTrue(all(r["size"] == A.PANEL_SIZE for r in legend), [(r["s"], r["size"]) for r in legend if r["size"] != A.PANEL_SIZE])
-            notes = [r for r in recs if r["within"] in (list(A.BLOCK_RM), list(A.BLOCK_SH)) and r["s"][:1].isdigit()]
-            self.assertGreaterEqual(len(notes), 11, name)
-            self.assertTrue(all(r["size"] == A.PANEL_SIZE for r in notes), name)
+            # no notes panels and no captions: the README prints the facts once, the key decodes the marks
+            manifest = "\n".join(r["s"] for r in recs)
+            for gone in ("NOTES", "write-ahead log", "one shard per core", "Local knowledge advised",
+                         "as declared by the site", "PyPI", "Frontier hashed"):
+                self.assertNotIn(gone, manifest, (name, gone))
+            self.assertIn("IALA Region B · marks numbered from seaward", manifest, name)
+            self.assertFalse(hasattr(A, "BLOCK_RM"))
 
     def test_unit_line_once_and_one_label_caps(self):
         for name in ("day", "phone-day"):
@@ -214,7 +232,7 @@ class Approaches(unittest.TestCase):
             self.assertEqual(caps[0]["s"], self.cfg["copy"]["unit_approaches"].upper())
             folio = [t for t in self.texts(name) if t.get("key") == "folio"]
             self.assertEqual(len(folio), 1, name)
-            self.assertTrue(folio[0]["s"].startswith(f"CHART NO. {self.stats['repo_count']} · SHEET 3"))
+            self.assertEqual(folio[0]["s"], f"CHART NO. {self.stats['repo_count']} · SHEET 3")   # no title repeat (v9.2)
 
     # ------------------------------------------------------------- motion
     def test_stills_and_phones_carry_no_animation(self):
@@ -291,31 +309,41 @@ class Approaches(unittest.TestCase):
             cn = [t for t in self.texts(name) if t.get("key") == "chart-number"]
             self.assertEqual(len(cn), 1)
             self.assertEqual(cn[0]["s"], str(self.stats["repo_count"]))
-            self.assertAlmostEqual(cn[0]["x1"], 1262, delta=0.6)   # anchor end at (1262, 14), decision 27
-            self.assertEqual(cn[0]["y"], 14)
+            self.assertAlmostEqual(cn[0]["x1"], 1262, delta=0.6)   # anchor end at x 1262, decision 27
+            self.assertEqual(cn[0]["y"], 19)
             folio = [t for t in self.texts(name) if t.get("key") == "folio"][0]
-            self.assertEqual((round(folio["x0"]), folio["y"]), (24, A.SIZES["desk"][1] - 5))
+            self.assertEqual((round(folio["x0"]), folio["y"]), (24, A.SIZES["desk"][1] - 8))
+            # both margin lines clear the outer rule by at least one PEN, and the margin holds a 19 px line + 6
+            r0 = A.RULES["desk"][0]
+            self.assertGreaterEqual(r0, 19 + 6)
+            self.assertGreaterEqual(r0 - cn[0]["y"], tokens.W["PEN"])
+            self.assertGreaterEqual(folio["y0"] - (A.SIZES["desk"][1] - r0), tokens.W["PEN"], (folio["y0"], A.SIZES["desk"][1] - r0))
 
     # ------------------------------------------------------------- data drives geometry (T3 §10.7)
     def test_shards_change_the_track_lines_and_the_tape(self):
         log = json.loads(json.dumps(self.log))
         log["profile"]["shards"] = 12
         doc, recs, ctx = build_direct("still-day", log=log)
-        self.assertIn('"s": "12"', json.dumps([r for r in recs if r.get("key") == "shards"]))
         sh = A._Sheet(ctx)
         self.assertEqual(len(sh.survey_lines()), 12)
         self.assertEqual(doc.count('class="wal"'), 11 * 6 + 8)        # one mole block per sounding
-        log["measured"] = True
-        _doc, recs, _ctx = build_direct("still-day", log=log)
-        self.assertEqual([r["slant"] for r in recs if r.get("key") == "shards"], ["upright"])
+        self.assertEqual([r for r in recs if r.get("key") == "shards"], [])   # drawn, not printed (v9.2)
+        self.assertNotIn("12 here", "\n".join(r["s"] for r in recs))
 
     def test_scrape_interval_changes_the_light_character(self):
         claims = json.loads(json.dumps(self.stats["claims"]))
         claims["scrape_interval"] = {"value": 10, "unit": "s", "source": "Scrapy:monitoring/prometheus.yml", "sha": "abc", "measured": True}
         doc, recs, _ctx = build_direct("day", data_patch={"claims": claims})
-        self.assertIn("Grafana Lt · Fl 10s", "\n".join(r["s"] for r in recs))
+        self.assertIn("Grafana Lt · ", [r["s"] for r in recs])
         self.assertRegex(doc, r'id="approaches-lt-grafana-fl"[^>]*dur="10s"')
-        self.assertTrue(any(r.get("key") == "scrape_interval" and r["slant"] == "upright" for r in recs))
+        ch = [r for r in recs if r.get("key") == "scrape_interval"]
+        self.assertEqual([(r["s"], r["slant"], r.get("truth")) for r in ch], [("Fl 10s", "upright", "measured")])
+        # the guard: an unmeasured claim (or the fallback) letters the character sloping, with no key
+        claims["scrape_interval"] = {"value": None, "unit": "s", "source": None, "sha": None, "measured": False}
+        doc, recs, _ctx = build_direct("day", data_patch={"claims": claims})
+        self.assertRegex(doc, r'id="approaches-lt-grafana-fl"[^>]*dur="15s"')
+        ch = [r for r in recs if r["s"] == "Fl 15s"]
+        self.assertEqual([(r["slant"], r.get("truth"), r.get("key")) for r in ch], [("italic", "illustrative", None)])
 
     def test_a_trial_export_makes_the_basin_soundings_upright(self):
         trial = {"date": "2026-10-01", "tables": {"stage1_discovery": {"rows": 12345, "version": 3},
@@ -324,6 +352,37 @@ class Approaches(unittest.TestCase):
         _doc, recs, _ctx = build_direct("still-day", data_patch={"trial": trial})
         basin = [r for r in recs if r["origin"] == "sounding" and r["s"].startswith("12")]
         self.assertTrue(any(r["slant"] == "upright" and r["s"] == "12₃" for r in basin), [r["s"] for r in basin])
+        # and the title block's survey line goes upright with it
+        srv = [r for r in recs if r["s"].startswith("Surveyed by rustmapper")]
+        self.assertEqual([r["slant"] for r in srv], ["upright"])
+
+    def test_doubt_marks_agree_with_the_zoc_table(self):
+        """Rep and ED in zone A (existence doubtful), SD on the zone B line (may not answer), nothing in C."""
+        za, zb, zc = A.ZONE_Y["A"], A.ZONE_Y["B"], A.ZONE_Y["C"]
+        self.assertLess(abs(A.REP[1] - A.ED_[1]), 4)
+        self.assertLess(abs(A.REP[1] - za), (zb - za) / 2)
+        self.assertLess(abs(A.SD[1] - zb), 12)
+        for pt in (A.REP, A.ED_, A.SD):
+            self.assertGreater(abs(pt[1] - zc), (zc - zb) / 2)
+
+    def test_leading_marks_are_lights_and_wrecks_follow_the_data(self):
+        scrapy = next(r for r in self.stats["repos"] if r["name"] == "Scrapy")
+        for name in ("day", "night"):
+            text = self.svgs[name].decode()
+            ids = {lt["id"] for lt in self.entry(name)["lights"]}
+            self.assertTrue({"lt-ldg-front", "lt-ldg-rear", "lt-mole", "lt-grafana"} <= ids, ids)
+            self.assertEqual(sum(1 for lt in self.entry(name)["lights"] if lt["id"].startswith("lt-ldg")), 2)
+            if name == "night":
+                self.assertIn('id="approaches-lt-ldg-front-halo"', text)
+            # one wreck per charted dead branch (plus the legend's sample), never more than two
+            n = len(scrapy.get("stale_branches") or [])
+            self.assertEqual(text.count('href="#approaches-c-sym-wreck"'), min(n, 2) + 1, name)
+            for br in (scrapy.get("stale_branches") or [])[:2]:
+                self.assertIn(str(br["last"])[:4][2:], "\n".join(t["s"] for t in self.texts(name) if t["s"].startswith("Wk")))
+            # the leading line is cut under "Delta Lake": the path from the front mark has two pieces
+            m = re.search(rf'<path d="(M{A.LDG_FRONT[0]} {A.LDG_FRONT[1]}L[^"]*)" fill="none" stroke="#[0-9A-Fa-f]{{6}}" stroke-width="2.1"', text)
+            self.assertIsNotNone(m, "leading line")
+            self.assertEqual(m.group(1).count("M"), 2, m.group(1))
 
     # ------------------------------------------------------------- phone (T3 §10.6)
     def test_phone_floors_and_kept_names(self):
@@ -339,11 +398,29 @@ class Approaches(unittest.TestCase):
                          "LIMIT OF SURVEY 2026", "robots.txt", "Rep", "ED", "SD"):
                 self.assertIn(want, s, (name, want))
             soundings = [r for r in recs if r["origin"] == "sounding" and r["y"] < A.PH_LEGEND_Y]   # on the water
-            self.assertTrue(8 <= len(soundings) <= 14, len(soundings))
+            self.assertTrue(5 <= len(soundings) <= 8, len(soundings))             # thinned, not shrunk (v9.2)
             self.assertTrue(all(r["slant"] == "italic" for r in soundings))
-            # the compact key shows the one figure convention the phone carries, as an entry, not a sentence
-            self.assertIn("Sloping · not measured", s)
             self.assertNotIn("upright figures measured", s)
+            # the phone key defines every symbol the phone sheet draws (v9.2): 24 rows, the zone letters named
+            key = [r for r in recs if r["y"] >= A.PH_LEGEND_Y and r["role"] == "label" and r["origin"] != "sounding"
+                   and len(r["s"]) > 1 and r["s"] != "SYMBOLS" and r.get("key") != "folio"]
+            self.assertEqual(len(key), 24, [r["s"] for r in key])
+            texts = {r["s"] for r in key}
+            for want in ("Zone · seed source", "sitemaps", "CT logs", "Common Crawl", "Fix · position", "Waypoint · stage",
+                         "Track line · one shard", "Hatch · unsurveyed", "Tints · under 5, 10", "Height · commits, mos.",
+                         "Upright · measured", "Sloping · not measured", "Ldg line · health check"):
+                self.assertIn(want, texts, (name, want))
+            # both columns stand 10 px inside the rules, and no row's text runs into the other column's glyph
+            x_in = A.RULES["phone"][1] + A.PH_LEGEND_INSET
+            self.assertTrue(all(r["x0"] >= x_in and r["x1"] <= 720 - x_in for r in key), name)
+            left = [r for r in key if r["x0"] < 360]
+            right_glyphs = [r for r in recs if r["y"] >= A.PH_LEGEND_Y and 340 < r["x0"] < 400 and r["origin"] == "sounding"]
+            for g in right_glyphs:
+                beside = [r for r in left if abs(r["y"] - g["y"]) < 6]
+                self.assertTrue(all(r["x1"] < g["x0"] - 4 for r in beside), (name, g["s"], [r["s"] for r in beside]))
+            # R "4"'s label stands above its mark, clear of the leading line; "429 Shoal" ends inside the rule
+            shoal = next(r for r in recs if r["s"] == "429 Shoal")
+            self.assertLessEqual(shoal["x1"], 720 - A.RULES["phone"][1] - 8)
 
 
 if __name__ == "__main__":

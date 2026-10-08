@@ -6,25 +6,31 @@ named for the Delta tables and the workers. A Region B channel on a final leadin
 true (the hero's bearing). rustmapper's survey ground to the EAST (one track line per frontier
 shard), the limit of survey and the unsurveyed hatch at the east edge. The rustmapper → Scrapy
 link is charted as a *proposed, unlit* channel (pecked, hollow marks): nothing runs it. Zones of
-Confidence, two notes blocks and THE LEGEND (every symbol id in chartlib.symbol_defs that is a
-charted symbol), both at 19 px so they survive the README column.
+Confidence on the water and THE LEGEND (every symbol id in chartlib.symbol_defs that is a charted
+symbol) as the whole strip under the map, at 19 px so it survives the README column. No notes
+panels (v9.2): the README prints the facts once, as bullets under the sheet; the chart shows.
 
-Type (desk, v9.1 scale; the sheet is shown at ~870 px, x0.68): 19 px for every label, the legend
-and the notes bodies (`label`, `label-italic`, PANEL_SIZE); 25 px for place names and the pencil
-note (`place-water`, `note`); 41 px for the sheet and block titles and SCRAPY HARBOR (`title`);
-16 px for the sounding and contour figures (`texture-italic`, `contour-figure`). Four glyph sizes.
+Type (desk, v9.2; the sheet is 1280 × 892, shown at ~870 px, x0.68): 19 px for every label and the
+legend (`label`, `label-italic`, `label-caps`, PANEL_SIZE); 25 px for place names and the pencil
+note (`place-water`, `note`); 41 px for the sheet title and SCRAPY HARBOR (`title`); 16 px for the
+sounding and contour figures (`texture-italic`, `contour-figure`). Four glyph sizes. Phone
+(720 × 1960): 26 px labels, 30 px names and title, 18 px soundings.
 
-Honesty: every figure on the water is illustrative (italic, sloping). Upright figures are only the
-chart number, the PyPI version, date and wheel, Scrapy's commit count and the legend example drawn
-from stats.json. "512" is never printed. Shards = log.json.profile.shards, italic until `measured`.
-No coverage figure.
+Honesty: every figure on the water is illustrative (italic, sloping), and so is every light
+character until its claim is measured (Grafana Lt's `Fl {scrape_interval}s` goes upright only when
+stats.json carries the claim with a sha; the mole head's and the leading lights' `F` are never
+measured). Upright figures are only the chart number and the legend examples drawn from stats.json.
+The survey line of the title block slopes while `trial` is null. "512" is never printed. Shards =
+log.json.profile.shards: the count is shown as track lines and mole cells, never printed. No coverage
+figure. One wreck per charted dead branch (bot-authored branches are dropped by build_stats).
 
 Motion (§2.1, all discrete): G "1" Fl G 4s (begin 0), R "2" Fl R 4s (begin 2), the entrance gate
 G "3" Fl(2) G 10s / R "4" Fl(2) R 10s, Grafana Lt Fl {scrape_interval}s, the packet boat plotted
 by 7 fixes at 0, 4 … 24 s then held to 96 s; the survey vessel plots 8 fixes on the last track line
 at 28, 30 … 42 s and sounding k and mole block k <set> at fix k. Still edition = the finished sheet.
 Phone edition: the geography rotated 90° anticlockwise (channel down the screen, north arrow
-pointing left), re-lettered at SCALE_PHONE, frozen, with a compact legend of its own symbols below.
+pointing left), re-lettered at SCALE_PHONE, frozen, with a legend below that defines every symbol
+the phone sheet draws (24 rows in two columns, the zone letters named since the ZOC table is absent).
 """
 from __future__ import annotations
 
@@ -46,7 +52,7 @@ from chartlib.field import smoothstep  # noqa: E402
 
 NAME = "approaches"
 KIND = "chart"
-SIZES = {"desk": (1280, 1120), "phone": (720, 1880)}
+SIZES = {"desk": (1280, 892), "phone": (720, 1960)}
 BREAKS: list[tuple[str, str, str]] = [
     ("Panel headers are set in role `label` with caps and +0.6 tracking, not `label-caps`",
      "the one `label-caps` run per sheet is the unit line outside the neat line; NOTES / ZONES OF CONFIDENCE / "
@@ -62,23 +68,24 @@ BREAKS: list[tuple[str, str, str]] = [
     ("No inset: the harbour works are charted at chart scale",
      "quays named for the Delta tables and workers on the basin's shores, the WAL as a block mole with a head light",
      "round-2 crit: an inset over the 10-contour was the loudest thing on the sheet; a chart puts the works where they are"),
-    ("Phone edition is rotated 90° anticlockwise, 720 × 1880, with neat-line rules at 50/55 and its own legend",
+    ("Phone edition is rotated 90° anticlockwise, 720 × 1960, with neat-line rules at 50/55 and its own legend",
      "point mapper P(x, y) → (55 + (y−20)·s, PH_Y0 + (1150−x)·s) with s = 600 / (MAP_BOTTOM − MAP_TOP), so the "
      "564 px of charted water fill the 600 px between the rules; the unsurveyed band is cropped to 54 px of desk; "
      "the head and foot marginalia sit 24 px inside the sheet edge",
      "a phone sheet reads the channel down the screen (T3 §6); the README caption promises a legend on every width"),
     # ---- v9.1: the desk scale carries the display factor (19 / 25 / 41 px); the sheet re-tuned to hold it
-    ("The desk sheet is 1280 × 1120, not 960, and the charted water runs to y 584, not 520",
+    ("The charted water runs to y 584, not 520, and the strip under it is the legend alone",
      "MAP_BOTTOM 520 → 584 (the T3 geography compressed ×0.83 instead of ×0.74); the survey ground is 414 tall with "
-     "its track lines 46 px apart; the notes blocks are 236 tall at a 23 px pitch and the legend 258 tall at a 24 px "
-     "pitch with its header and its figure convention on one line",
-     "at 19 px the 500 px map and the 440 px strip could not hold their labels without a collision"),
+     "its track lines 46 px apart; the legend is 258 tall at a 24 px pitch with its header on one line",
+     "at 19 px the 500 px map could not hold its labels without a collision"),
     ("The title block stands at x 440 and the ZOC panel at x 690, 120 tall with 24 px rows",
      "the 41 px title is 383 px wide; the three ZOC rows are the letter, the source at +36 and the finding at +176",
      "at 41 px the title ran into the panel and at 19 px the rows overran their 86 px box"),
     ("The works on the west shore are keyed glyph first: the symbol at the margin (x 40–66), the name after it at x 70",
-     "Redis tanks, the traffic signal, PostgreSQL tanks and the summarization shed at a 20 px pitch",
-     "at 19 px 'PostgreSQL · metrics' is 161 px and ran through the tanks it named at x 160"),
+     "Redis tanks, the traffic signal, PostgreSQL tanks and the summarization shed at a 24–28 px pitch, glyph boxes "
+     "10 px apart",
+     "at 19 px 'PostgreSQL · metrics' is 161 px and ran through the tanks it named at x 160; at a 20 px pitch the "
+     "signal's top lamp touched the Redis tanks"),
     ("The three stage-table names are stacked under Prometheus; stage1_discovery is lettered west of its quay",
      "stage4_summaries at cy−66, stage1_discovery at cy−46, both from x 42, above the rear leading mark on that land",
      "at 19 px the two names on one baseline ran together ('stage4_summaries stage1_discovery')"),
@@ -89,13 +96,52 @@ BREAKS: list[tuple[str, str, str]] = [
      "starboard labels above (y−20 / y−2), port labels below (y+16 / y+34), 18 px between the name and the character",
      "the outer leg descends across G \"1\"'s east, and 'Health Ldg Lts 290°' takes the water above R \"2\""),
     ("The wreck lies north of the mole at (450, _y(330)); the shoal at (440, _y(660)), its name to the north-west",
-     "the branch name is lettered east of the wreck; 'Local knowledge advised' runs along the south-west shore from x 36; "
+     "the branch name is lettered east of the wreck; a second charted branch takes the slot north-east of it; "
      "'proposed · unlit' sits south-east of its channel at the map's foot",
      "the branch name (210 px) crossed into the survey ground and the mole caption; the shoal ring took the "
      "'Local knowledge' line and G \"1\"'s label"),
     ("Fewer soundings: 40 water figures at a 48 px gap, five per track line, none under the pencil note",
      "the halton budget is 40 (was 56), min_gap 48 (was 36), the survey lead five figures 76 px apart (was six at 60)",
      "at 16 px the figures are 17 × 12 px; at the old density they touched one another and the track-line fixes"),
+    # ---- v9.2: the four-critic review (art, hydrographer, mobile, owner's advocate)
+    ("No notes panels: the strip under the map is the legend alone and the desk sheet is 1280 × 892",
+     "LEGEND at y 588 (the map's foot + 4), 258 tall; the sheet ends 46 px under it; the map keeps its scale",
+     "the two NOTES blocks said the twelve facts the README prints as bullets directly under the sheet"),
+    ("No captions on the water: the legend defines Track line, Hatch and Zone; the ZOC table has no footnote",
+     "'write-ahead log · one cell per sounding', 'one shard per core · 8 here', 'Local knowledge advised · see Notices "
+     "1–5' and 'A: as declared by the site. B, C: as found.' are gone; the works keep their names",
+     "show, don't tell: each explained a mark the key already decodes, and the left column was the densest text on "
+     "the page"),
+    ("The frame insets are 26/31 and both margin lines sit clear of the outer rule",
+     "unit line and chart number on baseline 19 (cap top 5.5 from the sheet edge, 7 above the rule); the folio "
+     "'CHART NO. {N} · SHEET 3' on baseline h−8 (cap top 4.5 under the rule); the paper's plate mark stays at 14",
+     "at 14/19 the 19 px caps sat under the dashed neat line, top and bottom; a margin holds a 19 px line with ≥ 6 "
+     "px to spare, and a chart prints its number once, clear of the border"),
+    ("The leading line is cut where it would cross the 'Delta Lake' label, and every late label reserves a padded box",
+     "a Liang–Barsky cut of the line against the label's box (+6 / +4 px); the contour-figure reserves are padded by "
+     "the figure's own half-width (14 × 10) because contour_labels tests the anchor point, not the figure's box",
+     "lines yield to names; the leading line and a '20' figure printed through 'Delta Lake' at 870 px"),
+    ("Light characters slope until measured; the leading marks are lights; the survey line slopes while trial is null",
+     "Grafana Lt's character is its own run (label-italic, illustrative) unless claims.scrape_interval is measured with "
+     "a sha; the mole head and the two leading marks carry a lit core, a flare and a sloping 'F'; the title block "
+     "adds 'IALA Region B · marks numbered from seaward'",
+     "a character is a figure (hydrographer finding 1); Ldg Lts carry light stars, Ldg Bns do not (finding 4); the "
+     "source line is the chart's strongest claim and the ground under it is all sloping (finding 2)"),
+    ("Doubt marks agree with the ZOC table: Rep and ED in zone A, SD on the zone B line, nothing in C",
+     "REP (770, 176), ED_ (1004, 176), SD on track line 4 at x 842",
+     "ED stood in the zone the table says exists, SD in the zone the table calls 'as reported' (finding 6)"),
+    ("Legend: no 'Correction' and no 'Underlined' row; 'Obstn' and 'Inset' rows added",
+     "nothing on any sheet is revised or above datum; the footer letters 'Obstn rep. 2026 (PA)' and the hero draws "
+     "the dashed coverage box; 36 rows in four columns of nine",
+     "the legend defines every symbol used and nothing it does not use (finding 8)"),
+    ("Phone legend: 24 rows in two columns at a 34 px pitch, 10 px inside the rules either side, glyphs at ×1.7",
+     "Zone with A/B/C named, Fix, Waypoint, Track line, Hatch, Tints, Height and Upright join the 13 rows; the sheet "
+     "grows to 1960; the phone prints 7 water soundings at 18 px (was 14) rather than smaller ones",
+     "the phone draws zones, fixes, waypoints and a hatch its key did not define; 18 px is 9 CSS px on a phone, so "
+     "the figures are thinned, not shrunk"),
+    ("Phone: '429 Shoal' anchored end at the shoal's east edge; R \"4\"'s label above its mark",
+     "the run ends 24 px inside the right rule; the label clears the leading line by 12 px and the mole by 20",
+     "the name was clipped to '429 Shoa' and the leading line ran through the label"),
 ]
 
 PREFIX = "c"          # symbol ids c-sym-<name>; edition.svg prefixes approaches-
@@ -103,7 +149,8 @@ SEED = 27
 
 # ------------------------------------------------------------------ geography (1280 × 960 desk space)
 W_DESK, H_DESK = SIZES["desk"]
-RULES = {"desk": (14, 19), "phone": (50, 55)}
+RULES = {"desk": (26, 31), "phone": (50, 55)}
+PAPER_MARGIN = 14                             # the plate mark; the frame stands inside it (v9.2)
 MAP_TOP, MAP_BOTTOM = 20, 584                 # the charted water; the strip (notes + legend) takes the rest
 _K = (MAP_BOTTOM - MAP_TOP) / 680.0           # the T3 geography (680 tall) compressed into 500
 
@@ -134,14 +181,16 @@ GRAFANA = (178, _y(200))
 SHOAL = (440, _y(660))                        # south of the outer leg, west of G "1" (v9.1)
 SHOAL_R = 24
 WRECK = (450, _y(330))                        # north of the mole, clear of the survey ground (v9.1)
+WRECK2 = (430, _y(275))                       # a second charted dead branch, north-east of the first (v9.2)
 SURVEY = (680, 160, 400, MAP_BOTTOM - 170)    # the survey ground (below the ZOC panel), 414 tall: lines 46 px apart
 RESTRICTED = [(896, _y(300)), (1062, _y(300)), (1062, _y(420)), (896, _y(420))]
 LIMIT_X = 1096
 BAND = (LIMIT_X, MAP_TOP, 1260 - LIMIT_X, MAP_BOTTOM - MAP_TOP)
 UNSURVEYED_FADE = (1080, 1150)
 ZONE_Y = {"A": _y(215), "B": _y(405), "C": _y(595)}
-REP, ED_ = (770, 176), (980, _y(480))
-SD = (842, E.I(SURVEY[1] + 7 * SURVEY[3] / 9) - 7)      # SD sits on a lattice node of line 7 (eight shards)
+# doubt marks agree with the ZOC table (v9.2): Rep and ED in zone A, SD on the zone B line, nothing in zone C
+REP, ED_ = (770, 176), (1004, 176)
+SD = (842, E.I(SURVEY[1] + 4 * SURVEY[3] / 9) - 7)      # SD sits on a lattice node of line 4 (eight shards)
 # the WAL mole: from the north headland root toward the mouth, a light at its head
 MOLE_A, MOLE_B = (238, ANCH[1] - 34), (366, ANCH[1] - 10)
 # the channel marks (Region B, returning): pairs 1/2 off the outer end of the leading line, 3/4 as the entrance
@@ -153,16 +202,14 @@ MARKS = [("can", 1, "URLS", "port", "Fl G 4s", 0.0),
          ("nun", 4, "SUMMARIZE", "starboard", "Fl(2) R 10s", 2.0)]
 MARK_PTS = [c.lateral_offset(leg, frac, m[3], off) for (leg, frac, off), m in zip(_LEGS, MARKS)]
 
-# the strip: two notes blocks over a full-width legend
+# the strip: the legend alone (v9.2), header line + 9 rows at a 24 px pitch; the sheet ends 46 under it
 STRIP_Y = MAP_BOTTOM + 4
-BLOCK_H = 236                                 # title, edition line, NOTES, six lines at a 23 px pitch
-BLOCK_RM = (36, STRIP_Y, 600, BLOCK_H)
-BLOCK_SH = (644, STRIP_Y, 600, BLOCK_H)
-LEGEND = (36, STRIP_Y + BLOCK_H + 6, 1208, 258)         # header line + 9 rows at a 24 px pitch; ends 32 above the foot
-TITLE_C = (440, 50)
-ZOC = (690, 26, 392, 120)
-PANEL_SIZE = 19                               # legend definitions and notes bodies (on SCALE; the `label` size)
-NOTE_PITCH, LEGEND_PITCH, ZOC_PITCH = 23, 24, 24
+LEGEND = (36, STRIP_Y, 1208, 258)
+TITLE_C = (440, 46)                           # SHEET 3 · title · survey line · region line · rule (v9.2)
+ZOC = (690, 44, 392, 102)                     # header, rule, three rows at 24; no footnote (v9.2)
+PANEL_SIZE = 19                               # legend definitions (on SCALE; the `label` size)
+LEGEND_PITCH, ZOC_PITCH = 24, 24
+WORKS_DY = (110, 138, 162, 190)               # Redis, Traffic Sig, PostgreSQL, Summarization: baselines below ANCH
 
 LAND = [(60, _y(130), 230, 70), (40, _y(330), 220, 70), (50, _y(560), 230, 70), (50, _y(720), 230, 70),
         (170, _y(200), 80, 42), (40, _y(60), 120, 45), (40, _y(760), 130, 45),
@@ -176,7 +223,8 @@ ZONE_TEXT = {"A": "existence doubtful", "B": "exists, may not answer", "C": "as 
 # water (MAP_TOP … MAP_BOTTOM) fills the 600 px between the phone's rules.
 PH_X0, PH_Y0, PH_CROP = 55, 180, 1150
 PH_S = round(600.0 / (MAP_BOTTOM - MAP_TOP), 4)
-PH_LEGEND_Y = 1450                            # 13 rows in two columns; the map's foot is at ~1397
+PH_LEGEND_Y = 1436                            # 24 rows in two columns at 34; the map's foot is at ~1403
+PH_LEGEND_INSET = 10                          # inside the inner rule, both sides (v9.2)
 
 
 def _label_reserves() -> list[tuple[float, float, float, float]]:
@@ -188,15 +236,15 @@ def _label_reserves() -> list[tuple[float, float, float, float]]:
     mid01 = ((W0[0] + W1[0]) / 2, (W0[1] + W1[1]) / 2)
     out = [
         (36, _y(244) - 34, 124, 84),                               # SCRAPY HARBOR
-        (GRAFANA[0] + 14, GRAFANA[1] - 24, 150, 44),               # Grafana Lt · Horn
-        (36, cy - 98, 160, 70),                                    # Prometheus, stage4, stage1
-        (36, cy + 46, 180, 26),                                    # stage2_page_analysis
-        (36, cy + 98, 200, 86),                                    # the works
-        (36, MAP_BOTTOM - 30, 340, 26),                            # Local knowledge advised
-        (ANCH[0] - 52, cy + 6, 104, 32),                           # Delta Lake
-        (MOLE_A[0] + 14, MOLE_A[1] - 32, 310, 26),                 # the mole caption
+        (GRAFANA[0] + 14, GRAFANA[1] - 20, 150, 44),               # Grafana Lt · Horn
+        (36, cy - 106, 160, 76),                                   # Prometheus, stage4, stage1
+        (36, cy + 50, 180, 26),                                    # stage2_page_analysis
+        (36, cy + 96, 200, 100),                                   # the works
+        (ANCH[0] - 52, cy + 6, 140, 32),                           # Delta Lake, and the water east of it
         (WRECK[0] - 12, WRECK[1] - 30, 240, 48),                   # Wk and the branch name
-        (mid12[0] - 118, mid12[1] - 72, 160, 26),                  # Health Ldg Lts
+        (WRECK2[0] - 12, WRECK2[1] - 30, 240, 48),                 # a second wreck's name
+        (mid12[0] - 118, mid12[1] - 72, 190, 26),                  # Health Ldg Lts · F
+        (MOLE_B[0] + 6, MOLE_B[1] - 26, 40, 30),                   # the mole head's F
         (mid01[0] + 6, mid01[1] - 30, 50, 26),                     # the outer leg's bearing
         (SHOAL[0] - 120, SHOAL[1] - 40, 160, 72),                  # 429 Shoal, PA and the ring
         (W0[0] + 44, MAP_BOTTOM - 32, 130, 28),                    # proposed · unlit
@@ -208,7 +256,39 @@ def _label_reserves() -> list[tuple[float, float, float, float]]:
             out.append((mx - 56, my - 12, 112, 56))
         else:
             out.append((mx - 10, my - 12, 160, 50))
+    # a corridor along the leading line and the outer leg: a contour figure never sits on the channel (v9.2)
+    for a, b in ((LDG_FRONT, W1), (W1, W0)):
+        n = max(2, int(math.hypot(b[0] - a[0], b[1] - a[1]) / 18))
+        for i in range(n + 1):
+            x, y = a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n
+            out.append((x - 6, y - 6, 12, 12))
     return out
+
+
+def _cut_segment(a, b, rect) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    """The segment a→b minus its run through `rect` (x, y, w, h): zero, one or two pieces (Liang–Barsky)."""
+    (ax, ay), (bx, by) = a, b
+    x0, y0, w, h = rect
+    dx, dy = bx - ax, by - ay
+    t0, t1 = 0.0, 1.0
+    for p, q in ((-dx, ax - x0), (dx, x0 + w - ax), (-dy, ay - y0), (dy, y0 + h - ay)):
+        if p == 0:
+            if q < 0:
+                return [(a, b)]                 # parallel and outside
+            continue
+        r = q / p
+        if p < 0:
+            t0 = max(t0, r)
+        else:
+            t1 = min(t1, r)
+    if t0 >= t1:
+        return [(a, b)]
+    pieces = []
+    if t0 > 0:
+        pieces.append((a, (round(ax + dx * t0, 1), round(ay + dy * t0, 1))))
+    if t1 < 1:
+        pieces.append(((round(ax + dx * t1, 1), round(ay + dy * t1, 1)), b))
+    return pieces
 
 
 # ------------------------------------------------------------------ coast with per-side insets
@@ -391,6 +471,28 @@ class _Sheet:
         self.exclude(name, x - 4, y - 4, w + 8, h + 8)
         return "".join(out)
 
+    def character(self, ch: str, x: float, y: float, measured: bool, key: str | None = None) -> str:
+        """A light's character, lettered: upright with its key only when the claim behind it is measured;
+        otherwise sloping and registered illustrative (v9.2 guard: a character is a figure)."""
+        if measured:
+            return self.txt(ch, x, y, "label", truth="measured", key=key)
+        return self.txt(ch, x, y, "label-italic", truth="illustrative")
+
+    def delta_lake_pos(self) -> tuple[float, float, str]:
+        """Where the basin's name is lettered: (x, baseline, anchor)."""
+        if self.phone:
+            x, y = self.P(ANCH[0] - 50, ANCH[1] + 46)       # clear of the front leading mark after the rotation
+            return (x, y, "middle")
+        return (ANCH[0] - 2, ANCH[1] + 34, "middle")
+
+    def delta_lake_box(self) -> tuple[float, float, float, float]:
+        """The name's box, padded 6 × 4: the leading line is cut where it would cross it."""
+        x, y, anchor = self.delta_lake_pos()
+        w = self.width("Delta Lake", "place-water")
+        size = 30 if self.phone else 25
+        x0 = x - w / 2 if anchor == "middle" else x
+        return (x0 - 6, y - 0.74 * size - 4, w + 12, 0.74 * size + 0.22 * size + 8)
+
     def light_group(self, x, y, lit_id, character, begin, color=None, r=2.0) -> str:
         """A flashing core (+ halo at night) whose group opacity takes the light's character."""
         anim = (self.tl.flash(character, begin=begin, still="lit", name=f"{lit_id}-fl")
@@ -434,7 +536,7 @@ class _Sheet:
 
     # ---------------------------------------------------------------- layers
     def draw_paper(self):
-        d, b = c.paper(self.w, self.h, self.t, self.ed.name, self.jit, margin=self.rules[0])
+        d, b = c.paper(self.w, self.h, self.t, self.ed.name, self.jit, margin=PAPER_MARGIN)
         self.defs.append(d)
         self.layers["paper"].append(b)
 
@@ -466,8 +568,11 @@ class _Sheet:
             self.breaks = []
             W.append(c.draw_contours(cs, INDEX_LEVELS, t, opacity=op, min_len=60))
         else:
-            excl = [ZOC, (TITLE_C[0] - 195, 30, 390, 104), (LIMIT_X - 10, MAP_TOP, 180, MAP_BOTTOM - MAP_TOP), SURVEY,
-                    (MOLE_A[0] - 10, MOLE_A[1] - 30, 160, 60)] + _label_reserves()
+            # contour_labels tests the figure's anchor point, so every reserve is padded by the figure's own
+            # half-width and height (a 16 px figure is ~20 × 12): a "20" can never print over a name (v9.2)
+            excl = [ZOC, (TITLE_C[0] - 195, MAP_TOP, 390, 130), (LIMIT_X - 10, MAP_TOP, 180, MAP_BOTTOM - MAP_TOP), SURVEY,
+                    (MOLE_A[0] - 10, MOLE_A[1] - 30, 160, 60)] + \
+                   [(x - 14, y - 10, w + 28, h + 20) for x, y, w, h in _label_reserves()]
             breaks = c.contour_labels(cs, min_len=200, gap=18, exclusions=excl, levels=(5.0, 10.0, 20.0, 50.0))
             # no figure in the sheet's corners (where contours leave the neat line) and none within 28 px of another
             kept, anchors = [], []
@@ -485,13 +590,16 @@ class _Sheet:
         # the unsurveyed hatch, running to the sheet edge where the neat line is broken
         band = self.Prect(LIMIT_X, MAP_TOP, (PH_CROP if self.phone else 1260) - LIMIT_X, MAP_BOTTOM - MAP_TOP)
         ramp = None if self.phone else (band[0], band[0] + 40)
-        hd, hb = c.hatch(band, t, jit.sub("band"), "unsurveyed", "hatch-band", ramp=ramp)
+        # the phone's hatch is ruled at the density the desk's shows on the page (8 px × 0.68 / 0.5)
+        hd, hb = c.hatch(band, t, jit.sub("band"), "unsurveyed", "hatch-band", ramp=ramp,
+                         spacing=(c.HATCH["unsurveyed"]["spacing"] * tokens.DISPLAY / 0.5 if self.phone else None))
         self.defs.append(hd)
         W.append(f'<g opacity=".35">{hb}</g>' if self.night else hb)
         W.append("</g>")   # end map clip
         if not self.phone:
-            for y0 in (_y(300), _y(560)):
-                hd2, hb2 = c.hatch((1259, y0, 21, 24), t, jit.sub(f"gap{y0}"), "unsurveyed", f"hatch-gap{y0}")
+            for y0 in (_y(300), _y(560)):       # through the broken neat line to the sheet edge
+                hd2, hb2 = c.hatch((self.w - self.rules[1] - 1, y0, self.rules[1] + 1, 24), t, jit.sub(f"gap{y0}"),
+                                   "unsurveyed", f"hatch-gap{y0}")
                 self.defs.append(hd2)
                 W.append(f'<g opacity=".35">{hb2}</g>' if self.night else hb2)
 
@@ -586,17 +694,8 @@ class _Sheet:
             M.append(self.txt("robots.txt", x, y + 9, "label", anchor="middle"))
         else:
             M.append(self.txt("robots.txt · Disallow", rx0 + 6, ry0 + 19, "label", within=(rx0, ry0, rx1 - rx0, ry1 - ry0)))
-            # caption at line 1's east end: one shard per core · {n} here (n italic until measured)
-            ex, ey = segs[0][1]
-            head, n_s, tail = "one shard per core · ", str(self.shards), " here"
-            n_role = "label" if self.shards_measured else "label-italic"
-            w_head, w_n = self.width(head), self.width(n_s, n_role)
-            x0, y = ex - (w_head + w_n + self.width(tail)), ey - 6
-            M.append(self.txt(head, x0, y, "label"))
-            M.append(self.txt(n_s, x0 + w_head, y, n_role, truth="measured" if self.shards_measured else "illustrative",
-                              key="shards"))
-            M.append(self.txt(tail, x0 + w_head + w_n, y, "label"))
-        # doubt marks: Rep in zone A, ED in zone B, SD (beside its sounding) in zone C
+        # doubt marks, as the ZOC table says (v9.2): Rep and ED in zone A (sitemaps: existence doubtful), SD beside
+        # its sounding on the zone B line (CT logs: exists, may not answer); zone C (as reported) carries none
         for kind, (x, y) in (("Rep", REP), ("ED", ED_)):
             px, py = self.P(x, y)
             M.append(c.doubt(kind, px, py, self.lbl, PREFIX))
@@ -604,7 +703,6 @@ class _Sheet:
             self.extra_excl.append((px - 12, py - 12, 50, 24))
         sx, sy = self.P(*SD)
         if self.phone:
-            sx, sy = self.P(SD[0], SD[1] - 36)      # clear of the last track line's fixes after the rotation
             M.append(c.doubt("SD", sx, sy, self.lbl, PREFIX))
         else:
             M.append(self.snd(E.I(self.field.value(*SD)), sx, sy + 4, truth="illustrative"))
@@ -625,15 +723,21 @@ class _Sheet:
         # outer leg: pecked course with waypoints
         L.append(c.course(self.Ppts([W0, W1]), t, jit, pecked=True, prefix=PREFIX, bearings=False))
         self.symbols_used.add("waypoint")
-        # the leading line: the darkest ruled line on the sheet, from the front mark out to W1 (the "1"/"2" pair)
+        # the leading line: the darkest ruled line on the sheet, from the front mark out to W1 (the "1"/"2" pair);
+        # cut where it would cross the "Delta Lake" label (lines yield to names, v9.2)
         f, w1 = P(*LDG_FRONT), P(*W1)
-        L.append(f'<path d="M{E.fmt(f[0])} {E.fmt(f[1])}L{E.fmt(w1[0])} {E.fmt(w1[1])}" fill="none" {self.stroke("LINE", t.ink)}/>')
+        d = "".join(f"M{E.fmt(a[0])} {E.fmt(a[1])}L{E.fmt(b[0])} {E.fmt(b[1])}"
+                    for a, b in _cut_segment(f, w1, self.delta_lake_box()))
+        L.append(f'<path d="{d}" fill="none" {self.stroke("LINE", t.ink)}/>')
         for wp in (W2, W3, W4, ANCH):
             x, y = P(*wp)
             M.append(self.use("waypoint", x, y))
-        for pt in (LDG_FRONT, LDG_REAR):
+        # the leading marks are LIGHTS (v9.2): beacon triangle, flare and lit core, character F (never measured)
+        for pt, lid in ((LDG_FRONT, "lt-ldg-front"), (LDG_REAR, "lt-ldg-rear")):
             x, y = P(*pt)
             M.append(self.use("ldg", x, y))
+            M.append(self.use("flare", x, y - 3, rotate=180))      # the petal points SW, clear of the stage names
+            M.append(self.light_group(x, y - 3, lid, "F", 0.0, r=1.3))
         ax, ay = P(*ANCH)
         M.append(self.use("anchorage", ax, ay, scale=1.3))
         # proposed channel from the end of the last track line: pecked, hollow marks, unlit
@@ -661,8 +765,8 @@ class _Sheet:
             if self.phone:
                 # after the rotation north (starboard) is to the LEFT of the channel, south to the right;
                 # R "4" lies under the mole's lee, so its label goes below the mark
-                if num == 4:
-                    M.append(self.txt(f'{letter} "{num}"', x, y + 28, "label-italic", anchor="middle"))
+                if num == 4:                    # above the mark: clear of the leading line (12 px) and the mole
+                    M.append(self.txt(f'{letter} "{num}"', x, y - 26, "label-italic", anchor="middle"))
                 elif side == "starboard":
                     M.append(self.txt(f'{letter} "{num}"', x - 18, y + 2, "label-italic", anchor="end"))
                 else:
@@ -683,8 +787,10 @@ class _Sheet:
         if not self.phone:
             b0 = c.compass_bearing(W0, W1)
             M.append(self.txt(f"{round(b0) % 360:03d}°", (W0[0] + W1[0]) / 2 + 10, (W0[1] + W1[1]) / 2 - 10, "label-italic"))
-            M.append(self.txt(f"Health Ldg Lts {LDG_BRG:.0f}°", (W1[0] + W2[0]) / 2 - 38, (W1[1] + W2[1]) / 2 - 51, "label",
-                              anchor="middle"))
+            lx, ly = (W1[0] + W2[0]) / 2 - 38, (W1[1] + W2[1]) / 2 - 51
+            ldg = f"Health Ldg Lts {LDG_BRG:.0f}°"
+            M.append(self.txt(ldg, lx, ly, "label", anchor="middle"))
+            M.append(self.character("F", lx + self.width(ldg) / 2 + 6, ly, False))
             # the shoal is drawn from an illustrative field: its position is approximate
             M.append(c.doubt("PA", SHOAL[0] + 14, SHOAL[1] - 28, self.lbl, PREFIX))
         else:
@@ -705,31 +811,31 @@ class _Sheet:
         if self.phone:
             M.append(self.txt("Grafana Lt", gx + 20, gy - 6, "label"))
         else:
-            M.append(self.txt(f"Grafana Lt · {char}", gx + 18, gy - 6, "label",
-                              truth=("measured" if self.scrape_measured else None),
-                              key=("scrape_interval" if self.scrape_measured else None)))
-            M.append(self.txt("Horn", gx + 18, gy + 12, "label"))
+            head = "Grafana Lt · "
+            M.append(self.txt(head, gx + 18, gy - 2, "label"))          # 5 px under the title block's exclusion
+            M.append(self.character(char, gx + 18 + self.width(head), gy - 2, self.scrape_measured, key="scrape_interval"))
+            M.append(self.txt("Horn", gx + 18, gy + 16, "label"))
         # harbour and water names
+        # the harbour name is set in `ink` in both editions (v9.2; the night choke grade is the type engine's)
+        dl_x, dl_y, dl_anchor = self.delta_lake_pos()
         if self.phone:
             hx, hy = P(110, _y(206))
-            M.append(self.txt("SCRAPY HARBOR", hx, hy, "title", anchor="middle"))
-            dx, dy = P(ANCH[0] - 50, ANCH[1] + 46)          # clear of the front leading mark after the rotation
-            M.append(self.txt("Delta Lake", dx, dy, "place-water", anchor="middle"))
+            M.append(self.txt("SCRAPY HARBOR", hx, hy, "title", anchor="middle", fill=self.t.ink))
+            M.append(self.txt("Delta Lake", dl_x, dl_y, "place-water", anchor=dl_anchor))
+            # the name ends at the shoal's east edge so the run stays inside the right rule (v9.2)
             sx, sy = P(*SHOAL)
-            M.append(self.txt("429 Shoal", sx, sy + 60, "place-water", anchor="middle"))
+            M.append(self.txt("429 Shoal", sx + SHOAL_R * PH_S, sy + 60, "place-water", anchor="end"))
         else:
-            M.append(self.txt("SCRAPY", 96, _y(244), "title", anchor="middle"))
-            M.append(self.txt("HARBOR", 96, _y(244) + 44, "title", anchor="middle"))   # 44: the 41 px boxes are 43 tall
-            M.append(self.txt("Delta Lake", ANCH[0] - 2, ANCH[1] + 34, "place-water", anchor="middle"))
+            M.append(self.txt("SCRAPY", 96, _y(244), "title", anchor="middle", fill=self.t.ink))
+            M.append(self.txt("HARBOR", 96, _y(244) + 44, "title", anchor="middle", fill=self.t.ink))   # 44: the 41 px boxes are 43 tall
+            M.append(self.txt("Delta Lake", dl_x, dl_y, "place-water", anchor=dl_anchor))
             M.append(self.txt("429 Shoal", SHOAL[0] - 30, SHOAL[1] - 6, "place-water", anchor="end"))
-            M.append(self.txt("Local knowledge advised · see Notices 1–5", 36, MAP_BOTTOM - 9, "label"))
             # south-east of the pecked channel, below its hollow marks, at the map's foot
             M.append(self.txt("proposed · unlit", W0[0] + 50, MAP_BOTTOM - 6, "label-italic"))
-        # the wreck: a real dead branch of the harbour repo
-        branches = self.scrapy.get("stale_branches") or []
-        if branches:
-            br = next((b for b in branches if len(b.get("name", "")) <= 26), branches[0])
-            wx, wy = P(*WRECK)
+        # the wrecks: every charted dead branch of the harbour repo (build_stats drops a bot's), two slots
+        branches = [b for b in (self.scrapy.get("stale_branches") or []) if isinstance(b, dict)]
+        for br, (wx0, wy0) in zip(branches[:2], (WRECK, WRECK2)):
+            wx, wy = P(wx0, wy0)
             M.append(self.use("wreck", wx, wy))
             name = br.get("name", "")
             if len(name) > 26:
@@ -781,11 +887,19 @@ class _Sheet:
         M = self.layers["marks"]
         # one group carries the cells' paint (50 cells: the attributes repeated per cell cost 5 KB)
         M.append(f'<g fill="{t.ink}" fill-opacity=".82" {self.stroke("HAIR", t.ink, 0.7, caps="butt")}>')
-        for quad, kidx in self.mole_cells():
+        if self.phone:
+            # generalised at phone scale (v9.2): the cells would be 2.6 CSS px, so the mole is one solid block
+            # of the cells' outline (two courses, the full length); the desk keeps one cell per sounding
+            cells = self.mole_cells()
+            quad = [cells[0][0][0], cells[-2][0][1], cells[-1][0][2], cells[1][0][3]]
             pts = self.Ppts(quad)
-            d = "M" + "L".join(f"{E.fmt(x)} {E.fmt(y)}" for x, y in pts) + "Z"
-            cell = f'<path class="wal" d="{d}"/>'
-            M.append(cell if kidx is None else self.tl.reveal(cell, 28.0 + 2 * kidx))
+            M.append(f'<path class="wal" d="M{"L".join(f"{E.fmt(x)} {E.fmt(y)}" for x, y in pts)}Z"/>')
+        else:
+            for quad, kidx in self.mole_cells():
+                pts = self.Ppts(quad)
+                d = "M" + "L".join(f"{E.fmt(x)} {E.fmt(y)}" for x, y in pts) + "Z"
+                cell = f'<path class="wal" d="{d}"/>'
+                M.append(cell if kidx is None else self.tl.reveal(cell, 28.0 + 2 * kidx))
         M.append("</g>")
         bx, by = MOLE_B
         ax, ay = MOLE_A
@@ -797,16 +911,16 @@ class _Sheet:
         self.extra_excl.append((min(ax, bx) - 8, min(ay, by) - 10, abs(bx - ax) + 30, abs(by - ay) + 22))
         if self.phone:
             return
-        M.append(self.txt("write-ahead log · one cell per sounding", ax + 20, ay - 12, "label"))
+        M.append(self.character("F", lx + 10, ly - 8, False))      # the head light's character, never measured
         q = lambda x, y, w, h: (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{t.paper}" '  # noqa: E731
                                 f'{self.stroke("PEN", t.ink)}/>')
         cy = ANCH[1]
         # quays on the basin's shores, named for the three Delta tables; the anchorage itself is the raw
         # table, so it alone carries a sounding (the row count, upright once stats.trial carries a run).
         # The two northern names stack under Prometheus; stage1_discovery is lettered west of its quay.
-        M.append(q(146, cy - 46, 18, 5) + self.txt("stage4_summaries", 42, cy - 66, "label"))
-        M.append(q(196, cy - 42, 5, 18) + self.txt("stage1_discovery", 42, cy - 46, "label"))   # clear of the rear Ldg mark
-        M.append(q(146, cy + 46, 18, 5) + self.txt("stage2_page_analysis", 36, cy + 66, "label"))
+        M.append(q(146, cy - 46, 18, 5) + self.txt("stage4_summaries", 42, cy - 68, "label"))
+        M.append(q(196, cy - 42, 5, 18) + self.txt("stage1_discovery", 42, cy - 44, "label"))   # clear of the rear Ldg mark
+        M.append(q(146, cy + 46, 18, 5) + self.txt("stage2_page_analysis", 36, cy + 70, "label"))
         spot = next(((x, y) for x, y in ((196, cy - 18), (150, cy - 16), (204, cy), (150, cy + 20))
                      if self.field.value(x, y) > 2.0), (196, cy - 18))
         tables = (self.trial or {}).get("tables") if isinstance(self.trial, dict) else None
@@ -819,13 +933,15 @@ class _Sheet:
         self.extra_excl.append((spot[0] - 12, spot[1] - 12, 24, 16))
         # the works on the land: Prometheus mast, then down the south-west shore, keyed glyph first (the
         # symbol at the margin, the name after it: at 19 px the names are longer than the shore is wide):
-        # Redis tanks, the traffic signal, PostgreSQL tanks, the BART summarization shed
-        M.append(f'<path d="M58 {cy - 74}V{cy - 100}M54 {cy - 94}h8M55 {cy - 87}h6" fill="none" {self.stroke("PEN", t.ink)}/>')
-        M.append(self.txt("Prometheus", 66, cy - 86, "label"))
-        M.append(q(40, cy + 104, 10, 10) + q(52, cy + 104, 10, 10) + self.txt("Redis · queues", 70, cy + 114, "label"))
-        M.append(self.use("traffic", 46, cy + 128) + self.txt("Traffic Sig", 70, cy + 134, "label"))
-        M.append(q(40, cy + 142, 14, 9) + q(40, cy + 153, 14, 9) + self.txt("PostgreSQL · metrics", 70, cy + 154, "label"))
-        M.append(q(40, cy + 166, 26, 12) + self.txt("Summarization Wks", 70, cy + 174, "label"))
+        # Redis tanks, the traffic signal, PostgreSQL tanks, the BART summarization shed, at a 24–28 px pitch
+        # with 10 px between the glyph boxes (v9.2: at 20 px the signal's lamp touched the tanks)
+        M.append(f'<path d="M58 {cy - 80}V{cy - 106}M54 {cy - 100}h8M55 {cy - 93}h6" fill="none" {self.stroke("PEN", t.ink)}/>')
+        M.append(self.txt("Prometheus", 66, cy - 92, "label"))
+        y_r, y_t, y_p, y_s = (cy + d for d in WORKS_DY)
+        M.append(q(40, y_r - 10, 10, 10) + q(52, y_r - 10, 10, 10) + self.txt("Redis · queues", 70, y_r, "label"))
+        M.append(self.use("traffic", 46, y_t + 2) + self.txt("Traffic Sig", 70, y_t, "label"))
+        M.append(q(40, y_p - 12, 14, 9) + q(40, y_p - 1, 14, 9) + self.txt("PostgreSQL · metrics", 70, y_p, "label"))
+        M.append(q(40, y_s - 10, 26, 12) + self.txt("Summarization Wks", 70, y_s, "label"))
 
     # ---------------------------------------------------------------- vessels (motion)
     def draw_vessels(self):
@@ -888,8 +1004,8 @@ class _Sheet:
                 y = 40 + c.halton(i, 3) * (MAP_BOTTOM - 20 - 40)
                 pts.append((x + g.offset(6), y + g.offset(6), "water"))
         placed: list[tuple[float, float]] = []
-        min_gap = 48 if not self.phone else 60
-        budget = 40 if not self.phone else 14
+        min_gap = 48 if not self.phone else 90
+        budget = 40 if not self.phone else 7            # the phone prints half as many at 18 px (v9.2)
         n = 0
         rx0, ry0 = RESTRICTED[0]
         rx1, ry1 = RESTRICTED[2]
@@ -950,9 +1066,20 @@ class _Sheet:
         M = self.layers["panels"]
         M.append(self.header("SHEET 3", cx, cy + 4, anchor="middle"))
         M.append(self.txt("Approaches to Scrapy Harbor", cx, cy + 40, "title", anchor="middle"))
-        M.append(self.txt("Surveyed by rustmapper 2026 · Datum: main", cx, cy + 68, "label", anchor="middle"))
-        M.append(f'<path d="M{cx - 60} {cy + 78}h120" fill="none" {self.stroke("HAIR", self.t.ink, 0.6, caps="butt")}/>')
-        self.exclude("title-block", cx - 195, cy - 10, 390, 94)
+        # the survey line slopes while no run is recorded (trial null): the ground under it is all sloping (v9.2)
+        if isinstance(self.trial, dict):
+            M.append(self.txt("Surveyed by rustmapper 2026 · Datum: main", cx, cy + 68, "label", anchor="middle"))
+        else:
+            M.append(self.txt("Surveyed by rustmapper 2026 · Datum: main", cx, cy + 68, "label-italic", anchor="middle",
+                              truth="illustrative"))
+        M.append(self.txt("IALA Region B · marks numbered from seaward", cx, cy + 90, "label", anchor="middle"))
+        M.append(f'<path d="M{cx - 60} {cy + 100}h120" fill="none" {self.stroke("HAIR", self.t.ink, 0.6, caps="butt")}/>')
+        self.exclude("title-block", cx - 195, cy - 10, 390, 112)
+
+    def zone_names(self) -> dict[str, str]:
+        """letter → the seed source's name as the ZOC table letters it (stats.json sources, else chart.toml)."""
+        sources = self.data.get("sources") or self.cfg.get("sources") or []
+        return {s.get("letter"): ACRONYMS.get(str(s.get("name", "")).upper(), str(s.get("name", "")).lower()) for s in sources}
 
     def draw_zoc(self):
         """Zones of confidence as a ruled block: hairlines between the rows, no filled or boxed cells."""
@@ -961,8 +1088,7 @@ class _Sheet:
         Pn = self.layers["panels"]
         Pn.append(self.cartouche(x, y, w, h, "zoc"))
         Pn.append(self.header("ZONES OF CONFIDENCE", x + 12, y + 16, within=ZOC))
-        sources = self.data.get("sources") or self.cfg.get("sources") or []
-        names = {s.get("letter"): ACRONYMS.get(str(s.get("name", "")).upper(), str(s.get("name", "")).lower()) for s in sources}
+        names = self.zone_names()
         rule = lambda yy: f'<path d="M{x + 12} {yy}h{w - 24}" fill="none" {self.stroke("HAIR", t.ink, 0.6, caps="butt")}/>'  # noqa: E731
         Pn.append(rule(y + 22))
         for i, letter in enumerate(("A", "B", "C")):
@@ -971,68 +1097,6 @@ class _Sheet:
             Pn.append(self.txt(names.get(letter, ""), x + 36, yy, "label", within=ZOC))
             Pn.append(self.txt(ZONE_TEXT[letter], x + 176, yy, "label", within=ZOC))
             Pn.append(rule(yy + 6))
-        Pn.append(self.txt("A: as declared by the site.  B, C: as found.", x + 20, y + 114, "label", within=ZOC))
-
-    def note_line(self, parts, x, y, within, avail) -> str:
-        """A notes line of (role, text) parts on one baseline at PANEL_SIZE (italic parts for quoted figures)."""
-        total = sum(self.width(s, role, size=PANEL_SIZE) for role, s in parts)
-        if total > avail:
-            raise ValueError(f"approaches: note {''.join(s for _, s in parts)!r} is {total:.0f} px, cell allows {avail:.0f}")
-        out, pen = [], x
-        for role, s in parts:
-            truth = "illustrative" if role == "label-italic" and any(ch.isdigit() for ch in s) else None
-            out.append(self.txt(s, pen, y, role, size=PANEL_SIZE, within=within, truth=truth))
-            pen += self.width(s, role, size=PANEL_SIZE)
-        return "".join(out)
-
-    def draw_blocks(self):
-        Pn = self.layers["panels"]
-        pitch = NOTE_PITCH
-        # ---- rustmapper
-        x, y, w, h = BLOCK_RM
-        avail = w - 32
-        Pn.append(self.cartouche(x, y, w, h, "block-rustmapper"))
-        Pn.append(self.txt("rustmapper", x + 16, y + 36, "title", within=BLOCK_RM))
-        ver, date = str(self.edition_v.get("version") or ""), str(self.edition_v.get("date") or "")
-        status = str(self.edition_v.get("status") or "provisional")
-        Pn.append(self.body(self.fit(f"PyPI {ver} · {status} · {date}", "label", avail, size=PANEL_SIZE), x + 16, y + 62,
-                            within=BLOCK_RM, truth="measured", key="edition"))
-        Pn.append(self.header("NOTES", x + 16, y + 86, within=BLOCK_RM))
-        notes = [
-            [("label", "1  Frontier hashed by registrable domain")],
-            [("label", "2  One shard per core · permits "), ("label-italic", "256–1024")],
-            [("label", "3  Sized by redb commit latency · "), ("label-italic", "250 ms")],
-            [("label", "4  WAL crc32 · rkyv · checkpoints to redb")],
-            [("label", "5  Seeds A · B · C · robots crawl-delay kept")],
-        ]
-        for i, parts in enumerate(notes):
-            Pn.append(self.note_line(parts, x + 16, y + 108 + i * pitch, BLOCK_RM, avail))
-        wheels = self.edition_v.get("wheels") or []
-        if wheels:
-            tag = str(wheels[0]).replace("cp313-cp313-", "cp313 · ")
-            Pn.append(self.body(self.fit(f"Wheel · {tag} · elsewhere pip builds from source", "label", avail, size=PANEL_SIZE),
-                                x + 16, y + 108 + 5 * pitch, within=BLOCK_RM, truth="measured", key="wheel"))
-        # ---- Scrapy Harbor
-        x, y, w, h = BLOCK_SH
-        Pn.append(self.cartouche(x, y, w, h, "block-scrapy"))
-        Pn.append(self.txt("Scrapy Harbor", x + 16, y + 36, "title", within=BLOCK_SH))
-        commits = self.scrapy.get("commits")
-        head = f"{self.scrapy.get('language') or 'Python'} · edition main · "
-        Pn.append(self.body(head, x + 16, y + 62, within=BLOCK_SH))
-        if commits is not None:
-            wx = x + 16 + self.width(head, size=PANEL_SIZE)
-            cs = f"{int(commits):,}"
-            Pn.append(self.body(cs, wx, y + 62, within=BLOCK_SH, truth="measured", key="scrapy_commits"))
-            Pn.append(self.body(" commits", wx + self.width(cs, size=PANEL_SIZE), y + 62, within=BLOCK_SH))
-        Pn.append(self.header("NOTES", x + 16, y + 86, within=BLOCK_SH))
-        notes = ["1  Typed Arrow schema per table",
-                 "2  schema_mode=merge · partition by domain",
-                 "3  Dedup by URL hash and MinHash",
-                 "4  OPTIMIZE / VACUUM from a maintenance queue",
-                 "5  Breakers wrap http · delta · redis",
-                 "6  BART-large-CNN summaries on the worker"]
-        for i, s in enumerate(notes):
-            Pn.append(self.body(self.fit(s, "label", avail, size=PANEL_SIZE), x + 16, y + 108 + i * pitch, within=BLOCK_SH))
 
     def legend_rows(self):
         """(draw(cx, cy, k), text) rows: every charted symbol id in chartlib.symbol_defs (vessels, halo and flare
@@ -1049,12 +1113,21 @@ class _Sheet:
         weeks = [w for w in (self.data.get("weeks") or []) if isinstance(w, dict) and w.get("n")]
         hw = max(weeks, key=lambda w: w["n"]) if weeks else None
         sym = lambda name, dx=0, dy=0, sc=1.0: (lambda cx, cy, kk: self.use_legend(name, cx + dx * kk, cy + dy * kk, scale=sc * kk))  # noqa: E731
+        lit = lambda cx, cy, kk: (f'<circle cx="{E.fmt(cx)}" cy="{E.fmt(cy)}" r="{E.fmt(1.3 * kk)}" fill="{t.light_core}" '  # noqa: E731
+                                  f'{S("PEN", ink) if not self.night else ""}/>')
+        letter_box = lambda letter: (lambda cx, cy, kk: self.txt(letter, cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None)  # noqa: E731
+                                     + f'<rect x="{E.fmt(cx - 8 * kk)}" y="{E.fmt(cy - 8 * kk)}" width="{E.fmt(16 * kk)}" height="{E.fmt(16 * kk)}" fill="none" {S("PEN", ink, 0.9, caps="butt")}/>')
+        self.letter_box = letter_box
+        # four columns of nine (v9.2): marks · points and doubt · lines and water · ground and figures
         return [
             (sym("can", 0, 6), "G can · port, returning"),
             (sym("nun", 0, 6), "R nun · starboard"),
             (sym("light"), "Light · its character"),
-            (lambda cx, cy, kk: self.use_legend("ldg", cx - 6 * kk, cy + 4 * kk, scale=kk) + self.use_legend("ldg", cx + 6 * kk, cy, scale=kk)
-             + line(f"M{E.fmt(cx - 12 * kk)} {E.fmt(cy + 8 * kk)}L{E.fmt(cx + 12 * kk)} {E.fmt(cy - 4 * kk)}", S("HAIR", ink, 0.8)),
+            # the leading marks are lights: triangle, flare and lit core each (v9.2)
+            (lambda cx, cy, kk: line(f"M{E.fmt(cx - 12 * kk)} {E.fmt(cy + 8 * kk)}L{E.fmt(cx + 12 * kk)} {E.fmt(cy - 4 * kk)}", S("HAIR", ink, 0.8))
+             + self.use_legend("ldg", cx - 6 * kk, cy + 4 * kk, scale=kk) + self.use_legend("ldg", cx + 6 * kk, cy, scale=kk)
+             + ("" if self.phone else self.use("flare", cx - 6 * kk, cy + 1 * kk, scale=kk) + self.use("flare", cx + 6 * kk, cy - 3 * kk, scale=kk))
+             + lit(cx - 6 * kk, cy + 1 * kk, kk) + lit(cx + 6 * kk, cy - 3 * kk, kk),
              "Ldg line · health check"),
             (sym("traffic", 0, 9), "Traffic Sig · breaker"),
             (lambda cx, cy, kk: self.lamps(cx, cy, kk), "go · stop · one at a time"),
@@ -1064,16 +1137,16 @@ class _Sheet:
             (sym("waypoint"), "Waypoint · stage"),
             (sym("fix"), "Fix · position"),
             (sym("station"), "Station · profile repo"),
-            (sym("correction"), "Correction · revised"),
+            # the footer letters "Obstn rep. 2026 (PA)": the abbreviation is the mark, as SD and PA are
+            (lambda cx, cy, kk: self.txt("Obstn", cx - 2 * kk, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
+             "Obstn · reported obstruction"),
             (sym("rep"), "Rep · reported, not found"),
             (sym("ed"), "ED · existence doubtful"),
             (lambda cx, cy, kk: self.txt("SD", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "SD · sounding doubtful"),
             (lambda cx, cy, kk: self.txt("PA", cx, cy + 4 * kk, "label-italic", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "PA · position approximate"),
-            (lambda cx, cy, kk: self.txt("A", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None)
-             + f'<rect x="{E.fmt(cx - 8 * kk)}" y="{E.fmt(cy - 8 * kk)}" width="{E.fmt(16 * kk)}" height="{E.fmt(16 * kk)}" fill="none" {S("PEN", ink, 0.9, caps="butt")}/>',
-             "Zone · seed source"),
+            (letter_box("A"), "Zone · seed source"),
             (lambda cx, cy, kk: self.txt(f"{LDG_BRG:.0f}°", cx, cy + 4 * kk, "label", anchor="middle", size=PANEL_SIZE if (kk > 1 and not self.phone) else None),
              "Bearing · true"),
             (lambda cx, cy, kk: line(f"M{E.fmt(cx - 12 * kk)} {E.fmt(cy)}h{E.fmt(24 * kk)}", S("PEN", ink, 0.85, "COURSE")), "Course · lit channel"),
@@ -1081,6 +1154,9 @@ class _Sheet:
              + self.hollow_mark("can", cx + 6 * kk, cy - 2 * kk, kk), "Proposed channel · unlit"),
             (lambda cx, cy, kk: f'<circle cx="{E.fmt(cx)}" cy="{E.fmt(cy)}" r="{E.fmt(6 * kk)}" fill="none" {S("LINE", ink, 0.9, "DANGER", gap=4.3)}/>',
              "Danger line · shoal"),
+            # the hero's dashed coverage box ("SEE SHEET 3"), drawn with the hero's own stroke
+            (lambda cx, cy, kk: f'<rect x="{E.fmt(cx - 10 * kk)}" y="{E.fmt(cy - 6 * kk)}" width="{E.fmt(20 * kk)}" height="{E.fmt(12 * kk)}" fill="none" {S("HAIR", ink, 0.7, "RESTRICT", caps="butt")}/>',
+             "Inset · larger scale, Sheet 3"),
             (lambda cx, cy, kk: f'<rect x="{E.fmt(cx - 12 * kk)}" y="{E.fmt(cy - 5 * kk)}" width="{E.fmt(12 * kk)}" height="{E.fmt(10 * kk)}" fill="{t.shallow_b}"/>'
              f'<rect x="{E.fmt(cx)}" y="{E.fmt(cy - 5 * kk)}" width="{E.fmt(12 * kk)}" height="{E.fmt(10 * kk)}" fill="{t.shallow_a}"/>',
              "Tints · under 5, 10"),
@@ -1102,15 +1178,13 @@ class _Sheet:
             (lambda cx, cy, kk: (self.snd(hw["n"], cx, cy + 4 * kk, sub=hw.get("days", 0), truth="measured", role="label")
                                  if hw else self.snd(108, cx, cy + 4 * kk, sub=4, truth="illustrative", role="label")),
              "Sheet 1 · week's commits, days"),
-            # the figure convention, shown rather than told: the upright and the underlined samples are Scrapy's
-            # real commit count (the one measured figure this legend already carries); the sloping one is not
+            # the figure convention, shown rather than told: the upright sample is Scrapy's real commit count (the
+            # one measured figure this legend already carries); the sloping one is not. Nothing on any sheet is
+            # above datum, so there is no underlined sample (v9.2)
             (lambda cx, cy, kk: (self.snd(commits, cx, cy + 4 * kk, truth="measured", role="label") if commits
                                  else self.snd(12, cx, cy + 4 * kk, truth="illustrative", role="label")),
              "Upright · measured" if commits else "Sloping · not measured"),
             (lambda cx, cy, kk: self.snd(12, cx, cy + 4 * kk, truth="illustrative", role="label"), "Sloping · not measured"),
-            (lambda cx, cy, kk: (self.snd(commits, cx, cy + 4 * kk, truth="datum", role="label") if commits
-                                 else self.snd(12, cx, cy + 4 * kk, truth="illustrative", role="label")),
-             "Underlined · above datum" if commits else "Sloping · not measured"),
         ]
 
     def draw_legend(self):
@@ -1133,26 +1207,37 @@ class _Sheet:
             Pn.append(draw(cx0 + 18, cy - 6, kk))
             Pn.append(self.body(self.fit(text, "label", avail, size=PANEL_SIZE), cx0 + 44, cy, within=LEGEND))
 
+    # the phone key's rows, column by column (12 each once the three zone letters follow "Zone"): the longest
+    # left rows (Wk, ED, SD) face the narrow boxed letters, and the figure samples (265₅, 265, 12: the widest
+    # glyphs, drawn 7 px further left) face the shortest rows (Waypoint, Fix, Rep)
+    PHONE_ROWS = ("G can", "R nun", "Light", "Ldg line", "Anchorage", "Wk", "ED", "SD", "Danger line", "Waypoint", "Fix", "Rep",
+                  "Restricted", "Track line", "Hatch", "Limit of survey", "Tints", "Zone", "Height", "Upright", "Sloping")
+    PHONE_FIGURE_ROWS = ("Height", "Upright", "Sloping")
+
     def draw_phone_legend(self):
-        """A compact legend of the symbols the phone sheet actually carries, below the chart."""
-        t = self.t
+        """The legend of every symbol the phone sheet draws (v9.2): 24 rows in two columns at a 34 px pitch, 10 px
+        inside the rules either side; the zone letters are named here since the ZOC table is not on the phone."""
         Pn = self.layers["panels"]
-        x, y, w = 55, PH_LEGEND_Y, 610
-        short = {"Rep · reported, not found": "Rep · not found", "Anchorage · Delta Lake": "Anchorage · Delta L."}
+        x = self.rules[1] + PH_LEGEND_INSET
+        y, w = PH_LEGEND_Y, self.w - 2 * x
+        short = {"Rep · reported, not found": "Rep · not found", "Anchorage · Delta Lake": "Anchorage · Delta L.",
+                 "Height · commits, months": "Height · commits, mos."}
         Pn.append(self.txt("SYMBOLS", x, y + 26, "label", tracking=1.0))
-        # the phone's soundings are all sloping, so its key shows that convention and no other
-        rows = [r for r in self.legend_rows() if r[1].split(" ·")[0] in
-                ("G can", "R nun", "Light", "Ldg line", "Anchorage", "Wk", "Rep", "ED", "SD",
-                 "Danger line", "Restricted", "Limit of survey", "Sloping")]
+        by_key = {r[1].split(" ·")[0]: r for r in self.legend_rows()}
+        rows = [by_key[key] for key in self.PHONE_ROWS if key in by_key]
+        names = self.zone_names()
+        zi = next(i for i, r in enumerate(rows) if r[1].startswith("Zone")) + 1
+        rows[zi:zi] = [(self.letter_box(letter), names.get(letter, "")) for letter in ("A", "B", "C") if names.get(letter)]
         per = math.ceil(len(rows) / 2)
         col_w = w / 2
-        y0, pitch, kk = y + 70, 34, 1.9
+        y0, pitch, kk = y + 70, 34, 1.7
         for i, (draw, text) in enumerate(rows):
             ci, ri = divmod(i, per)
             cx0 = x + ci * col_w
             cy = y0 + ri * pitch
-            Pn.append(draw(cx0 + 24, cy - 8, kk))
-            Pn.append(self.txt(self.fit(short.get(text, text), "label", col_w - 58), cx0 + 56, cy, "label"))
+            gx = cx0 + (14 if text.split(" ·")[0] in self.PHONE_FIGURE_ROWS else 21)
+            Pn.append(draw(gx, cy - 8, kk))
+            Pn.append(self.txt(self.fit(short.get(text, text), "label", col_w - 48), cx0 + 48, cy, "label"))
         self.exclude("phone-legend", x - 4, y, w + 8, 70 + per * pitch)
 
     def lamps(self, cx, cy, kk=1.0) -> str:
@@ -1178,7 +1263,7 @@ class _Sheet:
         F, Mg = self.layers["frame"], self.layers["margin"]
         unit = self.cfg["copy"]["unit_approaches"]
         if self.phone:
-            F.append(c.frame(self.w, self.h, t, "minute-bars", rules=self.rules))
+            F.append(c.frame(self.w, self.h, t, "minute-bars", rules=self.rules, bar=28))   # 14 CSS px, as the desk's bars show
             Mg.append(self.txt(unit, 340, 42, "label-caps", anchor="middle", fill=t.ink))
             Mg.append(self.txt(str(self.repo_count), 670, 42, "label", anchor="end", key="chart-number", truth="measured"))
             Mg.append(self.txt(f"CHART NO. {self.repo_count} · SHEET 3", 50, self.h - 14, "label", key="folio"))
@@ -1189,9 +1274,10 @@ class _Sheet:
         else:
             F.append(c.frame(self.w, self.h, t, "broken", gaps=[("right", _y(300), _y(300) + 24), ("right", _y(560), _y(560) + 24)],
                              rules=self.rules))
-            Mg.append(self.txt(unit, 640, 12, "label-caps", anchor="middle", fill=t.ink))
-            Mg.append(self.txt(str(self.repo_count), 1262, 14, "label", anchor="end", key="chart-number", truth="measured"))
-            Mg.append(self.txt(f"CHART NO. {self.repo_count} · SHEET 3 · APPROACHES TO SCRAPY HARBOR", 24, self.h - 5, "label", key="folio"))
+            # both margin lines stand clear of the outer rule (v9.2): baseline 19 above it, h−8 below it
+            Mg.append(self.txt(unit, 640, 19, "label-caps", anchor="middle", fill=t.ink))
+            Mg.append(self.txt(str(self.repo_count), 1262, 19, "label", anchor="end", key="chart-number", truth="measured"))
+            Mg.append(self.txt(f"CHART NO. {self.repo_count} · SHEET 3", 24, self.h - 8, "label", key="folio"))
 
     # ---------------------------------------------------------------- assemble
     def render(self) -> str:
@@ -1206,7 +1292,6 @@ class _Sheet:
         self.draw_title_block()
         if not self.phone:
             self.draw_zoc()
-            self.draw_blocks()
             self.draw_legend()
         else:
             self.draw_phone_legend()
@@ -1229,8 +1314,8 @@ def build(ctx) -> str:
 
 
 def alt(data, cfg) -> str:
-    return ("Sheet 3, Approaches: rustmapper's survey ground east, buoyed channel west into Scrapy Harbor, "
-            "every symbol in the legend. The soundings fill in behind the vessel.")
+    return ("Sheet 3, Approaches: rustmapper's survey ground and the buoyed channel into Scrapy Harbor. "
+            "The soundings fill in behind the vessel.")
 
 
 # ------------------------------------------------------------------ build-report hook
