@@ -26,6 +26,7 @@ import re
 import chartlib as c
 import edition as E
 from timeline import ease_inverse
+import tokens
 from tokens import INK
 
 NAME = "hero"
@@ -604,7 +605,11 @@ def build(ctx) -> str:
         if x >= limit_x - 8 * s:
             continue
         fw = width(f"{v}{weeks[i_].get('days', '')}", "texture")
-        fb = (x - fw / 2 - 3 * s, y - 6 * s, fw + 6 * s, 12 * s)
+        # the figure's box in type units: texture is 11 px on the desk and 18 px on the phone, and type is
+        # not scaled by the sheet's affine `s` (run 4 of the chart workflow: a 6 px box under an 18 px "0")
+        fh = tokens.FLOORS["phone" if phone else "desk"]["texture"]
+        fbase = y + (4 if not phone else 6)                   # the baseline the figure is printed on (below)
+        fb = (x - fw / 2 - 3, fbase - fh * 0.8 - 1, fw + 6, fh * 1.1 + 2)   # ascent to the days subscript
         # standard spacing: no figure within SOUND_GAP of another on its own line of soundings (|dy| < 10)
         # and no two figure boxes touching; the culled weeks remain kernels of the field
         if any((abs(y - sounds[j_][1]) < 10 * s and abs(x - sounds[j_][0]) < SOUND_GAP * s * 0.75) for j_ in show):
