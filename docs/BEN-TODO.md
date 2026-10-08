@@ -1,7 +1,21 @@
 # What only you can do
 
-The chart redraws itself nightly, but some facts are yours to set. Each item says what changes on the
-page when you do it. Items marked ✓ were done in the redesign branch.
+The chart redraws itself weekly and on every push to `main`, but some facts are yours to set. Each item
+says what changes on the page when you do it. Items marked ✓ were done in the redesign branch.
+
+## Round 4 (8 Oct 2026, decision D10): three asks
+
+- **Fill the position and contact slots.** `chart.toml [position] text` is the one line a hiring manager
+  came for ("role · city or timezone · open to / currently"); it prints after "Crawl and data
+  infrastructure · Python and Rust" under the chart. `[contact] linkedin` / `resume` add the two links to
+  the row under it. Both are empty today and the page simply omits them (item 2 below).
+- **Record one real rustmapper run** on a host you may crawl, and commit it as `assets/log.json` with
+  `measured: true`, `source: "session"` and `machine.cores` filled (item 7 below). Since round 4 nothing
+  unmeasured is printed, so the page shows no crawl figures at all until there is a measured run; with one,
+  it can show real URLs/s, hosts and WAL size.
+- **Look at the three concept stills** on branch `concepts/round4` (the vessel in section, the waterfall,
+  the survey lines), built from different premises than the archipelago, and say which one you would
+  screenshot. That answer, not another review round, sets the direction.
 
 1. **Bio and profile fields.** Replace the GitHub bio with
    *"Crawl and data infrastructure, Python and Rust. The web is wrong about itself; I survey the part that isn't linked."*
