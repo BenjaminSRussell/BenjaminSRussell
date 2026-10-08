@@ -1,2 +1,7 @@
 node_modules/
 .env
+.preview/
+__pycache__/
+out/
+assets/v9/
+social/

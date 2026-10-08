@@ -1,0 +1,18 @@
+{
+  "system": "benjaminsrussell/profile",
+  "version": "8.0.0",
+  "codename": "Chart",
+  "concept": "a nautical chart of the open web; every image is a sheet from the same chart",
+  "editions": {
+    "day":   { "paper": "#F4EEE1", "land": "#E6DCC6", "ink": "#1B2A41", "ink2": "#34465F", "muted": "#6B7A90", "hair": "#CDC3AE", "accent": "#D9442B", "ok": "#2F8F5B", "cool": "#2E6FB0" },
+    "night": { "paper": "#0F1A2B", "land": "#172740", "ink": "#DCE4F0", "ink2": "#B4C0D4", "muted": "#7F8FA9", "hair": "#2A3A55", "accent": "#FF6A3D", "ok": "#4ADE9B", "cool": "#7CB8FF" }
+  },
+  "type": {
+    "title": "Instrument Serif Regular",
+    "aside": "Instrument Serif Italic",
+    "caption": "IBM Plex Mono, uppercase, 9-11px, tracking +1.8"
+  },
+  "sheets": ["hero", "soundings", "approach-scrapy", "survey-rustmapper", "log", "legend", "footer"],
+  "motion": { "engine": "SMIL", "rule": "slow and purposeful; nothing flashes" },
+  "source": "scripts/build_assets.py, scripts/build_stats.py, scripts/chartlib.py, scripts/svgkit.py"
+}

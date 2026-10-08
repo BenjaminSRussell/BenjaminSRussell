@@ -1,0 +1,72 @@
+# Re-crit 18 — the technical recruiter (built v9 "Chart" README)
+
+Same method as before: an 8-second scan of the top of readme-light.png (1100 px render, 870 px column), a 60-second scroll of the whole render, README.md read as text with Ctrl-F, then the sheet PNGs and 2x crops. I judge what a recruiter sees and can search, and I score the rubric as a stranger to the page.
+
+## 1. Scores J1–J12
+
+| # | Score | Evidence |
+|---|---|---|
+| J1 | 3 | The hero carries "I survey a web that is wrong about itself." once (hero-title crop). The prose under the table paraphrases ("Most of what I build is survey work") rather than repeating. The cartouche carries the plain register ("CRAWL AND DATA INFRASTRUCTURE · PYTHON AND RUST") so the riddle is decoded on the same sheet. |
+| J2 | 2 | Hero right margin: hatched block, "LIMIT OF SURVEY 2026", "UNSURVEYED", thinning soundings toward it (hero-day.png x≈880–1010). At README width the hatch is a pale grey panel and "UNSURVEYED" is ~8 px; a stranger sees "a map with a decorated right edge" before "an edge of knowledge". It reads better on the phone hero where the labels are large. |
+| J3 | 3 | Six distinct silhouettes in <qa>/sheets: full neat line with big name (hero); curve plus table strip (soundings); tall sheet with a three-panel legend row (approaches); ruled paper with no neat line (log); three rotated words and leader columns (instruments); short sheet with a cliff and a boat (footer). Caveat: the footer is judged from sheets/, not the page, where it is missing (defect 1). |
+| J4 | 3 | Cartouche, hero-day.png x≈150–400 y≈490–565: "SOUNDINGS IN COMMITS · DATUM: MAIN", "IALA REGION B", edition and "CORRECTED THROUGH NOTICE 9". Approaches header: "SOUNDINGS IN URLS · THOUSANDS", "Datum: main". All three named in text on the sheet. |
+| J5 | 2 | Desktop: every mark has a one-line job in the approaches legend, but in the README column (readme-light.png band y≈3000–3400) the legend type is ~7 px; it reads only in the 2x crop. Phone (approaches-phone.png): the legend is dropped, so G"1"/R"2", the Traffic Sig and the Horn are unexplained on a phone. |
+| J6 | 2 | The same figures recur from one source: 1,665 / 21 / 358 / 0.1.3 / 265 appear in the hero cartouche, the soundings sheet, the figures line, the log phone cursor line and the Scrapy Harbor notes panel. I cannot run the stats.json experiment from PNGs, so I will not award a 3 on faith. |
+| J7 | 2 | Measured vs illustrative stated once in the legend ("upright figures are measured · sloping figures are not"); "proposed · unlit" and "nothing runs it yet" for the channel; "Edition 0.1.3, provisional"; "Heights observed, not predicted." Minus one: the H2 says "five principles" and the intro says "These five I had to be told" above a list of nine items (readme-light.png band 4, items 6–9). |
+| J8 | 2 | Filmstrips: every log frame is a finished sheet; hero frames from 4.1 s on are finished and the east half fills in during the opening (hero/strip.png t=0 → 4.1 s). I can judge stills, not choreography, so 2. |
+| J9 | 2 | Glossed headings are done and in my words (stats, main projects, one run, five principles, smaller projects, languages and stack). Minus: "rustmapper 0.1.x on PyPI · Rust-sitemap, 8 Nov 2025" is one fact said four times; the main project still has two printed names (rustmapper in the link row and hero; "RUST SITEMAP" on the soundings sheet; "Rust-sitemap" in the notices cites); the soundings row prints bare "SCRAPY". |
+| J10 | 3 | At 870 px, without scrolling past the first screen: link row (y≈690) rustmapper · Scrapy Harbor · PyPI · Email; table (y≈720–870) "Ben Russell builds | crawl and data infrastructure…", "Languages | Python, Rust; Swift, C, TypeScript, Go", "Stack | Delta Lake, PostgreSQL, Redis…". Field, systems, languages, stack and contact in about five seconds, all Ctrl-F-able. The two empties (position, LinkedIn/résumé) are Ben's content, not the build's; see defect 3. |
+| J11 | 2 | Night hero (hero-entrance-night crop): the red, green and magenta lights at Scrapy Harbor have halos and are the most saturated things; the navy paper is designed, not inverted, and the page chrome matches GitHub dark. But the pale-cream "Ben Russell" is still the brightest thing by area, and the night soundings/instruments/log sheets are simply grey ink on navy. |
+| J12 | 3 | Found without captions: "sitemap.xml lies again" in italic across the water east of the harbour; "VAR 14h (2026) AUTHOR'S LOCAL TIME" on the clock rose; "SMALL CORRECTIONS 2026 — 169…173" in the lower margin; the wreck "Wk '25 fix/144-lean-docker-extras" on the approaches; the live cursor line "1947 · 1,665 commits · 21 repos" on the log phone; "Nothing on fire." in the log. Each one made the first reading truer (the wreck is a dead branch; the variation is a time zone). |
+
+**J-total: 29/36.** No zero; J1, J2, J7, J10 all ≥ 2. One short of the 30 floor, and the two points it is short by are both build defects (1 and 2 below), not design decisions.
+
+## 2. The five-second test
+
+**870 px, day.** Huge "Ben Russell", an italic line I do not have time to decode, a chart I enjoy and do not read. My eye drops below the picture to the blue link row and then the table, and in five seconds I have: name, "crawl and data infrastructure", Python and Rust, a PyPI package, and an email. The page says: a careful backend/data engineer who builds crawlers, with unusual taste. It does not say: role, seniority, city or time zone, or whether he is looking. The chart no longer stands between me and him; it sits above the facts.
+
+**360 px.** hero-phone.png alone gives name, the thesis in two lines, and, in caps along the bottom, "THE OPEN WEB · FROM SURVEYS 2025–2026 / CRAWL AND DATA INFRASTRUCTURE · PYTHON AND RUST". That bottom line is the only thing on the phone hero that tells me the field, and it is legible. SCRAPY HARBOR and GAME ENGINE I. are the two features I can name; the small numerals mean nothing to me and do not need to. The table stacks below and still reads.
+
+**Night.** Same facts in the same places. The navy sheet with lit buoys reads as a product page rather than a hobby page, which is a point in his favour for the kind of team that cares. The name is the first thing, the lights the second, the table the third. Nothing is lost.
+
+## 3. Top 5 defects, ranked
+
+**1. The footer sheet never appears; the colophon is truncated and left open.**
+Where: readme-light.png and readme-dark.png, bottom (y≈4950–5106): the page ends on a collapsed "Colophon" summary. No footer sheet, no "The chart ends here. The web doesn't.", no Motion / Variation / License bullets. Source: README.md lines 194–209. The Editions bullet reads "…picks the edition through `<!-- picture:footer:start -->" and the footer `<picture>` sits inside that backtick span, followed by two `<!-- picture:footer:end -->` markers and no `</details>`. The renderer's picture replacement matched the literal `<picture>` inside the colophon's inline code and ate everything from there to the real end marker.
+Why it matters: STANDARDS thesis ("the footer is where the water finally goes over the edge") and STD 7 (the arc ends at the edge) are not on the page at all; STD 14 build quality; the license line is gone. For me, the page simply stops, which reads as a build that broke.
+Fix: in scripts/render_readme.py make `fill_block` for `picture:<sheet>` match only the exact comment pair `<!-- picture:footer:start -->`…`<!-- picture:footer:end -->`, non-greedy, and never a bare `<picture>`; restore the colophon source (Editions bullet, Motion, Variation, License via `license_block`) and its `</details>`; place the footer picture after the colophon as the last element. Add to check.py --release: all six `picture:*` blocks present, none inside a `<details>`, `<details>` count equals `</details>` count, `license:start` present, exactly one `picture:footer:end`.
+Cost: S for the regex and the checks; M if the colophon copy must be recovered from history.
+
+**2. "Five principles" lists nine items.**
+Where: readme-light.png band y≈3630–4050, items 6–9: "rustmapper 0.1.0 on PyPI · Rust-sitemap, 8 Nov 2025" repeated with 0.1.1, 0.1.2, 0.1.3. Source: `notices_block` in scripts/render_readme.py appends every stats.json release notice to the hand list.
+Why: STD 9 (say each thing once: one release day said four times), J7 (the heading and the intro claim five). For a recruiter the five hand notices are the lines I quote in a submittal email; four changelog rows under them read as a generated list and dilute them.
+Fix: keep the hand notices as the numbered list. Collapse release notices into one trailing italic line under the list: "Releases: rustmapper 0.1.0–0.1.3 on PyPI, 8 Nov 2025" linking to the PyPI release history. If the cartouche's "Corrected through Notice 9" must keep counting releases, say "9 notices" there, not "five principles" here; the two counts must agree somewhere a reader can see.
+Cost: S.
+
+**3. The position slot and the LinkedIn / résumé slots ship empty.**
+Where: README.md `position:start/end` and `contact:start/end` are empty comments; chart.toml `[position] text = ""`, `[contact] linkedin = ""`, `resume = ""`; check.md POSITION-EMPTY (warn). On the render there is nothing between the link row (y≈690) and the table (y≈720).
+Why: STD 10 rightly forbids inventing these, so this is not the builder's defect, but the page is being judged as shipped and the first screen still has no role, city or time zone, no "open to", and no résumé to forward. In my panel document this was the number one reason a profile gets closed rather than messaged; that has not changed.
+Fix: Ben fills `[position] text` ("{Role} · {City or TZ} · {Open to / currently}") and the two contact fields before the chart branch is published. Builder: in check.py --release treat POSITION-EMPTY and an empty contact pair as failures rather than warnings once `[chart] release` is not a dev tag, so the page cannot publish blank. Mirror `role_line` into the GitHub profile bio, location and hireable fields, which is where I actually search.
+Cost: S for the gate; the content is Ben's and takes him ten minutes.
+
+**4. Two names for the main project; bare "SCRAPY" on the soundings sheet.**
+Where: soundings-day.png table row "RUST SITEMAP 87" and "SCRAPY 265" (README render band y≈1325); notices cites "Rust-sitemap, 8 Nov 2025"; link row, hero island and H3 line say rustmapper / Scrapy Harbor.
+Why: STD 9 one name; MASTERPLAN §7.1 pass metric "≤ 10 % call him a Scrapy maintainer". The link row and the bold line ("built on the Scrapy framework") now disambiguate well, but the soundings strip is the one place a skimmer sees the word SCRAPY alone with a big number next to it.
+Fix: the soundings sheet and the notices cites should print `[[features]].aliases[0]` when one exists (rustmapper, Scrapy Harbor, Profile Shoal), falling back to the repo name otherwise. Same lookup the hero already uses.
+Cost: S.
+
+**5. Instruments is empty on a phone; the approaches legend is unreadable in the README column.**
+Where: instruments-phone.png is 1080×72: a rule and "CHART NO. 21 · SHEET 5" and nothing else. Approaches legend in readme-light.png band y≈3340–3510: ~7 px type; readable only in crops/approaches-legend.png.
+Why: STD 1 (an empty image is an apology), STD 5 (type survives the medium), J5. For a recruiter the plain `<sub>` line under Instruments carries the stack, so the damage is cosmetic, but the phone reader gets a blank picture with a sheet number on it.
+Fix: on phone, drop the Instruments `<picture>` entirely (the breakpoint `<source>` rows can point at nothing; the `<sub>` text line is the phone edition) or stack the three columns at phone width. For approaches at README width, remove the legend rows no reader uses ("Correction · revised", "Bearing · true", "Waypoint · stage") and let the remaining rows set one step larger.
+Cost: S for the phone drop; M for a stacked phone Instruments or a re-set legend.
+
+## 4. Three things that must not be touched
+
+1. **The link row and the three-row table directly under the hero** (readme-light.png y≈690–870): "Ben Russell builds | crawl and data infrastructure…", "Languages", "Stack", with rustmapper · Scrapy Harbor · PyPI · Email above. This is exactly the plain-text block I asked for; it is the whole reason J10 is a 3; it is GitHub-native markdown, which is correct. Keep the words "crawl and data infrastructure" and keep the table plain.
+2. **The dual-register headings**: "Soundings stats", "Approaches main projects", "Ship's log one run", "Notices to mariners five principles", "Other waters smaller projects", "Instruments languages and stack". Nautical word first, my word second, both searchable. Do not fold the gloss into a tooltip or an image.
+3. **The two system blocks and the cartouche mirror.** rustmapper's bullets (governor 256–1,024 permits reading redb latency; CRC32-framed WAL with rkyv replay; rendezvous-hashed frontier; sitemaps, CT logs, Common Crawl; the three-line `pip install` block) and Scrapy Harbor's (raw Delta Lake with Arrow schemas, MinHash dedup, BART on the worker, breakers, Helm) are hiring-manager prose and I would paste them unchanged. And the cartouche line "CRAWL AND DATA INFRASTRUCTURE · PYTHON AND RUST" mirrors the table into the picture; on a phone it is the only thing on the hero that names the field. Keep the mirror.
+
+## 5. Does it look like a team spent months on it?
+
+Mostly, yes. The hero with the set name and the cartouche, the Approaches sheet with its buoyed channel and its three-panel legend row, the ship's log on ruled paper, and the consistent chart grammar across sheets look like a studio's work, and the plain-text layer now sits under it instead of being replaced by it, which is the fix I asked for and the reason this is a different page from the one I reviewed. What still looks like a template or a diagram: the Instruments sheet, which is a résumé skills table with three big rotated words and dotted leaders, and which is blank on a phone; the soundings table strip, which is a spreadsheet in small caps; and the tail of the rendered page, a collapsed Colophon and no footer, which looks like a build that stopped mid-sentence, because it did. The nine-item list under "five principles" looks generated rather than written. Fix defects 1 and 2 and the page reads as finished end to end; fill the position and contact slots and I message him instead of closing the tab.

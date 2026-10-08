@@ -1,0 +1,294 @@
+# chart.toml — every printed string the sheets and README share, and the knobs Ben turns.
+# Measured data lives in assets/stats.json (written by build_stats.py); colour, line and type in
+# scripts/tokens.py. Nothing in this file is a measurement. Edit here, not in README.md.
+
+[chart]
+login = "BenjaminSRussell"
+release = "v9"
+seed = 27
+breakpoint_px = 767
+base_url = "https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/"
+branch = "chart"
+out_dir = "assets/v9"
+
+[identity]
+# Author identities whose commits are "Ben's". Everything else is `others`; bots are dropped.
+names = ["Benjamin Russell", "Ben Russell", "BenjaminSRussell"]
+emails = ["benjamin.sheldon.russell@gmail.com", "russell27sail@gmail.com"]
+bots = ["github-actions[bot]", "google-labs-jules[bot]", "Claude"]
+
+[position]
+# "" omits the slot everywhere (check.py warns); any ⟨ ⟩ placeholder fails the build.
+text = ""
+
+[contact]
+# "" drops the link.
+linkedin = ""
+resume = ""
+
+[copy]
+thesis = "I survey a web that is wrong about itself."
+role_line = "Crawl and data infrastructure · Python and Rust"
+unit_hero = "SOUNDINGS IN COMMITS"
+unit_approaches = "SOUNDINGS IN URLS · THOUSANDS"
+limit_label = "LIMIT OF SURVEY 2026"
+footer_line = "The chart ends here. The web doesn't."
+log_footnote = "Heights observed, not predicted."
+
+[copy.review]
+# check.py warns once these months have passed: re-read the line.
+role_line = "2027-06"
+thesis = "2027-06"
+
+[motion]
+enabled = true
+
+[budgets]
+# From tokens.BUDGETS (MASTERPLAN 7.3); check.py reads tokens, these are the printed copy.
+svg_kb = 300
+gz_kb = 100
+elements = 3000
+phone_svg_kb = 120
+page_gz_kb = 250
+
+[log]
+path = "assets/log.json"
+
+[social]
+hero_png_sha = ""
+
+# ----------------------------------------------------------------- features
+# Repos with a fixed slot and a kind on the hero; the alias is what the chart prints.
+[[features]]
+repo = "Rust-sitemap"
+aliases = ["rustmapper"]
+slot = "named-5"
+kind = "vessel"
+
+[[features]]
+repo = "Scrapy"
+aliases = ["Scrapy Harbor"]
+slot = "harbour"
+kind = "harbour"
+
+[[features]]
+repo = "BenjaminSRussell"
+aliases = ["Profile Shoal"]
+slot = "shoal"
+kind = "shoal"
+
+[[features]]
+repo = "game_engine"
+aliases = ["Game Engine I."]
+slot = "named"
+kind = "island"
+
+[[features]]
+repo = "Data_science_dev"
+aliases = ["Data Science Bank"]
+slot = "named"
+kind = "bank"
+
+[[features]]
+repo = "FashionDB"
+aliases = ["FashionDB Bank"]
+slot = "named"
+kind = "bank"
+
+# ----------------------------------------------------------------- claims (figures about the code, not about Ben)
+# measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
+[claims.scrape_interval]
+value = 15
+unit = "s"
+source = "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)"
+sha = "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"
+measured = true
+
+[claims.workers]
+value = "256–1024"
+unit = "permits"
+source = "Rust-sitemap:src/orchestration/governor.rs"
+sha = "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9"
+measured = false      # the repo README (32–512), PyPI (256) and the code disagree: never upright
+
+[claims.shards]
+value = "num_cpus"
+unit = "shards"
+source = "Rust-sitemap:src/lib.rs (num_cpus::get())"
+sha = "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9"
+measured = true
+
+# ----------------------------------------------------------------- sources
+# rustmapper's three seed sources; `first` is optional and left out until measured.
+[[sources]]
+letter = "A"
+name = "SITEMAPS"
+
+[[sources]]
+letter = "B"
+name = "CT LOGS"
+
+[[sources]]
+letter = "C"
+name = "COMMON CRAWL"
+
+# ----------------------------------------------------------------- notices
+# Hand-entered notices (T8). N = len(notices) + release notices appended from stats.json.
+[[notices]]
+n = 1
+title = "Boring under load."
+body = "The system worth having is the one still running after you have stopped watching it."
+cite = "Scrapy Harbor, Sep 2025: breakers on the Delta Lake, Redis and HTTP services."
+repo = "Scrapy"
+date = "2025-09"
+source = "toml"
+
+[[notices]]
+n = 2
+title = "Keep the log. Raw before clean."
+body = "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten."
+cite = "Scrapy Harbor, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log."
+repo = "Scrapy"
+date = "2025-09"
+source = "toml"
+
+[[notices]]
+n = 3
+title = "Lights before speed."
+body = "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one."
+cite = "Scrapy Harbor, Sep 2025: Prometheus and Grafana."
+repo = "Scrapy"
+date = "2025-09"
+source = "toml"
+
+[[notices]]
+n = 4
+title = "Parse, don't pattern-match."
+body = ""
+cite = "ideal-url-organizer, Nov 2025."
+repo = "ideal-url-organizer"
+date = "2025-11"
+source = "toml"
+
+[[notices]]
+n = 5
+title = "The surface is part of the system."
+body = "A tool that confuses its operator is already failing."
+cite = "This page, Nov 2025: its earlier editions read as a template."
+repo = "BenjaminSRussell"
+date = "2025-11"
+source = "toml"
+
+# ----------------------------------------------------------------- alt text (T8, with decision 29)
+# Templates: {key} is filled from stats.json / derived figures; a sheet module's alt(data, cfg)
+# wins when it exists. ≤ 25 words, plain register, first word not "The".
+[alt]
+hero = "Chart of Ben Russell's repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors."
+soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated. Below, one line per repository."
+approaches = "Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel."
+log = "Ship's log on ruled paper: a rustmapper run, entry by entry, from install to exported sitemap. Types once; only the cursor keeps time."
+instruments = "Equipment list in three columns: languages, stores and queues, deck; the date each was first fitted. Bold: underway this quarter; the rest when asked."
+footer = "Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't."
+alt_poem = [
+  "A boat sails in and anchors.",
+  "Below, one line per repository.",
+  "The soundings fill in behind the vessel.",
+  "Types once; only the cursor keeps time.",
+  "Bold: underway this quarter; the rest when asked.",
+  "The chart ends here; the web doesn't.",
+]
+
+# ----------------------------------------------------------------- fittings (T9 table C)
+# The Instruments sheet and its Markdown mirror. fitted = repos[repo].first[:7]; bold = repos[repo].active.
+[fittings]
+groups = [["LEAD", "Languages"], ["LOG", "Stores and queues"], ["LOOKOUT", "Deck"]]
+
+[[fittings.items]]
+name = "Python"
+repo = "Scrapy"
+group = "LEAD"
+
+[[fittings.items]]
+name = "Rust"
+repo = "Rust-sitemap"
+group = "LEAD"
+
+[[fittings.items]]
+name = "Swift"
+repo = "3d-swift-globe-widget"
+group = "LEAD"
+
+[[fittings.items]]
+name = "C"
+repo = "game_engine"
+group = "LEAD"
+
+[[fittings.items]]
+name = "TypeScript"
+repo = "Data_science_dev"
+group = "LEAD"
+
+[[fittings.items]]
+name = "Go"
+repo = "go_go_go"
+group = "LEAD"
+
+[[fittings.items]]
+name = "Delta Lake"
+repo = "Scrapy"
+group = "LOG"
+
+[[fittings.items]]
+name = "PostgreSQL"
+repo = "Scrapy"
+group = "LOG"
+
+[[fittings.items]]
+name = "Redis"
+repo = "Scrapy"
+group = "LOG"
+
+[[fittings.items]]
+name = "Parquet · Arrow"
+repo = "Scrapy"
+group = "LOG"
+
+[[fittings.items]]
+name = "redb · WAL"
+repo = "Rust-sitemap"
+group = "LOG"
+
+[[fittings.items]]
+name = "fastbloom"
+repo = "Rust-sitemap"
+group = "LOG"
+
+[[fittings.items]]
+name = "Prometheus · Grafana"
+repo = "Scrapy"
+group = "LOOKOUT"
+
+[[fittings.items]]
+name = "Docker · Kubernetes"
+repo = "Scrapy"
+group = "LOOKOUT"
+
+[[fittings.items]]
+name = "GitHub Actions"
+repo = "BenjaminSRussell"
+group = "LOOKOUT"
+
+[[fittings.items]]
+name = "tokio"
+repo = "Rust-sitemap"
+group = "LOOKOUT"
+
+[[fittings.items]]
+name = "maturin · PyPI"
+repo = "Rust-sitemap"
+group = "LOOKOUT"
+
+[[fittings.items]]
+name = "MLX · Qwen"
+repo = "mlx_Qwen_data_entry"
+group = "LOOKOUT"

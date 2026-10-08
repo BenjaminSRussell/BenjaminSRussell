@@ -20,6 +20,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      # The sheets on the orphan `chart` branch are generated and gated by scripts/check.py (xml, size,
+      # README structure); they are excluded here because the branch is rewritten by the chart workflow.
       - name: Link check
         uses: lycheeverse/lychee-action@v2
         with:
@@ -30,5 +32,6 @@ jobs:
             --max-concurrency 4
             --include-mail=false
             --exclude '^https://github\.com/.*/actions/workflows/'
+            --exclude 'raw\.githubusercontent\.com/BenjaminSRussell/BenjaminSRussell/chart/'
             README.md
           fail: true
