@@ -114,12 +114,15 @@ def place_features(features, drawable, exclusions, course_pts, seed: int, slots:
     rep = PlaceReport()
     order = sorted((f for f in features if f.kind != "wreck"), key=lambda f: (-f.value, f.name))
     placed = []
-    # 1. slots
+    # 1. slots, and whatever the caller has already placed (a sheet's own arc, say): both are fixed
+    # ground the Halton candidates must clear (v9.1: pre-placed features were invisible to the search)
     for f in order:
         key = f.alias or f.name
         if key in slots:
             f.x, f.y = slots[key]
             f.placed, f.slot = True, key
+            placed.append(f)
+        elif f.placed:
             placed.append(f)
     for i, a in enumerate(placed):
         for b in placed[i + 1:]:

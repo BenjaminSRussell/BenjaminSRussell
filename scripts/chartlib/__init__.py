@@ -21,6 +21,7 @@ coast_vignette → danger_lines → hatch/unsurveyed_band → draw_contours → 
 symbols/course → frame → furniture.
 """
 from .field import (Field, Coast, Kernel, FieldReport, Contour, contours, compact_path, parse_path, smooth_path,
+                    gaps_in_rect, broken_polylines_multi,
                     monotone_path, contour_labels, break_anchor, broken_polylines, draw_contours, clip_polyline,
                     bracket_test, band_of, closed_check, bump, fmt, polygon_area, polygon_centroid,
                     point_in_polygon, polyline_length, feature_kernel, KERNEL_RATIO, DEFAULT_LEVELS,

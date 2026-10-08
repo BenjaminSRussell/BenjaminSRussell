@@ -213,7 +213,11 @@ def fittings_of(cfg: dict) -> tuple[list[tuple[str, str]], list[dict]]:
     return groups, list(f.get("items", []))
 
 
-def instruments_block(cfg: dict, fittings: list[dict] | None = None) -> str:
+def instruments_block(cfg: dict, fittings: list[dict] | None = None) -> str:   # v9.1: the sheet shows it; no mirror
+    return ""
+
+
+def _instruments_block_retired(cfg: dict, fittings: list[dict] | None = None) -> str:
     groups, items = fittings_of(cfg)
     items = fittings if fittings is not None else items
     cols = []
@@ -236,7 +240,11 @@ LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the w
 LOG_LEDE_MEASURED = "One rustmapper run, recorded {when} on {host}, entered the way a log is kept."
 
 
-def log_lede_block(log: dict | None) -> str:
+def log_lede_block(log: dict | None) -> str:   # v9.1: the sheet's own sign-off says computed/unsigned; no lede
+    return ""
+
+
+def _log_lede_block_retired(log: dict | None) -> str:
     """The Ship's log lede: computed-consistent until a real session is recorded (reviewer 36)."""
     log = log or {}
     if log.get("measured"):

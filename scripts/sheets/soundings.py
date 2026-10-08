@@ -2,11 +2,16 @@
 
 Depth = count. The 52 weekly commit counts are the same soundings the hero's contours are
 solved from, shown twice here: as the tide curve (monotone cubic, baseline zero, HW labelled
-with its cause, LW, typical week, slack water) and as a traverse of 52 depth figures under it.
-Beneath, one 52-week line per repository on one shared scale, with its commits as a spot
-height. Both commit instruments are named once in the source line (author-filtered clones
-upright, GitHub's calendar as the second instrument). No motion: this sheet is finished at
-t = 0 in every edition.
+with its cause, LW, typical week, slack water) and as a traverse of depth figures under it, one
+per week where they fit: HW and LW always, then the largest first, and one 0 for a run of zero
+weeks (52 figures at 16 px on a 23 px pitch overprinted each other). Beneath, one 52-week line
+per repository on one shared scale, with its commits as a spot height, five to a row. Both commit
+instruments are named once in the source line (author-filtered clones upright, GitHub's calendar
+as the second instrument). No motion: this sheet is finished at t = 0 in every edition.
+
+Sizes (desk 1280×520, v9.1 scale): dateline, tide labels, month letters, register names and
+counts, source line and folio 19 (label / label-caps); the pencil note 25 (note); the week
+figures 16 (texture, sounding()). Phone (720×360): labels 26, the note 30 (place-water).
 """
 from __future__ import annotations
 
@@ -19,12 +24,18 @@ from edition import fmt, I
 
 NAME = "soundings"
 KIND = "strip"
-SIZES = {"desk": (1280, 400), "phone": (720, 360)}
+SIZES = {"desk": (1280, 500), "phone": (720, 360)}
 BREAKS: list[tuple[str, str, str]] = [
     ("No neat line", "paper only, head and foot rules", "a tide table is printed in the margin, not framed (27)"),
     ("Two projections of one series", "curve above, 52 depth figures along a traverse below",
      "the hydrographer reads the figures, the reader reads the curve (08, 13)"),
-    ("Register on a shared scale", "15 of 21 lines are nearly flat at 26 px", "the data is bursty; smoothing or per-line scales would lie (32)"),
+    ("Register on a shared scale", "15 of 21 lines are nearly flat at 18 px", "the data is bursty; smoothing or per-line scales would lie (32)"),
+    ("Traverse thinned, not shrunk", "HW and LW always; then the largest figures first while 8 px of paper separates them; one 0 at the middle of a run of zero weeks (or at LW)",
+     "v9.1: 52 figures at 16 px on a 23 px pitch overprint; a chart thins its soundings rather than crowd them"),
+    ("Register five to a row, 520 px sheet", "5 × 5 cells of 229 px on a 44 px pitch, rules drawn per filled cell",
+     "every chart name fits uncut at 19 px (SPOTIFY TO APPLE MUSIC is 206 px); the ragged last row has no empty boxes"),
+    ("Everything under the curve moved down", "LW label at BASE + 26, traverse at 226, month letters at 250, register head at 272",
+     "at 19 px the LW label sat on the slack bracket and the month letters on the register head"),
 ]
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -142,6 +153,37 @@ def _month_ticks(starts: list[str]) -> list[tuple[int, str]]:
     return out
 
 
+def _traverse(ns: list[int], xs: list[float], hw_i: int, lw_i: int, width_of, gap: float = 8.0) -> list[int]:
+    """The week indices whose figures are printed on the traverse, in week order: HW and LW first, then the
+    non-zero weeks largest first, then one 0 for each run of zero weeks (at LW when LW lies in the run,
+    else at its middle); a figure is placed only when `gap` px of paper separates it from every figure
+    already placed. Nothing is invented and nothing printed is moved: a figure that does not fit is left off."""
+    n = len(ns)
+    order = [hw_i] + ([lw_i] if lw_i != hw_i else [])
+    order += sorted((i for i in range(n) if ns[i] > 0 and i not in order), key=lambda i: (-ns[i], i))
+    i = 0
+    while i < n:
+        if ns[i] > 0:
+            i += 1
+            continue
+        j = i
+        while j + 1 < n and ns[j + 1] == 0:
+            j += 1
+        pick = lw_i if i <= lw_i <= j else (i + j) // 2
+        if pick not in order:
+            order.append(pick)
+        i = j + 1
+    placed: list[tuple[float, float]] = []
+    chosen: list[int] = []
+    for i in order:
+        w = width_of(ns[i])
+        x0, x1 = xs[i] - w / 2, xs[i] + w / 2
+        if all(x1 + gap <= p0 or x0 >= p1 + gap for p0, p1 in placed):
+            placed.append((x0, x1))
+            chosen.append(i)
+    return sorted(chosen)
+
+
 # ------------------------------------------------------------------ the desk sheet
 def _desk(ctx) -> str:
     ed, t, data = ctx.ed, ctx.ed.theme, ctx.data
@@ -154,6 +196,7 @@ def _desk(ctx) -> str:
     W_, H_ = SIZES["desk"]
     X0, X1 = 48, 1232
     TOP, BASE = 64, 180          # HW at TOP, zero at BASE
+    TRV = 226                    # the traverse's baseline; the month letters at 250, the register head at 272
     jit = C.Jitter((ctx.cfg.get("chart") or {}).get("seed", 27), "soundings")
 
     def tx(s, x, y, role="label", **kw):
@@ -208,7 +251,7 @@ def _desk(ctx) -> str:
     lw_label = f"LW {_n(td['lw_n'])} · wk of {_dm(starts[td['lw_i']])}"
     lw_w = T.text_width(lw_label, "label", edition=ed)
     lxx = min(max(lx, X0 + lw_w / 2), X1 - lw_w / 2)
-    out.append(tx(lw_label, lxx, BASE + 13, "label", fill=t.muted, anchor="middle", truth="measured", key="tide.lw"))
+    out.append(tx(lw_label, lxx, BASE + 26, "label", fill=t.muted, anchor="middle", truth="measured", key="tide.lw"))
     # typical week: labelled over the longest flat run of the curve at that level, so it never sits on ink
     med_label = f"typical week {_n(td['median'])}"
     med_y = y_med - 5
@@ -228,40 +271,41 @@ def _desk(ctx) -> str:
     out.append(tx(f"slack water · {td['slack_month']}", (bx0 + bx1) / 2, BASE - 5, "label", fill=t.muted,
                   anchor="middle", truth="measured", key="tide.slack"))
 
-    # the pencil note in the quiet upper-left of the plot (and the stale note under it)
-    out.append(tx(_copy(ctx.cfg, "log_footnote", "Heights observed, not predicted."),
-                  X0 + 8, 90, "note", fill=t.ink2))
+    # the stale note in the quiet upper-left of the plot (v9.1: the pencil footnote is gone; the curve shows)
     if stale:
-        out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X0 + 8, 112, "note", fill=t.ink2))
+        out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X0 + 8, 90, "note", fill=t.ink2))
 
-    # the traverse: 52 depth figures (upright: measured from the clones), month ticks and letters
-    TRV = 214
+    # the traverse: the depth figures that fit (upright: measured from the clones), month ticks and letters
     out.append(f'<path d="M{X0} {TRV + 4}H{X1}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
-    for i, (x, v) in enumerate(zip(xs, ns)):
-        out.append(T.sounding(v, round(x, 1), TRV, truth="measured", edition=ed, key=f"week.{i}"))
+    for i in _traverse(ns, xs, td["hw_i"], td["lw_i"], lambda v: T.text_width(str(v), "texture", edition=ed)):
+        out.append(T.sounding(ns[i], round(xs[i], 1), TRV, truth="measured", edition=ed, key=f"week.{i}"))
     ticks = _month_ticks(starts)
     d = "".join(f"M{fmt(xs[i])} {TRV + 4}v5" for i, _ in ticks)
     out.append(f'<path d="{d}" fill="none" {C.stroke("HAIR", t.ink, 0.7, caps="butt")}/>')
     for i, letter in ticks:
-        out.append(tx(letter, xs[i], 236, "label", fill=t.ink2, anchor="middle"))
+        out.append(tx(letter, xs[i], TRV + 24, "label", fill=t.ink2, anchor="middle"))
 
     # fleet register as a tide-table block: ruled rows and columns, one 52-week line per repository on
     # one shared scale with its own baseline, name in caps, commits as a spot height
     repos = sorted((r for r in data.get("repos") or [] if r.get("weeks")), key=lambda r: (-int(r.get("commits") or 0), r["name"]))
     if repos:
-        cols = max(7, math.ceil(len(repos) / 3))
+        cols = max(5, math.ceil(len(repos) / 5))      # five to a row: every chart name fits uncut at 19 px
         rows = math.ceil(len(repos) / cols)
         pitch_x = (X1 - X0 + 9) / cols
         cell_w = pitch_x - 9
-        HEAD, y0, pitch_y, spark_h = 250, 256, 44, 26
+        y0, pitch_y, spark_h = TRV + 36, 44, 18          # v9.1: no register head line; the rows start 36 under the traverse
         ymax = max(max(int(v) for v in r["weeks"]) for r in repos) or 1
-        out.append(tx("REPOSITORY · 52 WEEKS · COMMITS", X0, HEAD, "label", fill=t.muted))
-        out.append(tx(f"one line per repository · 52 weeks · {_n(ymax)} commits a week at full height · ink: underway this quarter",
-                      X1, HEAD, "label", fill=t.muted, anchor="end"))
-        rules = "".join(f"M{X0} {fmt(y0 + r * pitch_y)}H{X1}" for r in range(rows + 1))
-        rules += "".join(f"M{fmt(X0 + c * pitch_x - 4.5)} {y0}v{rows * pitch_y}" for c in range(1, cols))
+        # rules per filled cell (the last row is ragged): the top rule, each cell's foot and its left rule
+        filled = repos[:cols * rows]
+        rules = f"M{X0} {y0}H{fmt(X0 + min(cols, len(filled)) * pitch_x - 9)}"
+        for k in range(len(filled)):
+            c, rr = k % cols, k // cols
+            cx, cy = X0 + c * pitch_x, y0 + rr * pitch_y
+            rules += f"M{fmt(cx - (4.5 if c else 0))} {fmt(cy + pitch_y)}H{fmt(cx + cell_w + (4.5 if c < cols - 1 else 0))}"
+            if c:
+                rules += f"M{fmt(cx - 4.5)} {fmt(cy)}v{pitch_y}"
         out.append(f'<path d="{rules}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
-        for k, r in enumerate(repos[:cols * rows]):
+        for k, r in enumerate(filled):
             c, rr = k % cols, k // cols
             cx, cy = X0 + c * pitch_x, y0 + rr * pitch_y
             active = bool(r.get("active"))
@@ -271,8 +315,8 @@ def _desk(ctx) -> str:
             room = cell_w - cw - 6
             while name and T.text_width(name, "label", edition=ed) > room:
                 name = (name[:-2] if name.endswith("…") else name[:-1]).rstrip() + "…"
-            out.append(tx(name, cx, cy + 12, "label", fill=t.ink if active else t.ink2))
-            out.append(tx(count, cx + cell_w, cy + 12, "label", fill=t.ink, anchor="end", truth="measured",
+            out.append(tx(name, cx, cy + 17, "label", fill=t.ink if active else t.ink2))
+            out.append(tx(count, cx + cell_w, cy + 17, "label", fill=t.ink, anchor="end", truth="measured",
                           key=f"repo.{r['name']}.commits"))
             base_y = cy + 40
             wk = [int(v) for v in r["weeks"]]
@@ -348,8 +392,6 @@ def _phone(ctx) -> str:
     lw_w = T.text_width(lw_label, "label", edition=ed)
     lxx = min(max(lx, X0 + lw_w / 2), X1 - lw_w / 2)
     out.append(tx(lw_label, lxx, BASE + 30, "label", fill=t.muted, anchor="middle", truth="measured", key="tide.lw"))
-    out.append(tx(_copy(ctx.cfg, "log_footnote", "Heights observed, not predicted."),
-                  X0, 312, "place-water", fill=t.ink if ed.dark else t.ink2))
     if stale:
         out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X1, 312, "label-italic",
                       fill=t.ink2, anchor="end"))

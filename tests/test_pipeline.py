@@ -198,8 +198,7 @@ class Readme(unittest.TestCase):
         self.assertIn("<!-- n:repo_count -->21<!-- /n -->", once)
         self.assertIn("<!-- picture:hero:start -->\n<picture>\n<source media=", once, "bare pictures are wrapped")
         self.assertIn("1. **Boring under load.**", once)
-        self.assertIn("<b>Languages</b> Python · Rust", once)
-        self.assertIn("Parquet and Arrow", once)
+        self.assertIn("<!-- instruments:start -->\n<!-- instruments:end -->", once, "v9.1: the sheet shows it, no mirror")
         self.assertIn("/footer-still-day.svg", once)
 
     def test_figures_from_v1_and_v2(self):

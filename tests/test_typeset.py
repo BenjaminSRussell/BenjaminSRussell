@@ -107,25 +107,25 @@ class TextTests(unittest.TestCase):
         T.text_use("12:04 crawl", 10, 20, role="machine", edition="night")
         T.text_use("Fl R 4s", 10, 40, role="label", edition="night")
         defs = T.glyph_defs()
-        self.assertIn("g-plex-light-13-", defs)
-        self.assertIn("g-cond-light-13-", defs)
-        self.assertNotIn('"g-plex-13-', defs)
+        self.assertIn("g-plex-light-19-", defs)
+        self.assertIn("g-cond-light-19-", defs)
+        self.assertNotIn('"g-plex-19-', defs)
         T.begin_asset("log")
         T.text_use("12:04 crawl", 10, 20, role="machine", edition="day")
-        self.assertIn("g-plex-13-", T.glyph_defs())
+        self.assertIn("g-plex-19-", T.glyph_defs())
 
     def test_text_use_one_use_per_glyph_with_xy(self):
         out = T.text_use("Fl(3) 10s", 50, 60, role="label")
         uses = re.findall(r'<use href="#([^"]+)" x="([-\d.]+)" y="([-\d.]+)"/>', out)
         self.assertEqual(len(uses), len("Fl(3)10s"))
-        self.assertTrue(all(gid.startswith("g-cond-13-") for gid, _x, _y in uses))
+        self.assertTrue(all(gid.startswith("g-cond-19-") for gid, _x, _y in uses))
 
     def test_check_type_flags_off_scale_and_semantic_11(self):
         T.text("fourteen", 10, 20, role="label", size=14)
-        T.text_use("eleven", 10, 40, role="label", size=11)
+        T.text_use("sixteen", 10, 40, role="label", size=16)
         errs = T.check_type("day", "desk")
         self.assertTrue(any("off scale" in e and "14" in e for e in errs), errs)
-        self.assertTrue(any("below floor" in e and "11" in e for e in errs), errs)
+        self.assertTrue(any("below floor" in e and "16" in e for e in errs), errs)
         self.assertTrue(any("not made by sounding()" in e for e in errs), errs)
         T.begin_asset("hero")
         T.text("fine", 10, 20, role="label")
@@ -138,7 +138,7 @@ class TextTests(unittest.TestCase):
         T.text("Second stamp", 10, 90, role="label-caps")
         T.text("Chart No. 7", 10, 120, role="label-caps", key="chart-number")
         errs = T.check_type("day")
-        self.assertTrue(any("serif below floor 17" in e for e in errs), errs)
+        self.assertTrue(any("serif below floor 25" in e for e in errs), errs)
         self.assertTrue(any("leaves its box" in e for e in errs), errs)
         self.assertTrue(any("label-caps runs" in e for e in errs), errs)
 
@@ -156,9 +156,9 @@ class TextTests(unittest.TestCase):
         regs = T.runs_registry()
         fig = [r for r in regs if r.origin == "runs-figure"][0]
         self.assertEqual(fig.font, "cond-italic")
-        self.assertAlmostEqual(fig.size, round(17 * 0.86, 1))
+        self.assertAlmostEqual(fig.size, round(25 * 0.86, 1))
         self.assertEqual(T.check_type("day"), [])
-        self.assertIn("g-cond-italic-14p6-51", out)
+        self.assertIn("g-cond-italic-21p5-51", out)
 
     def test_figures_registry(self):
         T.text("585", 10, 20, role="figure", truth="measured", key="commits")
@@ -183,7 +183,7 @@ class TextTests(unittest.TestCase):
         out = T.text_use("Soundings in commits", 10, 10, role="label-caps")
         self.assertEqual(T.runs_registry()[-1].text, "SOUNDINGS IN COMMITS")
         self.assertEqual(T.runs_registry()[-1].tracked_spaces, 0)
-        self.assertIn("g-cond-13-83", out)   # S
+        self.assertIn("g-cond-19-83", out)   # S
 
     def test_rotated_run_bbox(self):
         T.text("pencil note", 100, 100, role="note", rotate=-6)
@@ -199,38 +199,38 @@ class SoundingTests(unittest.TestCase):
 
     def test_sounding_renders_subscript_glyph(self):
         out = T.sounding(58, 200, 300, sub=3)
-        self.assertIn("g-cond-11-8323", out)        # U+2083 subscript three, encoded glyph
-        self.assertIn("g-cond-11-53", out)          # 5
+        self.assertIn("g-cond-16-8323", out)        # U+2083 subscript three, encoded glyph
+        self.assertIn("g-cond-16-53", out)          # 5
         run = T.runs_registry()[-1]
         self.assertFalse(run.semantic)
         self.assertEqual(run.origin, "sounding")
         self.assertEqual(run.text, "58₃")
         self.assertEqual(T.check_type("day"), [])
         d = T.glyph_defs()
-        self.assertIn('id="g-cond-11-8323"', d)
+        self.assertIn('id="g-cond-16-8323"', d)
 
     def test_sounding_truths(self):
         ital = T.sounding(12, 10, 10, truth="illustrative")
-        self.assertIn("g-cond-italic-11-", ital)
+        self.assertIn("g-cond-italic-16-", ital)
         datum = T.sounding(512, 10, 40, truth="datum", role="label")
         self.assertIn('stroke-width=".8"', datum)
         self.assertIn("H", datum)
         run = T.runs_registry()[-1]
         self.assertTrue(run.semantic)
-        self.assertEqual(run.size, 13)
+        self.assertEqual(run.size, 19)
         self.assertEqual(T.FIGURES[-1][3], "datum")
         with self.assertRaises(ValueError):
             T.sounding(1, 0, 0, truth="guess")
 
     def test_sounding_night_light_cut(self):
         out = T.sounding(20, 10, 10, edition="night")
-        self.assertIn("g-cond-light-11-", out)
+        self.assertIn("g-cond-light-16-", out)
 
     def test_sounding_fallback_without_encoded_subscripts(self):
         # serif lacks U+2080-2089: digits at 0.6x shifted down
         out = T.sounding(7, 100, 100, sub=2, role="title")
-        self.assertIn("g-serif-28-55", out)
-        self.assertIn("g-serif-16p8-50", out)
+        self.assertIn("g-serif-41-55", out)
+        self.assertIn("g-serif-24p6-50", out)
 
 
 class PathTests(unittest.TestCase):
@@ -240,7 +240,7 @@ class PathTests(unittest.TestCase):
     def test_text_on_path_places_n_glyphs(self):
         pts = [(100 + i * 10, 300 + 12 * math.sin(i / 8)) for i in range(60)]
         out = T.text_on_path("Unsurveyed Sea", pts, role="sea-name")
-        uses = re.findall(r'<use href="#g-serif-italic-28-[^"]+" transform="translate\([-\d. ]+\) rotate\([-\d.]+\)"/>', out)
+        uses = re.findall(r'<use href="#g-serif-italic-41-[^"]+" transform="translate\([-\d. ]+\) rotate\([-\d.]+\)"/>', out)
         self.assertEqual(len(uses), len("UnsurveyedSea"))
         run = T.runs_registry()[-1]
         self.assertEqual(run.origin, "path")

@@ -836,6 +836,68 @@ def break_anchor(c: Contour, i0: int, i1: int) -> tuple[float, float, float]:
     return (round(x, 1), round(y, 1), round(ang, 1))
 
 
+def gaps_in_rect(c: Contour, rect) -> list[tuple[int, int]]:
+    """The (i0, i1) gaps (as broken_polylines takes them) around every run of the contour's vertices
+    inside `rect` (x, y, w, h): a figure printed there breaks the line, chart practice for soundings."""
+    x0, y0, w, h = rect
+    n = len(c.pts)
+    inside = [x0 <= px <= x0 + w and y0 <= py <= y0 + h for px, py in c.pts]
+    if not any(inside):
+        return []
+    if all(inside):
+        return [(0, n - 1)]
+    runs = []
+    start = 0
+    if c.closed and inside[0]:          # start the scan at a vertex outside so a wrapped run is one run
+        start = inside.index(False)
+    i = 0
+    while i < n:
+        j = (start + i) % n
+        if inside[j]:
+            k = i
+            while k < n and inside[(start + k) % n]:
+                k += 1
+            a, b = (start + i) % n, (start + k - 1) % n
+            runs.append(((a - 1) % n if c.closed else max(a - 1, 0), (b + 1) % n if c.closed else min(b + 1, n - 1)))
+            i = k
+        else:
+            i += 1
+    return runs
+
+
+def broken_polylines_multi(c: Contour, gaps: list[tuple[int, int]]) -> list[list]:
+    """The contour minus several gaps: the vertices strictly inside any (i0, i1), as open polylines."""
+    n = len(c.pts)
+    cut = [False] * n
+    for i0, i1 in gaps:
+        if c.closed:
+            span = (i1 - i0) % n
+            for k in range(1, span):
+                cut[(i0 + k) % n] = True
+        else:
+            for k in range(i0 + 1, i1):
+                cut[k] = True
+    keep = [not v for v in cut]
+    if all(keep):
+        return [c.pts]
+    if not any(keep):
+        return []
+    start = 0
+    if c.closed and keep[0] and keep[-1]:
+        start = keep.index(False)       # so a run across the wrap comes out whole
+    runs, cur = [], []
+    for i in range(n):
+        j = (start + i) % n
+        if keep[j]:
+            cur.append(c.pts[j])
+        elif cur:
+            runs.append(cur)
+            cur = []
+    if cur:
+        runs.append(cur)
+    return [r for r in runs if len(r) >= 2]
+
+
 def broken_polylines(c: Contour, i0: int, i1: int) -> list[list]:
     """The contour minus the vertices strictly between i0 and i1 (the gap), as open polylines."""
     n = len(c.pts)
@@ -859,13 +921,20 @@ def draw_contours(cs: list[Contour], index_levels, theme, approx_clip=None, brea
     Level 0 (the coastline) is skipped by default: coastline() draws it. Closed loops shorter than
     min_len (the ring a lone sounding makes under its own numeral) are not drawn."""
     from .furniture import stroke
-    bmap = {id(c): (i0, i1) for c, i0, i1 in breaks}
+    bmap: dict[int, list] = {}
+    for c, i0, i1 in breaks:              # several gaps per contour (v9.1: figures break the lines they cross)
+        bmap.setdefault(id(c), []).append((i0, i1))
     groups = {}  # (is_index, approx) -> [d]
     for c in cs:
         if c.level in skip_levels or (c.closed and c.length < min_len):
             continue
         is_index = c.level in index_levels
-        runs = broken_polylines(c, *bmap[id(c)]) if id(c) in bmap else [c.pts]
+        if id(c) not in bmap:
+            runs = [c.pts]
+        elif len(bmap[id(c)]) == 1:
+            runs = broken_polylines(c, *bmap[id(c)][0])
+        else:
+            runs = broken_polylines_multi(c, bmap[id(c)])
         run_closed = c.closed and id(c) not in bmap
         for run in runs:
             if approx_clip:
