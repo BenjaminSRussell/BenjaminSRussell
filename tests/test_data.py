@@ -316,3 +316,26 @@ class Plugins(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LivePath(unittest.TestCase):
+    """The first live run on GitHub failed: derive() adds `calendar_check` when a GraphQL calendar is present,
+    and the schema rejected it. Re-derive the committed stats with a synthetic calendar and validate."""
+
+    def test_live_calendar_model_validates(self):
+        import copy
+        import datetime as dt
+        import json
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts"))
+        from data import derive as derive_mod, model
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "stats.json"),
+                  encoding="utf-8") as fh:
+            stats = json.load(fh)
+        calendar = [{"start": w["start"], "n": w["n"] + (1 if i % 7 == 0 else 0)} for i, w in enumerate(stats["weeks"])]
+        live = copy.deepcopy(stats)
+        live.update(derive_mod.derive(stats["repos"], dt.date.fromisoformat(stats["taken"]), calendar))
+        self.assertIn("calendar_check", live)
+        self.assertEqual(set(live["calendar_check"]), {"clone", "calendar", "disagreement"})
+        errors = model.validate(live, today=dt.date.fromisoformat(stats["taken"]))
+        self.assertEqual(errors, [], "a live-mode model must validate against stats_schema.json")

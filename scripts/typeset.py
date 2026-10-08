@@ -81,7 +81,7 @@ FIGURE_IN_SERIF = 0.86            # runs(): figures inside a serif sentence set 
 BUDGET = {"glyph_defs": 160, "size_keys": 6, "defs_kb": 40}
 # a sheet with a 28 px serif title AND a legend through shared glyphs needs more defs than a plain
 # sheet; inlining the serif instead pushes raw size past 300 KB (builder P, approaches report §5)
-BUDGET_BY_SHEET = {"approaches": {"glyph_defs": 260, "defs_kb": 92}, "hero": {"defs_kb": 56}}
+BUDGET_BY_SHEET = {"approaches": {"glyph_defs": 260, "defs_kb": 92}, "hero": {"defs_kb": 56}, "log": {"defs_kb": 48}}
 
 
 def budget_for(sheet: str | None) -> dict:

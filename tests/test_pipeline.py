@@ -38,6 +38,14 @@ class BuildAssets(unittest.TestCase):
     def build(self, sheets, **kw):
         return build_assets.main(sheets=sheets, out=self.out, report_path=self.report, quiet=True, **kw)
 
+    def test_pencil_note_edition_builds_clean(self):
+        """The failure path of the chart workflow (survey failed → --no-sounding --heartbeat) must build
+        with zero problems; the first live run tripped the log's glyph budget here."""
+        n = self.build(["log"], no_sounding=True, heartbeat=True)
+        self.assertEqual(n, 0)
+        with open(self.report, encoding="utf-8") as fh:
+            self.assertEqual(json.load(fh).get("problems"), [])
+
     def test_missing_module_is_a_failure(self):
         n = self.build(["no_such_sheet"])
         self.assertGreaterEqual(n, 1)
