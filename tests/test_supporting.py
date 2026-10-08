@@ -386,6 +386,29 @@ class SupportingSheets(unittest.TestCase):
             self.assertIn(item["name"], texts)
         self.assertEqual([t["key"] for t in phone if t.get("key")], ["folio"])
 
+    def test_log_prints_only_settings(self):
+        """v9.2 (I): no p95, failure rate, fsync latency or elapsed time on a computed log, on any edition."""
+        with open(os.path.join(ROOT, "assets", "log.json"), encoding="utf-8") as fh:
+            log = json.load(fh)
+        if log.get("measured"):
+            self.skipTest("a measured session may print what it measured")
+        for k in ("p95_fetch_ms", "wal_fsync_p95_ms", "failed_ratio", "timeout_ratio", "r429_ratio"):
+            self.assertNotIn(k, log["profile"], k)
+        for name, e in Built.report["sheets"].items():
+            if e["sheet"] != "log":
+                continue
+            manifest = " ".join(t["s"] for t in e["text"])
+            for word in ("p95", "fsync", "failed", "timeout", "1h 43m", " of 512 permits"):
+                self.assertNotIn(word, manifest, (name, word))
+            self.assertIn("computed from settings", manifest, name)
+            self.assertIn("unsigned", manifest, name)
+            self.assertNotIn("Nothing on fire.", manifest) if e["form"] == "phone" else None
+            if e["form"] == "phone":
+                self.assertNotIn("nothing to report", manifest, name)
+                self.assertIn("rustmapper crawl", manifest, name)
+                self.assertIn("fetched", manifest, name)
+                self.assertIn("crawl complete", manifest, name)
+
     def test_folio_on_every_sheet(self):
         for name, e in Built.report["sheets"].items():
             folios = [t for t in e["text"] if t.get("key") == "folio"]

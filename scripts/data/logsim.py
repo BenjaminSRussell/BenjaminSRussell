@@ -5,12 +5,17 @@
     default_log(version, date, cores=8) -> dict          assets/log.json v2, source "computed"
     rows_to_dict(rows) -> list[dict]
 
-Formula (T7 §6 / T9 B): rate = min(per-host rps × hosts, workers / latency), capped at 2 req/s per
-host; position(t) = Σ rate·Δt with a linear ramp over `ramp_s` (log(t) = r·(t − ramp/2) after the
-ramp); in_flight = ceil(rate × p95) (Little's law); the crawl completes when position reaches
-`urls_total`. Numbers are NOT stored while measured:false; the sheet calls simulate() and sets
-every numeral italic. With measured:true (source session|cc-index) the stored numbers are used
-verbatim, upright, and check_log only verifies they are physically consistent.
+Formula (T7 §6 / T9 B): rate = min(per-host rps × hosts, workers / latency when a latency is
+given), capped at 2 req/s per host; position(t) = Σ rate·Δt with a linear ramp over `ramp_s`
+(log(t) = r·(t − ramp/2) after the ramp); the crawl completes when position reaches `urls_total`.
+Numbers are NOT stored while measured:false; the sheet calls simulate() and sets every numeral
+italic. With measured:true (source session|cc-index) the stored numbers are used verbatim, upright,
+and check_log only verifies they are physically consistent.
+
+v9.2: the computed default carries only what a setting gives: rate, ramp, the target size, permits
+and shards. A p95 latency, a failure rate, a WAL fsync time, an in-flight count (Little's law needs
+the p95) and an elapsed time are measurements, so the default log neither stores nor prints them;
+a measured session may carry p95_fetch_ms and the ratios and gets them back (in_flight, wind).
 """
 from __future__ import annotations
 
@@ -42,7 +47,7 @@ class Row(NamedTuple):
 def rate_of(profile: dict, hosts: int = 1) -> float:
     r = float(profile.get("rate_rps", MAX_RPS_PER_HOST))
     permits = profile.get("permits")
-    p95 = float(profile.get("p95_fetch_ms", 800)) / 1000.0
+    p95 = float(profile.get("p95_fetch_ms") or 0) / 1000.0
     if permits and p95 > 0:
         r = min(r, permits / p95)
     return min(r, MAX_RPS_PER_HOST * max(1, hosts))
@@ -71,11 +76,18 @@ def t_complete(profile: dict, hosts: int = 1) -> float | None:
     return total / r + ramp / 2 if total >= r * ramp / 2 else math.sqrt(2 * ramp * total / r)
 
 
-def in_flight(profile: dict, hosts: int = 1) -> int:
-    return int(math.ceil(rate_of(profile, hosts) * float(profile.get("p95_fetch_ms", 800)) / 1000.0))
+def in_flight(profile: dict, hosts: int = 1) -> int | None:
+    """ceil(rate × p95), Little's law; None when the profile carries no p95 (nothing to compute it from)."""
+    p95 = profile.get("p95_fetch_ms")
+    if p95 is None:
+        return None
+    return int(math.ceil(rate_of(profile, hosts) * float(p95) / 1000.0))
 
 
 def wind(profile: dict) -> str:
+    """The WIND column from the measured ratios; '' when the profile carries none (the sheet prints a dash)."""
+    if not any(k in profile for k in ("timeout_ratio", "failed_ratio", "r429_ratio")):
+        return ""
     timeout = float(profile.get("timeout_ratio", 0))
     failed = float(profile.get("failed_ratio", 0))
     r429 = float(profile.get("r429_ratio", 0))
@@ -134,10 +146,21 @@ def fill(text: str, ctx: dict) -> str:
     return re.sub(r"\{(\w+)\}", sub, text)
 
 
-def health_text(profile: dict, log: int, inflight: int) -> str:
-    return (f"fetched {log:,} · timeout {float(profile.get('timeout_ratio', 0)):.0%} · "
-            f"failed {float(profile.get('failed_ratio', 0)):.1%} · p95 {int(profile.get('p95_fetch_ms', 0))} ms · "
-            f"wal fsync {int(profile.get('wal_fsync_p95_ms', 0))} ms · {inflight} of {int(profile.get('permits', 0)):,} permits")
+def health_text(profile: dict, log: int, inflight: int | None) -> str:
+    """The health entry: the position and the permits (settings). With a measured p95 the in-flight count
+    and the ratios come back; without one nothing is printed that nothing computed."""
+    parts = [f"fetched {log:,}"]
+    if "timeout_ratio" in profile or "failed_ratio" in profile:
+        parts.append(f"timeout {float(profile.get('timeout_ratio', 0)):.0%}")
+        parts.append(f"failed {float(profile.get('failed_ratio', 0)):.1%}")
+    if profile.get("p95_fetch_ms") is not None:
+        parts.append(f"p95 {int(profile['p95_fetch_ms'])} ms")
+    if profile.get("wal_fsync_p95_ms") is not None:
+        parts.append(f"wal fsync {int(profile['wal_fsync_p95_ms'])} ms")
+    permits = profile.get("permits")
+    if permits:
+        parts.append(f"{inflight} of {int(permits):,} permits" if inflight is not None else f"{int(permits):,} permits")
+    return " · ".join(parts)
 
 
 def simulate(profile: dict, entries: list[dict], hosts: int = 1, start: str | None = None,
@@ -176,8 +199,8 @@ def simulate(profile: dict, entries: list[dict], hosts: int = 1, start: str | No
         if kind == "health" and not text:
             text = health_text(profile, log or 0, flight)
         text = fill(text, ctx)
-        rows.append(Row(hhmm(start, t) if t is not None else str(e.get("time", "")), t, kind, text, log, speed, rw,
-                        flight if (speed is not None and speed > 0) else None))
+        rows.append(Row(hhmm(start, t) if t is not None else str(e.get("time", "")), t, kind, text, log, speed, rw or None,
+                        flight if (flight is not None and speed is not None and speed > 0) else None))
     return rows
 
 
@@ -226,11 +249,12 @@ def check_log(log: dict) -> list[str]:
     if r > MAX_RPS_PER_HOST * hosts:
         errs.append(f"profile.rate_rps {r} > {MAX_RPS_PER_HOST}·hosts")
     permits = profile.get("permits")
-    p95 = float(profile.get("p95_fetch_ms", 0)) / 1000
-    if permits:
+    p95 = float(profile.get("p95_fetch_ms") or 0) / 1000
+    flight = in_flight(profile, hosts)
+    if permits and flight is not None:
         allowed = min(int(permits), math.ceil(rate_of(profile, hosts) * p95) + 1)
-        if in_flight(profile, hosts) > allowed:
-            errs.append(f"in_flight {in_flight(profile, hosts)} > {allowed}")
+        if flight > allowed:
+            errs.append(f"in_flight {flight} > {allowed}")
     # physical consistency of whichever numbers the sheet will print
     try:
         rows = simulate(profile, entries, hosts, log.get("start"), measured=measured)
@@ -260,7 +284,8 @@ def check_log(log: dict) -> list[str]:
 
 def default_log(version: str, date: str, cores: int | None = 8, host: str | None = None,
                 target: str = "http://127.0.0.1:8080") -> dict:
-    """assets/log.json v2 (T9 schema + T7 source/machine). Numbers are computed, not stored."""
+    """assets/log.json v2 (T9 schema + T7 source/machine). Numbers are computed, not stored; the profile
+    holds settings only (v9.2): no latency, failure rate, fsync time or elapsed time is typed in."""
     shards = cores if cores else 8
     return {
         "schema": 2,
@@ -272,8 +297,7 @@ def default_log(version: str, date: str, cores: int | None = 8, host: str | None
         "measured": False,
         "source": "computed",
         "machine": {"cores": cores, "host": host},
-        "profile": {"rate_rps": 2.0, "ramp_s": 10, "p95_fetch_ms": 812, "wal_fsync_p95_ms": 3, "urls_total": 12440,
-                    "failed_ratio": 0.004, "timeout_ratio": 0.0, "r429_ratio": 0.0, "permits": 512, "shards": shards},
+        "profile": {"rate_rps": 2.0, "ramp_s": 10, "urls_total": 12440, "permits": 512, "shards": shards},
         "start": "1403",
         "entries": [
             {"time": "1402", "kind": "cmd", "text": "pip install rustmapper"},
@@ -284,7 +308,7 @@ def default_log(version: str, date: str, cores: int | None = 8, host: str | None
             {"time": "1405", "kind": "health"},
             {"time": "1430", "kind": "remark", "text": "remarks · nothing to report"},
             {"time": "1431", "kind": "beat", "text": "Nothing on fire."},
-            {"time": "complete", "kind": "out", "text": "crawl complete · plateau · {log} urls · {elapsed}"},
+            {"time": "complete", "kind": "out", "text": "crawl complete · plateau · {log} urls"},
             {"time": "+2m", "kind": "cmd", "text": "rustmapper export-sitemap --data-dir ./data --output sitemap.xml"},
             {"time": "+0m", "kind": "out", "text": "wrote sitemap.xml · {log} urls"},
         ],
