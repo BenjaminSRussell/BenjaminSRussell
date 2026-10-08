@@ -574,6 +574,15 @@ def build(ctx) -> str:
             _w = width(_txt, "label-italic")
             _x0 = _x - _w / 2 if _anc == "middle" else _x
             boxes.append((_x0 - 2, _y - 13 * 0.8 - 1, _w + 4, 13 + 2))
+        # the other late labels at fixed places (run 6 planned a contour figure under SEE SHEET 3):
+        # the coverage box's caption, the WP4 fix date off the harbour, and the PA mark on rustmapper
+        _w = width("SEE SHEET 3", "label", tracking=caps_track)
+        boxes.append((SEE_SHEET[0] - 2, SEE_SHEET[1] - 13 * 0.8 - 1, _w + 4, 13 + 2))
+        if harbour is not None and repo_of.get(harbour.name, {}).get("first"):
+            _w = width(_month(repo_of[harbour.name]["first"]), "label")
+            boxes.append((course[3][0] + 7 - 2, course[3][1] - 10 - 13 * 0.8 - 1, _w + 4, 13 + 2))
+        if vessel_ground is not None:
+            boxes.append((vessel_ground.x + PA_SHIFT[0] - vessel_ground.r - 20, vessel_ground.y + PA_SHIFT[1] - 8, 20, 14))
     # which week figures print (round 3): one per run of zero weeks, then a greedy SOUND_GAP spacing in
     # course order; every week remains a kernel of the field whether or not its figure is printed
     cand = []
@@ -871,6 +880,8 @@ def build(ctx) -> str:
     for q, i0, i1 in breaks:
         x, y, ang = c.break_anchor(q, i0, i1)
         figs.append(lbl(str(int(q.level)), x, y + 3.5, "contour-figure", anchor="middle", rotate=ang, fill=theme.ink2))
+        _fw = width(str(int(q.level)), "contour-figure")
+        boxes.append((x - _fw / 2 - 2, y + 3.5 - 11 * 0.8 - 1, _fw + 4, 11 + 2))   # later labels keep clear of it
     if figs:
         body.append(tl.fade_in("".join(figs), 1.4, 0.4, rise=0))
 
