@@ -2679,6 +2679,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.146588921282799,
      "faded": 3,
      "on_feature": 0,
@@ -5411,6 +5413,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.146588921282799,
      "faded": 3,
      "on_feature": 0,
@@ -8139,6 +8143,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.146588921282799,
      "faded": 3,
      "on_feature": 0,
@@ -10867,6 +10873,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.146588921282799,
      "faded": 3,
      "on_feature": 0,
@@ -12374,6 +12382,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.204318023012593,
      "faded": 4,
      "on_feature": 0,
@@ -13852,6 +13862,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.204318023012593,
      "faded": 4,
      "on_feature": 0,
@@ -15330,6 +15342,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.204318023012593,
      "faded": 4,
      "on_feature": 0,
@@ -16808,6 +16822,8 @@
    "hero": {
     "field": {
      "base": 10.5,
+     "area_scale_px2_per_commit": 32.2,
+     "scale_steps": 0,
      "residual_max": 4.204318023012593,
      "faded": 4,
      "on_feature": 0,
