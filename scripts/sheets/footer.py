@@ -7,6 +7,10 @@ riding it, three mist arcs at the fall; and once every 96 s (first at 84 s, when
 anchored to witness it) a serpent rises head-first where "Obstn rep. 2026 (PA)" is charted,
 holds, sinks, and leaves three ripples. An index of adjoining sheets shows the hero's extent as
 the one surveyed cell. Still = anchored state. Eleven indefinite animations, ≤ 4 ms/frame.
+
+Sizes (desk, v9.1 scale): the line of prose 41 (thesis); UNSURVEYED, the index caption and figures,
+the chart note, good holding, the record and folio 19 (label / label-italic / label-caps); the six
+illustrative soundings 16 (texture-italic). Phone: thesis 40, labels 26, soundings 18.
 """
 from __future__ import annotations
 
@@ -33,6 +37,10 @@ BREAKS: list[tuple[str, str, str]] = [
     ("The sloop is drawn, not <use>d", "hull, main, jib from chartlib.SLOOP_DETAIL", "the main must luff on its own; the anchor is the sheet's <use> symbol"),
     ("Inline lettering on the desk editions", "typeset.text(), one <path> per run, no glyph library",
      "the only sheet that repaints every frame: 3.3 ms/frame instead of 4.2 (12's 4 ms budget), +20 KB raw"),
+    ("The line of prose at the thesis role's 41 px", "530 px wide at x 48, baseline 78, clear of the water and the chart note",
+     "v9.1: 28 px is off the desk scale; 41 prints at 28 on the page, which is what 28 was meant to be"),
+    ("Index caption above its box", "INDEX OF SHEETS at baseline 158, the box 166→226",
+     "at 19 px the caption under the box ran into its bottom rule and the neat line at 240"),
 ]
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -162,7 +170,7 @@ def _desk(ctx) -> str:
 
     # ---- index of sheets (27): the page's six sheets, this one filled
     IX, IY, IW, IH = 48, 166, 200, 60
-    out.append(tx("INDEX OF SHEETS", IX, IY + IH + 11, "label", fill=t.muted))
+    out.append(tx("INDEX OF SHEETS", IX, IY - 8, "label", fill=t.muted))
     out.append(f'<rect x="{IX}" y="{IY}" width="{IW}" height="{IH}" fill="{t.paper}" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
     cw, ch = IW / 3, IH / 2
     out.append(f'<rect x="{fmt(IX + 2 * cw)}" y="{fmt(IY + ch)}" width="{fmt(cw)}" height="{fmt(ch)}" fill="{t.land}"/>')
@@ -240,9 +248,9 @@ def _desk(ctx) -> str:
 
     # ---- neat line, broken where the water leaves; the one line of prose
     out.append(f'<path d="M14 14H1266V112M1266 226V240H14V14" fill="none" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
-    # role thesis at 28 (on the scale, serif floor met) carries no grade stroke; inline like every other run
-    # here (through the glyph library the sheet is 9 KB lighter but 3.95 instead of 3.55 ms/frame: measured)
-    out.append(tx(_copy(cfg, "footer_line", "The chart ends here. The web doesn't."), 48, 78, "thesis", fill=t.ink, size=28))
+    # role thesis at its 41 px (on the v9.1 scale, serif floor met) carries no grade stroke; inline like every
+    # other run here (through the glyph library the sheet is lighter but 3.95 instead of 3.55 ms/frame: measured)
+    out.append(tx(_copy(cfg, "footer_line", "The chart ends here. The web doesn't."), 48, 78, "thesis", fill=t.ink))
 
     # ---- outside the neat line: folio, the chart's own record, no adjoining sheet
     out.append(tx(f"CHART NO. {chart_no} · SHEET 6", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
