@@ -396,6 +396,26 @@ class SupportingSheets(unittest.TestCase):
             self.assertIn(item["name"], texts)
             self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in phone}, item["name"])
 
+    def test_neat_line_and_margin_lines_on_every_sheet(self):
+        """v9.2 (A, C): one minute-bar neat line for the set; the folio in the bottom margin and the unit line (where the
+        sheet has figures) in the top margin, each clear of the outer rule by 6 px or more."""
+        for name, e in Built.report["sheets"].items():
+            mod = build_assets.load_sheet(e["sheet"])
+            svg = Built.files[f"{name}.svg"].decode()
+            self.assertIn('stroke-width="2.1"', svg, f"{name}: no LINE outer rule")
+            self.assertIn('fill-opacity=".85"/>', svg, f"{name}: no minute bars")
+            rules = getattr(mod, "RULES", None)
+            if rules is None:
+                continue                                  # the footer's frame is its own (broken at the fall)
+            r0 = rules["phone" if e["form"] == "phone" else "desk"][0]
+            folio = next(t for t in e["text"] if t.get("key") == "folio")
+            self.assertGreaterEqual(folio["y0"] - (e["h"] - r0), 6, (name, "folio under the outer rule"))
+            unit = [t for t in e["text"] if t.get("key") == "unit"]
+            if e["sheet"] != "log":
+                self.assertEqual(len(unit), 1, name)
+            for t in unit:
+                self.assertGreaterEqual(r0 - t["y1"], 6, (name, "unit line above the outer rule"))
+
     def test_log_prints_only_settings(self):
         """v9.2 (I): no p95, failure rate, fsync latency or elapsed time on a computed log, on any edition."""
         with open(os.path.join(ROOT, "assets", "log.json"), encoding="utf-8") as fh:
@@ -418,6 +438,25 @@ class SupportingSheets(unittest.TestCase):
                 self.assertIn("rustmapper crawl", manifest, name)
                 self.assertIn("fetched", manifest, name)
                 self.assertIn("crawl complete", manifest, name)
+
+    def test_footer_record_and_shelf(self):
+        """v9.2 (L): `corrected through Notice N` alone; no figures on the shelf; the cable at PEN, not BRUSH."""
+        with open(STATS, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        n = len(stats.get("notices") or [])
+        for name, e in Built.report["sheets"].items():
+            if e["sheet"] != "footer":
+                continue
+            texts = [t["s"] for t in e["text"]]
+            self.assertIn("good holding", texts, name)
+            self.assertNotIn("14 · good holding", texts, name)
+            self.assertFalse(any(t["origin"] == "sounding" for t in e["text"]), name)
+            if n and e["form"] != "phone":
+                self.assertIn(f"corrected through Notice {n}", texts, name)
+                self.assertNotIn(f"{n} notices · corrected through Notice {n}", texts, name)
+        svg = Built.files["footer-still-day.svg"].decode()
+        brush = [m for m in re.findall(r'<path class="head"[^>]*stroke-width="3.4"', svg)]
+        self.assertEqual(svg.count('stroke-width="3.4"'), len(brush), "only the serpent's head is a BRUSH stroke")
 
     def test_folio_on_every_sheet(self):
         for name, e in Built.report["sheets"].items():
