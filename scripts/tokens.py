@@ -50,7 +50,9 @@ THEMES: dict[str, Theme] = {
 }
 
 # Line weights (px in 1280-space), each >= 1.6x the previous. `stroke()` in chartlib is the only emitter.
-W = {"HAIR": 0.6, "PEN": 1.0, "LINE": 1.6, "BRUSH": 2.6}
+# v9.1: weights carry the DISPLAY factor (a 1280 sheet is shown at ~870 px in the README column, x0.68):
+# HAIR 0.8 prints at 0.55 px, PEN at 0.9 px.
+W = {"HAIR": 0.8, "PEN": 1.3, "LINE": 2.1, "BRUSH": 3.4}
 # Opacity levels for ink (T6 / 15): five levels, named.
 INK = {"full": 1.0, "strong": 0.85, "mid": 0.62, "soft": 0.45, "faint": 0.25}
 # Dash patterns; {g} is the danger-line gap chosen per feature circumference by chartlib.
@@ -58,9 +60,13 @@ DASH = {"DANGER": "0.1 {g}", "COURSE": "0.1 7", "TRACK": "1 5", "PECK": "4 4",
         "LIMIT": "1.5 4", "APPROX": "3 3", "RESTRICT": "6 3"}
 
 # Type scale (sheet space). Any size off the scale fails check_type.
-SCALE = (11, 13, 17, 22, 28, 36, 46, 60, 96, 176)
+# v9.1 (decision 6 revised): GitHub shows a 1280 sheet at ~870 px (DISPLAY 0.68), so the desk scale is
+# T5's scale divided by that factor: the floors below are the old display floors (11 / 13 / 17) made to
+# hold on the page, not on the sheet. The phone scale (720 shown at ~360) already carried its factor.
+DISPLAY = 0.68
+SCALE = (16, 19, 25, 32, 41, 53, 68, 88, 141, 176)
 SCALE_PHONE = (18, 26, 30, 40, 132)
-FLOORS = {"desk": {"semantic": 13, "texture": 11, "serif": 17},
+FLOORS = {"desk": {"semantic": 19, "texture": 16, "serif": 25},
           "phone": {"semantic": 26, "texture": 18, "serif": 30}}
 
 # Roles: role -> (font key, size, tracking px, case, grade)
@@ -68,22 +74,22 @@ FLOORS = {"desk": {"semantic": 13, "texture": 11, "serif": 17},
 #   case: "mixed" | "caps" | "figures" | "typed"; grade: "spread" (day stroke .22) | "choke" (night .18) | "none"
 _DESK = {
     "display":     ("serif", 176, -3.0, "mixed", "none"),
-    "figure":      ("serif", 96, -2.0, "figures", "none"),
-    "figure-2":    ("serif", 46, -1.0, "figures", "none"),
-    "thesis":      ("serif-italic", 36, -0.2, "mixed", "none"),
-    "title":       ("serif", 28, -1.0, "mixed", "grade"),
-    "sea-name":    ("serif-italic", 28, 2.0, "mixed", "grade"),
-    "place-water": ("serif-italic", 17, 0.0, "mixed", "grade"),
-    "place-land":  ("serif", 17, 0.0, "mixed", "grade"),
-    "note":        ("serif-italic", 17, 0.0, "mixed", "grade"),
-    "label":       ("cond", 13, 0.0, "mixed", "none"),
-    "label-italic": ("cond-italic", 13, 0.0, "mixed", "none"),
-    "label-caps":  ("cond", 13, 0.6, "caps", "none"),
-    "texture":     ("cond", 11, 0.0, "figures", "none"),
-    "texture-italic": ("cond-italic", 11, 0.0, "figures", "none"),
-    "machine":     ("plex", 13, 0.0, "typed", "none"),
-    "machine-strong": ("plex-medium", 13, 0.0, "typed", "none"),
-    "contour-figure": ("cond", 11, 0.0, "figures", "none"),
+    "figure":      ("serif", 141, -2.0, "figures", "none"),
+    "figure-2":    ("serif", 68, -1.0, "figures", "none"),
+    "thesis":      ("serif-italic", 41, -0.2, "mixed", "none"),
+    "title":       ("serif", 41, -1.0, "mixed", "grade"),
+    "sea-name":    ("serif-italic", 41, 2.0, "mixed", "grade"),
+    "place-water": ("serif-italic", 25, 0.0, "mixed", "grade"),
+    "place-land":  ("serif", 25, 0.0, "mixed", "grade"),
+    "note":        ("serif-italic", 25, 0.0, "mixed", "grade"),
+    "label":       ("cond", 19, 0.0, "mixed", "none"),
+    "label-italic": ("cond-italic", 19, 0.0, "mixed", "none"),
+    "label-caps":  ("cond", 19, 0.8, "caps", "none"),
+    "texture":     ("cond", 16, 0.0, "figures", "none"),
+    "texture-italic": ("cond-italic", 16, 0.0, "figures", "none"),
+    "machine":     ("plex", 19, 0.0, "typed", "none"),
+    "machine-strong": ("plex-medium", 19, 0.0, "typed", "none"),
+    "contour-figure": ("cond", 16, 0.0, "figures", "none"),
 }
 _PHONE = {
     "display":     ("serif", 132, -2.0, "mixed", "none"),
