@@ -87,7 +87,7 @@ class Approaches(unittest.TestCase):
     def test_contract_and_alt(self):
         self.assertEqual(A.NAME, "approaches")
         self.assertEqual(A.KIND, "chart")
-        self.assertEqual(A.SIZES, {"desk": (1280, 960), "phone": (720, 1880)})
+        self.assertEqual(A.SIZES, {"desk": (1280, 1120), "phone": (720, 1880)})
         self.assertTrue(A.BREAKS and all(len(b) == 3 for b in A.BREAKS))
         alt = A.alt(self.stats, self.cfg)
         self.assertLessEqual(len(alt.split()), 25, alt)
@@ -169,9 +169,16 @@ class Approaches(unittest.TestCase):
                     self.assertEqual(t["origin"], "sounding", (name, t["s"]))
                     hw = max(w["n"] for w in self.stats["weeks"])
                     self.assertTrue(t["s"].startswith(str(scrapy["commits"])) or t["s"].startswith(str(hw)), (name, t["s"]))
+                if t.get("truth") == "datum":
+                    # the legend's underlined sample is the real commit count, not an invented figure
+                    self.assertEqual(t["origin"], "sounding", (name, t["s"]))
+                    self.assertEqual(t["s"], str(scrapy["commits"]), (name, t["s"]))
                 if t["origin"] == "sounding" and t["slant"] == "upright":
                     upright_soundings.append(t["s"])
-            self.assertLessEqual(len(upright_soundings), 2, (name, upright_soundings))   # 265₅ and the HW week
+            # 265₅ and the HW week, plus the legend's upright and underlined samples (both the real 265)
+            self.assertLessEqual(len(upright_soundings), 4, (name, upright_soundings))
+            self.assertTrue(all(s.startswith(str(scrapy["commits"])) or s.startswith(str(max(w["n"] for w in self.stats["weeks"])))
+                                for s in upright_soundings), (name, upright_soundings))
             shards = [t for t in self.texts(name) if t.get("key") == "shards"]
             self.assertEqual(len(shards), 1, name)
             expect = "upright" if self.log.get("measured") else "italic"
@@ -190,6 +197,11 @@ class Approaches(unittest.TestCase):
             recs = self.texts(name)
             legend = [r for r in recs if r["within"] == list(A.LEGEND) and r["role"] == "label"]
             self.assertGreaterEqual(len(legend), 30, name)
+            # show, don't tell: the figure convention is three legend entries, not a sentence
+            texts = {r["s"] for r in legend}
+            for want in ("Upright · measured", "Sloping · not measured", "Underlined · above datum"):
+                self.assertIn(want, texts, (name, want))
+            self.assertFalse(any("upright figures are measured" in r["s"] for r in recs), name)
             self.assertTrue(all(r["size"] == A.PANEL_SIZE for r in legend), [(r["s"], r["size"]) for r in legend if r["size"] != A.PANEL_SIZE])
             notes = [r for r in recs if r["within"] in (list(A.BLOCK_RM), list(A.BLOCK_SH)) and r["s"][:1].isdigit()]
             self.assertGreaterEqual(len(notes), 11, name)
@@ -282,7 +294,7 @@ class Approaches(unittest.TestCase):
             self.assertAlmostEqual(cn[0]["x1"], 1262, delta=0.6)   # anchor end at (1262, 14), decision 27
             self.assertEqual(cn[0]["y"], 14)
             folio = [t for t in self.texts(name) if t.get("key") == "folio"][0]
-            self.assertEqual((round(folio["x0"]), folio["y"]), (24, 955))
+            self.assertEqual((round(folio["x0"]), folio["y"]), (24, A.SIZES["desk"][1] - 5))
 
     # ------------------------------------------------------------- data drives geometry (T3 §10.7)
     def test_shards_change_the_track_lines_and_the_tape(self):
@@ -326,9 +338,12 @@ class Approaches(unittest.TestCase):
             for want in ("SCRAPY HARBOR", "Delta Lake", "UNSURVEYED", 'G "1"', 'R "2"', 'G "3"', 'R "4"', "Grafana Lt",
                          "LIMIT OF SURVEY 2026", "robots.txt", "Rep", "ED", "SD"):
                 self.assertIn(want, s, (name, want))
-            soundings = [r for r in recs if r["origin"] == "sounding"]
+            soundings = [r for r in recs if r["origin"] == "sounding" and r["y"] < A.PH_LEGEND_Y]   # on the water
             self.assertTrue(8 <= len(soundings) <= 14, len(soundings))
             self.assertTrue(all(r["slant"] == "italic" for r in soundings))
+            # the compact key shows the one figure convention the phone carries, as an entry, not a sentence
+            self.assertIn("Sloping · not measured", s)
+            self.assertNotIn("upright figures measured", s)
 
 
 if __name__ == "__main__":
