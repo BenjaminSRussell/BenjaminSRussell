@@ -3,9 +3,13 @@
 A chart's instrument inventory in three columns, LEAD · LOG · LOOKOUT (languages; stores and
 queues; deck), each line a fitting from chart.toml [fittings] with the first commit of the
 repository that carries it as its commissioning date. Bold = the repository is underway this
-quarter (stats.json repos[].active). Full-width 1280×290; the columns hang on the right two
-thirds, the left third carries the title, key and the three groups as large rotated caps. No motion.
+quarter (stats.json repos[].active). Full-width 1280×360; the columns hang on the right 896 px
+(x 384→1280, 296 px each, names and dates at 19 px on a 40 px pitch), the left 336 px carry the
+title and the three groups as 53 px rotated caps with their gloss set rotated beside them. No motion.
 Phone (720×200): three stacked lines, the group word as a caps head and its fittings after it.
+
+Sizes (desk, v9.1 scale): names, dates, title, key and glosses 19 (label / label-caps); column
+heads 19 (machine); the rotated group caps 53 (label). Phone: everything 26 (label / label-caps).
 """
 from __future__ import annotations
 
@@ -19,14 +23,22 @@ from edition import fmt
 
 NAME = "instruments"
 KIND = "strip"
-SIZES = {"desk": (1280, 290), "phone": (720, 200)}
+SIZES = {"desk": (1280, 360), "phone": (720, 200)}
 BREAKS: list[tuple[str, str, str]] = [
-    ("Right-hung columns", "columns at x 480→1280, the left third nearly empty",
+    ("Right-hung columns", "columns at x 384→1280, the left 336 px nearly empty",
      "the one broken hang on the page; the silhouette names the sheet (27, decision 2)"),
     ("Mono in the columns", "names in Plex Mono, dates in Condensed",
      "an inventory is typed, not lettered (T9 §2C); the dates fit the column in the narrower face"),
-    ("Large rotated group caps", "LEAD · LOG · LOOKOUT at 46 px in the left panel",
+    ("Large rotated group caps", "LEAD · LOG · LOOKOUT at 53 px in the left panel",
      "the left third is the sheet's title block, not blank paper (round 2)"),
+    ("Columns start at 384, 296 px each", "names at 19 px with the date 10 px clear of the widest name (Prometheus · Grafana)",
+     "v9.1: the desk scale carries the display factor; three 266 px columns at 19 px ran into each other at 870 px"),
+    ("Rows on a 40 px pitch, sheet 360 tall", "six rows 116→316, heads at 80, key and title at 40",
+     "19 px names on the old 34 px pitch touched; the heads needed a line of their own under the key"),
+    ("Glosses rotated beside the caps", "what measures depth · what keeps the record · what watches set at -90° at 19 px, foot-aligned with the group word",
+     "the 170 px glosses no longer fit three 104 px bands horizontally; read as a rotated title and subtitle"),
+    ("Column heads untracked", "LEAD · LANGUAGES etc. in machine 19 at tracking 0",
+     "LOG · STORES AND QUEUES tracked at 1.0 is 276 px and crossed the next column's rule"),
 ]
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -37,9 +49,12 @@ GROUP_MARK = {"LEAD": "waypoint", "LOG": "anchorage", "LOOKOUT": "station"}
 FLAGSHIP = ("Scrapy", "Rust-sitemap")
 GLOSS = {"LEAD": "what measures depth", "LOG": "what keeps the record", "LOOKOUT": "what watches"}
 MARK_NAMES = ("fix", "waypoint", "anchorage", "light", "station")
-COL_X = (480, 747, 1013)
-COL_W = 266
-MARK_X, NAME_X, DATE_X = 14, 30, 250      # within a column: the symbol gutter, the name, the date's right edge
+COL_X = (384, 680, 976)
+COL_W = 296
+MARK_X, NAME_X, DATE_X = 14, 28, 282      # within a column: the symbol gutter, the name, the date's right edge
+PITCH, Y_HEADS, Y_FIRST = 40, 80, 116     # row pitch, the column heads' baseline, the first row's baseline
+BAND_W = 104                              # the left panel: one band per group, rotated caps and gloss
+CAPS_SIZE = 53                            # the rotated group word (on the v9.1 scale)
 
 
 def _my(iso: str | None) -> str:
@@ -68,10 +83,10 @@ def _repo_index(data: dict) -> dict:
 
 
 def _mark(kind: str, x: float, y: float, theme) -> str:
-    """A legend mark in the row's gutter, centred on x, at 0.9 (the same <use> ids the legend defines)."""
+    """A legend mark in the row's gutter, centred on x, at 1.0 (the same <use> ids the legend defines)."""
     if kind not in MARK_NAMES:
         return ""
-    return C.use(kind, x, y - 5, NAME, scale=0.9)
+    return C.use(kind, x, y - 6, NAME, scale=1.0)
 
 
 def _mark_for(item: dict, code: str) -> str | None:
@@ -130,13 +145,13 @@ def _desk(ctx) -> str:
     out: list[str] = []
     defs = _symbols(t, ed.name, MARK_NAMES)
     rows = max([sum(1 for i in items if i.get("group") == g[0]) for g in groups] + [6])
-    y_top, pitch, y_first = 44, 34, 80            # six rows at 34 px: 80 … 250 (17 px names read at 870)
-    y_bot = y_first + (rows - 1) * pitch + 8
+    y_top, pitch, y_first = Y_HEADS - 20, PITCH, Y_FIRST   # six rows at 40 px: 116 … 316 (19 px names read at 870)
+    y_bot = y_first + (rows - 1) * pitch + 10
     for x in (COL_X[1] - 1, COL_X[2] - 1):
         out.append(f'<path d="M{x} {y_top}V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
     for gi, (code, gloss) in enumerate(groups[:3]):
         cx = COL_X[gi]
-        out.append(tx(f"{code} · {gloss.upper()}", cx + NAME_X, y_first - 24, "machine", fill=t.ink2, tracking=1.0))
+        out.append(tx(f"{code} · {gloss.upper()}", cx + NAME_X, Y_HEADS, "machine", fill=t.ink2))
         col_items = [i for i in items if i.get("group") == code]
         for ri, item in enumerate(col_items):
             y = y_first + ri * pitch
@@ -144,9 +159,9 @@ def _desk(ctx) -> str:
             repo = repos.get(str(item.get("repo", ""))) or repos.get(str(item.get("repo", "")).lower())
             active = bool(repo and repo.get("active"))
             fill = t.ink if active else t.ink2
-            run = tx(name, cx + NAME_X, y, "label", fill=fill, size=17)
+            run = tx(name, cx + NAME_X, y, "label", fill=fill)
             out.append(_bold(run, fill) if active else run)
-            pen = cx + NAME_X + T.text_width(name, "label", size=17, edition=ed)
+            pen = cx + NAME_X + T.text_width(name, "label", edition=ed)
             mark = _mark_for(item, code)
             if mark:
                 out.append(_mark(mark, cx + MARK_X, y, t))
@@ -159,20 +174,19 @@ def _desk(ctx) -> str:
             if fitted:
                 out.append(tx(fitted, cx + DATE_X, y, "label", fill=t.ink2, anchor="end", truth="measured",
                               key=f"fitted.{name}"))
-    # the left third (decision 2): the sheet's name and key, the three groups as large rotated condensed caps
-    # with their plain-words gloss, hairlines between
+    # the left panel (decision 2): the sheet's name and key, the three groups as large rotated condensed caps
+    # with their plain-words gloss rotated beside them (foot-aligned, 22 px to the right), hairlines between
     out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.ink2))
     n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
-    band_w = 142
     # the key sits top-right above the column heads, clear of the rotated block (round 6)
     out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
                   COL_X[2] + DATE_X, 40, "label", fill=t.ink2, anchor="end", truth="measured", key="active_count"))
     for gi, (code, _gloss) in enumerate(groups[:3]):
-        bx = 48 + gi * band_w
+        bx = 48 + gi * BAND_W
         if gi:
             out.append(f'<path d="M{bx - 12} {y_first - 10}V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
-        out.append(tx(code.upper(), bx + 34, y_bot - 4, "label", fill=t.ink2, size=46, tracking=2.0, rotate=-90))
-        out.append(tx(GLOSS.get(code, _gloss.lower()), bx, y_bot + 14, "label", fill=t.ink2))
+        out.append(tx(code.upper(), bx + 34, y_bot - 4, "label", fill=t.ink2, size=CAPS_SIZE, tracking=2.0, rotate=-90))
+        out.append(tx(GLOSS.get(code, _gloss.lower()), bx + 56, y_bot - 4, "label", fill=t.ink2, rotate=-90))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
     return E.svg(ed, W_, H_, "".join(out), defs + T.glyph_defs(), sheet=NAME)
 

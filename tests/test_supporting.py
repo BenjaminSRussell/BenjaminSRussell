@@ -346,7 +346,7 @@ class SupportingSheets(unittest.TestCase):
             self.assertIn(item["repo"], repos, item)
             run = by_text.get(item["name"])
             self.assertIsNotNone(run, item["name"])
-            self.assertEqual((run["role"], run["size"]), ("label", 17), item["name"])
+            self.assertEqual((run["role"], run["size"]), ("label", 19), item["name"])
             self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in runs}, item["name"])
         # bold = active: the one active fitting carries the spread stroke
         svg = Built.files["instruments-day.svg"].decode()
