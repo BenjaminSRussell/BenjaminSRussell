@@ -72,6 +72,7 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-day.svg" width="100%" alt="Sheet 3, Approaches: rustmapper's survey ground east, buoyed channel west into Scrapy Harbor, every symbol in the legend. The soundings fill in behind the vessel.">
 </picture>
 <!-- picture:approaches:end -->
+
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap) is the survey vessel:** a concurrent sitemap crawler written in Rust and shipped to [PyPI](https://pypi.org/project/rustmapper/) as a Python package. Edition <!-- n:edition_version -->0.1.3<!-- /n -->, <!-- n:edition_date -->8 Nov 2025<!-- /n -->, provisional.
 
 - The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool between 256 and 1,024 permits, so the crawl slows when it cannot persist what it found.
