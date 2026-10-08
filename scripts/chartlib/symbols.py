@@ -16,7 +16,7 @@ from .furniture import stroke, op
 
 __all__ = ["SYMBOL_NAMES", "symbol_defs", "symbol_ids", "use", "sloop", "lateral", "light", "flare", "halo",
            "traffic_signal", "horn", "anchorage", "wreck", "waypoint", "station", "fix", "ldg_triangle",
-           "rep_ring", "ed_islet", "correction_mark", "correction", "doubt", "serpent", "lit_core",
+           "rep_ring", "ed_islet", "correction_mark", "correction", "doubt", "serpent", "lit_core", "tick",
            "SLOOP_DETAIL", "SLOOP_GLYPH"]
 
 SYMBOL_NAMES = ("sloop", "sloop-glyph", "can", "nun", "light", "flare", "traffic", "horn", "anchorage", "wreck",
@@ -188,6 +188,13 @@ def station(theme) -> str:
     """△ survey station with its centre dot."""
     return (f'<path d="M0 -6L5.5 3.5L-5.5 3.5Z" fill="none" {stroke("PEN", theme.ink)}/>'
             f'<circle cy="0.5" r="1" fill="{theme.ink}"/>')
+
+
+def tick(theme) -> str:
+    """A gutter tick for a chart's own lists (v9.2, sheet 5): one short PEN dash, no charted meaning, so
+    it is not in SYMBOL_NAMES and the legend never has to define it. A sheet puts it in its own <defs>
+    as <g id="{prefix}-sym-tick"> and places it with use()."""
+    return f'<path d="M-3.5 0H3.5" fill="none" {stroke("PEN", theme.ink, 0.85)}/>'
 
 
 def fix(theme) -> str:

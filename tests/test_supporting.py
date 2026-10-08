@@ -373,18 +373,28 @@ class SupportingSheets(unittest.TestCase):
             self.assertIsNotNone(run, item["name"])
             self.assertEqual((run["role"], run["size"]), ("label", 19), item["name"])
             self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in runs}, item["name"])
-        # bold = active: the one active fitting carries the spread stroke
-        svg = Built.files["instruments-day.svg"].decode()
+        # bold = active: the one active fitting carries the spread stroke, on the phone too (v9.2)
         active = [i["name"] for i in cfg["fittings"]["items"] if repos[i["repo"]]["active"]]
-        self.assertEqual(svg.count('stroke-width="0.45" paint-order="stroke"'), len(active))
-        # the phone edition stacks the three groups: a caps head per group and every fitting named
+        for ed in ("day", "phone-day"):
+            svg = Built.files[f"instruments-{ed}.svg"].decode()
+            self.assertEqual(svg.count('stroke-width="0.45" paint-order="stroke"'), len(active), ed)
+            # v9.2: the gutter tick is the sheet's own symbol; no charted symbol is re-used with another meaning
+            self.assertEqual(set(re.findall(r'href="#instruments-sym-([\w-]+)"', svg)), {"tick"}, ed)
+            self.assertEqual(Built.report["sheets"][f"instruments-{ed}"]["symbols_used"], ["tick"], ed)
+        # the datum in the top margin, no rotated group words, the heads on both editions
+        for ed in ("day", "phone-day"):
+            runs_ed = Built.text_of(f"instruments-{ed}")
+            self.assertEqual([t["s"] for t in runs_ed if t.get("key") == "unit"], ["DATUM: FIRST COMMIT"], ed)
+            self.assertFalse(any(t.get("rot") for t in runs_ed), ed)
+            heads = [t["s"] for t in runs_ed]
+            for code, gloss in cfg["fittings"]["groups"]:
+                self.assertIn(f"{code} · {gloss.upper()}", heads, ed)
+        # the phone edition carries every fitting with its date (v9.2)
         phone = Built.text_of("instruments-phone-day")
         texts = " ".join(t["s"] for t in phone)
-        for code, _gloss in cfg["fittings"]["groups"]:
-            self.assertIn(code.upper(), [t["s"] for t in phone])
         for item in cfg["fittings"]["items"]:
             self.assertIn(item["name"], texts)
-        self.assertEqual([t["key"] for t in phone if t.get("key")], ["folio"])
+            self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in phone}, item["name"])
 
     def test_log_prints_only_settings(self):
         """v9.2 (I): no p95, failure rate, fsync latency or elapsed time on a computed log, on any edition."""
@@ -421,7 +431,9 @@ class SupportingSheets(unittest.TestCase):
         for sheet in SHEETS:
             desk = Built.text_of(f"{sheet}-day")
             phone = Built.text_of(f"{sheet}-phone-day")
-            self.assertLess(len(phone), len(desk), sheet)
+            # v9.2: the phone instruments carry every fitting and date the desk does, redrawn at the phone scale
+            self.assertLessEqual(len(phone), len(desk), sheet)
+            self.assertNotEqual(Built.report["sheets"][f"{sheet}-phone-day"]["h"], Built.report["sheets"][f"{sheet}-day"]["h"], sheet)
             for t in phone:
                 self.assertIn(t["size"], tokens.SCALE_PHONE, f"{sheet}: {t}")
                 if t["semantic"]:
