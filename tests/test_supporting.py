@@ -5,7 +5,10 @@ stats.json and log.json), then checks the T9 §5 criteria that can be automated 
 browser: determinism, hard budgets, frozen sheets carry zero animation, the log keeps header plus
 ten entries, the footer's indefinite count, banned strings, italic numerals on the computed log,
 alts, fittings resolve, the heartbeat agrees with the soundings dateline, and that a changed
-sounding moves the tide table while a missing one fails the build.
+sounding moves the tide table while a missing one fails the build. v9.2: one neat line and the
+margin lines on every sheet, the register under the gazetteer's names, every non-zero week on the
+traverse, only settings-derived figures on the computed log, the phone log and instruments carrying
+the run's rows and the fittings' dates, no figures on the footer's shelf.
 """
 from __future__ import annotations
 
@@ -25,6 +28,7 @@ if SCRIPTS not in sys.path:
 
 import build_assets  # noqa: E402
 import edition as E  # noqa: E402
+import gazetteer  # noqa: E402
 import tokens  # noqa: E402
 
 SHEETS = ("soundings", "log", "instruments", "footer")
@@ -270,7 +274,9 @@ class SupportingSheets(unittest.TestCase):
         runs = Built.text_of("soundings-day")
         caps = [t for t in runs if t["role"] == "label-caps" and t.get("key") != "folio"]
         self.assertEqual(len(caps), 1)
-        self.assertEqual(caps[0]["s"], "SOUNDINGS IN COMMITS")
+        self.assertEqual(caps[0]["s"], "SOUNDINGS IN COMMITS · DATUM: MAIN")     # v9.2: unit and datum in the top margin
+        phone_caps = [t["s"] for t in Built.text_of("soundings-phone-day") if t["role"] == "label-caps" and t.get("key") != "folio"]
+        self.assertEqual(phone_caps, ["SOUNDINGS IN COMMITS · DATUM: MAIN"])
         keys = {t.get("key"): t for t in runs if t.get("key")}
         for k in ("commits", "all_hands", "calendar_total", "tide.hw", "tide.lw", "tide.median", "tide.slack"):
             self.assertIn(k, keys)
@@ -280,8 +286,8 @@ class SupportingSheets(unittest.TestCase):
         self.assertEqual(keys["commits"]["s"], f"{stats['commits']:,}")
         self.assertEqual(keys["all_hands"]["s"], f"{stats['all_hands']:,}")
         self.assertEqual(keys["calendar_total"]["s"], f"{stats['calendar_total']:,}")
-        # upright soundings along the traverse from sounding(): the weeks that fit (v9.1: HW and LW always,
-        # then the largest first, one 0 per run of zero weeks), each the week's own figure, none overprinting
+        # upright soundings along the traverse from sounding(): every non-zero week (v9.2: a tide table lists every
+        # reading) on one of two baselines, one 0 per run of zero weeks, each the week's own figure, none overprinting
         weeks = sorted((t for t in runs if (t.get("key") or "").startswith("week.")), key=lambda t: t["x0"])
         self.assertTrue(weeks and len(weeks) <= len(stats["weeks"]))
         self.assertTrue(all(t["origin"] == "sounding" and t["slant"] == "upright" for t in weeks))
@@ -291,19 +297,27 @@ class SupportingSheets(unittest.TestCase):
         hw_i = max(range(len(stats["weeks"])), key=lambda i: stats["weeks"][i]["n"])
         self.assertIn(hw_i, printed)
         self.assertIn(next(i for i, w in enumerate(stats["weeks"]) if w["start"] == stats["tide"]["lw"]["start"]), printed)
-        self.assertTrue(all(int(w["n"]) == 0 or any(abs(i - p) <= 1 for p in printed) for i, w in enumerate(stats["weeks"])
-                            if int(w["n"]) >= 100), "every three-figure week, or its neighbour, is printed")
-        for a, b in zip(weeks, weeks[1:]):
-            self.assertGreaterEqual(b["x0"] - a["x1"], 7.5, (a["s"], b["s"]))
-        # one line per repository in the register, under the chart's own names where chart.toml gives one
+        self.assertEqual({i for i, w in enumerate(stats["weeks"]) if int(w["n"]) > 0} - printed, set(),
+                         "every non-zero week is printed")
+        baselines = sorted({t["y"] for t in weeks})
+        self.assertEqual(len(baselines), 2)
+        for y in baselines:
+            row = [t for t in weeks if t["y"] == y]
+            for a, b in zip(row, row[1:]):
+                self.assertGreaterEqual(b["x0"] - a["x1"], 7.5, (a["s"], b["s"]))
+        # one line per repository in the register, every name the gazetteer's (the hero prints the same one)
         reg = [t for t in runs if (t.get("key") or "").startswith("repo.")]
         self.assertEqual(len(reg), len(stats["repos"]))
         names = {t["s"] for t in runs}
         cfg = build_assets.load_cfg()
-        for f in cfg["features"]:
-            if f.get("aliases") and any(r["name"] == f["repo"] for r in stats["repos"]):
-                self.assertIn(f["aliases"][0].upper(), names, f["repo"])
+        for r in stats["repos"]:
+            self.assertIn(gazetteer.name_of(r["name"], stats, cfg).upper(), names, r["name"])
         self.assertNotIn("SCRAPY", names)
+        # the HW cause is named through the gazetteer on both editions
+        for ed in ("day", "phone-day"):
+            hw = next(t["s"] for t in Built.text_of(f"soundings-{ed}") if t.get("key") == "tide.hw")
+            self.assertIn(gazetteer.name_of(stats["tide"]["hw"]["cause"], stats, cfg), hw, ed)
+            self.assertIn("wk of", hw, ed)
 
     def test_changing_a_sounding_moves_the_tide_and_no_weeks_fails(self):
         """T9 §5.2."""
