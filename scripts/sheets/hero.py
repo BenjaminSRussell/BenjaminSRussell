@@ -109,7 +109,7 @@ MARK_G1 = (813, 593)              # G "1" can, south
 COVERAGE = (680, 470, 210, 160)   # "SEE SHEET 3"
 SEE_SHEET = (687, 484)            # inside the box, top-left (open water)
 CALM = (40, 40, 800, 280)
-TITLE_BOX = (60, 540, 650, 156)   # six lines at 19 px, left-aligned, the source diagram at their right
+TITLE_BOX = (60, 540, 600, 156)   # six lines at 19 px, left-aligned, the source diagram at their right
 ROSE = (972, 160, 72)
 ROSE_BOX = (868, 80, 208, 232)    # rings, numerals and the two VAR lines (19 px), clear of the limit of survey
 LIMIT_X = 1080
@@ -120,8 +120,8 @@ ZERO_CLEAR = 26                   # and none within 26 px of a non-zero figure
 GENERALISE_20 = 200               # closed 20-rings shorter than this are not drawn
 UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X … LIMIT_X+70
 PA_SHIFT = (14, -10)
-NOTE_AT = (76, 350, -3)           # pencil note anchor and rotation: scribbled under the thesis (v9.1)
-NOTE_BOX = (60, 316, 460, 44)     # its exclusion for the archipelago
+NOTE_AT = (76, 360, -3)           # pencil note anchor and rotation: scribbled under the thesis (v9.1)
+NOTE_BOX = (60, 322, 460, 50)     # its exclusion for the archipelago
 SOURCE_AT = (560, 548, 96, 54)    # the source diagram, right of the title block's lines, clear of the harbour's ring
 NOTE_TEXT = "sitemap.xml lies again — see Sheet 3"
 PHONE_S = 0.55
@@ -1012,7 +1012,7 @@ def build(ctx) -> str:
         ben = k.text("Ben", nx, ny, "display", edition=ed, scale=sc)
         wb = k.text_width("Ben ", "display", edition=ed, scale=sc)
         russ = k.text("Russell", nx + wb, ny, "display", edition=ed, scale=sc)
-        body.append(ben + russ + k.text(thesis, 72, 306, "thesis", fill=theme.ink2, edition=ed, scale=sc))
+        body.append(ben + russ + k.text(thesis, 72, 311, "thesis", fill=theme.ink2, edition=ed, scale=sc))
     else:
         nx, ny = 40, 150
         ben = k.text("Ben", nx, ny, "display", edition=ed, scale=sc)
