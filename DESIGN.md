@@ -28,6 +28,11 @@ Six per sheet: `day`, `night`, `still-day`, `still-night`, `phone-day`, `phone-n
 `phone-still-*`). `<picture>` sources are ordered most specific first: phone + dark, phone, reduced
 motion + dark, reduced motion, dark, then the day `<img>`. Night is designed, not inverted: the lights
 are the brightest things on the sheet. Phone editions are redrawn at the phone scale, not shrunk.
+
+GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). Since v9.1 the desk scale
+carries that factor: the floors below (19 semantic · 16 texture · 25 serif on the sheet) are the old
+display floors (13 · 11 · 17) as the page actually shows them. Line weights carry it too. The phone
+scale (720 shown at ~360) always did.
 Sheets are published to the orphan `chart` branch under `assets/v9/`.
 
 ## Motion
@@ -73,29 +78,29 @@ invent numbers. Do not hammer re-runs: the survey clones every public repository
 
 | Weight | px |
 |---|---|
-| HAIR | 0.6 |
-| PEN | 1.0 |
-| LINE | 1.6 |
-| BRUSH | 2.6 |
+| HAIR | 0.8 |
+| PEN | 1.3 |
+| LINE | 2.1 |
+| BRUSH | 3.4 |
 
 | Role | Font | Size | Tracking | Case |
 |---|---|---|---|---|
 | display | serif | 176 | -3.0 | mixed |
-| figure | serif | 96 | -2.0 | figures |
-| figure-2 | serif | 46 | -1.0 | figures |
-| thesis | serif-italic | 36 | -0.2 | mixed |
-| title | serif | 28 | -1.0 | mixed |
-| sea-name | serif-italic | 28 | +2.0 | mixed |
-| place-water | serif-italic | 17 | +0.0 | mixed |
-| place-land | serif | 17 | +0.0 | mixed |
-| note | serif-italic | 17 | +0.0 | mixed |
-| label | cond | 13 | +0.0 | mixed |
-| label-italic | cond-italic | 13 | +0.0 | mixed |
-| label-caps | cond | 13 | +0.6 | caps |
-| texture | cond | 11 | +0.0 | figures |
-| texture-italic | cond-italic | 11 | +0.0 | figures |
-| machine | plex | 13 | +0.0 | typed |
-| machine-strong | plex-medium | 13 | +0.0 | typed |
-| contour-figure | cond | 11 | +0.0 | figures |
+| figure | serif | 141 | -2.0 | figures |
+| figure-2 | serif | 68 | -1.0 | figures |
+| thesis | serif-italic | 41 | -0.2 | mixed |
+| title | serif | 41 | -1.0 | mixed |
+| sea-name | serif-italic | 41 | +2.0 | mixed |
+| place-water | serif-italic | 25 | +0.0 | mixed |
+| place-land | serif | 25 | +0.0 | mixed |
+| note | serif-italic | 25 | +0.0 | mixed |
+| label | cond | 19 | +0.0 | mixed |
+| label-italic | cond-italic | 19 | +0.0 | mixed |
+| label-caps | cond | 19 | +0.8 | caps |
+| texture | cond | 16 | +0.0 | figures |
+| texture-italic | cond-italic | 16 | +0.0 | figures |
+| machine | plex | 19 | +0.0 | typed |
+| machine-strong | plex-medium | 19 | +0.0 | typed |
+| contour-figure | cond | 16 | +0.0 | figures |
 
-Scale: 11 · 13 · 17 · 22 · 28 · 36 · 46 · 60 · 96 · 176 (phone: 18 · 26 · 30 · 40 · 132). Floors: desk {'semantic': 13, 'texture': 11, 'serif': 17}, phone {'semantic': 26, 'texture': 18, 'serif': 30}.
+Scale: 16 · 19 · 25 · 32 · 41 · 53 · 68 · 88 · 141 · 176 (phone: 18 · 26 · 30 · 40 · 132). Floors: desk {'semantic': 19, 'texture': 16, 'serif': 25}, phone {'semantic': 26, 'texture': 18, 'serif': 30}.

@@ -174,6 +174,11 @@ Six per sheet: `day`, `night`, `still-day`, `still-night`, `phone-day`, `phone-n
 `phone-still-*`). `<picture>` sources are ordered most specific first: phone + dark, phone, reduced
 motion + dark, reduced motion, dark, then the day `<img>`. Night is designed, not inverted: the lights
 are the brightest things on the sheet. Phone editions are redrawn at the phone scale, not shrunk.
+
+GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). Since v9.1 the desk scale
+carries that factor: the floors below (19 semantic · 16 texture · 25 serif on the sheet) are the old
+display floors (13 · 11 · 17) as the page actually shows them. Line weights carry it too. The phone
+scale (720 shown at ~360) always did.
 Sheets are published to the orphan `chart` branch under `assets/v9/`.
 
 ## Motion

@@ -71,3 +71,23 @@ _pending_ (shadow-profile cohorts are Ben's to run; the panel's own 5-second rea
 3. Fill `chart.toml` `[position]` and `[contact]` (docs/BEN-TODO.md items 1–2); the gate warns until then.
 4. Delete the old `output` branch on GitHub; set the social preview from `social/hero-day.png` on the
    `chart` branch.
+
+## v9.1 — the legible edition (8 Oct 2026)
+
+The owner's reading of the live profile after the first nightly runs: "the images are all crushed", the
+survey "weird", the pictures "not cool enough"; the wording stays. The crush was decision 6: floors held on
+the 1280 px sheet, and GitHub's column shows that sheet at ~870 px (×0.68), so 13 px labels printed at 8.8 px
+and 11 px figures at 7.5. Decision 6 is revised: the desk scale now carries the display factor (tokens.py
+`DISPLAY`, scale 16 · 19 · 25 · 32 · 41 · 53 · 68 · 88 · 141 · 176, floors 19 / 16 / 25, line weights ×1.3)
+and every sheet was re-tuned to it: soundings 1280×520 with a 5×5 register and a thinned traverse, log
+1280×590 with wrapped remarks, instruments 1280×360, footer's line at 41, approaches per its module's BREAKS.
+
+Hero (the survey): the profile shoal moves west and the archipelago packs both sides of a shorter arc; a named
+feature reserves the ground under its name; a name never leaves the neat line (the live sheet cut
+AI CODE DETECTOR I. at x 20) and an islet gives its name up before printing over a neighbour; the fallback
+placer now sees the features the arc placed (the live heap of overlapping islets); islets under 25 commits
+leave the phone edition; unnamed islets lose their 5-ring (a bubble chart otherwise); printed week figures
+break the contours they cross instead of being culled (the high-water week had stopped printing); the pencil
+note sits under the thesis; the title block is six left-aligned lines with the source diagram beside it.
+
+Checked at 870 px (desk, day and night) and 360 px (phone) for every sheet; gates and the suite green.
