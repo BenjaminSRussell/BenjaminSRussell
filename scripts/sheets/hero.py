@@ -821,8 +821,6 @@ def build(ctx) -> str:
     band_labels = [up("UNSURVEYED", band[0] + (band[2] * 0.6 if not phone else 40), band[1] + band[3] / 2, "label-caps")]
     if not phone:
         band_labels.append(up(limit_label, band[0] + 22, band[1] + band[3] / 2, "label", caps=True))
-        band_labels.append(up("soundings along the course: commits per week", band[0] + 50, band[1] + band[3] / 2,
-                              "label-italic", fill=theme.ink2))
     else:   # inside the hatch like UNSURVEYED, clear of the lagoon's dashed shoals (round 3, addendum 2)
         band_labels.append(up("SMALL-SCALE EDITION", band[0] + 90, band[1] + band[3] / 2, "label", fill=theme.ink2, caps=True))
 

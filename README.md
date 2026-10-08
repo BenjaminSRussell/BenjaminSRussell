@@ -13,8 +13,6 @@
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Chart of Ben Russell's 21 repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors.">
 </picture>
 <!-- picture:hero:end -->
-<sub>One feature per public repository, area by commits. The chart number is the public repository count; the edition is the rustmapper release.</sub>
-
 <p align="center">
   <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>
   &nbsp;·&nbsp;
@@ -32,7 +30,7 @@
 <!-- position:start — chart.toml [position] text; "" omits the line -->
 <!-- position:end -->
 
-| At a glance | |
+| | |
 |---|---|
 | **Ben Russell builds** | crawl and data infrastructure: web crawlers, discovery pipelines, raw-first storage, the dashboards that watch them |
 | **Languages** | Python, Rust; Swift, C, TypeScript, Go |
@@ -43,7 +41,7 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 <br>
 
 <a name="soundings"></a>
-## Soundings <sub><i>stats</i></sub>
+## Soundings
 
 <!-- picture:soundings:start -->
 <picture>
@@ -62,9 +60,7 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 <br>
 
 <a name="approaches"></a>
-## Approaches <sub><i>main projects</i></sub>
-
-One sheet, read from seaward. rustmapper goes out first and finds the coastline. Scrapy Harbor, to the west, is where a crawl is run and kept. The channel between them is charted as proposed; nothing runs it yet.
+## Approaches
 
 <!-- picture:approaches:start -->
 <picture>
@@ -76,8 +72,6 @@ One sheet, read from seaward. rustmapper goes out first and finds the coastline.
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/approaches-day.svg" width="100%" alt="Sheet 3, Approaches: rustmapper's survey ground east, buoyed channel west into Scrapy Harbor, every symbol in the legend. The soundings fill in behind the vessel.">
 </picture>
 <!-- picture:approaches:end -->
-<sub>Soundings in URLs. The legend on this sheet defines every symbol used on the page and says which figures are measured.</sub>
-
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap) is the survey vessel:** a concurrent sitemap crawler written in Rust and shipped to [PyPI](https://pypi.org/project/rustmapper/) as a Python package. Edition <!-- n:edition_version -->0.1.3<!-- /n -->, <!-- n:edition_date -->8 Nov 2025<!-- /n -->, provisional.
 
 - The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool between 256 and 1,024 permits, so the crawl slows when it cannot persist what it found.
@@ -102,10 +96,9 @@ rustmapper export-sitemap --data-dir ./data --output sitemap.xml
 <br>
 
 <a name="log"></a>
-## Ship's log <sub><i>how a run is kept</i></sub>
+## Ship's log
 
 <!-- log_lede:start -->
-A rustmapper run as the log would record it, entered the way a log is kept. The figures are computed from the crawler's own settings, not yet measured; the day I record a real session this page sets them upright by itself.
 <!-- log_lede:end -->
 
 <!-- picture:log:start -->
@@ -118,14 +111,10 @@ A rustmapper run as the log would record it, entered the way a log is kept. The 
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg" width="100%" alt="Ship's log, rustmapper 0.1.3: 10 entries, 1402 to 1550, 12,440 URLs on 1 host, computed from settings, unsigned. Types once; only the cursor keeps time.">
 </picture>
 <!-- picture:log:end -->
-<sub>Entered from <a href="assets/log.json">assets/log.json</a>.</sub>
-
 <br>
 
 <a name="notices"></a>
-## Notices to mariners <sub><i>five principles</i></sub>
-
-Figures correct themselves nightly. These five I had to be told.
+## Notices to mariners
 
 <!-- notices:start -->
 1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy Harbor, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
@@ -137,12 +126,12 @@ Figures correct themselves nightly. These five I had to be told.
 <sub>Notices 6–9, editions: [rustmapper 0.1.0](https://pypi.org/project/rustmapper/0.1.0/) · [rustmapper 0.1.1](https://pypi.org/project/rustmapper/0.1.1/) · [rustmapper 0.1.2](https://pypi.org/project/rustmapper/0.1.2/) · [rustmapper 0.1.3](https://pypi.org/project/rustmapper/0.1.3/) · *8 Nov 2025*.</sub>
 <!-- notices:end -->
 
-Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new); corrections are entered as notices.
+Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
 <br>
 
 <a name="other-waters"></a>
-## Other waters <sub><i>smaller projects</i></sub>
+## Other waters
 
 - [**Elusive_trades_data**](https://github.com/BenjaminSRussell/Elusive_trades_data) — HVAC parts search across several supplier APIs, part numbers matched by zero-shot classification. File-based: no database, no Docker, no passwords.
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25+ ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
@@ -173,9 +162,7 @@ Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/Benjami
 <br>
 
 <a name="instruments"></a>
-## Instruments <sub><i>languages and stack</i></sub>
-
-Python and Rust most days; Swift, C, TypeScript and Go when the work asks for them. Built on Apple silicon.
+## Instruments
 
 <!-- picture:instruments:start -->
 <picture>
@@ -188,7 +175,6 @@ Python and Rust most days; Swift, C, TypeScript and Go when the work asks for th
 </picture>
 <!-- picture:instruments:end -->
 <!-- instruments:start -->
-<sub><b>Languages</b> Python · Rust · Swift · C · TypeScript · Go &nbsp;&nbsp; <b>Stores and queues</b> Delta Lake · PostgreSQL · Redis · Parquet and Arrow · redb and WAL · fastbloom &nbsp;&nbsp; <b>Deck</b> Prometheus and Grafana · Docker and Kubernetes · GitHub Actions · tokio · maturin and PyPI · MLX and Qwen</sub>
 <!-- instruments:end -->
 
 <br>

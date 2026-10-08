@@ -170,7 +170,6 @@ def _desk(ctx) -> str:
 
     # ---- index of sheets (27): the page's six sheets, this one filled
     IX, IY, IW, IH = 48, 166, 200, 60
-    out.append(tx("INDEX OF SHEETS", IX, IY - 8, "label", fill=t.muted))
     out.append(f'<rect x="{IX}" y="{IY}" width="{IW}" height="{IH}" fill="{t.paper}" {C.stroke("PEN", t.ink, 0.8, caps="butt")}/>')
     cw, ch = IW / 3, IH / 2
     out.append(f'<rect x="{fmt(IX + 2 * cw)}" y="{fmt(IY + ch)}" width="{fmt(cw)}" height="{fmt(ch)}" fill="{t.land}"/>')

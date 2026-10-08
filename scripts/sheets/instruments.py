@@ -176,17 +176,12 @@ def _desk(ctx) -> str:
                               key=f"fitted.{name}"))
     # the left panel (decision 2): the sheet's name and key, the three groups as large rotated condensed caps
     # with their plain-words gloss rotated beside them (foot-aligned, 22 px to the right), hairlines between
-    out.append(tx("INSTRUMENTS · EQUIPMENT LIST", 48, 40, "label-caps", fill=t.ink2))
-    n_active = sum(1 for r in (data.get("repos") or []) if r.get("active"))
-    # the key sits top-right above the column heads, clear of the rotated block (round 6)
-    out.append(tx(f"bold · underway this quarter ({n_active} of {chart_no}) · date · first commit of its repository",
-                  COL_X[2] + DATE_X, 40, "label", fill=t.ink2, anchor="end", truth="measured", key="active_count"))
+    # v9.1 (owner): no sheet name, no key line, no glosses; the columns and the bold say it
     for gi, (code, _gloss) in enumerate(groups[:3]):
         bx = 48 + gi * BAND_W
         if gi:
             out.append(f'<path d="M{bx - 12} {y_first - 10}V{y_bot}" fill="none" {C.stroke("HAIR", t.ink, 0.6, caps="butt")}/>')
         out.append(tx(code.upper(), bx + 34, y_bot - 4, "label", fill=t.ink2, size=CAPS_SIZE, tracking=2.0, rotate=-90))
-        out.append(tx(GLOSS.get(code, _gloss.lower()), bx + 56, y_bot - 4, "label", fill=t.ink2, rotate=-90))
     out.append(tx(f"CHART NO. {chart_no} · SHEET 5", 24, H_ - 5, "label-caps", fill=t.muted, key="folio"))
     return E.svg(ed, W_, H_, "".join(out), defs + T.glyph_defs(), sheet=NAME)
 

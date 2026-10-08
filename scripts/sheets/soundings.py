@@ -24,7 +24,7 @@ from edition import fmt, I
 
 NAME = "soundings"
 KIND = "strip"
-SIZES = {"desk": (1280, 520), "phone": (720, 360)}
+SIZES = {"desk": (1280, 500), "phone": (720, 360)}
 BREAKS: list[tuple[str, str, str]] = [
     ("No neat line", "paper only, head and foot rules", "a tide table is printed in the margin, not framed (27)"),
     ("Two projections of one series", "curve above, 52 depth figures along a traverse below",
@@ -271,11 +271,9 @@ def _desk(ctx) -> str:
     out.append(tx(f"slack water · {td['slack_month']}", (bx0 + bx1) / 2, BASE - 5, "label", fill=t.muted,
                   anchor="middle", truth="measured", key="tide.slack"))
 
-    # the pencil note in the quiet upper-left of the plot (and the stale note under it)
-    out.append(tx(_copy(ctx.cfg, "log_footnote", "Heights observed, not predicted."),
-                  X0 + 8, 90, "note", fill=t.ink2))
+    # the stale note in the quiet upper-left of the plot (v9.1: the pencil footnote is gone; the curve shows)
     if stale:
-        out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X0 + 8, 112, "note", fill=t.ink2))
+        out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X0 + 8, 90, "note", fill=t.ink2))
 
     # the traverse: the depth figures that fit (upright: measured from the clones), month ticks and letters
     out.append(f'<path d="M{X0} {TRV + 4}H{X1}" fill="none" {C.stroke("HAIR", t.ink, 0.5, caps="butt")}/>')
@@ -295,11 +293,8 @@ def _desk(ctx) -> str:
         rows = math.ceil(len(repos) / cols)
         pitch_x = (X1 - X0 + 9) / cols
         cell_w = pitch_x - 9
-        HEAD, y0, pitch_y, spark_h = TRV + 46, TRV + 54, 44, 18
+        y0, pitch_y, spark_h = TRV + 36, 44, 18          # v9.1: no register head line; the rows start 36 under the traverse
         ymax = max(max(int(v) for v in r["weeks"]) for r in repos) or 1
-        out.append(tx("REPOSITORY · 52 WEEKS · COMMITS", X0, HEAD, "label", fill=t.muted))
-        out.append(tx(f"one line per repository · 52 weeks · {_n(ymax)} commits a week at full height · ink: underway this quarter",
-                      X1, HEAD, "label", fill=t.muted, anchor="end"))
         # rules per filled cell (the last row is ragged): the top rule, each cell's foot and its left rule
         filled = repos[:cols * rows]
         rules = f"M{X0} {y0}H{fmt(X0 + min(cols, len(filled)) * pitch_x - 9)}"
@@ -397,8 +392,6 @@ def _phone(ctx) -> str:
     lw_w = T.text_width(lw_label, "label", edition=ed)
     lxx = min(max(lx, X0 + lw_w / 2), X1 - lw_w / 2)
     out.append(tx(lw_label, lxx, BASE + 30, "label", fill=t.muted, anchor="middle", truth="measured", key="tide.lw"))
-    out.append(tx(_copy(ctx.cfg, "log_footnote", "Heights observed, not predicted."),
-                  X0, 312, "place-water", fill=t.ink if ed.dark else t.ink2))
     if stale:
         out.append(tx(f"no sounding taken {_dmy(str(data.get('taken') or taken))}", X1, 312, "label-italic",
                       fill=t.ink2, anchor="end"))
