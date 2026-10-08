@@ -87,7 +87,8 @@ def check(ctx) -> list[Finding]:
             if sheet == "footer" and r.get("inkFrac", 1) < 0.002:
                 out.append(fail("FRAMES-EMPTY", f"t={t}s footer frame is blank", name))
         out.append(info("FRAMES", f"{len(rows)} frames · worst coverage {worst:.3f} · {sheet_dir}/strip.png", name))
-    stills = [ctx.svgs[n] for n in sorted(ctx.svgs) if n.endswith("-still-day")]
+    # the six desk stills: a phone still never shares a page with a desk sheet (v9.1)
+    stills = [ctx.svgs[n] for n in sorted(ctx.svgs) if n.endswith("-still-day") and "phone" not in n]
     if len(stills) >= 2:
         rc, so, se = _node([render, "silhouette", *stills, "--out", os.path.join(out_dir, "silhouette")], root)
         try:

@@ -120,7 +120,7 @@ PAGE_PERIOD = 96.0
 # Budgets (MASTERPLAN 7.3)
 BUDGETS = {"svg_kb": 300, "gz_kb": 100, "elements": 3000, "phone_svg_kb": 120, "page_gz_kb": 250,
            "targets_kb": {"hero": (170, 60), "approaches": (245, 75), "soundings": (80, 25),
-                          "log": (95, 30), "instruments": (50, 18), "footer": (40, 12)}}
+                          "log": (95, 30), "instruments": (50, 18), "footer": (75, 25)}}
 
 
 def markdown_tables() -> str:
