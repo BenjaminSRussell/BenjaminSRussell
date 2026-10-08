@@ -65,7 +65,8 @@ function pageHtml(svg, width) {
 }
 
 // Run inside the page: pixel statistics of the wrapper's screenshot (passed back in as a data URL).
-const PIXELS_FN = `async (dataUrl, grid) => {
+const PIXELS_FN = `async (dataUrl, grid, thr) => {
+  thr = thr || 64;
   const img = new Image(); img.src = dataUrl; await img.decode();
   const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
   const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
@@ -84,14 +85,14 @@ const PIXELS_FN = `async (dataUrl, grid) => {
     const i = (y * c.width + x) * 4;
     const dr = d[i] - pr, dg = d[i + 1] - pg, db = d[i + 2] - pb;
     // ~ΔE 3 ≈ 8 RGB units of Euclidean distance on a light paper
-    if (dr * dr + dg * dg + db * db > 64) { ink++; mask[y * c.width + x] = 1; cells[Math.floor(y / ch) * gx + Math.floor(x / cw)]++; }
+    if (dr * dr + dg * dg + db * db > thr) { ink++; mask[y * c.width + x] = 1; cells[Math.floor(y / ch) * gx + Math.floor(x / cw)]++; }
   }
   return { w: c.width, h: c.height, paper: [pr, pg, pb], ink, inkFrac: ink / n, cells: Array.from(cells), mask: Array.from(mask) };
 }`;
 
-async function statsOf(page, pngBuffer, grid = [8, 8]) {
+async function statsOf(page, pngBuffer, grid = [8, 8], thr = 64) {
   const url = 'data:image/png;base64,' + pngBuffer.toString('base64');
-  return page.evaluate(`(${PIXELS_FN})(${JSON.stringify(url)}, ${JSON.stringify(grid)})`);
+  return page.evaluate(`(${PIXELS_FN})(${JSON.stringify(url)}, ${JSON.stringify(grid)}, ${thr})`);
 }
 
 async function frames() {
@@ -175,15 +176,24 @@ async function silhouette() {
     await page.evaluate(() => { const s = document.querySelector('#wrap>svg'); if (s.pauseAnimations) { s.pauseAnimations(); s.setCurrentTime(600); } });
     const png = await page.locator('#wrap').screenshot();
     if (outdir) { fs.mkdirSync(outdir, { recursive: true }); fs.writeFileSync(path.join(outdir, path.basename(f, '.svg') + '-128.png'), png); }
-    const st = await statsOf(page, png, [16, 8]);
-    const total = st.cells.reduce((a, b) => a + b, 0) || 1;
-    grids.push(st.cells.map(c => c / total));
+    // v9.2: the silhouette is the sheet's outline and its strong ink (type and lines, not the water
+    // tints) on a common 128 x 128 canvas of 8 px cells, top-aligned; every sheet carries the same
+    // neat line, so the ring of cells under it is left out before normalising
+    const rows = Math.max(1, Math.min(16, Math.round(H / 8)));
+    const st = await statsOf(page, png, [16, rows], 2500);
+    const canvas = new Array(256).fill(0);
+    for (let r = 0; r < rows; r++) for (let col = 0; col < 16; col++) {
+      if (r === 0 || r === rows - 1 || col === 0 || col === 15) continue;
+      canvas[r * 16 + col] = st.cells[r * 16 + col];
+    }
+    const total = canvas.reduce((a, b) => a + b, 0) || 1;
+    grids.push(canvas.map(c => c / total));
     thumbs.push({ file: path.basename(f), w: W, h: H, inkFrac: +st.inkFrac.toFixed(4), heaviestTopLeft: st.cells.indexOf(Math.max(...st.cells)) === 0 });
   }
   const pairs = [];
   let minL1 = Infinity;
   for (let i = 0; i < files.length; i++) for (let j = i + 1; j < files.length; j++) {
-    let l1 = 0; for (let k = 0; k < 128; k++) l1 += Math.abs(grids[i][k] - grids[j][k]);
+    let l1 = 0; for (let k = 0; k < 256; k++) l1 += Math.abs(grids[i][k] - grids[j][k]);
     pairs.push({ a: path.basename(files[i]), b: path.basename(files[j]), l1: +l1.toFixed(3), pass: l1 >= 0.25 });
     minL1 = Math.min(minL1, l1);
   }
