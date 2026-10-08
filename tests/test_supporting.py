@@ -280,10 +280,21 @@ class SupportingSheets(unittest.TestCase):
         self.assertEqual(keys["commits"]["s"], f"{stats['commits']:,}")
         self.assertEqual(keys["all_hands"]["s"], f"{stats['all_hands']:,}")
         self.assertEqual(keys["calendar_total"]["s"], f"{stats['calendar_total']:,}")
-        # 52 upright soundings along the traverse, one per week, from sounding()
-        weeks = [t for t in runs if (t.get("key") or "").startswith("week.")]
-        self.assertEqual(len(weeks), len(stats["weeks"]))
+        # upright soundings along the traverse from sounding(): the weeks that fit (v9.1: HW and LW always,
+        # then the largest first, one 0 per run of zero weeks), each the week's own figure, none overprinting
+        weeks = sorted((t for t in runs if (t.get("key") or "").startswith("week.")), key=lambda t: t["x0"])
+        self.assertTrue(weeks and len(weeks) <= len(stats["weeks"]))
         self.assertTrue(all(t["origin"] == "sounding" and t["slant"] == "upright" for t in weeks))
+        for t in weeks:
+            self.assertEqual(t["s"], str(stats["weeks"][int(t["key"].split(".")[1])]["n"]))
+        printed = {int(t["key"].split(".")[1]) for t in weeks}
+        hw_i = max(range(len(stats["weeks"])), key=lambda i: stats["weeks"][i]["n"])
+        self.assertIn(hw_i, printed)
+        self.assertIn(next(i for i, w in enumerate(stats["weeks"]) if w["start"] == stats["tide"]["lw"]["start"]), printed)
+        self.assertTrue(all(int(w["n"]) == 0 or any(abs(i - p) <= 1 for p in printed) for i, w in enumerate(stats["weeks"])
+                            if int(w["n"]) >= 100), "every three-figure week, or its neighbour, is printed")
+        for a, b in zip(weeks, weeks[1:]):
+            self.assertGreaterEqual(b["x0"] - a["x1"], 7.5, (a["s"], b["s"]))
         # one line per repository in the register, under the chart's own names where chart.toml gives one
         reg = [t for t in runs if (t.get("key") or "").startswith("repo.")]
         self.assertEqual(len(reg), len(stats["repos"]))
