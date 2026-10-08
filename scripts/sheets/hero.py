@@ -563,6 +563,16 @@ def build(ctx) -> str:
     spot_default = {f.name: (x, y) for f, x, y, _a in c.spot_heights(feats, cs, clearance=8 * s)}
     letter: dict[str, dict] = {}
     boxes: list[tuple] = []        # (x, y, w, h) of every placed run, for contour_labels and collisions
+    week_boxes: dict[int, tuple] = {}   # week index -> its figure box, so a name can evict a texture figure
+    if not phone:
+        # the lateral marks' labels sit at fixed places by the entrance; reserve them first so neither a
+        # week figure nor a contour figure is planned under them (run 3 of the chart workflow, 8 Oct 2026)
+        _r2, _g1 = geo.pi(*MARK_R2), geo.pi(*MARK_G1)
+        for _txt, _x, _y, _anc in (('R "2" Fl R 4s', _r2[0], _r2[1] - 22, "middle"),
+                                   ('G "1" Fl G 4s', _g1[0] + 10, _g1[1] + 14, "start")):
+            _w = width(_txt, "label-italic")
+            _x0 = _x - _w / 2 if _anc == "middle" else _x
+            boxes.append((_x0 - 2, _y - 13 * 0.8 - 1, _w + 4, 13 + 2))
     # which week figures print (round 3): one per run of zero weeks, then a greedy SOUND_GAP spacing in
     # course order; every week remains a kernel of the field whether or not its figure is printed
     cand = []
@@ -609,6 +619,7 @@ def build(ctx) -> str:
             zero_arcs.append(arc_of(i_))
         show.append(i_)
         boxes.append(fb)
+        week_boxes[i_] = fb
     if not phone:   # the pencil note's box is reserved early so names and contour figures keep clear of it
         nw_ = width(NOTE_TEXT, "note")
         ang_ = math.radians(NOTE_AT[2])
@@ -686,6 +697,12 @@ def build(ctx) -> str:
                     if not clashes(nb2):
                         name_pos, nb = cand_, nb2
                         break
+            # semantic beats texture: a name that has nowhere clash-free to go evicts the week figures
+            # under it (their weeks stay kernels of the field; phone "Game Engine I." over a "0", run 3)
+            evict = [i_ for i_, wb in week_boxes.items() if _boxes_overlap(nb, wb)]
+            for i_ in evict:
+                show.remove(i_)
+                boxes.remove(week_boxes.pop(i_))
             boxes.append(nb)
         letter[f.name] = {"height": (hx, hy), "name": name_pos, "role": role, "size": size, "big": big, "land": land,
                           "named": named}
