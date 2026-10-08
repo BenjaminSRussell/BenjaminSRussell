@@ -4,7 +4,7 @@ For each motion sheet (day edition) with a still edition: `render.mjs frames` at
 {0, 0.5, opening_end+0.1, 24, 48, 72, 95, 600} ∪ event instants, compared to the still:
 ink coverage ≥ 0.95 at every instant (hero: ≥ 0.6 at 0 s rising to ≥ 0.95 from 4.1 s), changed-pixel
 fraction ≤ 1.5 % after opening_end, no emptied-ledger frame; still editions contain zero animation
-elements. Silhouettes: six day stills at 128 px, pairwise L1 ≥ 0.25.
+elements. Silhouettes: six day stills at 128 px, pairwise L1 ≥ 0.25 over the drawing inside the neat line.
 Writes frames under <out_dir>/frames/<sheet>/ and a contact strip for looking at."""
 from __future__ import annotations
 

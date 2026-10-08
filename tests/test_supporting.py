@@ -5,7 +5,10 @@ stats.json and log.json), then checks the T9 §5 criteria that can be automated 
 browser: determinism, hard budgets, frozen sheets carry zero animation, the log keeps header plus
 ten entries, the footer's indefinite count, banned strings, italic numerals on the computed log,
 alts, fittings resolve, the heartbeat agrees with the soundings dateline, and that a changed
-sounding moves the tide table while a missing one fails the build.
+sounding moves the tide table while a missing one fails the build. v9.2: one neat line and the
+margin lines on every sheet, the register under the gazetteer's names, every non-zero week on the
+traverse, only settings-derived figures on the computed log, the phone log and instruments carrying
+the run's rows and the fittings' dates, no figures on the footer's shelf.
 """
 from __future__ import annotations
 
@@ -25,6 +28,7 @@ if SCRIPTS not in sys.path:
 
 import build_assets  # noqa: E402
 import edition as E  # noqa: E402
+import gazetteer  # noqa: E402
 import tokens  # noqa: E402
 
 SHEETS = ("soundings", "log", "instruments", "footer")
@@ -270,7 +274,9 @@ class SupportingSheets(unittest.TestCase):
         runs = Built.text_of("soundings-day")
         caps = [t for t in runs if t["role"] == "label-caps" and t.get("key") != "folio"]
         self.assertEqual(len(caps), 1)
-        self.assertEqual(caps[0]["s"], "SOUNDINGS IN COMMITS")
+        self.assertEqual(caps[0]["s"], "SOUNDINGS IN COMMITS · DATUM: MAIN")     # v9.2: unit and datum in the top margin
+        phone_caps = [t["s"] for t in Built.text_of("soundings-phone-day") if t["role"] == "label-caps" and t.get("key") != "folio"]
+        self.assertEqual(phone_caps, ["SOUNDINGS IN COMMITS · DATUM: MAIN"])
         keys = {t.get("key"): t for t in runs if t.get("key")}
         for k in ("commits", "all_hands", "calendar_total", "tide.hw", "tide.lw", "tide.median", "tide.slack"):
             self.assertIn(k, keys)
@@ -280,8 +286,8 @@ class SupportingSheets(unittest.TestCase):
         self.assertEqual(keys["commits"]["s"], f"{stats['commits']:,}")
         self.assertEqual(keys["all_hands"]["s"], f"{stats['all_hands']:,}")
         self.assertEqual(keys["calendar_total"]["s"], f"{stats['calendar_total']:,}")
-        # upright soundings along the traverse from sounding(): the weeks that fit (v9.1: HW and LW always,
-        # then the largest first, one 0 per run of zero weeks), each the week's own figure, none overprinting
+        # upright soundings along the traverse from sounding(): every non-zero week (v9.2: a tide table lists every
+        # reading) on one of two baselines, one 0 per run of zero weeks, each the week's own figure, none overprinting
         weeks = sorted((t for t in runs if (t.get("key") or "").startswith("week.")), key=lambda t: t["x0"])
         self.assertTrue(weeks and len(weeks) <= len(stats["weeks"]))
         self.assertTrue(all(t["origin"] == "sounding" and t["slant"] == "upright" for t in weeks))
@@ -291,19 +297,27 @@ class SupportingSheets(unittest.TestCase):
         hw_i = max(range(len(stats["weeks"])), key=lambda i: stats["weeks"][i]["n"])
         self.assertIn(hw_i, printed)
         self.assertIn(next(i for i, w in enumerate(stats["weeks"]) if w["start"] == stats["tide"]["lw"]["start"]), printed)
-        self.assertTrue(all(int(w["n"]) == 0 or any(abs(i - p) <= 1 for p in printed) for i, w in enumerate(stats["weeks"])
-                            if int(w["n"]) >= 100), "every three-figure week, or its neighbour, is printed")
-        for a, b in zip(weeks, weeks[1:]):
-            self.assertGreaterEqual(b["x0"] - a["x1"], 7.5, (a["s"], b["s"]))
-        # one line per repository in the register, under the chart's own names where chart.toml gives one
+        self.assertEqual({i for i, w in enumerate(stats["weeks"]) if int(w["n"]) > 0} - printed, set(),
+                         "every non-zero week is printed")
+        baselines = sorted({t["y"] for t in weeks})
+        self.assertEqual(len(baselines), 2)
+        for y in baselines:
+            row = [t for t in weeks if t["y"] == y]
+            for a, b in zip(row, row[1:]):
+                self.assertGreaterEqual(b["x0"] - a["x1"], 7.5, (a["s"], b["s"]))
+        # one line per repository in the register, every name the gazetteer's (the hero prints the same one)
         reg = [t for t in runs if (t.get("key") or "").startswith("repo.")]
         self.assertEqual(len(reg), len(stats["repos"]))
         names = {t["s"] for t in runs}
         cfg = build_assets.load_cfg()
-        for f in cfg["features"]:
-            if f.get("aliases") and any(r["name"] == f["repo"] for r in stats["repos"]):
-                self.assertIn(f["aliases"][0].upper(), names, f["repo"])
+        for r in stats["repos"]:
+            self.assertIn(gazetteer.name_of(r["name"], stats, cfg).upper(), names, r["name"])
         self.assertNotIn("SCRAPY", names)
+        # the HW cause is named through the gazetteer on both editions
+        for ed in ("day", "phone-day"):
+            hw = next(t["s"] for t in Built.text_of(f"soundings-{ed}") if t.get("key") == "tide.hw")
+            self.assertIn(gazetteer.name_of(stats["tide"]["hw"]["cause"], stats, cfg), hw, ed)
+            self.assertIn("wk of", hw, ed)
 
     def test_changing_a_sounding_moves_the_tide_and_no_weeks_fails(self):
         """T9 §5.2."""
@@ -359,18 +373,90 @@ class SupportingSheets(unittest.TestCase):
             self.assertIsNotNone(run, item["name"])
             self.assertEqual((run["role"], run["size"]), ("label", 19), item["name"])
             self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in runs}, item["name"])
-        # bold = active: the one active fitting carries the spread stroke
-        svg = Built.files["instruments-day.svg"].decode()
+        # bold = active: the one active fitting carries the spread stroke, on the phone too (v9.2)
         active = [i["name"] for i in cfg["fittings"]["items"] if repos[i["repo"]]["active"]]
-        self.assertEqual(svg.count('stroke-width="0.45" paint-order="stroke"'), len(active))
-        # the phone edition stacks the three groups: a caps head per group and every fitting named
+        for ed in ("day", "phone-day"):
+            svg = Built.files[f"instruments-{ed}.svg"].decode()
+            self.assertEqual(svg.count('stroke-width="0.45" paint-order="stroke"'), len(active), ed)
+            # v9.2: the gutter tick is the sheet's own symbol; no charted symbol is re-used with another meaning
+            self.assertEqual(set(re.findall(r'href="#instruments-sym-([\w-]+)"', svg)), {"tick"}, ed)
+            self.assertEqual(Built.report["sheets"][f"instruments-{ed}"]["symbols_used"], ["tick"], ed)
+        # the datum in the top margin, no rotated group words, the heads on both editions
+        for ed in ("day", "phone-day"):
+            runs_ed = Built.text_of(f"instruments-{ed}")
+            self.assertEqual([t["s"] for t in runs_ed if t.get("key") == "unit"], ["DATUM: FIRST COMMIT"], ed)
+            self.assertFalse(any(t.get("rot") for t in runs_ed), ed)
+            heads = [t["s"] for t in runs_ed]
+            for code, gloss in cfg["fittings"]["groups"]:
+                self.assertIn(f"{code} · {gloss.upper()}", heads, ed)
+        # the phone edition carries every fitting with its date (v9.2)
         phone = Built.text_of("instruments-phone-day")
         texts = " ".join(t["s"] for t in phone)
-        for code, _gloss in cfg["fittings"]["groups"]:
-            self.assertIn(code.upper(), [t["s"] for t in phone])
         for item in cfg["fittings"]["items"]:
             self.assertIn(item["name"], texts)
-        self.assertEqual([t["key"] for t in phone if t.get("key")], ["folio"])
+            self.assertIn(f"fitted.{item['name']}", {t.get("key") for t in phone}, item["name"])
+
+    def test_neat_line_and_margin_lines_on_every_sheet(self):
+        """v9.2 (A, C): one minute-bar neat line for the set; the folio in the bottom margin and the unit line (where the
+        sheet has figures) in the top margin, each clear of the outer rule by 6 px or more."""
+        for name, e in Built.report["sheets"].items():
+            mod = build_assets.load_sheet(e["sheet"])
+            svg = Built.files[f"{name}.svg"].decode()
+            self.assertIn('stroke-width="2.1"', svg, f"{name}: no LINE outer rule")
+            self.assertIn('fill-opacity=".85"/>', svg, f"{name}: no minute bars")
+            rules = getattr(mod, "RULES", None)
+            if rules is None:
+                continue                                  # the footer's frame is its own (broken at the fall)
+            r0 = rules["phone" if e["form"] == "phone" else "desk"][0]
+            folio = next(t for t in e["text"] if t.get("key") == "folio")
+            self.assertGreaterEqual(folio["y0"] - (e["h"] - r0), 6, (name, "folio under the outer rule"))
+            unit = [t for t in e["text"] if t.get("key") == "unit"]
+            if e["sheet"] != "log":
+                self.assertEqual(len(unit), 1, name)
+            for t in unit:
+                self.assertGreaterEqual(r0 - t["y1"], 6, (name, "unit line above the outer rule"))
+
+    def test_log_prints_only_settings(self):
+        """v9.2 (I): no p95, failure rate, fsync latency or elapsed time on a computed log, on any edition."""
+        with open(os.path.join(ROOT, "assets", "log.json"), encoding="utf-8") as fh:
+            log = json.load(fh)
+        if log.get("measured"):
+            self.skipTest("a measured session may print what it measured")
+        for k in ("p95_fetch_ms", "wal_fsync_p95_ms", "failed_ratio", "timeout_ratio", "r429_ratio"):
+            self.assertNotIn(k, log["profile"], k)
+        for name, e in Built.report["sheets"].items():
+            if e["sheet"] != "log":
+                continue
+            manifest = " ".join(t["s"] for t in e["text"])
+            for word in ("p95", "fsync", "failed", "timeout", "1h 43m", " of 512 permits"):
+                self.assertNotIn(word, manifest, (name, word))
+            self.assertIn("computed from settings", manifest, name)
+            self.assertIn("unsigned", manifest, name)
+            self.assertNotIn("Nothing on fire.", manifest) if e["form"] == "phone" else None
+            if e["form"] == "phone":
+                self.assertNotIn("nothing to report", manifest, name)
+                self.assertIn("rustmapper crawl", manifest, name)
+                self.assertIn("fetched", manifest, name)
+                self.assertIn("crawl complete", manifest, name)
+
+    def test_footer_record_and_shelf(self):
+        """v9.2 (L): `corrected through Notice N` alone; no figures on the shelf; the cable at PEN, not BRUSH."""
+        with open(STATS, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        n = len(stats.get("notices") or [])
+        for name, e in Built.report["sheets"].items():
+            if e["sheet"] != "footer":
+                continue
+            texts = [t["s"] for t in e["text"]]
+            self.assertIn("good holding", texts, name)
+            self.assertNotIn("14 · good holding", texts, name)
+            self.assertFalse(any(t["origin"] == "sounding" for t in e["text"]), name)
+            if n and e["form"] != "phone":
+                self.assertIn(f"corrected through Notice {n}", texts, name)
+                self.assertNotIn(f"{n} notices · corrected through Notice {n}", texts, name)
+        svg = Built.files["footer-still-day.svg"].decode()
+        brush = [m for m in re.findall(r'<path class="head"[^>]*stroke-width="3.4"', svg)]
+        self.assertEqual(svg.count('stroke-width="3.4"'), len(brush), "only the serpent's head is a BRUSH stroke")
 
     def test_folio_on_every_sheet(self):
         for name, e in Built.report["sheets"].items():
@@ -384,7 +470,9 @@ class SupportingSheets(unittest.TestCase):
         for sheet in SHEETS:
             desk = Built.text_of(f"{sheet}-day")
             phone = Built.text_of(f"{sheet}-phone-day")
-            self.assertLess(len(phone), len(desk), sheet)
+            # v9.2: the phone instruments carry every fitting and date the desk does, redrawn at the phone scale
+            self.assertLessEqual(len(phone), len(desk), sheet)
+            self.assertNotEqual(Built.report["sheets"][f"{sheet}-phone-day"]["h"], Built.report["sheets"][f"{sheet}-day"]["h"], sheet)
             for t in phone:
                 self.assertIn(t["size"], tokens.SCALE_PHONE, f"{sheet}: {t}")
                 if t["semantic"]:

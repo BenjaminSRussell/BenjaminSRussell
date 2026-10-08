@@ -169,7 +169,11 @@ def n(key: str, value: str) -> str:
     return f"<!-- n:{key} -->{value}<!-- /n -->"
 
 
-def figures_block(figs: dict) -> str:
+def figures_block(figs: dict) -> str:   # v9.2: sheet 2 is the source of its figures; no line under it
+    return ""
+
+
+def _figures_block_retired(figs: dict) -> str:
     parts = [f"{n('commits', figs['commits'])} commits of mine",
              f"{n('all_hands', figs['all_hands'])} all hands",
              f"{n('repo_count', figs['repo_count'])} repositories surveyed"]

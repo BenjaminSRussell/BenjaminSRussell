@@ -14,12 +14,7 @@
  "profile": {
   "rate_rps": 2.0,
   "ramp_s": 10,
-  "p95_fetch_ms": 812,
-  "wal_fsync_p95_ms": 3,
   "urls_total": 12440,
-  "failed_ratio": 0.004,
-  "timeout_ratio": 0.0,
-  "r429_ratio": 0.0,
   "permits": 512,
   "shards": 8
  },
@@ -62,7 +57,7 @@
   {
    "time": "complete",
    "kind": "out",
-   "text": "crawl complete · plateau · {log} urls · {elapsed}"
+   "text": "crawl complete · plateau · {log} urls"
   },
   {
    "time": "+2m",

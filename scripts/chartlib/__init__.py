@@ -7,7 +7,7 @@
     place      Feature · place_features · solve_radii · feature_polygons · spot_heights ·
                soundings_along · soundings_lean · PlaceReport · RadiusReport
     symbols    symbol_defs · use · sloop · lateral · light · halo · lit_core · traffic_signal · horn ·
-               anchorage · wreck · waypoint · station · fix · ldg_triangle · doubt · correction · serpent
+               anchorage · wreck · waypoint · station · fix · ldg_triangle · doubt · correction · serpent · tick
     furniture  stroke · Jitter · frame · margin_graticule · two_ring_rose · Zone · source_diagram ·
                area_key · paper · plate_mark · course · course_samples · lateral_offset · track_lines ·
                check_lines · restricted_line
@@ -32,7 +32,7 @@ from .place import (Feature, PlaceReport, RadiusReport, place_features, solve_ra
                     spot_heights, soundings_along, soundings_lean, halton, dist_to_polyline, kind_of)
 from .symbols import (SYMBOL_NAMES, symbol_defs, symbol_ids, use, sloop, lateral, light, flare, halo, lit_core,
                       traffic_signal, horn, anchorage, wreck, waypoint, station, fix, ldg_triangle, rep_ring,
-                      ed_islet, correction_mark, correction, doubt, serpent, SLOOP_DETAIL, SLOOP_GLYPH)
+                      ed_islet, correction_mark, correction, doubt, serpent, tick, SLOOP_DETAIL, SLOOP_GLYPH)
 from .furniture import (Jitter, stroke, op, frame, margin_graticule, two_ring_rose, Zone, source_diagram,
                         area_key, paper, plate_mark, course, course_samples, compass_bearing, lateral_offset,
                         track_lines, check_lines, restricted_line, catmull_rom, polyline_at, hatch_lines,
