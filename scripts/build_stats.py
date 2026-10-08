@@ -104,6 +104,12 @@ def trial_from_clone(git_dir: str | None) -> dict | None:
             "fivexx_rate": float(d.get("fivexx_rate") or 0)}
 
 
+def charted_branches(branches: list[dict] | None, identity: dict | None = None) -> list[dict]:
+    """The stale branches a hydrographer would chart as wrecks: a branch whose tip was authored by a bot
+    (`identity.bots` in chart.toml) is dropped; a branch surveyed without an author (an older cache) stays."""
+    return [b for b in branches or [] if not survey_mod.is_bot(str(b.get("author") or ""), identity)]
+
+
 def derive(repos: list[dict], calendar: list[dict] | None = None, pypi_edition: dict | None = None,
            releases: list[dict] | None = None, taken: dt.date | None = None) -> dict:
     """T7 interface: the derived block for a list of repos[] records."""
@@ -259,11 +265,10 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
                 failed.append(name)
                 continue
             m = meta.get(name) or {}
+            rec["stale_branches"] = charted_branches(rec.get("stale_branches"), identity)
+            rec["stale_branch_count"] = len(rec["stale_branches"])
             if (features.get(name) or {}).get("kind") != "harbour" and name != "Scrapy":
-                rec["stale_branch_count"] = len(rec.get("stale_branches") or [])
                 rec["stale_branches"] = []      # the list is charted only in the harbour (MASTERPLAN 25)
-            else:
-                rec["stale_branch_count"] = len(rec.get("stale_branches") or [])
             rec["archived"] = bool(m.get("archived", rec.get("archived", False)))
             rec["stars"] = m.get("stars", rec.get("stars"))
             rec["language"] = m.get("language", rec.get("language"))

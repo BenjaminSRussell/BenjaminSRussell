@@ -204,6 +204,28 @@ class Validate(unittest.TestCase):
         self.assertTrue(model.schema_errors({"a": 1, "z": 1}, sch))
         self.assertTrue(model.schema_errors({}, sch))
 
+    def test_charted_branches_drop_a_bots(self):
+        ident = {"bots": ["Claude"]}
+        brs = [{"name": "claude/x", "last": "2025-11-09", "author": "Claude"},
+               {"name": "fix/1", "last": "2025-11-09", "author": "Benjamin Russell"},
+               {"name": "old-cache", "last": "2025-01-01"},
+               {"name": "dep", "last": "2025-02-01", "author": "dependabot[bot]"}]
+        self.assertEqual([b["name"] for b in build_stats.charted_branches(brs, ident)], ["fix/1", "old-cache"])
+        self.assertEqual(build_stats.charted_branches(None, ident), [])
+
+    def test_stats_carries_the_toml_claims(self):
+        """A chart.toml claim with measured = true and a sha passes through claims() into the committed stats.json."""
+        import json
+        from data import load_chart_toml, STATS_PATH
+        cfg = load_chart_toml()
+        if not (cfg.get("claims") or {}).get("scrape_interval"):
+            self.skipTest("no chart.toml claims")
+        want = claims(cfg)
+        self.assertTrue(upright_ok(want["scrape_interval"]))
+        with open(STATS_PATH, encoding="utf-8") as fh:
+            got = json.load(fh).get("claims") or {}
+        self.assertEqual(got, want)
+
     def test_claims_default_never_upright(self):
         for cid, cl in claims({}).items():
             self.assertFalse(cl["measured"], cid)
