@@ -91,3 +91,26 @@ break the contours they cross instead of being culled (the high-water week had s
 note sits under the thesis; the title block is six left-aligned lines with the source diagram beside it.
 
 Checked at 870 px (desk, day and night) and 360 px (phone) for every sheet; gates and the suite green.
+
+## Round 3 — the harder review (8 Oct 2026, v9.2)
+
+Four critics read the merged v9.1 at the size GitHub shows it: art director 25, hydrographer 27, mobile 25,
+owner's advocate 24 (of 36). Their reviews are in `docs/crit/recrit3/`. The findings they shared, and what
+v9.2 does about each:
+
+- *The hero's argument is its lightest stroke; the title block its heaviest text.* The course is drawn at LINE,
+  the inset box at PEN and sized from the harbour; the title block is four lines; VAR on one line; tints and
+  solid contours end at the limit of survey and the ship enters from unsurveyed water; a figure on every
+  contour ring; the first-commit months are report dates under the names, not dates on fixes.
+- *Marginalia under the neat line.* Every sheet's frame insets hold a 19 px margin line; sheets 2, 4, 5 get the
+  same minute-bar neat line as 1, 3, 6; bottom lines are `CHART NO. · SHEET n`.
+- *The page says things three and four times.* No thesis paragraph, no figures line under sheet 2, no notes
+  panels on sheet 3 (the bullets carry them), no caption lines on sheet 3, no instruments sidebar words.
+- *Honesty.* The log prints only what settings compute (no p95, failure rate, fsync, elapsed); the Grafana
+  light's character and sheet 3's survey line slope while unmeasured; doubt marks sit in their zones; the
+  leading lights are lights; the legend defines what the chart draws and nothing else; the corrections
+  list is the year's first to last; one gazetteer names every repository on every sheet.
+- *Phone.* Legend complete on sheet 3; spot heights never over their islets; rustmapper named; the log
+  carries its figures and its sign-off; instruments carries dates and the bold; alts true of every edition.
+
+Scores after the round are the next panel's to give.
