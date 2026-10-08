@@ -103,7 +103,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/stats.json assets/log.json assets/layout.lock.json README.md 2>/dev/null || true
+          # one missing pathspec makes `git add` stage nothing at all (run 5: "main: no change" while the
+          # survey had moved), so the files are added one by one and only when they exist
+          for f in assets/stats.json assets/log.json assets/layout.lock.json README.md; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           if git diff --cached --quiet; then
             echo "main: no change"
             exit 0
