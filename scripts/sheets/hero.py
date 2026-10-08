@@ -82,12 +82,12 @@ BREAKS: list[tuple[str, str, str]] = [
 ]
 
 # ---------------------------------------------------------------- desk layout (1280-space)
-RULES = {"desk": (18, 24), "phone": (14, 19)}
-DRAWABLE = (24, 24, 1232, 692)
+RULES = {"desk": (24, 30), "phone": (14, 19)}   # v9.2: a 19 px margin line clears the outer rule
+DRAWABLE = (30, 30, 1220, 680)
 K_AREA = 32.2                     # px² of 5-contour area per commit (r = 3.2·√commits), desk
 LEVELS = c.DEFAULT_LEVELS         # (0, 5, 10, 20, 50)
 INDEX = (10.0, 50.0)
-COURSE = [(1136, 296), (1046, 360), (900, 470), (842, 580), (776, 556)]       # WP1 … WP5 (decision 1)
+COURSE = [(1084, 332), (1046, 360), (900, 470), (842, 580), (776, 556)]       # WP1 … WP5 (decision 1; v9.2: WP1 on the limit line)
 SLOTS = {                         # repo → centre; the named six (T2 §2.3 with decision 1); game_engine,
     "Scrapy": (760, 560), "Rust-sitemap": (1030, 516), "game_engine": (816, 344),        # rustmapper and
     "Data_science_dev": (992, 636), "BenjaminSRussell": (176, 430), "FashionDB": (600, 475),  # DSD moved so the
@@ -110,11 +110,11 @@ MARK_G1 = (813, 593)              # G "1" can, south
 COVERAGE = (680, 470, 210, 160)   # "SEE SHEET 3"
 SEE_SHEET = (687, 484)            # inside the box, top-left (open water)
 CALM = (40, 40, 800, 280)
-TITLE_BOX = (60, 540, 600, 156)   # six lines at 19 px, left-aligned, the source diagram at their right
+TITLE_BOX = (60, 556, 600, 120)   # four lines at 19 px, left-aligned, the source diagram at their right
 ROSE = (972, 160, 72)
-ROSE_BOX = (868, 80, 208, 232)    # rings, numerals and the two VAR lines (19 px), clear of the limit of survey
+ROSE_BOX = (868, 80, 208, 206)    # rings, numerals and the VAR line (19 px), clear of the limit of survey
 LIMIT_X = 1080
-BAND = (1080, 24, 200, 692)       # neat line to neat line (round 3): the edge of the world, not a swatch
+BAND = (1080, 30, 200, 680)       # neat line to neat line (round 3): the edge of the world, not a swatch
 SOUND_GAP = 32                    # printed week figures keep this apart (round 3; 32 at 16 px); the rest stay kernels
 ZERO_GAP = 60                     # at most one printed "0" per 60 px of course (round 4)
 ZERO_CLEAR = 26                   # and none within 26 px of a non-zero figure
@@ -123,7 +123,7 @@ UNSURVEYED_FADE = 70              # the coast factor falls 1→0 over LIMIT_X �
 PA_SHIFT = (14, -10)
 NOTE_AT = (76, 360, -3)           # pencil note anchor and rotation: scribbled under the thesis (v9.1)
 NOTE_BOX = (60, 322, 460, 50)     # its exclusion for the archipelago
-SOURCE_AT = (560, 548, 96, 54)    # the source diagram, right of the title block's lines, clear of the harbour's ring
+SOURCE_AT = (560, 566, 96, 54)    # the source diagram, right of the title block's lines, clear of the harbour's ring
 NOTE_TEXT = "sitemap.xml lies again — see Sheet 3"
 PHONE_S = 0.55
 PHONE_CULL = 25                   # the small-scale edition carries the features of 25 commits and more (v9.1)
@@ -448,7 +448,13 @@ def build(ctx) -> str:
             rose_cx, rose_cy, rose_r = ROSE
             rose_box = ROSE_BOX
             band = BAND
-        excl = [geo.rect(COVERAGE), (band[0], drawable[1], w - band[0], drawable[3]), rose_box]
+        _hb = next((f for f in feats if f.kind == "harbour"), None)
+        if _hb is not None and not phone:   # the inset box follows the harbour's size; its caption stands above it
+            _er = 1.6 * _hb.r
+            cov_excl = (slots["Scrapy"][0] - _er, slots["Scrapy"][1] - _er - 26, 2 * _er, 2 * _er + 26)
+        else:
+            cov_excl = geo.rect(COVERAGE)
+        excl = [cov_excl, (band[0], drawable[1], w - band[0], drawable[3]), rose_box]
         if not phone:
             excl += [CALM, NOTE_BOX, (TITLE_BOX[0] - 16, TITLE_BOX[1] - 16, TITLE_BOX[2] + 32, TITLE_BOX[3] + 32)]
         # slots first (place_features with no Halton work: every unslotted feature goes to the arc)
@@ -578,18 +584,27 @@ def build(ctx) -> str:
                        "on_feature": len(F.report.on_feature), "clamped": len(F.report.clamped), "grid": F.report.grid}
     report["culled"] = culled
 
+    # ---- the inset box (sheet 3's coverage) follows the harbour's drawn size (v9.2); its caption stands above it
+    if harbour is not None:
+        _cr = 1.45 * harbour.r
+        cov_box = (E.I(harbour.x - _cr), E.I(harbour.y - _cr), E.I(2 * _cr), E.I(2 * _cr))
+    else:
+        cov_box = geo.rect(COVERAGE)
+    see_sheet_at = (cov_box[0], cov_box[1] - 8)
     # ---- lettering positions decided before the contour figures, so they can avoid them
     name_min_r = 16 * s
     ranked = sorted(feats, key=lambda f: -f.value)
-    phone_named = {f.name for f in ranked[:4]} if phone else None
-    spot_default = {f.name: (x, y) for f, x, y, _a in c.spot_heights(feats, cs, clearance=8 * s)}
+    phone_named = ({f.name for f in ranked[:4]} | {f.name for f in feats if f.alias in ("Rust-sitemap", "Scrapy")}) if phone else None
+    spot_default = {f.name: (x, y) for f, x, y, _a in c.spot_heights(feats, cs, clearance=8 * s, min_r=16 * s)}
     letter: dict[str, dict] = {}
     boxes: list[tuple] = []        # (x, y, w, h) of every placed run, for contour_labels and collisions
     week_boxes: dict[int, tuple] = {}   # week index -> its figure box, so a name can evict a texture figure
+    _r2, _g1 = geo.pi(*MARK_R2), geo.pi(*MARK_G1)
+    for _mx, _my in (_r2, _g1):      # the marks' own glyphs (v9.2: on the phone too)
+        boxes.append((_mx - 9, _my - 22, 18, 26))
     if not phone:
         # the lateral marks' labels sit at fixed places by the entrance; reserve them first so neither a
         # week figure nor a contour figure is planned under them (run 3 of the chart workflow, 8 Oct 2026)
-        _r2, _g1 = geo.pi(*MARK_R2), geo.pi(*MARK_G1)
         for _txt, _x, _y, _anc in (('R "2" Fl R 4s', _r2[0], _r2[1] - 22, "middle"),
                                    ('G "1" Fl G 4s', _g1[0] + 10, _g1[1] + 14, "start")):
             _w = width(_txt, "label-italic")
@@ -598,7 +613,7 @@ def build(ctx) -> str:
         # the other late labels at fixed places (run 6 planned a contour figure under SEE SHEET 3):
         # the coverage box's caption, the WP4 fix date off the harbour, and the PA mark on rustmapper
         _w = width("SEE SHEET 3", "label", tracking=caps_track)
-        boxes.append((SEE_SHEET[0] - 2, SEE_SHEET[1] - lbl_h * 0.8 - 1, _w + 4, lbl_h + 2))
+        boxes.append((see_sheet_at[0] - 2, see_sheet_at[1] - lbl_h * 0.8 - 1, _w + 4, lbl_h + 2))
         if harbour is not None and repo_of.get(harbour.name, {}).get("first"):
             _w = width(_month(repo_of[harbour.name]["first"]), "label")
             boxes.append((course[3][0] + 7 - 2, course[3][1] - 10 - lbl_h * 0.8 - 1, _w + 4, lbl_h + 2))
@@ -670,6 +685,7 @@ def build(ctx) -> str:
         boxes.append((NOTE_AT[0] - 2, NOTE_AT[1] + nw_ * math.sin(ang_) - note_h * 0.8, nw_ * math.cos(ang_) + 4,
                       note_h - nw_ * math.sin(ang_) + 4))
     sz_h = lbl_h
+    date_pos: dict[str, tuple] = {}     # feature -> where its report date prints (v9.2)
     for f in ranked:
         named = f.r >= name_min_r if phone_named is None else f.name in phone_named
         big = f.r >= BIG_NAME_R * s
@@ -722,7 +738,11 @@ def build(ctx) -> str:
                 if not _taken(_hb(cx_, cy_)):
                     hx, hy = cx_, cy_
                     break
-        boxes.append((hx - hw / 2, hy - sz_h * 0.8, hw, sz_h))
+        _hb_ = (hx - hw / 2, hy - sz_h * 0.8, hw, sz_h)
+        for i_ in [i_ for i_, wb in week_boxes.items() if _boxes_overlap(_hb_, wb)]:   # a height outranks a week figure
+            show.remove(i_)
+            boxes.remove(week_boxes.pop(i_))
+        boxes.append(_hb_)
         if name_pos:
             nw = width(f.name.upper() if (land and not phone) else f.name, role, size=size,
                        tracking=((1.0 if big else caps_track) if (land and not phone) else None))
@@ -736,6 +756,8 @@ def build(ctx) -> str:
             def clashes(b):
                 if any(_boxes_overlap(b, ob) for ob in boxes):
                     return True
+                if not phone and any(_boxes_overlap(b, fr) for fr in (TITLE_BOX, rose_box, NOTE_BOX)):
+                    return True             # the sheet's fixed furniture (v9.2: a name ran into the title block)
                 if b[1] + b[3] > drawable[1] + drawable[3] - 6 or b[0] < drawable[0] + 4 or b[0] + b[2] > band[0] - 4:
                     return True
                 # another feature's disc (inflated by its r) crossing the box anywhere, not just at its centre
@@ -790,6 +812,18 @@ def build(ctx) -> str:
                     show.remove(i_)
                     boxes.remove(week_boxes.pop(i_))
                 boxes.append(nb)
+                if not phone and f.alias in ("Rust-sitemap", "Scrapy") and repo_of.get(f.name, {}).get("first"):
+                    # the report date printed under the name (v9.2) is reserved now so later figures keep clear;
+                    # where the ground under the name is already taken the date is left off, never overprinted
+                    _dw = width(f"({_month(repo_of[f.name]['first'])})", "label")
+                    _dy = ny_ + (size or lbl_h) + 4
+                    _dx0 = nx_ - _dw / 2 if anc == "middle" else (nx_ - _dw if anc == "end" else nx_)
+                    _db = (_dx0 - 2, _dy - lbl_h * 0.8 - 1, _dw + 4, lbl_h + 2)
+                    if not any(_boxes_overlap(_db, ob) for ob in boxes) and not any(
+                            math.hypot(min(max(o.x, _db[0]), _db[0] + _db[2]) - o.x, min(max(o.y, _db[1]), _db[1] + _db[3]) - o.y)
+                            < o.r * 1.15 + 2 for o in feats if o is not f):
+                        boxes.append(_db)
+                        date_pos[f.name] = (nx_, _dy, anc)
         letter[f.name] = {"height": (hx, hy), "name": name_pos, "role": role, "size": size, "big": big, "land": land,
                           "named": named}
     k.exclude("band", *band)
@@ -846,9 +880,13 @@ def build(ctx) -> str:
         d = "".join(c.compact_path(p, True, 1 if ring_len(p) < 300 * s else 2) for p in polys)
         return f'<path d="{d}" fill="{color}" fill-rule="evenodd"/>'
 
+    defs.append(f'<clipPath id="surveyed"><rect x="{_fmt(drawable[0])}" y="{_fmt(drawable[1])}" '
+                f'width="{_fmt(limit_x - drawable[0])}" height="{_fmt(drawable[3])}"/></clipPath>')
+    body.append('<g clip-path="url(#surveyed)">')          # nothing charted lies beyond the limit of survey (v9.2)
     body.append(tl.fade_in(fill_level(10.0, theme.shallow_a, gen10 * s), 1.0, 1.0, rise=0))
     gen5 = GENERALISE_5[sc]
     body.append(tl.fade_in(fill_level(5.0, theme.shallow_b, gen5 * s), 1.3, 1.0, rise=0))
+    body.append('</g>')
     land_svg = [fill_level(0.0, theme.land), c.coastline(cs, theme)]
     big_land = [f for f in feats if f.kind in LAND_KINDS and (f.r >= BIG_NAME_R * s or f.kind == "harbour")]
     for poly in c.level_polygons(cs, 0.0):
@@ -870,9 +908,9 @@ def build(ctx) -> str:
             pa_label = lbl("PA", wpt[0] + dx - 3, wpt[1] + dy + 4, "label-italic", fill=theme.ink2, anchor="end")
     land_svg.append(use("anchorage", *course[-1]))
     if not phone:
-        cov = COVERAGE
+        cov = cov_box
         land_svg.append(f'<rect x="{_fmt(cov[0])}" y="{_fmt(cov[1])}" width="{_fmt(cov[2])}" height="{_fmt(cov[3])}" fill="none" '
-                        f'{c.stroke("HAIR", theme.ink, 0.7, "RESTRICT", caps="butt")}/>')
+                        f'{c.stroke("PEN", theme.ink, 0.8, "RESTRICT", caps="butt")}/>')
     if profile is not None:
         land_svg.append(use("station", profile.x, profile.y))
     body.append("".join(land_svg))                        # land is a sheet at t = 0 (round 2 addendum)
@@ -883,10 +921,13 @@ def build(ctx) -> str:
 
     # ---- contours draw in, deep first (0.2 + 0.12·i, 1.6 s); the approximate fringe fades with them
     approx_clip = (geo.p(1040, 0)[0], drawable[1], limit_x + UNSURVEYED_FADE * s - geo.p(1040, 0)[0], drawable[3])
-    breaks = c.contour_labels(cs, min_len=220 * s, gap=20 * s,
-                              exclusions=[(band[0], 0, w - band[0], h), rose_box] + boxes,
-                              levels=(10.0, 20.0, 50.0)) if not phone else []
-    breaks = [b for b in breaks if not (b[0].level == 10.0 and b[0].closed and ring_len(b[0].pts) < gen10 * s)]
+    _infl = [(b[0] - 16 * s, b[1] - 10 * s, b[2] + 32 * s, b[3] + 20 * s) for b in boxes]   # a figure is 28 x 16
+    breaks = c.contour_labels(cs, min_len=140 * s, gap=20 * s,
+                              exclusions=[(band[0], 0, w - band[0], h), rose_box] + _infl,
+                              levels=(5.0, 10.0, 20.0, 50.0)) if not phone else []
+    breaks = [b for b in breaks if not (b[0].level == 10.0 and b[0].closed and ring_len(b[0].pts) < gen10 * s)
+              and not (b[0].level == 5.0 and b[0].closed and ring_len(b[0].pts) < gen5 * s)
+              and not (b[0].level == 20.0 and b[0].closed and ring_len(b[0].pts) < GENERALISE_20 * s)]
     # the printed week figures break every contour they would cross (chart practice: lines yield to soundings)
     gap_breaks = []
     for wb in week_boxes.values():
@@ -913,11 +954,13 @@ def build(ctx) -> str:
                 attrs = m.group(1)
                 if "stroke-dasharray" in attrs:
                     body.append(tl.fade_in(f"<path {attrs}/>", begin + 0.5, 0.65, rise=0))
-                else:
-                    body.append(tl.draw_in(attrs, 1.6, begin))
+                else:   # solid contours end at the limit of survey; the approximate fringe runs on
+                    body.append('<g clip-path="url(#surveyed)">' + tl.draw_in(attrs, 1.6, begin) + '</g>')
 
     # ---- the course: pecked line and waypoint fixes (with the land), bearings later
-    body.append(tl.fade_in(c.course(course, theme, jit, pecked=True, prefix=prefix, bearings=False), 1.6, 0.65, rise=0))
+    course_svg = c.course(course, theme, jit, pecked=True, prefix=prefix, bearings=False)
+    course_svg = course_svg.replace(f'stroke-width="{tokens.W["PEN"]}"', f'stroke-width="{tokens.W["LINE"]}"', 1)
+    body.append(tl.fade_in(course_svg, 1.6, 0.65, rise=0))
     symbols_used.add("waypoint")
 
     # ---- soundings in course order (1.4 + 0.04·k); none printed in the band; opacity thins toward it
@@ -980,8 +1023,6 @@ def build(ctx) -> str:
                              "label", anchor="middle"))
     body.append("".join(rose_text))
     var_lines = [f"VAR {modal:02d}h ({var_year})"]
-    if not phone:
-        var_lines.append("AUTHOR'S LOCAL TIME")
     var_svg = "".join(lbl(t, rose_cx, rose_cy + rose_r + 32 + j * (lbl_h + 4), "label", anchor="middle",
                           fill=theme.ink2, tracking=caps_track, truth="measured" if j == 0 else None,
                           key="variation" if j == 0 else None)
@@ -1035,15 +1076,12 @@ def build(ctx) -> str:
         ed_line = f"CHART NO. {N} · EDITION {ver}" + (f" · {_month(ed_date)}" if ed_date else "") + " · IALA REGION B"
         pitch = lbl_h + 4
         y0 = TITLE_BOX[1] + 24
-        srcs = (data.get("sources") or [])[:3]
-        src_line = "SOURCES · " + " · ".join(f"{sr.get('letter', '?')} {sr.get('name', '')}" for sr in srcs)
-        rows_t = [   # six lines at the label size, left-aligned like a printed title block (v9.1)
+        rows_t = [   # four lines at the label size, left-aligned like a printed title block (v9.2: the
+            # footer carries the notices; the source diagram and sheet 3's zones carry the sources)
             (y0, f"THE OPEN WEB · FROM SURVEYS {first_year}–{upd_year}", "label", theme.ink, None, None),
             (y0 + pitch, role_line, "label", theme.ink, None, None),
             (y0 + 2 * pitch, "SOUNDINGS IN COMMITS · DATUM: MAIN", "label", theme.ink2, None, None),
             (y0 + 3 * pitch, ed_line, "label", theme.ink2, "measured", "chart-edition"),
-            (y0 + 4 * pitch, f"CORRECTED THROUGH NOTICE {notices_n}", "label", theme.ink2, "measured", "notices"),
-            (y0 + 5 * pitch, src_line, "label", theme.ink2, None, None),
         ]
         for y, t, role, fill, truth, key in rows_t:
             block.append(lbl(t, bx, y, role, anchor="start", fill=fill, caps=True, within=TITLE_BOX, truth=truth, key=key))
@@ -1053,27 +1091,26 @@ def build(ctx) -> str:
         block.append(c.source_diagram(*SOURCE_AT, zones, theme, jit, lbl))
         k.exclude("title-block", *TITLE_BOX)
         # outside the neat line: unit line (the one label-caps run), chart number, folio, imprint, small corrections
-        block.append(lbl(unit_line, 640, 14, "label-caps", anchor="middle", fill=theme.ink, key="unit"))
-        block.append(lbl(str(N), 1262, 14, "label", anchor="end", fill=theme.muted, truth="measured", key="chart-number"))
+        block.append(lbl(unit_line, 640, 18, "label-caps", anchor="middle", fill=theme.ink, key="unit"))
+        block.append(lbl(str(N), 1250, 18, "label", anchor="end", fill=theme.muted, truth="measured", key="chart-number"))
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
         # bottom-left: the folio, then the small corrections (a range when the five are consecutive)
         corr = data.get("corrections") or {}
         folio = f"CHART NO. {N} · SHEET 1"
         if corr:
             yr = max(corr)
-            nums = [int(e.get("n")) for e in corr[yr] if e.get("n") is not None][-5:]
-            if nums:
-                run_ = all(b_ - a_ == 1 for a_, b_ in zip(nums, nums[1:]))
-                lst = f"{nums[0]}–{nums[-1]}" if run_ and len(nums) > 2 else ", ".join(str(n_) for n_ in nums)
+            nums = sorted(int(e.get("n")) for e in corr[yr] if e.get("n") is not None)
+            if nums:   # the whole year's list, first to last (v9.2: a window read as the list)
+                lst = f"{nums[0]}–{nums[-1]}" if len(nums) > 1 else str(nums[0])
                 folio += f" · Small corrections {yr} — {lst}"
-        block.append(lbl(folio, 24, 735, "label-caps", fill=theme.ink2, key="folio"))
+        block.append(lbl(folio, 30, h - 6, "label-caps", fill=theme.ink2, key="folio"))
         # bottom-right: the imprint, as long as the margin after the folio allows (19 px caps, v9.1)
         folio_w = width(folio.upper(), "label", tracking=caps_track)
         imprints = [f"github.com/{login} · {_date(taken)} · under the superintendence of B. Russell · redrawn nightly",
                     f"github.com/{login} · {_date(taken)} · redrawn nightly"]
-        imprint = next((t for t in imprints if 24 + folio_w + 30 + width(t.upper(), "label", tracking=caps_track) <= 1256),
+        imprint = next((t for t in imprints if 30 + folio_w + 30 + width(t.upper(), "label", tracking=caps_track) <= 1250),
                        imprints[-1])
-        block.append(lbl(imprint, 1256, 735, "label", anchor="end", fill=theme.ink2, caps=True))
+        block.append(lbl(imprint, 1250, h - 6, "label", anchor="end", fill=theme.ink2, caps=True))
     else:
         bx = 360
         ver = edition_d.get("version") or "—"
@@ -1121,32 +1158,20 @@ def build(ctx) -> str:
         late.append(late_text('R "2" Fl R 4s', r2[0], r2[1] - 22 * ms, "label-italic", fill=theme.ink, anchor="middle"))
         late.append(late_text('G "1" Fl G 4s', g1[0] + 10 * ms, g1[1] + 14 * ms, "label-italic", fill=theme.ink))
     # dated fixes: the first-commit month of the feature each fix is taken off (WP2 off rustmapper, WP4 the harbour)
-    for wp, f, side in ((course[1], vessel_ground, -1), (course[3], harbour, 1)):
-        if f is None or phone:
+    for f in (vessel_ground, harbour):   # v9.2: a report date under the feature's name, not a date on a fix
+        if f is None or phone or f.name not in date_pos:
             continue
-        rr = repo_of.get(f.name, {})
-        first = rr.get("first")
-        if first:
-            if side < 0:     # NW of WP2, lifted until clear of the sounding figures
-                fw = width(_month(first), "label")
-                fy = wp[1] - 20
-                for _ in range(8):
-                    fb = (wp[0] - 14 - fw, fy - lbl_h * 0.8, fw, lbl_h)
-                    if not any(_boxes_overlap(fb, b) for b in boxes):
-                        break
-                    fy -= 8
-                fixes_svg.append(tl.reveal(late_text(_month(first), wp[0] - 14, fy, "label", fill=theme.ink2, truth="measured",
-                                                     key=f"first:{f.alias}", anchor="end"), pass_time(*wp)))
-            else:
-                fixes_svg.append(tl.reveal(late_text(_month(first), wp[0] + 7, wp[1] - 10, "label", fill=theme.ink2,
-                                                     truth="measured", key=f"first:{f.alias}"), pass_time(*wp)))
+        first = repo_of[f.name]["first"]
+        nx_, dy_, anc = date_pos[f.name]
+        fixes_svg.append(late_text(f"({_month(first)})", nx_, dy_, "label", fill=theme.ink2, truth="measured",
+                                   key=f"first:{f.alias}", anchor=anc))
     if not phone:
         nxp, nyp, rot = NOTE_AT
         late.append(late_text(NOTE_TEXT, nxp, nyp, "note", fill=theme.muted, rotate=rot))   # the tail points; no leader
         late.append(pa_label)
         if vessel_ground is not None and pa_label:
             late_boxes.append((vessel_ground.x + PA_SHIFT[0] - vessel_ground.r - 20, vessel_ground.y + PA_SHIFT[1] - 8, 20, 14))
-        late.append(late_text("SEE SHEET 3", *SEE_SHEET, "label", fill=theme.muted, caps=True))
+        late.append(late_text("SEE SHEET 3", *see_sheet_at, "label", fill=theme.muted, caps=True))
     if ctx.no_sounding or data.get("no_sounding"):
         taken = data.get("taken") or (data.get("updated_at") or "")[:10]
         note = f"no soundings tonight — figures as surveyed {_date(taken)}"

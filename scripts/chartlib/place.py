@@ -239,7 +239,7 @@ def feature_polygons(cs, features, level: float = 5.0) -> dict:
     return out
 
 
-def spot_heights(features, cs, clearance: float = 8, level: float = 5.0) -> list[tuple]:
+def spot_heights(features, cs, clearance: float = 8, level: float = 5.0, min_r: float = 16) -> list[tuple]:
     """(feature, x, y, angle) for each feature's spot height: inside the feature above its name
     when it fits (r ≥ 16 and the point is inside its polygon), else just outside its `level`
     polygon to the east with `clearance`."""
@@ -250,7 +250,7 @@ def spot_heights(features, cs, clearance: float = 8, level: float = 5.0) -> list
             continue
         poly = polys.get(f.name)
         x, y = f.x, f.y - 10
-        if f.r >= 16 and (poly is None or point_in_polygon(x, y, poly)):
+        if f.r >= min_r and (poly is None or point_in_polygon(x, y, poly)):
             out.append((f, int(round(x)), int(round(y)), 0))
             continue
         # walk east from the centre until outside the polygon, then add clearance

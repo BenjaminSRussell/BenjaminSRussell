@@ -14,29 +14,17 @@
 </picture>
 <!-- picture:hero:end -->
 <p align="center">
-  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy Harbor</b></a>
-  &nbsp;·&nbsp;
-  <a href="https://pypi.org/project/rustmapper/">PyPI</a>
-  &nbsp;·&nbsp;
-  <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
+  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>&nbsp;· <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy Harbor</b></a>&nbsp;· <a href="https://pypi.org/project/rustmapper/">PyPI</a>&nbsp;· <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
   <!-- contact:start — set linkedin / resume in chart.toml [contact]; "" drops the slot -->
 <!-- contact:end -->
-  &nbsp;·&nbsp;
-  <a href="DESIGN.md">How it's built</a>
 </p>
 
 <!-- position:start — chart.toml [position] text; "" omits the line -->
 <!-- position:end -->
 
-| | |
-|---|---|
-| **Ben Russell builds** | crawl and data infrastructure: web crawlers, discovery pipelines, raw-first storage, the dashboards that watch them |
-| **Languages** | Python, Rust; Swift, C, TypeScript, Go |
-| **Stack** | Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin |
-
-Most of what I build is survey work. The sitemap and the site disagree, and the subdomains nobody links to appear in neither, so the crawlers go and take soundings, one measured depth at a time, instead of trusting what the site declares. The storage keeps the raw log, so any depth can be checked again, and a dashboard says where the boat is while that still matters. I care how the work looks for the same reason I care that it holds.
+**Ben Russell builds** crawl and data infrastructure: web crawlers, discovery pipelines, raw-first storage, the dashboards that watch them.<br>
+**Languages** Python, Rust; Swift, C, TypeScript, Go.<br>
+**Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <br>
 
@@ -54,7 +42,6 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 </picture>
 <!-- picture:soundings:end -->
 <!-- figures:start -->
-<sub><!-- n:commits -->1,665<!-- /n --> commits of mine · <!-- n:all_hands -->1,966<!-- /n --> all hands · <!-- n:repo_count -->21<!-- /n --> repositories surveyed · since <!-- n:account_since -->Oct 2024<!-- /n --> · soundings taken <!-- n:taken -->7 Oct 2026<!-- /n --></sub>
 <!-- figures:end -->
 
 <br>
@@ -84,7 +71,8 @@ Most of what I build is survey work. The sitemap and the site disagree, and the 
 ```sh
 pip install rustmapper
 rustmapper crawl --start-url <your-site>
-rustmapper export-sitemap --data-dir ./data --output sitemap.xml
+rustmapper export-sitemap --data-dir ./data \
+    --output sitemap.xml
 ```
 
 **[Scrapy Harbor](https://github.com/BenjaminSRussell/Scrapy) is where a run is operated:** a multi-stage crawl platform built on the Scrapy framework.
@@ -134,11 +122,9 @@ Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/Benjami
 <a name="other-waters"></a>
 ## Other waters
 
-- [**Elusive_trades_data**](https://github.com/BenjaminSRussell/Elusive_trades_data) — HVAC parts search across several supplier APIs, part numbers matched by zero-shot classification. File-based: no database, no Docker, no passwords.
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25+ ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
 - [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — the Go sibling of rustmapper: 256-worker pools, a Bloom filter sized for 100M+ URLs, the same three seed sources.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. A stream-tee forwards tokens to the client while parsing them for metrics, so logging costs the caller nothing.
-- [**mlx_Qwen_data_entry**](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen-DBA: profiles database workloads and has Qwen, on Apple MLX, recommend optimizations, with a human in the loop.
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry down to git-history patterns.
 
 <details>
@@ -153,8 +139,8 @@ Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/Benjami
 - [**Wheel**](https://github.com/BenjaminSRussell/Wheel) — a Three.js prize wheel with a physics-based spin and an LED rim. Lands on a programming language.
 - [**FashionDB**](https://github.com/BenjaminSRussell/FashionDB) — scrapes Reddit and the web for fashion rules and runs them through an NLP pipeline.
 - [**Data-visualizer**](https://github.com/BenjaminSRussell/Data-visualizer) — a lightweight, Superset-inspired exploration UI over PostgreSQL. Display only, by design.
-- [**ggml-viz**](https://github.com/BenjaminSRussell/ggml-viz) — ggml graph and tensor visualization.
-- [**Boxalarm-monorepo**](https://github.com/BenjaminSRussell/Boxalarm-monorepo) — infrastructure, UI and backend in one repository.
+- [**Elusive_trades_data**](https://github.com/BenjaminSRussell/Elusive_trades_data) — HVAC parts search across several supplier APIs, part numbers matched by zero-shot classification. File-based: no database, no Docker, no passwords.
+- [**mlx_Qwen_data_entry**](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen-DBA: profiles database workloads and has Qwen, on Apple MLX, recommend optimizations, with a human in the loop.
 - [**excel-and-vba**](https://github.com/BenjaminSRussell/excel-and-vba) — spreadsheet automation.
 - Also: [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets) · [MLX_convertion](https://github.com/BenjaminSRussell/MLX_convertion) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
 

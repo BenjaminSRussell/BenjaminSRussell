@@ -192,7 +192,7 @@ class HeroBuild(unittest.TestCase):
         # the chart number is the repo count and the notices line counts the notices
         texts = [t["s"] for t in self.entry("day")["text"]]
         self.assertTrue(any(s.startswith(f"CHART NO. {self.stats['repo_count']} · SHEET 1") for s in texts), texts)
-        self.assertTrue(any(s == f"CORRECTED THROUGH NOTICE {len(self.stats['notices'])}" for s in texts), texts)
+        # v9.2: the notices count lives on the footer; the hero's title block is four lines
 
     # ---- lettering rules (T2 §5.4) and the thesis said once
     def test_type_rules(self):
@@ -212,7 +212,7 @@ class HeroBuild(unittest.TestCase):
         self.assertEqual(sum(1 for t in self.entry("day")["text"] if t["s"] in ("Ben", "Russell")), 2)
         tb = list(hero.TITLE_BOX)
         block = [t for t in self.entry("day")["text"] if t["within"] == tb]
-        self.assertGreaterEqual(len(block), 6)
+        self.assertGreaterEqual(len(block), 4)
         for t in block:
             self.assertGreaterEqual(t["x0"], tb[0] - 0.5, t)
             self.assertLessEqual(t["x1"], tb[0] + tb[2] + 0.5, t)
