@@ -130,19 +130,22 @@ def history(dest: str, ref: str = "HEAD") -> list[Commit]:
 
 
 def stale_branches(dest: str, taken: dt.date, days: int = STALE_BRANCH_DAYS) -> list[dict]:
-    """Branches (not HEAD's) whose last commit is older than `days` before `taken`."""
+    """Branches (not HEAD's) whose last commit is older than `days` before `taken`, each with the author
+    of its tip commit (so build_stats can leave a bot's abandoned branch uncharted)."""
     try:
         head = _git(dest, "symbolic-ref", "--short", "HEAD").strip()
     except RuntimeError:
         head = ""
     try:
-        out = _git(dest, "for-each-ref", "--format=%(refname:short)%09%(committerdate:iso-strict)", "refs/heads")
+        out = _git(dest, "for-each-ref", "--format=%(refname:short)%09%(committerdate:iso-strict)%09%(authorname)",
+                   "refs/heads")
     except RuntimeError:
         return []
     cutoff = taken - dt.timedelta(days=days)
     stale = []
     for line in out.splitlines():
-        name, _, iso = line.partition("\t")
+        name, _, rest = line.partition("\t")
+        iso, _, author = rest.partition("\t")
         if not iso or name == head:
             continue
         try:
@@ -150,7 +153,7 @@ def stale_branches(dest: str, taken: dt.date, days: int = STALE_BRANCH_DAYS) -> 
         except ValueError:
             continue
         if last < cutoff:
-            stale.append({"name": name, "last": last.isoformat()})
+            stale.append({"name": name, "last": last.isoformat(), "author": author.strip() or None})
     stale.sort(key=lambda b: b["last"])
     return stale
 

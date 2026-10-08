@@ -155,7 +155,8 @@
         "stars": {"anyOf": [{"type": "null"}, {"type": "integer", "minimum": 0}]},
         "span": {"anyOf": [{"type": "null"}, {"type": "string"}]},
         "stale_branches": {"type": "array", "items": {"type": "object", "required": ["name", "last"],
-          "properties": {"name": {"type": "string"}, "last": {"$ref": "#/$defs/date"}}}},
+          "properties": {"name": {"type": "string"}, "last": {"$ref": "#/$defs/date"},
+                         "author": {"anyOf": [{"type": "null"}, {"type": "string"}]}}}},
         "stale_branch_count": {"type": "integer", "minimum": 0},
         "created": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/date"}]},
         "pushed": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/date"}]}

@@ -267,7 +267,7 @@
    "stars": null,
    "span": "Jan 2026",
    "stale_branches": [],
-   "stale_branch_count": 196
+   "stale_branch_count": 148
   },
   {
    "name": "Data_science_dev",
@@ -813,15 +813,12 @@
    "span": "Sep 2025–",
    "stale_branches": [
     {
-     "name": "claude/ensure-this-is-011CUwPtV5qcTVZyXZhbXx7V",
-     "last": "2025-11-09"
-    },
-    {
      "name": "fix/144-lean-docker-extras",
-     "last": "2025-11-09"
+     "last": "2025-11-09",
+     "author": "Benjamin Russell"
     }
    ],
-   "stale_branch_count": 2
+   "stale_branch_count": 1
   },
   {
    "name": "BenjaminSRussell",
@@ -1545,7 +1542,7 @@
    "stars": null,
    "span": "Sep 2025–",
    "stale_branches": [],
-   "stale_branch_count": 25
+   "stale_branch_count": 23
   },
   {
    "name": "FashionDB",
@@ -1757,7 +1754,7 @@
    "stars": null,
    "span": "Oct 2025–",
    "stale_branches": [],
-   "stale_branch_count": 21
+   "stale_branch_count": 20
   },
   {
    "name": "ideal-url-organizer",
@@ -1969,7 +1966,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 1
+   "stale_branch_count": 0
   },
   {
    "name": "Course_crusader",
@@ -2363,7 +2360,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 19
+   "stale_branch_count": 18
   },
   {
    "name": "Ai_code_detector",
@@ -2565,7 +2562,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 4
+   "stale_branch_count": 0
   },
   {
    "name": "MLX_convertion",
@@ -2977,7 +2974,7 @@
    "stars": null,
    "span": "Oct 2025–",
    "stale_branches": [],
-   "stale_branch_count": 9
+   "stale_branch_count": 8
   },
   {
    "name": "Elusive_trades_data",
@@ -3174,7 +3171,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 14
+   "stale_branch_count": 13
   },
   {
    "name": "2d-swift-widgets",
@@ -4140,7 +4137,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 13
+   "stale_branch_count": 11
   },
   {
    "name": "cozy-game",
@@ -4512,7 +4509,7 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 10
+   "stale_branch_count": 8
   }
  ],
  "unsurveyed": [],
@@ -5516,23 +5513,23 @@
   "workers": {
    "value": "256–1024",
    "unit": "permits",
-   "source": "Rust-sitemap:src/governor.rs",
-   "sha": null,
+   "source": "Rust-sitemap:src/orchestration/governor.rs",
+   "sha": "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9",
    "measured": false
   },
   "shards": {
    "value": "num_cpus",
    "unit": "shards",
-   "source": "Rust-sitemap:src/frontier.rs",
-   "sha": null,
-   "measured": false
+   "source": "Rust-sitemap:src/lib.rs (num_cpus::get())",
+   "sha": "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9",
+   "measured": true
   },
   "scrape_interval": {
-   "value": null,
+   "value": 15,
    "unit": "s",
-   "source": null,
-   "sha": null,
-   "measured": false
+   "source": "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)",
+   "sha": "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0",
+   "measured": true
   }
  },
  "trial": null,
