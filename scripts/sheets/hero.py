@@ -304,6 +304,17 @@ def _boxes_overlap(a, b) -> bool:
 
 
 # ---------------------------------------------------------------- data → features
+R_FIT = 84.0                      # px: the largest feature's target radius must fit under solve_radii's 90 px bound
+
+
+def _area_scale(data: dict, s: float) -> float:
+    """px² of 5-contour area per commit for this build: K_AREA, or less when the largest repository
+    would not fit the sheet. One constant for every feature, so area ∝ commits still holds."""
+    biggest = max((int(r.get("commits") or 0) for r in data.get("repos", [])), default=1)
+    k = min(K_AREA, math.pi * R_FIT * R_FIT / max(biggest, 1))
+    return k * s * s
+
+
 def _features(data: dict, cfg, k_area: float) -> tuple[list, dict]:
     """One Feature per surveyed repo; name/kind from chart.toml [[features]] where present (`bank`
     reads as shoal, `vessel` as the ship's own shoal). `alias` holds the repo name (the key for
@@ -403,109 +414,117 @@ def build(ctx) -> str:
     unit_line = cfg.get("copy", {}).get("unit_hero", "SOUNDINGS IN COMMITS")
     limit_label = cfg.get("copy", {}).get("limit_label", f"LIMIT OF SURVEY {upd_year}")
 
-    k_area = K_AREA * s * s
-    feats, repo_of = _features(data, cfg, k_area)
-    if phone:
-        feats = [f for f in feats if f.value >= 12]      # small-scale edition: islets under 12 culled
-    culled = N - len(feats) - len(data.get("unsurveyed") or [])
+    # ---- the chart's scale: area ∝ commits at K_AREA px² per commit, unless the largest feature would not
+    # fit the sheet (a sweep week can double a repository overnight); then the whole sheet is drawn at the
+    # largest scale that fits, and if two 5-polygons still merge the scale steps down once more (≤ 3 times).
+    k_area = _area_scale(data, s)
+    for _attempt in range(4):
+        feats, repo_of = _features(data, cfg, k_area)
+        if phone:
+            feats = [f for f in feats if f.value >= 12]      # small-scale edition: islets under 12 culled
+        culled = N - len(feats) - len(data.get("unsurveyed") or [])
 
-    # ---- geometry in sheet space
-    course = [geo.pi(*p) for p in COURSE]
-    drawable = geo.rect(DRAWABLE)
-    limit_x = geo.p(LIMIT_X, 0)[0]
-    slots = {kname: geo.pi(*xy) for kname, xy in SLOTS.items()}
-    arc = [geo.p(*p) for p in ARC] if not phone else [tuple(p) for p in PHONE_ARC]
-    if phone:
-        rose_cx, rose_cy, rose_r = 600, 310, 56
-        rose_box = (500, 210, 200, 202)   # N above the ring, the VAR line below, both inside
-        band = (E.I(limit_x), 412, w - E.I(limit_x), 300)
-    else:
-        rose_cx, rose_cy, rose_r = ROSE
-        rose_box = ROSE_BOX
-        band = BAND
-    excl = [geo.rect(COVERAGE), (band[0], drawable[1], w - band[0], drawable[3]), rose_box]
-    if not phone:
-        excl += [CALM, (TITLE_BOX[0] - 16, TITLE_BOX[1] - 16, TITLE_BOX[2] + 32, TITLE_BOX[3] + 32)]
-    # slots first (place_features with no Halton work: every unslotted feature goes to the arc)
-    order = sorted((f for f in feats if f.kind != "wreck"), key=lambda f: (-f.value, f.name))
-    placed = []
-    for f in order:
-        if f.alias in slots:
-            f.x, f.y = slots[f.alias]
-            f.placed, f.slot = True, f.alias
-            placed.append(f)
-    unslotted = [f for f in order if not f.placed]
-    dropped = _place_on_arc(unslotted, arc, drawable, excl, course, placed, seed, s,
-                            clear_edge=24 * s, clear_pair=44 * s, clear_course=CLEAR_COURSE * s)
-    if dropped:   # whatever the arc could not take goes through chartlib's Halton search (reported)
-        rest = [f for f in feats if not f.placed and f.kind != "wreck"]
-        fallback = c.place_features(placed + rest, drawable, excl, course, seed, slots, cap=64,
-                                    clear_edge=24 * s, clear_pair=30 * s, clear_course=CLEAR_COURSE * s,
-                                    islet_min_x=drawable[0], tries=3000)
-        dropped = list(fallback.dropped)
-    feats = [f for f in feats if f.placed]
-    for f in feats:
-        f.axis = (0.0, 2 * f.r, f.x, f.y)
-    harbour = next((f for f in feats if f.kind == "harbour"), None)
-    vessel_ground = next((f for f in feats if f.alias == "Rust-sitemap"), None)
-    profile = next((f for f in feats if f.alias == "BenjaminSRussell"), None)
-    pairs = [math.hypot(a.x - b.x, a.y - b.y) - a.r - b.r for i, a in enumerate(feats) for b in feats[i + 1:]]
-    too_close = [(f.name, round(c.dist_to_polyline(f.x, f.y, course) - f.r - CLEAR_COURSE * s, 1))
-                 for f in feats if f.kind != "harbour" and c.dist_to_polyline(f.x, f.y, course) < f.r + CLEAR_COURSE * s]
+        # ---- geometry in sheet space
+        course = [geo.pi(*p) for p in COURSE]
+        drawable = geo.rect(DRAWABLE)
+        limit_x = geo.p(LIMIT_X, 0)[0]
+        slots = {kname: geo.pi(*xy) for kname, xy in SLOTS.items()}
+        arc = [geo.p(*p) for p in ARC] if not phone else [tuple(p) for p in PHONE_ARC]
+        if phone:
+            rose_cx, rose_cy, rose_r = 600, 310, 56
+            rose_box = (500, 210, 200, 202)   # N above the ring, the VAR line below, both inside
+            band = (E.I(limit_x), 412, w - E.I(limit_x), 300)
+        else:
+            rose_cx, rose_cy, rose_r = ROSE
+            rose_box = ROSE_BOX
+            band = BAND
+        excl = [geo.rect(COVERAGE), (band[0], drawable[1], w - band[0], drawable[3]), rose_box]
+        if not phone:
+            excl += [CALM, (TITLE_BOX[0] - 16, TITLE_BOX[1] - 16, TITLE_BOX[2] + 32, TITLE_BOX[3] + 32)]
+        # slots first (place_features with no Halton work: every unslotted feature goes to the arc)
+        order = sorted((f for f in feats if f.kind != "wreck"), key=lambda f: (-f.value, f.name))
+        placed = []
+        for f in order:
+            if f.alias in slots:
+                f.x, f.y = slots[f.alias]
+                f.placed, f.slot = True, f.alias
+                placed.append(f)
+        unslotted = [f for f in order if not f.placed]
+        dropped = _place_on_arc(unslotted, arc, drawable, excl, course, placed, seed, s,
+                                clear_edge=24 * s, clear_pair=44 * s, clear_course=CLEAR_COURSE * s)
+        if dropped:   # whatever the arc could not take goes through chartlib's Halton search (reported)
+            rest = [f for f in feats if not f.placed and f.kind != "wreck"]
+            fallback = c.place_features(placed + rest, drawable, excl, course, seed, slots, cap=64,
+                                        clear_edge=24 * s, clear_pair=30 * s, clear_course=CLEAR_COURSE * s,
+                                        islet_min_x=drawable[0], tries=3000)
+            dropped = list(fallback.dropped)
+        feats = [f for f in feats if f.placed]
+        for f in feats:
+            f.axis = (0.0, 2 * f.r, f.x, f.y)
+        harbour = next((f for f in feats if f.kind == "harbour"), None)
+        vessel_ground = next((f for f in feats if f.alias == "Rust-sitemap"), None)
+        profile = next((f for f in feats if f.alias == "BenjaminSRussell"), None)
+        pairs = [math.hypot(a.x - b.x, a.y - b.y) - a.r - b.r for i, a in enumerate(feats) for b in feats[i + 1:]]
+        too_close = [(f.name, round(c.dist_to_polyline(f.x, f.y, course) - f.r - CLEAR_COURSE * s, 1))
+                     for f in feats if f.kind != "harbour" and c.dist_to_polyline(f.x, f.y, course) < f.r + CLEAR_COURSE * s]
 
-    # ---- soundings along the course: the 52 weeks, oldest seaward
-    rows = tuple(float(v) for v in ROWS)
-    sounds = _soundings(course, values, rows, s, seed)
-    coast = c.Coast(drawable, inset=24 * s, unsurveyed_x=(limit_x, limit_x + UNSURVEYED_FADE * s))
-    basin = [(*geo.p(x, y), hh * s, amp * base) for x, y, hh, amp in BASIN]
-    cell = CELL[sc]
+        # ---- soundings along the course: the 52 weeks, oldest seaward
+        rows = tuple(float(v) for v in ROWS)
+        sounds = _soundings(course, values, rows, s, seed)
+        coast = c.Coast(drawable, inset=24 * s, unsurveyed_x=(limit_x, limit_x + UNSURVEYED_FADE * s))
+        basin = [(*geo.p(x, y), hh * s, amp * base) for x, y, hh, amp in BASIN]
+        cell = CELL[sc]
 
-    def extras(fs):
-        out = list(basin)
-        for f in fs:
-            if f.kind not in ("wreck", "harbour") and f.r > 0:    # the harbour's character is its bay
-                out.extend(_lobes(f, base, seed, s))
-        return out
+        def extras(fs):
+            out = list(basin)
+            for f in fs:
+                if f.kind not in ("wreck", "harbour") and f.r > 0:    # the harbour's character is its bay
+                    out.extend(_lobes(f, base, seed, s))
+            return out
 
-    def builder(fs):
-        return c.Field.from_soundings(w, h, sounds, base, features=fs, coast=coast, h_snd=H_SND * s,
-                                      extra=extras(fs), cell=cell)
+        def builder(fs):
+            return c.Field.from_soundings(w, h, sounds, base, features=fs, coast=coast, h_snd=H_SND * s,
+                                          extra=extras(fs), cell=cell)
 
-    def own_ground(fs):
-        # each feature's own kernels on the grid, without the soundings: what "area ∝ commits" asserts
-        return c.Field.from_soundings(w, h, [], base, features=fs, coast=coast, h_snd=H_SND * s,
-                                      extra=extras(fs), cell=cell)
+        def own_ground(fs):
+            # each feature's own kernels on the grid, without the soundings: what "area ∝ commits" asserts
+            return c.Field.from_soundings(w, h, [], base, features=fs, coast=coast, h_snd=H_SND * s,
+                                          extra=extras(fs), cell=cell)
 
-    radii = c.solve_radii(own_ground, feats, k_area, tol=0.08, iters=4, r_bounds=(6.0 * s, 90.0 * s))
-    for rep in radii:
-        if rep.ok or rep.r < 10 * s:
-            continue
-        f = next(ff for ff in feats if ff.name == rep.name)
-        area = _bisect_radius(f, own_ground, feats, f.target, 0.7 * f.r, 1.4 * f.r)
-        ratio = (area / f.target) if area else None
-        radii[radii.index(rep)] = c.RadiusReport(rep.name, rep.value, rep.target, round(area) if area else None,
-                                                 round(f.r, 1), round(ratio, 3) if ratio else None,
-                                                 ratio is not None and abs(ratio - 1) <= 0.08, rep.iters + 14, rep.clamped)
-    F = builder(feats)
-    cs = c.contours(F, LEVELS)
-    band_skip = [i for i, (x, y, v) in enumerate(sounds) if x >= limit_x]
-    fails = c.bracket_test(cs, sounds, LEVELS, base=base, skip=band_skip, field=F)
-    # a sounding whose ring the grid cannot resolve, or that sits on a feature's lift, nudges 4 px
-    # along the course and the field is re-solved (T2 §2.4); two rounds, then it is reported
-    for _round in range(2):
-        movable = [f for f in fails if f[6] in ("polygon", "field")]
-        if not movable:
-            break
-        L = c.polyline_length(course)
-        for (i, x, y, v, exp, found, cause) in movable:
-            (px, py), (tx, ty) = c.polyline_at(course, L * i / len(values))
-            ox, oy, vv = sounds[i]
-            sounds[i] = (E.I(ox + tx * 4 * s), E.I(oy + ty * 4 * s), vv)
+        radii = c.solve_radii(own_ground, feats, k_area, tol=0.08, iters=4, r_bounds=(6.0 * s, 90.0 * s))
+        for rep in radii:
+            if rep.ok or rep.r < 10 * s:
+                continue
+            f = next(ff for ff in feats if ff.name == rep.name)
+            area = _bisect_radius(f, own_ground, feats, f.target, 0.7 * f.r, 1.4 * f.r)
+            ratio = (area / f.target) if area else None
+            radii[radii.index(rep)] = c.RadiusReport(rep.name, rep.value, rep.target, round(area) if area else None,
+                                                     round(f.r, 1), round(ratio, 3) if ratio else None,
+                                                     ratio is not None and abs(ratio - 1) <= 0.08, rep.iters + 14, rep.clamped)
         F = builder(feats)
         cs = c.contours(F, LEVELS)
+        band_skip = [i for i, (x, y, v) in enumerate(sounds) if x >= limit_x]
         fails = c.bracket_test(cs, sounds, LEVELS, base=base, skip=band_skip, field=F)
-    unclosed = c.closed_check(cs, levels=(5.0, 10.0), min_len=30 * s)
-    area_bad = [r for r in radii if not r.ok and r.r >= 10 * s]
+        # a sounding whose ring the grid cannot resolve, or that sits on a feature's lift, nudges 4 px
+        # along the course and the field is re-solved (T2 §2.4); two rounds, then it is reported
+        for _round in range(2):
+            movable = [f for f in fails if f[6] in ("polygon", "field")]
+            if not movable:
+                break
+            L = c.polyline_length(course)
+            for (i, x, y, v, exp, found, cause) in movable:
+                (px, py), (tx, ty) = c.polyline_at(course, L * i / len(values))
+                ox, oy, vv = sounds[i]
+                sounds[i] = (E.I(ox + tx * 4 * s), E.I(oy + ty * 4 * s), vv)
+            F = builder(feats)
+            cs = c.contours(F, LEVELS)
+            fails = c.bracket_test(cs, sounds, LEVELS, base=base, skip=band_skip, field=F)
+        unclosed = c.closed_check(cs, levels=(5.0, 10.0), min_len=30 * s)
+        area_bad = [r for r in radii if not r.ok and r.r >= 10 * s]
+        if not area_bad:
+            break
+        k_area *= 0.85
+    area_scale = k_area / (s * s)
     if area_bad:
         raise RuntimeError("hero: area law failed (±8 % at the 5-contour): " +
                            "; ".join(f"{r.name} {r.ratio}" for r in area_bad))
@@ -532,7 +551,8 @@ def build(ctx) -> str:
                        "min_pair_clearance": round(min(pairs), 1) if pairs else None,
                        "min_course_clearance": round(min(c.dist_to_polyline(f.x, f.y, course) - f.r
                                                          for f in feats if f.kind != "harbour"), 1)}
-    report["field"] = {"base": base, "residual_max": F.report.residual_max, "faded": len(F.report.faded),
+    report["field"] = {"base": base, "area_scale_px2_per_commit": round(area_scale, 2), "scale_steps": _attempt,
+                       "residual_max": F.report.residual_max, "faded": len(F.report.faded),
                        "on_feature": len(F.report.on_feature), "clamped": len(F.report.clamped), "grid": F.report.grid}
     report["culled"] = culled
 
