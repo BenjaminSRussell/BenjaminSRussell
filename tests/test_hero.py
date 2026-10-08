@@ -270,3 +270,40 @@ class HeroBuild(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HeroScale(unittest.TestCase):
+    """The second live run failed the area law after a sweep week grew Data_science_dev past the sheet:
+    the scale must step down so the largest feature fits and no 5-polygons merge."""
+
+    def test_sweep_week_still_builds(self):
+        import copy
+        import json
+        import os
+        import tempfile
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "assets", "stats.json"), encoding="utf-8") as fh:
+            stats = json.load(fh)
+        sim = copy.deepcopy(stats)
+        for r in sim["repos"]:
+            if r["name"] == "Data_science_dev":
+                d = 1000 - r["commits"]
+                r["commits"] += d
+                r["all_hands"] += d
+                r["weeks"][-1] += d
+        sim["commits"] += d
+        sim["all_hands"] += d
+        sim["weeks"][-1]["n"] += d
+        out = tempfile.mkdtemp(prefix="v9-hero-scale-")
+        sp = os.path.join(out, "stats.json")
+        with open(sp, "w", encoding="utf-8") as fh:
+            json.dump(sim, fh)
+        rep = os.path.join(out, "build-report.json")
+        n = build_assets.main(sheets=["hero"], editions=["day"], out=out, report_path=rep, stats_path=sp, quiet=True)
+        self.assertEqual(n, 0)
+        with open(rep, encoding="utf-8") as fh:
+            e = json.load(fh)["sheets"]["hero-day"]
+        self.assertLess(e["hero"]["field"]["area_scale_px2_per_commit"], 32.2)
+        for f in e["features"]:
+            if f["r"] >= 10:      # islets at the 6 px floor are drawn at the floor and exempt, as in the build
+                self.assertLessEqual(abs(f["ratio"] - 1), 0.08, f"{f['name']} ratio {f['ratio']}")
