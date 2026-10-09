@@ -159,9 +159,10 @@ def alt_for(sheet: str, stats: dict, cfg: dict, figs: dict, use_sheets: bool = T
 
 
 def position_block(cfg: dict) -> str:
-    """The position slot, inline after the role line (D8: field · languages · position)."""
+    """The position slot, its own line at the head of the link row (round 5, F3.1: the centred role caption under
+    the image is cut, since the sheet prints the role line)."""
     text = (cfg.get("position", {}).get("text") or "").strip()
-    return f"&nbsp;· <i>{text}</i>" if text else ""
+    return f"<i>{text}</i><br>" if text else ""
 
 
 def contact_block(cfg: dict) -> str:
@@ -229,7 +230,8 @@ def _instruments_block_retired(cfg: dict, fittings: list[dict] | None = None) ->
 
 LICENSE_LINE = ("<sub>**License** Code MIT; images and text CC BY 4.0; fonts under their own licenses in "
                 "[`scripts/fonts/`](scripts/fonts/). To make your own, fork the repository, fill in `chart.toml` "
-                "and run the workflow; the images are regenerated from your repositories.</sub>")
+                "and run the workflow; the images are regenerated from your repositories · how it's built → "
+                "[DESIGN.md](DESIGN.md)</sub>")
 
 
 # ------------------------------------------------------------------ D4: the facts line under a flagship
@@ -278,52 +280,74 @@ CI_WORDS = {"success": "passed", "failure": "failed", "cancelled": "cancelled", 
             "skipped": "skipped", "neutral": "passed", "action_required": "needs attention"}
 
 
-def facts_block(stats: dict, name: str) -> str:
-    """D4: one plain line under a flagship from the D2 keys (docs/data/AUDIT.md): `manifest` {files, deps} (first
-    five deps), `tests` and `workflows` ints, `ci` {workflow, conclusion, date, url, recent, stale?}, `lines`
-    {language: lines} (the largest), `last_ns` date or null. An item whose key is absent or null is left out, never
-    estimated; no keys, no line."""
+def _dep_key(name: str) -> str:
+    """PyPI and crates.io treat `-` and `_` alike and ignore case."""
+    return re.sub(r"[-_.]+", "-", str(name)).lower()
+
+
+def _in_manifest(name: str, deps: list[str]) -> bool:
+    """`name` is in `deps` as itself, or as its `-binary` build (psycopg2 ships on PyPI as psycopg2-binary)."""
+    keys = {_dep_key(d) for d in deps}
+    return _dep_key(name) in keys or _dep_key(name) + "-binary" in keys
+
+
+def built_on(r: dict, cfg: dict | None = None, names: tuple[str, ...] = ()) -> list[str]:
+    """The dependencies worth naming: chart.toml `[facts] built_on.<repo>`, in that order, each only where the
+    manifest has it; without a list, the first five manifest deps that are not helper crates."""
+    man = r.get("manifest")
+    if isinstance(man, dict):
+        man = man.get("deps") or man.get("names") or man.get("top")
+    deps = [str(d.get("name") if isinstance(d, dict) else d) for d in man if d] if isinstance(man, (list, tuple)) else []
+    if not deps:
+        return []
+    lists = ((cfg or {}).get("facts") or {}).get("built_on") or {}
+    for key in (r.get("name"), *names, *(r.get("aliases") or [])):
+        if key and isinstance(lists.get(key), list):
+            return [n for n in lists[key] if _in_manifest(n, deps)][:5]
+    return [n for n in deps if not HELPER_CRATE.search(n)][:5]     # rkyv_derive is rkyv; tokio-macros is tokio
+
+
+def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
+    """D4 / F3.3: one plain italic line under a flagship, from the D2 keys (docs/data/AUDIT.md):
+    `Built on …` (chart.toml [facts] built_on, else the manifest's first five), `N tests` from `test_functions`
+    (no item without it: a file count reads wrong for inline Rust tests), `CI passed <date>` from `ci`, the main
+    language's lines from `lines` (`main_language` when present, else the largest), `last commit <date>` from
+    `last_ns`. An item whose key is absent or null is left out, never estimated; no keys, no line."""
     r = _repo(stats, name)
     if not r:
         return ""
     parts: list[str] = []
-    man = r.get("manifest")
-    if isinstance(man, dict):
-        man = man.get("deps") or man.get("names") or man.get("top")
-    if isinstance(man, (list, tuple)):
-        names = [str(d.get("name") if isinstance(d, dict) else d) for d in man if d]
-        names = [n for n in names if not HELPER_CRATE.search(n)]     # rkyv_derive is rkyv; tokio-macros is tokio
-        if names:
-            parts.append("Built on " + ", ".join(names[:5]))
-    tests = _count(r.get("tests"))
-    if tests is not None:
-        parts.append(_plural(tests, "test file"))
-    wf = _count(r.get("workflows"))
+    deps = built_on(r, cfg, (name,))
+    if deps:
+        parts.append("Built on " + ", ".join(deps))
+    tests = r.get("test_functions")
+    if isinstance(tests, int) and not isinstance(tests, bool):
+        parts.append(_plural(tests, "test"))
     ci = r.get("ci")
     if isinstance(ci, str):
         ci = {"conclusion": ci}
-    run = ""
     if isinstance(ci, dict) and ci.get("conclusion"):
         word = CI_WORDS.get(str(ci["conclusion"]).lower(), str(ci["conclusion"]).replace("_", " "))
         when = fmt_date(ci.get("date") or ci.get("at") or ci.get("run_at") or ci.get("updated_at"))
-        label = "last known run" if ci.get("stale") else "last run"     # stale: the API did not answer this time
-        run = f"{label} {word}" + (f" {when}" if when else "")
-    if wf is not None:
-        parts.append(_plural(wf, "workflow") + (f", {run}" if run else ""))
-    elif run:
-        parts.append(run)
+        item = f"CI {word}" + (f" {when}" if when else "")
+        parts.append(item + (" (last known run)" if ci.get("stale") else ""))   # stale: the API did not answer this time
+    else:
+        wf = _count(r.get("workflows"))
+        if wf:
+            parts.append(_plural(wf, "CI workflow"))
     lines = r.get("lines")
     if isinstance(lines, dict) and isinstance(lines.get("by_language"), dict):
         lines = lines["by_language"]
     if isinstance(lines, dict):
-        langs = [(k, v) for k, v in lines.items() if isinstance(v, int) and v > 0 and k not in ("total", "all")]
-        if langs:
-            lang, n = max(langs, key=lambda kv: kv[1])
-            parts.append(f"{fmt_k(n)} lines of {lang}")
+        langs = {k: v for k, v in lines.items() if isinstance(v, int) and v > 0 and k not in ("total", "all")}
+        main = r.get("main_language")
+        lang = main if main in langs else (max(langs, key=langs.get) if langs else None)
+        if lang:
+            parts.append(f"{fmt_k(langs[lang])} lines of {lang}")
     last = fmt_date(r.get("last_ns"))
     if last:
-        parts.append(f"last worked {last}")
-    return "<sub>" + " · ".join(parts) + "</sub>" if parts else ""
+        parts.append(f"last commit {last}")
+    return "*" + " · ".join(p.replace("*", r"\*") for p in parts) + "*" if parts else ""
 
 
 def facts_repos(text: str) -> list[str]:
@@ -375,12 +399,65 @@ INSTRUMENT_WORDS = {"live": "live", "cache": "cached", "partial": "partial", "no
 INSTRUMENT_NAMES = {"clones": "clones", "graphql": "GraphQL", "rest": "REST", "pypi": "PyPI", "releases": "releases"}
 
 
+AGENT_SHORT = {"google-labs-jules": "jules", "copilot-swe-agent": "Copilot", "devin-ai-integration": "Devin"}
+
+
+def agent_short(name: str) -> str:
+    """`google-labs-jules[bot]` → jules, `Claude Sonnet 5` → Claude: the agent, not the account or the model."""
+    n = re.sub(r"\[bot\]$", "", str(name)).strip()
+    if n in AGENT_SHORT:
+        return AGENT_SHORT[n]
+    return n.split()[0] if n.lower().startswith("claude") else n
+
+
+def _share_pct(v) -> str | None:
+    """0.031 → "3", 0.004 → "under 1", 0 → "0"; a figure over 1 is read as a percentage already."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return None
+    pct = v * 100 if v <= 1 else v
+    if 0 < pct < 0.5:
+        return "under 1"
+    return str(int(pct + 0.5))
+
+
+NBSP = "\u00a0"
+
+
+def agent_clause(stats: dict) -> str:
+    """F3.4: `3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules)
+    and are not counted as mine`. Each half prints only when its key is present: `coauthored_total.agent_share`
+    and `agent_authored` {total, names}."""
+    cot = stats.get("coauthored_total") if isinstance(stats.get("coauthored_total"), dict) else {}
+    pct = _share_pct(cot.get("agent_share"))
+    first = ""
+    if pct == "0":
+        first = "none of my commits carry an AI co-author trailer"
+    elif pct:
+        first = f"{pct}{NBSP}% of my commits carry an AI co-author trailer"
+    aa = stats.get("agent_authored") if isinstance(stats.get("agent_authored"), dict) else {}
+    total = aa.get("total")
+    second = ""
+    if isinstance(total, int) and not isinstance(total, bool) and total > 0:
+        raw = aa.get("names")
+        ranked = (sorted(raw, key=lambda k: -raw[k] if isinstance(raw[k], (int, float)) else 0) if isinstance(raw, dict)
+                  else list(raw) if isinstance(raw, list) else [])
+        names = list(dict.fromkeys(agent_short(n) for n in ranked if n))
+        who = f" ({', '.join(names)})" if names else ""
+        n = fmt_n(total)
+        if total == 1:
+            second = f"{'1 more was' if first else '1 commit was'} written by a coding agent{who} and is not counted as mine"
+        else:
+            second = f"{n} {'more' if first else 'commits'} were written by coding agents{who} and are not counted as mine"
+    return "; ".join(p for p in (first, second) if p)
+
+
 def survey_block(stats: dict, figs: dict | None = None) -> str:
-    """D5: the provenance line at the foot, from stats only. `Measured 7 Oct 2026 from clones of 21 public
-    repositories, author's commits on main, sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded · N commits carry
-    an AI co-author trailer · regenerated weekly.` An item whose key is absent is left out, never estimated: the
-    sweep item needs `sweep_dates` (or the `sweeps` entries), the co-author item `coauthored_total.agent`. No commit
-    totals (the three counts disagreed; the audit decides) and no instrument roll-call."""
+    """D5 / F3.4: the provenance line at the foot, from stats only. `Measured 9 Oct 2026 from clones of 21 public
+    repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one
+    change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer;
+    297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.`
+    An item whose key is absent is left out, never estimated (`sweep_dates` or the `sweeps` entries for the
+    bulk-edit days; agent_clause for its two halves). No commit total, no instrument roll-call."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
     parts: list[str] = []
@@ -388,21 +465,18 @@ def survey_block(stats: dict, figs: dict | None = None) -> str:
     repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
     lead = "Measured" + (f" {when}" if when else "")
     if repo_count:
-        lead += f" from clones of {repo_count} public repositories, author's commits on main"
+        lead += f" from clones of {repo_count} public repositories, my commits on their default branches"
         dates = fmt_days(sweep_dates(stats))
         if dates:
-            lead += f", sweep days ({dates}) excluded"
+            lead += f"; bulk-edit days ({dates}, when one change touched most repositories) are left out of the chart"
     if lead != "Measured":
         parts.append(lead)
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
         parts.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
-    # `agent`, not `count`: most Co-authored-by trailers name Ben himself (GitHub's squash merge adds the PR author)
-    cot = stats.get("coauthored_total")
-    co = cot.get("agent") if isinstance(cot, dict) else None
-    if isinstance(co, int) and not isinstance(co, bool):
-        parts.append("no commits carry an AI co-author trailer" if co == 0 else
-                     f"{fmt_n(co)} commit{'' if co == 1 else 's'} carr{'ies' if co == 1 else 'y'} an AI co-author trailer")
+    agents = agent_clause(stats)
+    if agents:
+        parts.append(agents)
     if not parts:
         return ""
     parts.append("regenerated weekly")
@@ -507,7 +581,7 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "instruments", instruments_block(cfg, fittings))
     text, _ = fill_block(text, "survey", survey_block(stats, figs))
     for name in facts_repos(text):
-        text, _ = fill_block(text, f"facts:{name}", facts_block(stats, name))
+        text, _ = fill_block(text, f"facts:{name}", facts_block(stats, name, cfg))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     for key in inline_keys(text):
