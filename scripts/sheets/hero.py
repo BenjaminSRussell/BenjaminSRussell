@@ -64,7 +64,7 @@ BREAKS: list[tuple[str, str, str]] = [
      "a 10-ring around every feature is a bubble chart; small-scale charts drop rings the pen cannot carry"),
     ("Title and land static at t=0 (five-second test; 7.2 t=0 floor)",
      "name, thesis, title lines, imprint, frame, rose, band, land masses, coastlines and feature names are present "
-     "at load with no fade; only the water draws in (contours deep-first, tints, danger lines, rocks, course, marks), "
+     "at load with no fade; only the water draws in (contours deep-first, the inner tint, danger lines, course, marks), "
      "then the boat sails 4–28 s; the opening still ends at 4.0 s",
      "orchestrator decision, round 2: a reader must never land on blank paper"),
     ("Marginalia moved (round 3)", "small corrections bottom-left, chart number top-right, folio folded into the "
@@ -744,7 +744,8 @@ def _build(ctx) -> str:
     defs.append(f'<clipPath id="surveyed"><rect x="{_fmt(drawable[0])}" y="{_fmt(drawable[1])}" '
                 f'width="{_fmt(limit_x - drawable[0])}" height="{_fmt(drawable[3])}"/></clipPath>')
     body.append('<g clip-path="url(#surveyed)">')          # nothing charted lies beyond the limit of survey (v9.2)
-    body.append(tl.fade_in(fill_level(10.0, theme.shallow_a, gen10 * s), 1.0, 1.0, rise=0))
+    # the outer tint is on the sheet at t = 0: the banks (features with no land) must not float as bare figures
+    body.append(fill_level(10.0, theme.shallow_a, gen10 * s))
     body.append(tl.fade_in(fill_level(5.0, theme.shallow_b, gen5 * s), 1.3, 1.0, rise=0))
     body.append('</g>')
     land_svg = [fill_level(0.0, theme.land), c.coastline(cs, theme)]
@@ -756,10 +757,10 @@ def _build(ctx) -> str:
     shoal_pts = [(f.x, f.y) for f in feats if f.kind == "shoal"]
     if shoal_pts:
         water_svg.append(c.danger_lines(cs, 5.0, theme, jit, inside=shoal_pts))
-    # the rocks: one path for the fringe, PEN ink, round caps make the dots
+    # the rocks: one path for the fringe, PEN ink, round caps make the dots; hard features, on the sheet at t = 0
     if rock_pts:
-        water_svg.append(f'<path d="{"".join(c.rock_d(x, y) for x, y, _n in rock_pts)}" fill="none" '
-                         f'{c.stroke("PEN", theme.ink, 0.9)}/>')
+        land_svg.append(f'<path d="{"".join(c.rock_d(x, y) for x, y, _n in rock_pts)}" fill="none" '
+                        f'{c.stroke("PEN", theme.ink, 0.9)}/>')
     land_svg.append(use("anchorage", *course[-1]))
     if profile is not None:   # the survey station on the profile shoal, under its figure
         land_svg.append(use("station", profile.x, profile.y + 20 * s))
