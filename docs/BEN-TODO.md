@@ -3,6 +3,14 @@
 The chart redraws itself weekly and on every push to `main`, but some facts are yours to set. Each item
 says what changes on the page when you do it. Items marked ✓ were done in the redesign branch.
 
+## Round 5 (9 Oct 2026, decision D3): the worker figure
+
+- **Fix the rustmapper README's worker figure.** The repository disagrees with itself: `governor.rs` says the pool
+  runs 256–1,024 workers, the README says 32–512, the PyPI page says 256. Until the three agree, the page's
+  first rustmapper bullet says only that the governor grows or shrinks the pool on redb commit latency, with no
+  number. Make them agree (the code is the one to trust), then the figure returns to the bullet with the README's
+  throughput figure beside it. (Item 5 below is the same ask for the sheet.)
+
 ## Round 4 (8 Oct 2026, decision D10): three asks
 
 - **Fill the position and contact slots.** `chart.toml [position] text` is the one line a hiring manager

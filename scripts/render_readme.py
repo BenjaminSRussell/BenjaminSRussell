@@ -6,7 +6,7 @@
     python3 scripts/render_readme.py --stdout   # print the rendered README
 
 Block markers (MASTERPLAN decision 3): `<!-- name:start -->…<!-- name:end -->` with names
-`picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10); `figures`,
+`picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10), `facts:<repo>` (v11, D4); `figures`,
 `instruments` and `log_lede` are still filled, empty, when a README carries them. A block the README
 does not carry is skipped: since v10 (round 4, D1) the page is the hero and written text, and a
 picture block is written only for a sheet whose markers are present. Inline figures:
@@ -231,44 +231,173 @@ LICENSE_LINE = ("<sub>**License** Code MIT; images and text CC BY 4.0; fonts und
                 "[`scripts/fonts/`](scripts/fonts/). To make your own, fork the repository, fill in `chart.toml` "
                 "and run the workflow; the images are regenerated from your repositories.</sub>")
 
+
+# ------------------------------------------------------------------ D4: the facts line under a flagship
+
+def _repo(stats: dict, name: str) -> dict | None:
+    """The repository entry named `name` (or carrying it as an alias)."""
+    for r in stats.get("repos") or []:
+        if isinstance(r, dict) and (r.get("name") == name or name in (r.get("aliases") or [])):
+            return r
+    return None
+
+
+def _count(v) -> int | None:
+    """A count from an int, a list, or a dict holding one under count/files/n."""
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, (list, tuple)):
+        return len(v)
+    if isinstance(v, dict):
+        for k in ("count", "files", "n", "total"):
+            if isinstance(v.get(k), int):
+                return v[k]
+    return None
+
+
+def _plural(n: int, one: str, many: str | None = None) -> str:
+    return f"{fmt_n(n)} {one if n == 1 else (many or one + 's')}"
+
+
+def fmt_k(n: int) -> str:
+    """16,234 → 16k; 950 → 950; 1,200,000 → 1.2M."""
+    if n >= 1_000_000:
+        s = f"{n / 1_000_000:.1f}".rstrip("0").rstrip(".")
+        return f"{s}M"
+    if n >= 1000:
+        return f"{round(n / 1000)}k"
+    return str(n)
+
+
+CI_WORDS = {"success": "passed", "failure": "failed", "cancelled": "cancelled", "timed_out": "timed out",
+            "skipped": "skipped", "neutral": "passed", "action_required": "needs attention"}
+
+
+def facts_block(stats: dict, name: str) -> str:
+    """D4: one plain line under a flagship from the D2 keys (`manifest`, `tests`, `workflows`, `ci`, `lines`,
+    `last_ns`). An item whose key is absent is left out, never estimated; no keys, no line."""
+    r = _repo(stats, name)
+    if not r:
+        return ""
+    parts: list[str] = []
+    man = r.get("manifest")
+    if isinstance(man, dict):
+        man = man.get("deps") or man.get("names") or man.get("top")
+    if isinstance(man, (list, tuple)):
+        names = [str(d.get("name") if isinstance(d, dict) else d) for d in man if d]
+        if names:
+            parts.append("Built on " + ", ".join(names[:5]))
+    tests = _count(r.get("tests"))
+    if tests is not None:
+        parts.append(_plural(tests, "test file"))
+    wf = _count(r.get("workflows"))
+    ci = r.get("ci")
+    if isinstance(ci, str):
+        ci = {"conclusion": ci}
+    run = ""
+    if isinstance(ci, dict) and ci.get("conclusion"):
+        word = CI_WORDS.get(str(ci["conclusion"]).lower(), str(ci["conclusion"]).replace("_", " "))
+        when = fmt_date(ci.get("date") or ci.get("at") or ci.get("run_at") or ci.get("updated_at"))
+        run = f"last run {word}" + (f" {when}" if when else "")
+    if wf is not None:
+        parts.append(_plural(wf, "workflow") + (f", {run}" if run else ""))
+    elif run:
+        parts.append(run)
+    lines = r.get("lines")
+    if isinstance(lines, dict) and isinstance(lines.get("by_language"), dict):
+        lines = lines["by_language"]
+    if isinstance(lines, dict):
+        langs = [(k, v) for k, v in lines.items() if isinstance(v, int) and v > 0 and k not in ("total", "all")]
+        if langs:
+            lang, n = max(langs, key=lambda kv: kv[1])
+            parts.append(f"{fmt_k(n)} lines of {lang}")
+    last = fmt_date(r.get("last_ns"))
+    if last:
+        parts.append(f"last worked {last}")
+    return "<sub>" + " · ".join(parts) + "</sub>" if parts else ""
+
+
+def facts_repos(text: str) -> list[str]:
+    """Every `facts:<repo>` block the README carries, in page order."""
+    return list(dict.fromkeys(re.findall(r"<!--\s*facts:([\w.-]+):start\b", text)))
+
+
+# ------------------------------------------------------------------ D5: the provenance line
+
+def fmt_days(dates) -> str:
+    """ISO dates → "9–10 Nov 2025, 1 and 7 Oct 2026": runs of consecutive days joined with an en dash, the rest
+    with commas and "and", grouped by month."""
+    days = []
+    for d in dates or []:
+        if isinstance(d, dict):
+            d = d.get("date") or d.get("d")
+        m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", str(d or ""))
+        if m:
+            days.append(dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3))))
+    days = sorted(set(days))
+    months: dict[tuple[int, int], list[str]] = {}
+    i = 0
+    while i < len(days):
+        j = i
+        while j + 1 < len(days) and days[j + 1] == days[j] + dt.timedelta(days=1) and days[j + 1].month == days[j].month:
+            j += 1
+        run = f"{days[i].day}–{days[j].day}" if j > i else str(days[i].day)
+        months.setdefault((days[i].year, days[i].month), []).append(run)
+        i = j + 1
+    out = []
+    for (y, mo), runs in months.items():
+        label = dt.date(y, mo, 1).strftime("%b %Y")
+        joined = runs[0] if len(runs) == 1 else ", ".join(runs[:-1]) + " and " + runs[-1]
+        out.append(f"{joined} {label}")
+    return ", ".join(out)
+
+
+def sweep_dates(stats: dict) -> list:
+    """`sweep_dates` (D2) when the builder writes it; else the dates of the `sweeps` entries it already writes."""
+    if isinstance(stats.get("sweep_dates"), list):
+        return stats["sweep_dates"]
+    sw = stats.get("sweeps")
+    if isinstance(sw, list):
+        return [s.get("date") if isinstance(s, dict) else s for s in sw]
+    return []
+
+
 INSTRUMENT_WORDS = {"live": "live", "cache": "cached", "partial": "partial", "none": "not read"}
 INSTRUMENT_NAMES = {"clones": "clones", "graphql": "GraphQL", "rest": "REST", "pypi": "PyPI", "releases": "releases"}
 
 
 def survey_block(stats: dict, figs: dict | None = None) -> str:
-    """The data line at the foot of the page (D5): when the data was collected, how many repositories, which
-    sources were live or cached, rustmapper's version. Plain words, no theme. The commit totals are off the page
-    (v11: the three counts disagreed; a data audit decides what comes back). Every figure comes from stats.json;
-    a key that is missing is left out, never guessed."""
+    """D5: the provenance line at the foot, from stats only. `Measured 7 Oct 2026 from clones of 21 public
+    repositories, author's commits on main, sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded · N commits carry
+    agent co-author trailers · regenerated weekly.` An item whose key is absent is left out, never estimated: the
+    sweep item needs `sweep_dates` (or the `sweeps` entries), the co-author item `coauthored_total`. No commit
+    totals (the three counts disagreed; the audit decides) and no instrument roll-call."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
     parts: list[str] = []
     when = figs.get("taken") or ""
-    if figs.get("taken_time"):
-        when = f"{when}, {figs['taken_time']}" if when else figs["taken_time"]
-    if when:
-        parts.append(f"collected {when}")
+    repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
+    lead = "Measured" + (f" {when}" if when else "")
+    if repo_count:
+        lead += f" from clones of {repo_count} public repositories, author's commits on main"
+        dates = fmt_days(sweep_dates(stats))
+        if dates:
+            lead += f", sweep days ({dates}) excluded"
+    if lead != "Measured":
+        parts.append(lead)
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
-        parts.append(f"the last collection failed{' on ' + failed if failed else ''}; these are the previous run's figures")
-    repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
-    if repo_count:
-        cloned = "cloned" if prov.get("instruments", {}).get("clones") == "live" else "read from the last clone"
-        parts.append(f"{repo_count} public repositories {cloned}")
-    inst = prov.get("instruments") if isinstance(prov.get("instruments"), dict) else {}
-    readings = [f"{INSTRUMENT_NAMES.get(k, k)} {INSTRUMENT_WORDS.get(str(v), str(v))}"
-                for k, v in inst.items() if v is not None]
-    if readings:
-        parts.append("sources: " + ", ".join(readings))
-    ed = stats.get("edition") if isinstance(stats.get("edition"), dict) else {}
-    if ed.get("project") and ed.get("version"):
-        line = f"{ed['project']} {ed['version']}"
-        if ed.get("date"):
-            line += f", {fmt_date(ed['date'])}"
-        parts.append(line)
+        parts.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
+    co = _count(stats.get("coauthored_total"))
+    if co is not None:
+        parts.append("no commits carry agent co-author trailers" if co == 0 else
+                     f"{fmt_n(co)} commit{'' if co == 1 else 's'} carr{'ies' if co == 1 else 'y'} agent co-author trailers")
     if not parts:
         return ""
-    return "<sub><b>Data</b> · " + " · ".join(parts) + ".</sub>"
+    parts.append("regenerated weekly")
+    return "<sub>" + " · ".join(parts) + ".</sub>"
 
 
 LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
@@ -368,6 +497,8 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "notices", notices_block(cfg, stats))
     text, _ = fill_block(text, "instruments", instruments_block(cfg, fittings))
     text, _ = fill_block(text, "survey", survey_block(stats, figs))
+    for name in facts_repos(text):
+        text, _ = fill_block(text, f"facts:{name}", facts_block(stats, name))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     for key in inline_keys(text):
