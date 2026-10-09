@@ -6,10 +6,10 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-The README is a nautical chart of one person's open-web work. Six sheets, one unit per sheet, every
-figure traceable to `assets/stats.json`: **depth is a count**. Contours at 5, 10, 20 and 50 enclose
-the water where fewer than that many commits were taken; a repository is a feature that lifts the
-field, and its area at the 5-contour is proportional to its commits (asserted within 8 % at build).
+The README is a nautical chart of one person's open-web work. One sheet, one unit, every figure
+traceable to `assets/stats.json`: **depth is a count**. Contours at 5 and 10 enclose the water where
+fewer than that many commits were taken in a week; a repository is a feature that lifts the field,
+and its area at the 5-contour is proportional to its commit-days (asserted within 8 % at build).
 
 ## Honesty conventions
 
@@ -48,7 +48,7 @@ sheet at 95 s, and every frame at every instant must read as a finished sheet.
 
 | Workflow | File | Purpose |
 |---|---|---|
-| chart | `.github/workflows/profile.yml` | nightly 06:20 UTC and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
+| chart | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
 | perf | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
 | README links | `.github/workflows/links.yml` | lychee over README.md weekly and on pull requests |
 
@@ -63,12 +63,12 @@ invent numbers. Do not hammer re-runs: the survey clones every public repository
 |---|---|---|---|
 | paper | `#F4EEE1` | `#0F1A2B` | the sheet |
 | paper_log | `#F8EEDB` | `#121C30` | the ship's log paper |
-| land | `#E9DFCA` | `#1F2730` | islands, coast |
+| land | `#E9DFCA` | `#263040` | islands, coast |
 | ink | `#1B2A41` | `#BBC5D1` | type, primary strokes |
-| ink2 | `#34465F` | `#8894A6` | secondary type, lines |
-| muted | `#56657B` | `#98A7BF` | captions |
-| shallow_a | `#D8E7F1` | `#10294A` | water under 10 |
-| shallow_b | `#BEDAEC` | `#123A5E` | water under 5 |
+| ink2 | `#34465F` | `#98A7BF` | secondary type, lines |
+| muted | `#56657B` | `#8894A6` | captions |
+| shallow_a | `#D8E7F1` | `#12325A` | water under 10 |
+| shallow_b | `#BEDAEC` | `#1A4470` | water under 5 |
 | accent | `#D73626` | `#FF6853` | red lateral marks |
 | ok | `#227A48` | `#45E499` | green lateral marks |
 | flare | `#C81392` | `#FF5ACD` | light flares and halos (chart magenta) |
@@ -76,12 +76,12 @@ invent numbers. Do not hammer re-runs: the survey clones every public repository
 | hair | `#CDC3AE` | `#2A3A55` | hairlines, sheet edge |
 | unsurveyed | `#34465F` | `#8894A6` | hatch ink for the unsurveyed band |
 
-| Weight | px |
-|---|---|
-| HAIR | 0.8 |
-| PEN | 1.3 |
-| LINE | 2.1 |
-| BRUSH | 3.4 |
+| Weight | day px | night px |
+|---|---|---|
+| HAIR | 0.8 | 0.96 |
+| PEN | 1.3 | 1.56 |
+| LINE | 2.1 | 2.52 |
+| BRUSH | 3.4 | 4.08 |
 
 | Role | Font | Size | Tracking | Case |
 |---|---|---|---|---|
@@ -90,13 +90,13 @@ invent numbers. Do not hammer re-runs: the survey clones every public repository
 | figure-2 | serif | 68 | -1.0 | figures |
 | thesis | serif-italic | 41 | -0.2 | mixed |
 | title | serif | 41 | -1.0 | mixed |
-| sea-name | serif-italic | 41 | +2.0 | mixed |
+| sea-name | serif-italic | 41 | +0.0 | mixed |
 | place-water | serif-italic | 25 | +0.0 | mixed |
 | place-land | serif | 25 | +0.0 | mixed |
 | note | serif-italic | 25 | +0.0 | mixed |
 | label | cond | 19 | +0.0 | mixed |
 | label-italic | cond-italic | 19 | +0.0 | mixed |
-| label-caps | cond | 19 | +0.8 | caps |
+| label-caps | cond | 19 | +1.6 | caps |
 | texture | cond | 16 | +0.0 | figures |
 | texture-italic | cond-italic | 16 | +0.0 | figures |
 | machine | plex | 19 | +0.0 | typed |

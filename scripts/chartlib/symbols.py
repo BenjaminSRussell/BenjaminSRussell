@@ -17,7 +17,7 @@ from .furniture import stroke, op
 __all__ = ["SYMBOL_NAMES", "symbol_defs", "symbol_ids", "use", "sloop", "lateral", "light", "flare", "halo",
            "traffic_signal", "horn", "anchorage", "wreck", "waypoint", "station", "fix", "ldg_triangle",
            "rep_ring", "ed_islet", "correction_mark", "correction", "doubt", "serpent", "lit_core", "tick",
-           "SLOOP_DETAIL", "SLOOP_GLYPH"]
+           "rock", "rock_d", "SLOOP_DETAIL", "SLOOP_GLYPH"]
 
 SYMBOL_NAMES = ("sloop", "sloop-glyph", "can", "nun", "light", "flare", "traffic", "horn", "anchorage", "wreck",
                 "waypoint", "station", "fix", "ldg", "halo", "correction", "rep", "ed")
@@ -195,6 +195,25 @@ def tick(theme) -> str:
     it is not in SYMBOL_NAMES and the legend never has to define it. A sheet puts it in its own <defs>
     as <g id="{prefix}-sym-tick"> and places it with use()."""
     return f'<path d="M-3.5 0H3.5" fill="none" {stroke("PEN", theme.ink, 0.85)}/>'
+
+
+ROCK_ARM = 4.5        # half-length of the cross
+ROCK_DOT = 3.0        # the four dots sit at (±ROCK_DOT, ±ROCK_DOT): a rock awash, chart grammar
+
+
+def rock_d(x, y) -> str:
+    """Path data for one rock mark at (x, y): a cross with a dot in each quadrant (the chart's rock awash),
+    for a round-capped PEN stroke — the dots are zero-length segments the caps round into points. The hero
+    draws every rock of its fringe as one <path> of these (v10, D3)."""
+    a, d = ROCK_ARM, ROCK_DOT
+    return (f"M{fmt(x - a)} {fmt(y)}H{fmt(x + a)}M{fmt(x)} {fmt(y - a)}V{fmt(y + a)}"
+            + "".join(f"M{fmt(x + sx * d)} {fmt(y + sy * d)}h0" for sx, sy in ((-1, -1), (1, -1), (-1, 1), (1, 1))))
+
+
+def rock(theme) -> str:
+    """The rock mark as a symbol body (origin at the rock). Like tick(), it is not in SYMBOL_NAMES: a sheet
+    that places it with use() puts it in its own <defs> as <g id="{prefix}-sym-rock">."""
+    return f'<path d="{rock_d(0, 0)}" fill="none" {stroke("PEN", theme.ink)}/>'
 
 
 def fix(theme) -> str:

@@ -41,9 +41,9 @@ THEMES: dict[str, Theme] = {
     ),
     "night": Theme(
         edition="night",
-        paper="#0F1A2B", paper_log="#121C30", land="#1F2730",
-        ink="#BBC5D1", ink2="#8894A6", muted="#98A7BF",
-        shallow_a="#10294A", shallow_b="#123A5E",
+        paper="#0F1A2B", paper_log="#121C30", land="#263040",
+        ink="#BBC5D1", ink2="#98A7BF", muted="#8894A6",
+        shallow_a="#12325A", shallow_b="#1A4470",   # D6 asked #13304F; #12325A is the nearest that keeps ΔE_ok ≥ .04 from the land
         accent="#FF6853", ok="#45E499", flare="#FF5ACD", light_core="#F8F5EE",
         hair="#2A3A55", unsurveyed="#8894A6",
     ),
@@ -53,6 +53,10 @@ THEMES: dict[str, Theme] = {
 # v9.1: weights carry the DISPLAY factor (a 1280 sheet is shown at ~870 px in the README column, x0.68):
 # HAIR 0.8 prints at 0.55 px, PEN at 0.9 px.
 W = {"HAIR": 0.8, "PEN": 1.3, "LINE": 2.1, "BRUSH": 3.4}
+# v10 (round 4, D6): night is redrawn, not swapped — light-on-dark reads thinner, so every weight is ×1.2 at
+# night. chartlib.stroke() applies the factor when a sheet calls chartlib.set_night(True) for its night build.
+NIGHT_WEIGHT = 1.2
+W_NIGHT = {k: round(v * NIGHT_WEIGHT, 2) for k, v in W.items()}
 # Opacity levels for ink (T6 / 15): five levels, named.
 INK = {"full": 1.0, "strong": 0.85, "mid": 0.62, "soft": 0.45, "faint": 0.25}
 # Dash patterns; {g} is the danger-line gap chosen per feature circumference by chartlib.
@@ -78,13 +82,13 @@ _DESK = {
     "figure-2":    ("serif", 68, -1.0, "figures", "none"),
     "thesis":      ("serif-italic", 41, -0.2, "mixed", "none"),
     "title":       ("serif", 41, -1.0, "mixed", "grade"),
-    "sea-name":    ("serif-italic", 41, 2.0, "mixed", "grade"),
+    "sea-name":    ("serif-italic", 41, 0.0, "mixed", "grade"),      # v10 (D7): italics untracked
     "place-water": ("serif-italic", 25, 0.0, "mixed", "grade"),
     "place-land":  ("serif", 25, 0.0, "mixed", "grade"),
     "note":        ("serif-italic", 25, 0.0, "mixed", "grade"),
     "label":       ("cond", 19, 0.0, "mixed", "none"),
     "label-italic": ("cond-italic", 19, 0.0, "mixed", "none"),
-    "label-caps":  ("cond", 19, 0.8, "caps", "none"),
+    "label-caps":  ("cond", 19, 1.6, "caps", "none"),                # v10 (D7): chart caps are spaced
     "texture":     ("cond", 16, 0.0, "figures", "none"),
     "texture-italic": ("cond-italic", 16, 0.0, "figures", "none"),
     "machine":     ("plex", 19, 0.0, "typed", "none"),
@@ -135,7 +139,7 @@ def markdown_tables() -> str:
     d, n = asdict(THEMES["day"]), asdict(THEMES["night"])
     for key, use in uses.items():
         out.append(f"| {key} | `{d[key]}` | `{n[key]}` | {use} |")
-    out += ["", "| Weight | px |", "|---|---|"] + [f"| {k} | {v} |" for k, v in W.items()]
+    out += ["", "| Weight | day px | night px |", "|---|---|---|"] + [f"| {k} | {v} | {W_NIGHT[k]} |" for k, v in W.items()]
     out += ["", "| Role | Font | Size | Tracking | Case |", "|---|---|---|---|---|"]
     for r, (f, s, t, c, _g) in _DESK.items():
         out.append(f"| {r} | {f} | {s} | {t:+.1f} | {c} |")
@@ -152,10 +156,10 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-The README is a nautical chart of one person's open-web work. Six sheets, one unit per sheet, every
-figure traceable to `assets/stats.json`: **depth is a count**. Contours at 5, 10, 20 and 50 enclose
-the water where fewer than that many commits were taken; a repository is a feature that lifts the
-field, and its area at the 5-contour is proportional to its commits (asserted within 8 % at build).
+The README is a nautical chart of one person's open-web work. One sheet, one unit, every figure
+traceable to `assets/stats.json`: **depth is a count**. Contours at 5 and 10 enclose the water where
+fewer than that many commits were taken in a week; a repository is a feature that lifts the field,
+and its area at the 5-contour is proportional to its commit-days (asserted within 8 % at build).
 
 ## Honesty conventions
 
@@ -194,7 +198,7 @@ sheet at 95 s, and every frame at every instant must read as a finished sheet.
 
 | Workflow | File | Purpose |
 |---|---|---|
-| chart | `.github/workflows/profile.yml` | nightly 06:20 UTC and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
+| chart | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
 | perf | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
 | README links | `.github/workflows/links.yml` | lychee over README.md weekly and on pull requests |
 
