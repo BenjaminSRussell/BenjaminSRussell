@@ -12,7 +12,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(HERE), "scripts"))
 
 from data import derive as D, logsim, model, releases  # noqa: E402
-from data.claims import claims, upright_ok  # noqa: E402
+from data.claims import claims, job_interval, upright_ok, verify_scrape_interval  # noqa: E402
+from data import claims as claims_mod  # noqa: E402
 from data import github, tree  # noqa: E402
 from data.survey import Commit, commit_days, is_ben, is_bot, parse_log, span_label, summarize, week_starts  # noqa: E402
 import build_stats  # noqa: E402
@@ -205,8 +206,38 @@ class Derive(unittest.TestCase):
         self.assertEqual(hw["sweep_share"], round(22 / 142, 3))
         self.assertEqual(sum(w["n"] for w in self.d["weeks"]), sum(sum(r["weeks"]) for r in self.recs))  # nothing removed
         self.assertEqual(self.d["merges"], 0)
-        self.assertEqual(self.d["coauthored_total"], {"count": 0, "share": 0.0, "agent": 0, "names": {}})
+        self.assertEqual(self.d["coauthored_total"], {"count": 0, "share": 0.0, "agent": 0, "agent_share": 0.0, "names": {}})
         self.assertEqual(self.d["sweep_dates"], [sw["date"] for sw in self.d["sweeps"]])
+
+    def test_agent_authored_and_agent_share(self):
+        recs = copy.deepcopy(fixture_records())
+        recs[0]["others"] = [{"name": "Claude", "commits": 4, "bot": True}, {"name": "dependabot[bot]", "commits": 2, "bot": True}]
+        recs[1]["others"] = [{"name": "google-labs-jules[bot]", "commits": 10, "bot": True},
+                             {"name": "A Person", "commits": 3, "bot": False}]
+        recs[1]["coauthored"] = {"count": 20, "share": 0.1, "agent": 7, "names": {"Claude Sonnet 5": 7}}
+        d = D.derive(recs, TAKEN)
+        self.assertEqual(d["agent_authored"], {"total": 14, "names": {"google-labs-jules[bot]": 10, "Claude": 4},
+                                               "automation": {"dependabot[bot]": 2}})
+        commits = sum(r["commits"] for r in recs)
+        self.assertEqual(d["coauthored_total"]["agent"], 7)
+        self.assertEqual(d["coauthored_total"]["agent_share"], round(7 / commits, 3))
+
+    def test_main_language_per_repo_from_lines(self):
+        recs = copy.deepcopy(fixture_records())
+        recs[0]["lines"] = {"HTML": 900, "Python": 120}
+        recs[1]["lines"] = None
+        d = D.derive(recs, TAKEN)
+        by = {r["name"]: r for r in d["repos"]}
+        self.assertEqual((by["steady"]["main_language"], by["sprint"]["main_language"]), ("Python", None))
+
+    def test_zero_test_functions_only_where_counted_languages_lead(self):
+        recs = copy.deepcopy(fixture_records())
+        recs[0].update(lines={"Swift": 9000, "Python": 40}, test_functions=0)    # a Swift app with one helper script
+        recs[1].update(lines={"Rust": 900}, test_functions=0)                   # Rust with no tests: a true zero
+        recs[2].update(lines={"JavaScript": 900, "Python": 400}, test_functions=12)
+        by = {r["name"]: r for r in D.derive(recs, TAKEN)["repos"]}
+        self.assertEqual((by["steady"]["test_functions"], by["sprint"]["test_functions"], by["dormant"]["test_functions"]),
+                         (None, 0, 12))
 
     def test_months_first_last_without_sweeps(self):
         by = {r["name"]: r for r in self.d["repos"]}
@@ -305,6 +336,67 @@ class Validate(unittest.TestCase):
             got = json.load(fh).get("claims") or {}
         self.assertEqual(got, want)
 
+    # Scrapy:Scraping_project/monitoring/prometheus.yml at 74fd4f7, lines 1-3 and 25-30, verbatim
+    PROMETHEUS_AT_74FD4F7 = """global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape Scrapy application metrics - Multiple instances for extreme throughput
+  - job_name: 'scrapy_app'
+    scrape_interval: 30s  # OPTIMIZED: Reduced from 10s (66% less load, still plenty for monitoring)
+    scrape_timeout: 10s
+    static_configs:
+      - targets:
+          - 'scrapy-app:9410'
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+"""
+
+    def test_scrape_interval_is_the_jobs_not_the_global(self):
+        text = self.PROMETHEUS_AT_74FD4F7
+        self.assertEqual(job_interval(text, "scrapy_app"), 30)
+        self.assertIsNone(job_interval(text, "prometheus"))     # inherits the 15 s global: not the job's own figure
+        self.assertIsNone(job_interval(text, "kafka_jmx"))
+        self.assertEqual((claims_mod.duration_s("1m30s"), claims_mod.duration_s("500ms"), claims_mod.duration_s("30")),
+                         (90, 0, None))
+        cl = claims()["scrape_interval"]                          # chart.toml, as committed
+        self.assertEqual((cl["value"], cl["unit"], cl["sha"]), (30, "s", "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"))
+        self.assertEqual(claims_mod.cited(cl), ("Scrapy", "Scraping_project/monitoring/prometheus.yml", "scrapy_app"))
+        self.assertTrue(upright_ok(cl))
+
+    def test_verify_scrape_interval_against_the_file(self):
+        cl = claims()
+        reads = []
+
+        def read(repo, sha, path):
+            reads.append((repo, sha, path))
+            return self.PROMETHEUS_AT_74FD4F7
+        self.assertTrue(verify_scrape_interval(cl, read)["scrape_interval"]["measured"])
+        self.assertEqual(reads, [("Scrapy", cl["scrape_interval"]["sha"], "Scraping_project/monitoring/prometheus.yml")])
+        wrong = {**cl, "scrape_interval": {**cl["scrape_interval"], "value": 15}}          # the global, quoted as the job's
+        self.assertFalse(verify_scrape_interval(wrong, read)["scrape_interval"]["measured"])
+        no_job = {**cl, "scrape_interval": {**cl["scrape_interval"], "source": "Scrapy:x/prometheus.yml (global)"}}
+        self.assertFalse(verify_scrape_interval(no_job, read)["scrape_interval"]["measured"])
+        self.assertTrue(verify_scrape_interval(cl, lambda *a: None)["scrape_interval"]["measured"])   # no clone: as stated
+
+    def test_committed_stats_carry_the_f2_keys(self):
+        import json
+        from data import STATS_PATH
+        with open(STATS_PATH, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        if "agent_authored" not in stats:
+            self.skipTest("stats.json predates F2")
+        ag = stats["agent_authored"]
+        bots = sum(o["commits"] for r in stats["repos"] for o in r["others"] if o["bot"])
+        self.assertEqual(ag["total"] + sum(ag["automation"].values()), bots)
+        ct = stats["coauthored_total"]
+        self.assertEqual(ct["agent_share"], round(ct["agent"] / stats["commits"], 3))
+        for r in stats["repos"]:
+            self.assertIn("test_functions", r)
+            self.assertEqual(r["main_language"], tree.main_language(r.get("lines")))
+
     def test_claims_default_never_upright(self):
         for cid, cl in claims({}).items():
             self.assertFalse(cl["measured"], cid)
@@ -399,6 +491,22 @@ class Tree(unittest.TestCase):
         self.assertTrue(tree.excluded("target/debug/a.rs", "r", self.CFG))
         self.assertFalse(tree.excluded("src/target.rs", "r", self.CFG))
 
+    def test_test_function_patterns(self):
+        rust = (b"fn helper() {}\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn a() {}\n    #[tokio::test]\n    async fn b() {}\n"
+                b"    #[tokio::test(flavor = \"multi_thread\", worker_threads = 2)]\n    async fn c() {}\n    #[rstest]\n    fn d() {}\n"
+                b"    #[test_case(1)]\n    fn e() {}\n    // #[test] in a comment is not at line start\n    #[testing]\n    fn f() {}\n}\n")
+        self.assertEqual(len(tree.RUST_TEST.findall(rust)), 4)
+        py = (b"def test_a():\n    pass\nasync def test_b():\n    pass\nclass T:\n    def test_c(self):\n        pass\n"
+              b"    def helper_test_(self):\n        pass\ndef testing():\n    pass\nx = 'def test_d('\n")
+        self.assertEqual(len(tree.PY_TEST.findall(py)), 3)
+
+    def test_main_language_skips_markup_and_data(self):
+        self.assertEqual(tree.main_language({"HTML": 9000, "CSS": 4000, "Python": 100}), "Python")
+        self.assertEqual(tree.main_language({"JSON": 50, "HTML": 90}), "HTML")      # nothing else: the largest
+        self.assertEqual(tree.main_language({"Swift": 10, "Rust": 10}), "Rust")     # tie: alphabetical, stable
+        self.assertIsNone(tree.main_language({}))
+        self.assertIsNone(tree.main_language(None))
+
     def test_manifest_parsers(self):
         self.assertEqual(tree.deps_from("Cargo.toml", '[package]\nname="x"\n[dependencies]\ntokio = { version = "1" }\nredb = "2"\n'
                                         '[dev-dependencies]\ncriterion = "0.5"\n'), ["tokio", "redb"])
@@ -428,13 +536,18 @@ class Tree(unittest.TestCase):
             open(os.path.join(d, "README.md"), "w").write("not code\n")
             open(os.path.join(d, "blob.py"), "wb").write(b"\x00\x01\n\n")
             open(os.path.join(d, "big.js"), "w").write("z\n" * 300000)                   # 600 KB: data, skipped
+            open(os.path.join(d, "src", "engine", "gen_test.py"), "w").write("def test_gen():\n    pass\n")
+            open(os.path.join(d, "helpers.py"), "w").write("def test_connection():\n    pass\n")      # not collected by pytest
             subprocess.run(["git", "-C", d, "add", "-A"], check=True, env=env)
             subprocess.run(["git", "-C", d, "commit", "-q", "-m", "x"], check=True, env=env)
             git_dir = os.path.join(d, ".git")
-            self.assertEqual(tree.lines_by_language(git_dir, "r", self.CFG), {"C": 50, "Python": 3, "Rust": 2})
-            self.assertEqual(tree.lines_by_language(git_dir, "game_engine", self.CFG), {"Python": 3, "Rust": 2})
+            self.assertEqual(tree.lines_by_language(git_dir, "r", self.CFG), {"C": 50, "Python": 7, "Rust": 2})
+            self.assertEqual(tree.lines_by_language(git_dir, "game_engine", self.CFG), {"Python": 5, "Rust": 2})
+            self.assertEqual(tree.scan_head(git_dir, "r", self.CFG)["lines"], {"C": 50, "Python": 7, "Rust": 2})
+            self.assertEqual(tree.scan_head(git_dir, "r", self.CFG)["test_functions"], 1)   # gen_test.py; helpers.py is not collected
+            self.assertEqual(tree.scan_head(git_dir, "game_engine", self.CFG)["test_functions"], 0)  # excluded there
             facts = tree.tree_facts(git_dir, "r", self.CFG)
-            self.assertEqual((facts["tests"], facts["workflows"], facts["manifest"]), (0, 0, None))
+            self.assertEqual((facts["tests"], facts["workflows"], facts["manifest"]), (1, 0, None))   # src/engine/gen_test.py
         self.assertIsNone(tree.lines_by_language("/nonexistent/.git", "r", self.CFG))
 
     def test_rest_runs_reads_main_push_runs(self):

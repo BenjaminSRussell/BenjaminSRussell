@@ -319,7 +319,7 @@ class SupportingSheets(unittest.TestCase):
         cfg = build_assets.load_cfg()
         for r in stats["repos"]:
             self.assertIn(gazetteer.name_of(r["name"], stats, cfg).upper(), names, r["name"])
-        self.assertNotIn("SCRAPY", names)
+        self.assertNotIn("SCRAPY HARBOR", names)      # D3: the project is Scrapy; the v8 coinage is gone with [[features]]
         # the HW cause is named through the gazetteer on both editions
         for ed in ("day", "phone-day"):
             hw = next(t["s"] for t in Built.text_of(f"soundings-{ed}") if t.get("key") == "tide.hw")

@@ -117,7 +117,7 @@ GRADE = {"day": ("spread", 0.22), "night": ("choke", 0.18)}
 
 # Motion tokens (T4): easings, loop periods, the discrete grid.
 EASE = {"settle": "0.16 0.84 0.44 1", "draw": "0.4 0 0.2 1", "sea": "0.37 0 0.63 1", "linear": "0 0 1 1"}
-LOOP_PERIODS = (1, 4, 10, 15, 96)
+LOOP_PERIODS = (1, 4, 10, 15, 30, 96)   # 30: the Scrapy light, claims.scrape_interval (scrapy_app job, round 5 F2)
 QUANTUM = 0.5
 PAGE_PERIOD = 96.0
 

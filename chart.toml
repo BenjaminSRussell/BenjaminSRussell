@@ -86,9 +86,11 @@ game_engine = ["src/engine"]   # 5,212 generated C files over 8 commit-days (rou
 # ----------------------------------------------------------------- claims (figures about the code, not about Ben)
 # measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
 [claims.scrape_interval]
-value = 15
+# The crawler's own job, not Prometheus's global default (15 s, which only Prometheus's self-scrape uses).
+# build_stats re-reads the job at `sha` from the Scrapy clone and sets measured = false if it disagrees.
+value = 30
 unit = "s"
-source = "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)"
+source = "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)"
 sha = "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"
 measured = true
 

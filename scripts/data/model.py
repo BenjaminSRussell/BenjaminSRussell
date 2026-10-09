@@ -45,6 +45,8 @@ class Repo(TypedDict, total=False):
     first_ns: str | None # first / last commit-day that is not a sweep day
     last_ns: str | None
     tests: int | None    # test files at HEAD (data.tree)
+    test_functions: int | None  # Rust #[test]/#[tokio::test]/#[rstest] + Python def test_ at HEAD; None without .rs/.py
+    main_language: str | None   # largest programming language in `lines` (markup and data only if nothing else)
     workflows: int | None
     manifest: dict | None  # {files, deps}
     lines: dict | None   # {language: lines} at HEAD, vendored/generated excluded
@@ -115,6 +117,7 @@ class Stats(TypedDict, total=False):
     commits: int
     merges: int
     coauthored_total: dict
+    agent_authored: dict        # {total, names, automation}: commits whose author is a coding agent
     sweep_dates: list[str]
     all_hands: int
     calendar_total: int | None
@@ -305,6 +308,12 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
             errs.append("all_hands != Σ repos[].all_hands")
         if "merges" in stats and stats["merges"] != sum(r.get("merges", 0) for r in repos):
             errs.append("merges != Σ repos[].merges")
+        ag = stats.get("agent_authored")
+        if ag and ag.get("total") != sum((ag.get("names") or {}).values()):
+            errs.append("agent_authored.total != Σ agent_authored.names")
+        bots = sum(o.get("commits", 0) for r in repos for o in r.get("others") or [] if o.get("bot"))
+        if ag and ag.get("total", 0) + sum((ag.get("automation") or {}).values()) != bots:
+            errs.append("agent_authored total + automation != Σ others[] with bot: true")
         ct = stats.get("coauthored_total")
         if ct and ct.get("count") != sum((r.get("coauthored") or {}).get("count", 0) for r in repos):
             errs.append("coauthored_total.count != Σ repos[].coauthored.count")

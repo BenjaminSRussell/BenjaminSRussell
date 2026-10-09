@@ -44,7 +44,7 @@ is one of `[identity] emails`, or it is a `@users.noreply.github.com` address co
 (`survey.py:77`, list in `chart.toml [identity]`). The committer field is ignored, so a squash made through
 GitHub's merge button (committer "GitHub") is yours. `Co-authored-by` trailers do not move a commit: a commit
 authored by "Claude" with you as co-author is Claude's; a commit authored by you with a Claude trailer is yours
-(it is now counted in `co_authored`). Merge commits count like any other commit (now counted in `merges`).
+(it is now counted in `coauthored`). Merge commits count like any other commit (now counted in `merges`).
 Bots are not dropped from `all_hands`; they are listed in `others[]` with `bot: true`.
 
 **Over what window.** All-time for `commits`, `all_hands`, `commit_days`, `hours`, `weekdays`, `first`,
@@ -57,7 +57,7 @@ made between 25 Sep and 12 Oct 2025.
 |---|---|
 | `commits` | Σ over repositories of commits on `HEAD` whose author matches `[identity]` (`survey.py:238,264`; sum at `derive.py:182`). All time. Cache 7 Oct: 1,665. Today: 2,032. |
 | `merges` (new) | Of `commits`, those with two or more parents (`survey.py:265`). Today: 405 (20 %). |
-| `coauthored` (new) | Of `commits`, those carrying a `Co-authored-by` trailer: `{count, share, agent, names}` (`survey.py`, `coauthored()`). `count` = any trailer; `agent` = a trailer naming a `[identity] bots` name (exactly or as its first word, "Claude Sonnet 5") or a `[bot]` account; `names` = the non-self co-author names with counts. Today: 502 (25 %) carry a trailer, 440 of them naming you yourself (GitHub's squash-merge adds the PR author), 63 naming a Claude model. Top-level `coauthored_total` is the same shape over every repository. |
+| `coauthored` (new) | Of `commits`, those carrying a `Co-authored-by` trailer: `{count, share, agent, names}` (`survey.py`, `coauthored()`). `count` = any trailer; `agent` = a trailer naming a `[identity] bots` name (exactly or as its first word, "Claude Sonnet 5") or a `[bot]` account; `names` = the non-self co-author names with counts. Today: 502 (25 %) carry a trailer, 440 of them naming you yourself (GitHub's squash-merge adds the PR author), 63 naming a Claude model. Top-level `coauthored_total` is the same shape over every repository, plus `agent_share` = `agent` / `commits` (today 63 / 2,032 = 0.031). All counted over every day, sweep days included. |
 | `all_hands` | Every commit on `HEAD` by anyone, bots included (`survey.py`, `summarize()`). 7 Oct: 1,966 = 1,665 yours + 301 others (jules 125, Claude 162, dependabot 4, …). |
 | `calendar_total` | GraphQL `contributionsCollection(from, to).totalCommitContributions`, one query per calendar year since the account was created, summed (`github.py:105`). GitHub's own rule: commits on the default branch (or `gh-pages`) of any non-fork repository the viewer can see, where the commit's author email is linked to the account. Private repositories only if the profile shows private contributions. **The cached 1,828 was seeded in v7 and never measured by this pipeline** (`git show 4b1c299:assets/stats.json`: `"seeded": true`). Cache mode now carries it only when `provenance.graphql_at` says when it was fetched (`build_stats.py:56`); until the next live run it is `null`. |
 | `calendar` (new) | The same collection asked once for the 52 clone weeks: `commits`, `issues`, `pull_requests`, `reviews`, `restricted` (private), `all` (the green squares) and `commits_by_repo` for your own public repositories (`github.py:50,121-143`). Live only. |
@@ -74,7 +74,10 @@ made between 25 Sep and 12 Oct 2025.
 | `repos[].months` (new) | Commit-days of yours per month, `{YYYY-MM: days}`, sweep days excluded; a month with none is absent. Rust-sitemap: `{"2025-10": 7, "2025-11": 9, "2025-12": 1, "2026-05": 1, "2026-08": 1}`. The series D1 draws. |
 | `repos[].first_ns` / `last_ns` (new) | First and last commit-day of yours that is not a sweep day; `null` when every day was a sweep (Course_crusader, Elusive_trades_data, Spotify_to_apple_music, rust_llm_logger, mlx_Qwen_data_entry today). Rust-sitemap: 20 Oct 2025 – 8 Aug 2026 (its raw `last` reads 7 Oct 2026, the sweep). |
 | `repos[].tests` (new) | Files at `HEAD` named `test_*.py`, `*_test.py`, `*_test.go`, `*.test.ts/.tsx/.js`, `*.spec.ts`, `*Tests.swift`, or any `.rs` under a `tests/` directory, vendored directories excluded (`tree.py`, `TEST_PATTERNS`). Scrapy 257, Rust-sitemap 3, cozy-game 0. A count of files, not of tests or of coverage. |
-| `repos[].workflows` (new) | Files `.github/workflows/*.yml|yaml` at `HEAD` (`tree.py`, `WORKFLOW`). Scrapy 5, Rust-sitemap 1; cozy-game and 2d-swift-widgets 0. |
+| `repos[].test_functions` (new, F2) | Test functions at `HEAD`, Rust and Python only (`tree.py`, `scan_head()`): `#[test]`, `#[tokio::test]` (with or without arguments) and `#[rstest]` attributes in every `.rs` file, since Rust unit tests live inline in `#[cfg(test)]` modules; `def test_…(` and `async def test_…(` in the Python files pytest collects (`test_*.py`, `*_test.py`). Same exclusions as `lines`. `null` when the repository has no Rust or Python file, and also (`derive.py`) when the count is 0 and neither is the main language, so a Swift app with one helper script never reads "0 tests". Rust-sitemap **176** (128 `#[test]` + 29 `#[tokio::test]` + 3 `#[tokio::test(flavor…)]` in `src/`, 1 in `tests/`, 15 Python); Scrapy **1,920**. The round-5 skeptic counted 115 in rustmapper's `src/`; at its HEAD (32c2651, 7 Oct) the attributes number 160 and the nearest other definition, functions named `fn test_…`, gives 118. Swift, Go and JavaScript tests are counted only as files. |
+| `repos[].main_language` (new, F2) | The language with most `lines` at `HEAD`, leaving out markup and data (Markdown, JSON, YAML, TOML, HTML, CSS) unless nothing else is there (`tree.py`, `main_language()`; set in `derive.py` so cached records get it too). Present for all 21; unlike `repos[].language` it does not depend on which API answered. Scrapy Python, Rust-sitemap Rust, game_engine C, Data_science_dev JavaScript. |
+| `repos[].workflows` (new) | Files `.github/workflows/*.yml|yaml` at `HEAD` (`tree.py`, `WORKFLOW`). Scrapy 5, Rust-sitemap 1; 19 of 21 have at least one (cozy-game and 2d-swift-widgets have none). |
+| `agent_authored` (new, F2) | Commits on `HEAD` whose *author* is a coding agent: `others[]` with `bot: true`, less dependency and CI automation (`survey.AUTOMATION`: dependabot, renovate, github-actions, pre-commit-ci), as `{total, names, automation}` (`derive.py`, `agent_authored()`). None of these commits is in `commits`. Today `{"total": 297, "names": {"Claude": 172, "google-labs-jules[bot]": 125}, "automation": {"dependabot[bot]": 8}}`; `total` + `automation` = every `bot: true` commit (305), checked by the validator. |
 | `repos[].manifest` (new) | `{files, deps}`: the manifests found at the root or one directory down (`Cargo.toml`, `pyproject.toml`, `package.json`, `go.mod`, `Package.swift`) and the dependency names they declare, in file order, deduplicated, capped at 40, dev/test groups and transitive dependencies left out, Go module paths reduced to their last segment (`tree.py`, `deps_from()`). `null` when there is no manifest; `requirements.txt` is not read. Rust-sitemap: `clap, rkyv, rkyv_derive, redb, reqwest, tokio, …` (40). |
 | `repos[].lines` (new) | `{language: lines}` at `HEAD` from a depth-1 clone (`survey.py`, `clone_head()`; `tree.py`, `lines_by_language()`): newlines of files whose extension names a programming language (`tree.LANGUAGES`), skipping binary files, files over 512 KB, the directories in `chart.toml [lines] exclude_dirs` (node_modules, vendor, target, build, dist, .venv, venv, __pycache__, site-packages, third_party) and the per-repository `[lines.exclude]` paths (game_engine `src/engine`, 5,212 generated C files). Rust-sitemap `{"Rust": 16390, "Python": 848}`; Scrapy `{"Python": 69036, "JavaScript": 2561, "Shell": 2334, "HTML": 1883, "Rust": 1003, "SQL": 232}`. Lines in the clone, not lines you typed: game_engine still holds 151,872 lines of C outside `src/engine`. |
 | `repos[].ci` (new, flagships only) | REST `actions/runs?branch=<default>&event=push&status=completed&per_page=5` (`github.py`, `rest_runs()`): the project's own CI on its default branch, latest run's `{workflow, conclusion, date, url}` and the last five conclusions as `recent`. Pull-request runs and Dependabot's updater runs are left out on purpose (Scrapy's latest run of any kind is a failed Dependabot update). Absent when the API does not answer; carried from the cache with `stale: true` when it did before. Scrapy: `CI/CD Pipeline`, success, 8 Oct 2026, recent `[success, cancelled, cancelled, cancelled, success]`; Rust-sitemap: `CI`, success, 7 Oct 2026, five successes. |
@@ -84,7 +87,8 @@ made between 25 Sep and 12 Oct 2025.
 | `stars` / `followers` / `account_since` | GraphQL: Σ `stargazerCount` over the same repositories, `followers.totalCount`, `createdAt` (`github.py:98-118`). Cache mode now: `stars` = Σ REST stars when every repository answered (`build_stats.py:244`); the other two `null` without a dated fetch. The seeded values were 0 / 46 / Oct 2024. |
 | `repos[].stars` / `language` / `archived` | GraphQL node or REST `/repos/{owner}/{repo}` per repository (`github.py:188`, `build_stats.py:282-284`). |
 | `unsurveyed` | Repositories GraphQL listed that produced no record: clone failed with no cached record, or `HEAD` has no commits (`derive.py:230`). Always empty in cache mode (no GraphQL list). |
-| `claims` | `chart.toml [claims.*]`: figures about the code, not about you; `measured` only with a `source` and `sha` (`claims.py:26`). Not a measurement of the clones. |
+| `claims` | `chart.toml [claims.*]`: figures about the code, not about you; `measured` only with a `source` and `sha` (`claims.py:26`). Not a measurement of the clones, except as below. |
+| `claims.scrape_interval` | **30 s**: the `scrapy_app` job's own `scrape_interval` in `Scrapy:Scraping_project/monitoring/prometheus.yml`, lines 27–28 at sha 74fd4f7 (and lines 38–39 at Scrapy HEAD 96e7a1a, unchanged in value). Until round 5 it said 15 s, which is the file's `global:` default and applies only to jobs that set nothing, here Prometheus's self-scrape; the crawler's metrics are scraped every 30 s. The build now re-reads the cited job at the cited sha from the Scrapy clone (`claims.py`, `job_interval()`, `verify_scrape_interval()`; `build_stats.py`) and sets `measured: false`, with a printed reason, if the value disagrees or the source names no job. |
 | `sources` | `chart.toml [[sources]]` labels (`build_stats.py:202`). Copy, not data. |
 | `provenance` | `mode` (live / cache / cache-failed), `instruments` (each of clones, graphql, rest, pypi, releases: live / partial / cache / none), `soundings_taken` = days in the last 150 on which `assets/stats.json` was committed (`build_stats.py:78`; needs `fetch-depth: 0`, `profile.yml:49`), `graphql_at`. |
 | `edition` / `notices` | PyPI JSON for `rustmapper` (`pypi.py:62`: latest version, its first upload date, release count, wheel tags, every version's first upload); notices from the flagship's GitHub Releases, else the PyPI uploads, plus `Notice:` commits of yours in the profile repository, plus `chart.toml [[notices]]` (`releases.py:66`). Fact: the four PyPI uploads are 0.1.0 at 18:38, 0.1.1 at 18:41, 0.1.2 at 19:51 and 0.1.3 at 19:52 UTC on 8 Nov 2025, 74 minutes end to end. |
@@ -121,10 +125,48 @@ from BenjaminSRussell/bot/…` 132 times, `fix/…`, `feat/…`, `chore/…`); 4
 (the web merge button); 238 carry a `Co-authored-by` trailer. The week of 5 Oct is 725 commits, 514 of them on
 that day, 198 merges. Eighteen of the 21 repositories have `last = 2026-10-07` because of it.
 
-Other facts the memos asked for, from the clones: 20 of 21 repositories carry GitHub Actions workflows
-(`.github/workflows/*.yml`; cozy-game has none) and test files (Data_science_dev 375, Scrapy 327, game_engine
-110; cozy-game none), so "no CI/tests detected" is not what the clones show; **no repository has a single git
-tag**, so there are no release tags anywhere (rustmapper's four versions exist on PyPI only).
+Other facts the memos asked for, from the clones: 19 of 21 repositories carry GitHub Actions workflows and
+20 of 21 carry test files (table below), so "no CI/tests detected" is not what the clones show; **no
+repository has a single git tag**, so there are no release tags anywhere (rustmapper's four versions exist on PyPI
+only). An earlier draft of this paragraph said 20 of 21 had workflows and Scrapy had 327 test files: those came from a rough `grep` over
+directory names, not from `tree.py`'s definitions, and are withdrawn.
+
+Commits authored by coding agents, not counted in `commits` (`agent_authored`): **297** (Claude 172, google-labs-jules[bot] 125);
+dependency automation is listed apart (dependabot[bot] 8). Of your own 2,032
+commits, 63 carry a co-author trailer naming an agent (`coauthored_total.agent_share` 0.031), counted over all
+days, sweep days included. On Rust-sitemap, Claude authored 45 commits beside your 101.
+
+### What each repository holds at HEAD
+
+One table, and the reference for every per-repository fact in this audit: each figure is the committed
+`assets/stats.json` (taken 2026-10-09, cache mode, fresh clones); the examples elsewhere are quoted from it.
+Workflows: **19 of 21** repositories have at least one (none: 2d-swift-widgets, cozy-game). Test files: 20 of
+21 (none: cozy-game). "—" in *test functions* means not counted (no Rust or Python is the main language and
+none was found), not zero. Definitions in §2.
+
+| repository | test files | test functions | workflows | main language | its lines | deps declared | CI on main |
+|---|---:|---:|---:|---|---:|---:|---|
+| game_engine | 7 | — | 1 | C | 151,872 | 0 | — |
+| Data_science_dev | 358 | 142 | 2 | JavaScript | 108,779 | 8 | — |
+| Scrapy | 257 | 1,920 | 5 | Python | 69,036 | 33 | success 2026-10-08 |
+| BenjaminSRussell | 9 | 199 | 3 | Python | 17,123 | 0 | — |
+| Rust-sitemap | 3 | 176 | 1 | Rust | 16,390 | 40 | success 2026-10-07 |
+| Data-visualizer | 12 | 134 | 1 | Python | 12,488 | 0 | — |
+| FashionDB | 20 | 29 | 1 | Python | 5,193 | 1 | — |
+| ideal-url-organizer | 15 | 67 | 1 | Python | 12,242 | 0 | — |
+| Course_crusader | 19 | 77 | 1 | Python | 10,132 | 0 | — |
+| Ai_code_detector | 25 | 127 | 2 | Python | 11,863 | 0 | — |
+| go_go_go | 20 | — | 1 | Go | 7,138 | 9 | — |
+| MLX_convertion | 8 | 26 | 2 | Python | 9,747 | 0 | — |
+| Wheel | 8 | — | 1 | JavaScript | 2,138 | 2 | — |
+| Elusive_trades_data | 18 | 124 | 1 | Python | 6,303 | 0 | — |
+| Spotify_to_apple_music | 13 | — | 1 | Swift | 11,819 | 3 | — |
+| 3d-swift-widget | 12 | — | 1 | Swift | 10,556 | 0 | — |
+| 2d-swift-widgets | 2 | — | 0 | TypeScript | 1,224 | 5 | — |
+| rust_llm_logger | 3 | 35 | 1 | Rust | 2,985 | 22 | — |
+| 3d-swift-globe-widget | 3 | — | 1 | Swift | 1,475 | 0 | — |
+| cozy-game | 0 | — | 0 | TypeScript | 35,797 | 15 | — |
+| mlx_Qwen_data_entry | 10 | 52 | 1 | Python | 5,404 | 0 | — |
 
 ## 4. Verdicts
 
@@ -135,7 +177,11 @@ Drop = ill defined or unmeasured, leave off the page and the sheets.
 |---|---|---|---|
 | `commits` | commits authored by you on the default branch of the N public non-fork repositories, all time, counted from clones on `taken` | commits | Define (say "authored by me", "default branches", the count of repositories, the date) |
 | `merges` | of those, merge commits (two or more parents) | commits | Keep, new |
-| `co_authored` | of those, commits carrying a Co-authored-by trailer (mostly your own PR-squash trailer; 63 name a Claude model) | commits | Keep, new; print only with the breakdown |
+| `coauthored` / `coauthored_total` | of those, commits carrying a Co-authored-by trailer (mostly your own PR-squash trailer; 63 name an agent, share 0.031) | commits | Keep; print the agent count only beside `agent_authored`, never alone |
+| `agent_authored` | commits a coding agent authored on the same branches, not counted as yours: 297 | commits | Keep; print with its names, it is the larger half of the agent story |
+| `repos[].test_functions` | test functions at HEAD, Rust attributes in all `.rs`, Python `def test_` in collected files | functions | Keep for Rust and Python repositories ("176 tests"); never print "—" as 0 |
+| `repos[].main_language` | largest programming language by lines at HEAD | — | Keep; use it instead of the API's `language` |
+| `claims.scrape_interval` | the crawler job's Prometheus scrape interval, 30 s, re-read from the cited sha | seconds | Keep; it is the light's period |
 | `all_hands` | commits by anyone on the same branches, bots included | commits | Define ("by anyone, bots included") or drop from the page; it is not about you |
 | `calendar_total` | commits GitHub credits to the account since it was created, any repository it can see, default branches, by linked email | commits | Drop from the page (the cached one was seeded; the live one counts a different set of repositories) |
 | `calendar.all` / `calendar_weeks` | GitHub's green squares: commits + issues + PRs + reviews | contributions | Drop from the page; keep in the file as context |
@@ -201,6 +247,16 @@ Drop = ill defined or unmeasured, leave off the page and the sheets.
   months/first_ns/last_ns without sweeps, the test/workflow patterns, the five manifest parsers, the line
   count on a real temporary repository (exclusions, binary and oversize files) and the CI reader.
   `python3 -m unittest`: 212 tests, all passing (199 before).
+- **Round 5, F2** (fix round after the seven reviews): `claims.scrape_interval` points at the `scrapy_app` job
+  (30 s) and is re-read from the clone at its sha on every build; per repository `test_functions` and
+  `main_language`; top-level `agent_authored`; `coauthored_total.agent_share`; one per-repository table in §3
+  replacing the paragraph whose "20 of 21 with workflows" and "Scrapy 327 test files" contradicted §2. `scripts/tokens.py` gains a 30 s loop
+  period so the light can beat at the claim's period (F1.6 places it). Two sheet tests stop hard-coding v9
+  values: the approaches light reads the claim's period, and the soundings register forbids "SCRAPY HARBOR"
+  (D3) rather than "SCRAPY". Regenerating stats.json in cache mode also empties every `repos[].aliases`:
+  the integrated chart.toml has no `[[features]]` any more (D1); nothing printed changes (the README renders
+  byte-identical, the hero letters `rustmapper` from `[hero.aliases]`). `python3 -m unittest`: 225 tests, all
+  passing.
 
 Not changed, by design: what the README and the sheets print (their builders own that); `assets/stats.json`
 (the workflow regenerates it; the committed 7 Oct file still validates).
@@ -211,12 +267,14 @@ Known small differences left as they are: live `languages` takes the top 8 langu
 ### The D4 line, from these keys
 
 Under rustmapper: `manifest.deps[:4]` → "Built on clap, rkyv, rkyv_derive, redb" (the page may prefer tokio, redb,
-rkyv, reqwest: all four are in the list; the file order is the crate's own), `tests` 3 → "3 test files",
+rkyv, reqwest: all four are in the list; the file order is the crate's own), `test_functions` 176 → "176 tests"
+(`tests` 3 counts files and undersells Rust, whose unit tests live inline),
 `workflows` 1 and `ci` → "1 workflow, last run passed 7 Oct 2026", `lines` → "16k lines of Rust", `last_ns` →
-"last worked 8 Aug 2026". Under Scrapy: "Built on scrapy, deltalake, pyarrow, pandas · 257 test files · 5
+"last worked 8 Aug 2026". Under Scrapy: "Built on scrapy, deltalake, pyarrow, pandas · 1,920 tests in 257 files · 5
 workflows, last run passed 8 Oct 2026 · 69k lines of Python · last worked 8 Oct 2026". The D5 line:
-`sweep_dates` → "sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded", `coauthored_total.agent` → "63 commits
-carry agent co-author trailers" (or `.count` 502 for any trailer; the page should say which).
+`sweep_dates` → "sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded"; `agent_authored` → "297 commits by coding
+agents (Claude 172, jules 125) not counted as mine", then `coauthored_total.agent` → "63 of mine carry an
+agent co-author trailer". Print both or neither: the trailer count alone is the smallest true number.
 
 ## 6. What is worth showing, and what else the clones can say
 
@@ -233,16 +291,16 @@ Worth showing, named in plain words:
 Not worth showing: `all_hands` (it is about other people and bots), `calendar_total` and the green-square
 totals (a different count of a different set), `days_surveyed` under that name, `soundings_taken`.
 
-Cool and honest, from the same clones, not yet measured (cost is build time per weekly run and code):
+Cool and honest, from the same clones, not yet measured (cost is build time per weekly run and code). Lines by
+language at HEAD and the co-author names per repository were on this list and are now measured (`lines`,
+`main_language`, `coauthored.names`).
 
 | measurement | how | cost |
 |---|---|---|
 | Lines added/removed per language, your commits only | `git log --numstat --author=…` on the blobless clone; group by file extension. Blobless clones fetch no file contents, but `--numstat` needs the blobs of changed files, so either fetch them (`git fetch --filter` off, roughly the full repository size) or use `--shortstat` on a full clone. | ~2–5 minutes extra per run; 60 lines of code |
-| Files and lines at `HEAD` by extension (a language count that does not depend on GitHub's linguist) | `git ls-tree -r -l HEAD` gives sizes without blobs; counting lines needs the blobs of `HEAD` only (one `git fetch` of the tree's blobs, far smaller than history) | ~1 minute; 40 lines |
 | First and latest commit per repository, and the longest streak of consecutive commit-days | already in `repos[].first/last` and `days[]`; the streak is `derive.consecutive_run` over all days | zero; 10 lines |
 | Release dates from tags | `git tag --format` on the clones; today there are none in any repository, so this shows nothing until tags exist | zero |
 | Days with a commit in the last 365, and the longest gap | from `days[]` | zero; 10 lines |
 | Commits that were pull-request merges vs direct, per repository | `merges` is there now; the PR number is in the subject | zero |
-| Share of commits with a Claude co-author trailer, per repository | `co_authored` is there; the trailer text is parsed but not kept; keep the name only | 5 lines |
 | Issues and pull requests you opened per repository | REST `/repos/{o}/{r}/issues?state=all` per repository (980 + 331 on Scrapy alone); one request per 100 items | ~20 requests per run; 30 lines |
 | Commit size distribution (files touched per commit) | `--numstat` as above | with the first item |

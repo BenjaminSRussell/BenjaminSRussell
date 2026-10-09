@@ -276,7 +276,9 @@ class Approaches(unittest.TestCase):
             self.assertEqual(r2.group(1), "2")
             g1 = re.search(r'id="approaches-lt-g1-fl"[^>]*begin="([\d.]+)s" dur="4s"', text)
             self.assertEqual(g1.group(1), "0")
-            self.assertRegex(text, r'id="approaches-lt-grafana-fl"[^>]*dur="15s"')
+            si = (self.stats.get("claims") or {}).get("scrape_interval") or {}
+            period = int(si["value"]) if si.get("measured") and si.get("value") is not None else 15   # the sheet's fallback
+            self.assertRegex(text, rf'id="approaches-lt-grafana-fl"[^>]*dur="{period}s"')
             self.assertRegex(text, r'id="approaches-lt-g3-fl"[^>]*dur="10s"')
             self.assertRegex(text, r'id="approaches-lt-r4-fl"[^>]*dur="10s"')
 
