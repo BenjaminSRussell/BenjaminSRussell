@@ -306,7 +306,8 @@ class Readme(unittest.TestCase):
             if isinstance(r.get("tests"), int):
                 self.assertIn(f" {render_readme._plural(r['tests'], 'test file')}", " " + live, name)
             if (r.get("manifest") or {}).get("deps"):
-                self.assertTrue(live.startswith("<sub>Built on " + ", ".join(r["manifest"]["deps"][:5]) + " · "), live)
+                deps = [d for d in r["manifest"]["deps"] if not render_readme.HELPER_CRATE.search(d)]
+                self.assertTrue(live.startswith("<sub>Built on " + ", ".join(deps[:5]) + " · "), live)
             if r.get("last_ns") is None:
                 self.assertNotIn("last worked", live, name)
         tmpl = ("<!-- facts:Rust-sitemap:start -->\nold\n<!-- facts:Rust-sitemap:end -->\n"
@@ -316,6 +317,12 @@ class Readme(unittest.TestCase):
         self.assertIn("<!-- facts:Scrapy:start -->\n<sub>257 test files", once)
         self.assertIn("<!-- facts:nowhere:start -->\n<!-- facts:nowhere:end -->", once, "an unknown repository prints nothing")
         self.assertEqual(render_readme.main(once, self.cfg, full, use_sheet_alts=False), once)
+        # helper crates (*_derive, *-derive, *_macros, *-macros) are skipped before the first five are taken
+        helpers = {"repos": [{"name": "Rust-sitemap", "manifest": {"files": ["Cargo.toml"], "deps": [
+            "clap", "rkyv", "rkyv_derive", "redb", "serde-derive", "reqwest", "tokio_macros", "tokio-macros", "tokio", "url"]}}]}
+        self.assertEqual(render_readme.facts_block(helpers, "Rust-sitemap"), "<sub>Built on clap, rkyv, redb, reqwest, tokio</sub>")
+        self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "manifest": {"deps": ["derive", "macros"]}}]}, "x"),
+                         "<sub>Built on derive, macros</sub>", "a crate named only 'derive' is not a helper")
         self.assertEqual(render_readme.fmt_k(950), "950")
         self.assertEqual(render_readme.fmt_k(1_300_000), "1.3M")
 

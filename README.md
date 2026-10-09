@@ -32,7 +32,7 @@
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
 
 <!-- facts:Rust-sitemap:start -->
-<sub>Built on clap, rkyv, rkyv_derive, redb, reqwest · 3 test files · 1 workflow, last run passed 7 Oct 2026 · 16k lines of Rust · last worked 8 Aug 2026</sub>
+<sub>Built on clap, rkyv, redb, reqwest, tokio · 3 test files · 1 workflow, last run passed 7 Oct 2026 · 16k lines of Rust · last worked 8 Aug 2026</sub>
 <!-- facts:Rust-sitemap:end -->
 
 - The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.

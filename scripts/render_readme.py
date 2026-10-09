@@ -271,6 +271,9 @@ def fmt_k(n: int) -> str:
     return str(n)
 
 
+HELPER_CRATE = re.compile(r"[_-](derive|macros)$", re.I)   # a helper crate that ships with the one it names
+
+
 CI_WORDS = {"success": "passed", "failure": "failed", "cancelled": "cancelled", "timed_out": "timed out",
             "skipped": "skipped", "neutral": "passed", "action_required": "needs attention"}
 
@@ -289,6 +292,7 @@ def facts_block(stats: dict, name: str) -> str:
         man = man.get("deps") or man.get("names") or man.get("top")
     if isinstance(man, (list, tuple)):
         names = [str(d.get("name") if isinstance(d, dict) else d) for d in man if d]
+        names = [n for n in names if not HELPER_CRATE.search(n)]     # rkyv_derive is rkyv; tokio-macros is tokio
         if names:
             parts.append("Built on " + ", ".join(names[:5]))
     tests = _count(r.get("tests"))
