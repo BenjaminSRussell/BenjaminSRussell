@@ -3,14 +3,10 @@
 <a name="top"></a>
 <!-- picture:hero:start -->
 <picture>
-<source media="(max-width: 767px) and (prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-still-night.svg">
-<source media="(max-width: 767px) and (prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-still-day.svg">
 <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
 <source media="(max-width: 767px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
-<source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-night.svg">
-<source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Ben Russell's 21 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Jul 2026. The rest share one row.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to start Ben Russell's crawler rustmapper and what happens to a URL inside it. It ends at data/sitemap.jsonl; two traps are marked.">
 </picture>
 <!-- picture:hero:end -->
 
@@ -29,39 +25,52 @@
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
 
 <!-- facts:Rust-sitemap:start -->
-*Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust · last commit 8 Aug 2026*
+*Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
 <!-- facts:Rust-sitemap:end -->
 
-- The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
-- Every frontier event is written to a CRC32-framed write-ahead log (rkyv, zero-copy replay) before it reaches redb; a killed crawl resumes at the last record.
-- The frontier is rendezvous-hashed by registrable domain, one shard per core, so a host's queue lives in one place; robots.txt is read first and its crawl-delay honoured. Optional Redis for distributed runs.
-- Seeds from sitemaps, Certificate Transparency logs and the Common Crawl index: what a site says about itself, every host that ever held a certificate, and every URL someone once linked.
-
+<!-- install:Rust-sitemap:start -->
 ```sh
 pip install rustmapper
-rustmapper crawl --start-url <your-site>
-rustmapper export-sitemap --data-dir ./data \
+rust_sitemap crawl --start-url <your-site>
+rust_sitemap export-sitemap --data-dir ./data \
     --output sitemap.xml
 ```
 
-- Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
+Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
+<!-- install:Rust-sitemap:end -->
+
+- The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
+- Can seed from sitemaps, Certificate Transparency logs and the Common Crawl index (`--seeding-strategy`): what a site says about itself, every host that ever held a certificate, and every URL someone once linked.
+
+<!-- handoffs:start -->
+Its `data/sitemap.jsonl` is read by [ideal-url-organizer](https://github.com/BenjaminSRussell/ideal-url-organizer) (`scripts/import_rust_sitemapper.py`, with a test). Its Delta export for Scrapy's `stage1_discovery` table is not read by Scrapy yet.
+<!-- handoffs:end -->
 
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
 
 <!-- facts:Scrapy:start -->
-*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python · last commit 8 Oct 2026*
+*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python*
 <!-- facts:Scrapy:end -->
+
+```sh
+cd Scraping_project     # from the clone root, start.py fails
+python start.py         # the whole pipeline; needs docker and docker-compose
+scrapy crawl scout -a allowed_domains=<domain> \
+    -a start_urls=<url>
+```
+
+Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by file name. The bundled config's sample URLs are a university's site; the last line points discovery at yours.
 
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Duplicates caught by URL hash and MinHash; summaries from BART-large-CNN on the worker itself, so nothing is sent to an external API.
+- Near-duplicates are dropped by URL hash and MinHash. Most pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Circuit breakers wrap the HTTP, Delta Lake and Redis services; per-host throttles are separate. Docker Compose and a Helm chart for Kubernetes.
 
 <a name="also"></a>
 **Also**
 
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25+ ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
-- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — the Go sibling of rustmapper: 256-worker pools, a Bloom filter sized for 100M+ URLs, the same three seed sources.
+- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands. It adds headless-Chrome rendering, SQLite storage with full-text search, and browser TLS-fingerprint impersonation, all off by default.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. A stream-tee forwards tokens to the client while parsing them for metrics, so logging costs the caller nothing.
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry down to git-history patterns.
 
@@ -90,7 +99,7 @@ rustmapper export-sitemap --data-dir ./data \
 <!-- notices:start -->
 1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
 2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.*
-3. **Lights before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Sep 2025: Prometheus and Grafana.*
+3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Sep 2025: Prometheus and Grafana.*
 4. **Parse, don't pattern-match.** *ideal-url-organizer, Nov 2025.*
 <!-- notices:end -->
 
@@ -98,7 +107,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
+<sub>The drawing is checked against rustmapper's code at `32c2651` and its 0.1.3 release on PyPI: a stop or a trap is drawn only while the code it describes is found in both, and the install lines last ran 9 Oct 2026 on Linux x86_64, where pip builds the release from source. Test counts and CI results measured 9 Oct 2026 from clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->
