@@ -20,15 +20,15 @@ On watch, in order: datum and date (can I trust it), contours (where is safe wat
 **Honest**
 
 - **Datum and survey date** = "author's commits on main, 7 Oct 2026". The one piece of fine print that must stay.
-- **Source diagram** (which survey each part came from) = provenance: clones live, GraphQL cached, REST partial. A small box, not a sentence with three totals.
+- **Source diagram** = provenance: clones live, GraphQL cached, REST partial. A small box, not a sentence with three totals.
 - **Contours** = activity bands by month. Water of like depth, months of like work. Answers item 3.
 - **Light character** = something in his code that repeats on a fixed period. Two measured ones: Prometheus scrapes every 15 s (sha-cited); the governor samples redb every 250 ms. *Fl 15s* on Scrapy Harbor is true the way a light list is true. *Fl R 4s* in v10 is invented, and a sailor spots that first.
 - **Buoyed channel** = the documented way in: the three-line install block. Draw the code block, not buoys.
 - **Clearing limits** = robots.txt, crawl-delay honoured, per-host throttle. Limits the crawler stays outside by design.
-- **Hazard mark** = a known gotcha: the toolchain requirement; 148 stale branches on `game_engine`. Wreck = an archived repo (none yet).
-- **(rep.)** = reported, not surveyed. The pool is 256–1024 in code, 32–512 in the README, 256 on PyPI. *256–1024 (rep.)* is how a chart prints exactly that.
+- **Hazard mark** = a known gotcha: the toolchain requirement; 148 stale branches on `game_engine`.
+- **(rep.)** = reported, not surveyed. The pool is 256–1024 in code, 32–512 in the README, 256 on PyPI. A chart prints exactly that as *256–1024 (rep.)*.
 - **Limit of survey** = today's date at the right edge. Honest as a date; hatching beyond it claims unsounded ground that does not exist.
-- **IALA Region B** = he is in the Americas. True, lands once as a word; never as a buoy scheme.
+- **IALA Region B** = he is in the Americas. True; one word, never a buoy scheme.
 
 **Forced (wince)**
 
@@ -36,9 +36,9 @@ On watch, in order: datum and date (can I trust it), contours (where is safe wat
 - **Compass rose, VAR 14h.** Variation is a correction you apply to a bearing. A peak hour corrects nothing.
 - **HW / tidal diamonds.** Tides are periodic. "HW sweep 7 Oct 358" is one day touching 18 repos, the opposite of a tide.
 - **Rocks.** A rock is a hazard to the reader. A four-commit repo is shallow water: a small figure, unnamed at this scale.
-- **Small corrections 2026—5—173.** Charts cite the last notice applied; 173 is the profile repo's commit count. Fabricated provenance is worse than none.
+- **Small corrections 2026—5—173.** Charts cite the last notice applied; 173 is the profile repo's commit count. Fabricated provenance.
 - **Chart names** (*Profile Shoal*, *Data Science Bank*). A feature carries what the locals call it: `Data_science_dev`.
-- Leading lines, tidal streams, the boat: no fact behind them. Scale and inset is honest but the text already does it.
+- Leading lines, tidal streams, the boat: no fact behind them.
 
 ## 3. The proposal
 
@@ -52,11 +52,11 @@ The nine repos with seven commit-days or more are shaded banks spanning first to
 
 **What moves.** The light only, at its real character: a beat every 15 s. Reduced motion gets a still. Nothing sails.
 
-**The page under it**, in order, existing text kept unless struck below: links line; *builds / Languages / Stack*; rustmapper, bullets, install block (the toolchain sentence promoted to bullet one); Scrapy Harbor and bullets; the four other repos; the fold with fifteen; the renamed rules list; one provenance line.
+**The page under it**, in order, text kept unless struck below: links; *builds / Languages / Stack*; rustmapper, bullets, install block (toolchain sentence promoted to bullet one); Scrapy Harbor and bullets; the four other repos; the fold; the renamed rules list; one provenance line.
 
 ## 4. Details and one-off words
 
-1. **(rep.)** after 256–1024. The joke a sailor repeats to someone else.
+1. **(rep.)** after 256–1024. The joke a sailor repeats.
 2. **Fl 15s** on the harbour, cited to `prometheus.yml`.
 3. **Eastern time** in the title block; on the page, *afternoons, seven days a week*.
 4. **0.1.3 · the fourth upload that evening.** Four releases between 18:38 and 19:52 on 8 Nov 2025. True, once.
@@ -68,19 +68,19 @@ The nine repos with seven commit-days or more are shaded banks spanning first to
 - *CHART NO. 21 · SHEET 1 · SMALL CORRECTIONS 2026—5—173*: fake provenance.
 - The eight-line title block: keep three lines.
 - Compass rose and *VAR 14h*: corrects nothing.
-- *R "2" Fl R 4s*, *G "1" Fl G 4s*, buoys, dashed track: invented lights, a channel into nothing.
-- *HW · SWEEP 7 OCT 358*: a sweep dressed as a tide; totals are suspect anyway.
+- *Fl R 4s*, *Fl G 4s*, buoys, dashed track: invented lights, a channel into nothing.
+- *HW · SWEEP 7 OCT 358*: a sweep dressed as a tide.
 - Rocks fringe: his small repos are not hazards.
 - *LIMIT OF SURVEY*, hatched *UNSURVEYED*: `unsurveyed: []`. End of the world, not smart.
-- Sailboat and anchor: not drawn well enough to earn the exemption.
-- *sitemap.xml lies again*: a pencil note on a chart means it is uncorrected; here it is a joke that needs explaining.
+- Sailboat and anchor: not drawn well enough.
+- *sitemap.xml lies again*: a pencil note means an uncorrected chart; here, a joke that needs explaining.
 - Chart-style feature names: use the repo names.
-- Text: *is the survey vessel*, *is where a run is operated*, *its own mark in the channel*, *nothing leaves the harbor*, *Other waters*, *Below the waterline*, *Notices to mariners*, *Found a wrong depth?*, *Survey log*. Each says it is a ship. Headings become *Also*, *15 more repositories*, *Working rules*, *Found an error?*
+- Text: *survey vessel*, *where a run is operated*, *mark in the channel*, *leaves the harbor*, *Other waters*, *Below the waterline*, *Notices to mariners*, *Found a wrong depth?*, *Survey log*. Each says it is a ship. Headings become *Also*, *15 more repositories*, *Working rules*, *Found an error?*
 - Three commit totals: one number or none.
 - Alt text *A boat sails in and anchors*: say what the sheet shows.
 
 ## 6. The two-second test
 
-**Two seconds, iPhone:** a name, "crawl and data infrastructure, Python and Rust", a drawn coastline with two big named features and a date scale. It reads as a chart and never says so.
+**Two seconds, iPhone:** a name, "crawl and data infrastructure, Python and Rust", a coastline with two big named features and a date scale. It reads as a chart and never says so.
 
 **Thirty seconds:** two real projects, one on PyPI since Nov 2025 and still worked on, the other a crawl platform whose monitoring blinks every 15 s; the rest small and dated; one figure marked reported, not measured, which is the moment the reader decides the rest of the page is honest.
