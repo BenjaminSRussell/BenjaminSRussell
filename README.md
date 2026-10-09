@@ -32,6 +32,7 @@
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
 
 <!-- facts:Rust-sitemap:start -->
+<sub>Built on clap, rkyv, rkyv_derive, redb, reqwest · 3 test files · 1 workflow, last run passed 7 Oct 2026 · 16k lines of Rust · last worked 8 Aug 2026</sub>
 <!-- facts:Rust-sitemap:end -->
 
 - The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
@@ -51,6 +52,7 @@ rustmapper export-sitemap --data-dir ./data \
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
 
 <!-- facts:Scrapy:start -->
+<sub>Built on scrapy, deltalake, pyarrow, pandas, numpy · 257 test files · 5 workflows, last run passed 8 Oct 2026 · 69k lines of Python · last worked 8 Oct 2026</sub>
 <!-- facts:Scrapy:end -->
 
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
@@ -99,7 +101,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>Measured 7 Oct 2026 from clones of 21 public repositories, author's commits on main, sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded · regenerated weekly.</sub>
+<sub>Measured 9 Oct 2026 from clones of 21 public repositories, author's commits on main, sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded · 63 commits carry an AI co-author trailer · regenerated weekly.</sub>
 <!-- survey:end -->
 
 <sub>Generated from my repositories by [`scripts/build_assets.py`](scripts/build_assets.py) · how it's built → [DESIGN.md](DESIGN.md)</sub>

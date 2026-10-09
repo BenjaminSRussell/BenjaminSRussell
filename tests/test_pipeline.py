@@ -223,7 +223,8 @@ class Readme(unittest.TestCase):
         self.assertEqual(render_readme.main(once, self.cfg, self.stats, use_sheet_alts=False), once)
         self.assertIn("<!-- position:start — note kept -->\n<!-- position:end -->", once, "empty position omits the slot")
         self.assertNotIn("⟨", once)
-        self.assertIn("<!-- n:account_since -->Oct 2024<!-- /n -->", once)
+        figs = render_readme.figures(self.stats, self.cfg)    # account_since is null without a dated GraphQL fetch
+        self.assertIn(f"<!-- n:account_since -->{figs['account_since']}<!-- /n -->", once)
         self.assertIn("<!-- n:repo_count -->21<!-- /n -->", once)
         self.assertIn("<!-- picture:hero:start -->\n<picture>\n<source media=", once, "bare pictures are wrapped")
         self.assertIn("1. **Boring under load.**", once)
@@ -249,19 +250,29 @@ class Readme(unittest.TestCase):
                                          "repositories, author's commits on main") and block.endswith(" · regenerated weekly.</sub>"), block)
         # v11: the commit totals are off the page until the data audit settles them
         for figure in ("commits", "all_hands", "calendar_total"):
-            self.assertNotIn(f"{figs[figure]} ", block, figure)
+            if self.stats.get(figure):          # a null figure is not printed anywhere, so there is nothing to look for
+                self.assertNotIn(f"{figs[figure]} ", block, figure)
+        cot = self.stats.get("coauthored_total") or {}
+        if isinstance(cot.get("agent"), int):   # the agent count prints; the all-trailer count does not
+            self.assertIn(f" · {render_readme.fmt_n(cot['agent'])} commit", block)
+            if cot.get("count") != cot["agent"]:
+                self.assertNotIn(f"{render_readme.fmt_n(cot['count'])} commit", block)
         for word in ("all hands", "calendar", "surveyed", "instruments", "GraphQL", "clones live", "Data</b>"):
             self.assertNotIn(word, block, word)
         if self.stats.get("sweeps"):      # the builder already lists the sweep days; D2's sweep_dates wins when present
             self.assertIn("sweep days (", block)
         # D2's keys, when present, print exactly so
-        full = {"taken": "2026-10-07", "repo_count": 21, "coauthored_total": 412,
+        full = {"taken": "2026-10-07", "repo_count": 21,
+                "coauthored_total": {"count": 502, "share": 0.247, "agent": 63, "names": {"Claude Sonnet 5": 45}},
                 "sweep_dates": ["2025-11-10", "2025-11-09", "2026-10-07", "2026-10-01"]}
         self.assertEqual(render_readme.survey_block(full),
                          "<sub>Measured 7 Oct 2026 from clones of 21 public repositories, author's commits on main, sweep days "
-                         "(9–10 Nov 2025, 1 and 7 Oct 2026) excluded · 412 commits carry agent co-author trailers · regenerated weekly.</sub>")
-        self.assertIn(" · 1 commit carries agent", render_readme.survey_block(dict(full, coauthored_total=1)))
-        self.assertIn(" · no commits carry agent", render_readme.survey_block(dict(full, coauthored_total=0)))
+                         "(9–10 Nov 2025, 1 and 7 Oct 2026) excluded · 63 commits carry an AI co-author trailer · regenerated weekly.</sub>")
+        one = dict(full, coauthored_total={"count": 9, "agent": 1})
+        self.assertIn(" · 1 commit carries an AI co-author trailer · ", render_readme.survey_block(one))
+        self.assertIn(" · no commits carry an AI co-author trailer · ", render_readme.survey_block(dict(full, coauthored_total={"count": 9, "agent": 0})))
+        self.assertNotIn("co-author", render_readme.survey_block(dict(full, coauthored_total={"count": 9})), "no agent figure, no item")
+        self.assertNotIn("co-author", render_readme.survey_block(dict(full, coauthored_total=502)), "a bare count is not the agent count")
         self.assertEqual(render_readme.fmt_days(["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-09", "2026-05-20"]),
                          "1–3 and 9 Mar 2026, 20 May 2026")
         # a thin stats.json prints only what it holds; nothing is guessed (no sweeps, no co-author item)
@@ -275,21 +286,29 @@ class Readme(unittest.TestCase):
     def test_facts_block_prints_only_present_keys(self):
         """D4: one line under a flagship from D2's keys; an absent key is omitted, never estimated."""
         full = {"repos": [{"name": "Rust-sitemap", "aliases": ["rustmapper"],
-                           "manifest": ["tokio", "redb", "rkyv", "reqwest", "clap", "serde"], "tests": 3, "workflows": 2,
-                           "ci": {"conclusion": "success", "date": "2026-10-07"},
+                           "manifest": {"files": ["Cargo.toml"], "deps": ["tokio", "redb", "rkyv", "reqwest", "clap", "serde"]},
+                           "tests": 3, "workflows": 2,
+                           "ci": {"workflow": "CI", "conclusion": "success", "date": "2026-10-07", "url": "https://x", "recent": ["success"]},
                            "lines": {"Rust": 16234, "Python": 412}, "last_ns": "2026-08-08"},
-                          {"name": "Scrapy", "tests": 257, "workflows": ["ci.yml"], "ci": "failure",
-                           "lines": {"by_language": {"Python": 69120}, "total": 69120}}]}
+                          {"name": "Scrapy", "tests": 257, "workflows": 1,
+                           "ci": {"workflow": "CI/CD", "conclusion": "failure", "date": "2026-10-08", "stale": True},
+                           "lines": {"Python": 69120}, "last_ns": None}]}
         self.assertEqual(render_readme.facts_block(full, "rustmapper"),
                          "<sub>Built on tokio, redb, rkyv, reqwest, clap · 3 test files · 2 workflows, last run passed 7 Oct 2026 · "
                          "16k lines of Rust · last worked 8 Aug 2026</sub>")
         self.assertEqual(render_readme.facts_block(full, "Scrapy"),
-                         "<sub>257 test files · 1 workflow, last run failed · 69k lines of Python</sub>")
+                         "<sub>257 test files · 1 workflow, last known run failed 8 Oct 2026 · 69k lines of Python</sub>")
         self.assertEqual(render_readme.facts_block(full, "nowhere"), "")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "Scrapy", "commits": 900}]}, "Scrapy"), "", "no D2 keys, no line")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "Scrapy", "tests": 1}]}, "Scrapy"), "<sub>1 test file</sub>")
-        self.assertEqual(render_readme.facts_block(self.stats, "Scrapy"), "" if "tests" not in render_readme._repo(self.stats, "Scrapy")
-                         else render_readme.facts_block(self.stats, "Scrapy"), "today's stats.json has no D2 keys: nothing is printed")
+        for name in ("Scrapy", "Rust-sitemap"):     # the committed stats.json: each printed figure is the file's own
+            r, live = render_readme._repo(self.stats, name), render_readme.facts_block(self.stats, name)
+            if isinstance(r.get("tests"), int):
+                self.assertIn(f" {render_readme._plural(r['tests'], 'test file')}", " " + live, name)
+            if (r.get("manifest") or {}).get("deps"):
+                self.assertTrue(live.startswith("<sub>Built on " + ", ".join(r["manifest"]["deps"][:5]) + " · "), live)
+            if r.get("last_ns") is None:
+                self.assertNotIn("last worked", live, name)
         tmpl = ("<!-- facts:Rust-sitemap:start -->\nold\n<!-- facts:Rust-sitemap:end -->\n"
                 "<!-- facts:Scrapy:start -->\n<!-- facts:Scrapy:end -->\n<!-- facts:nowhere:start -->x<!-- facts:nowhere:end -->\n")
         once = render_readme.main(tmpl, self.cfg, full, use_sheet_alts=False)

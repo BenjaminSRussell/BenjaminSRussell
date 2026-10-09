@@ -276,8 +276,10 @@ CI_WORDS = {"success": "passed", "failure": "failed", "cancelled": "cancelled", 
 
 
 def facts_block(stats: dict, name: str) -> str:
-    """D4: one plain line under a flagship from the D2 keys (`manifest`, `tests`, `workflows`, `ci`, `lines`,
-    `last_ns`). An item whose key is absent is left out, never estimated; no keys, no line."""
+    """D4: one plain line under a flagship from the D2 keys (docs/data/AUDIT.md): `manifest` {files, deps} (first
+    five deps), `tests` and `workflows` ints, `ci` {workflow, conclusion, date, url, recent, stale?}, `lines`
+    {language: lines} (the largest), `last_ns` date or null. An item whose key is absent or null is left out, never
+    estimated; no keys, no line."""
     r = _repo(stats, name)
     if not r:
         return ""
@@ -300,7 +302,8 @@ def facts_block(stats: dict, name: str) -> str:
     if isinstance(ci, dict) and ci.get("conclusion"):
         word = CI_WORDS.get(str(ci["conclusion"]).lower(), str(ci["conclusion"]).replace("_", " "))
         when = fmt_date(ci.get("date") or ci.get("at") or ci.get("run_at") or ci.get("updated_at"))
-        run = f"last run {word}" + (f" {when}" if when else "")
+        label = "last known run" if ci.get("stale") else "last run"     # stale: the API did not answer this time
+        run = f"{label} {word}" + (f" {when}" if when else "")
     if wf is not None:
         parts.append(_plural(wf, "workflow") + (f", {run}" if run else ""))
     elif run:
@@ -371,8 +374,8 @@ INSTRUMENT_NAMES = {"clones": "clones", "graphql": "GraphQL", "rest": "REST", "p
 def survey_block(stats: dict, figs: dict | None = None) -> str:
     """D5: the provenance line at the foot, from stats only. `Measured 7 Oct 2026 from clones of 21 public
     repositories, author's commits on main, sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded · N commits carry
-    agent co-author trailers · regenerated weekly.` An item whose key is absent is left out, never estimated: the
-    sweep item needs `sweep_dates` (or the `sweeps` entries), the co-author item `coauthored_total`. No commit
+    an AI co-author trailer · regenerated weekly.` An item whose key is absent is left out, never estimated: the
+    sweep item needs `sweep_dates` (or the `sweeps` entries), the co-author item `coauthored_total.agent`. No commit
     totals (the three counts disagreed; the audit decides) and no instrument roll-call."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
@@ -390,10 +393,12 @@ def survey_block(stats: dict, figs: dict | None = None) -> str:
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
         parts.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
-    co = _count(stats.get("coauthored_total"))
-    if co is not None:
-        parts.append("no commits carry agent co-author trailers" if co == 0 else
-                     f"{fmt_n(co)} commit{'' if co == 1 else 's'} carr{'ies' if co == 1 else 'y'} agent co-author trailers")
+    # `agent`, not `count`: most Co-authored-by trailers name Ben himself (GitHub's squash merge adds the PR author)
+    cot = stats.get("coauthored_total")
+    co = cot.get("agent") if isinstance(cot, dict) else None
+    if isinstance(co, int) and not isinstance(co, bool):
+        parts.append("no commits carry an AI co-author trailer" if co == 0 else
+                     f"{fmt_n(co)} commit{'' if co == 1 else 's'} carr{'ies' if co == 1 else 'y'} an AI co-author trailer")
     if not parts:
         return ""
     parts.append("regenerated weekly")
