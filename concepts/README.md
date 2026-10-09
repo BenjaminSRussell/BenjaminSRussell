@@ -1,19 +1,17 @@
-<!-- concepts/round4: a PREVIEW BRANCH, never merged. The root README is replaced here so github.com renders the three
-     round-4 concept stills (decision D9) when the owner opens the branch. The real README lives on main. -->
+# Three concept stills (round 4, decision D9)
 
-# Three concept stills, round 4
+Three bets from different premises, built alongside round 4 for the owner to compare on github.com against
+the current hero. Each is one hand-composed day-edition SVG, 1280 wide, no animation, drawn by a small
+script in `scripts/concepts/` that reads `assets/stats.json` and `chart.toml` for every figure it prints. Nothing on
+them is invented: every number traces to the survey of 7 Oct 2026, and a label with a commit sha is a claim
+`stats.json` can source. Rebuild with `python3 scripts/concepts/<name>.py`.
 
-Three bets from different premises for the owner to compare here, on github.com, against the current hero
-(decision D9 in `docs/crit/round4/DECISIONS.md`). Each is one hand-composed day-edition SVG, 1280 wide, no animation, drawn
-by `scripts/concepts/<name>.py` from `assets/stats.json` and `chart.toml`: every figure is from the survey of 7 Oct 2026, and
-a label with a commit sha is a claim `stats.json` can source. Longer notes and the same pictures in `concepts/README.md`.
-
-For each, in one line apiece: *Would you screenshot this and send it to someone? What does it say you do? What do you want to
-keep looking at?*
+The three questions for each, in one line apiece: *Would you screenshot this and send it to someone? What does it say
+you do? What do you want to keep looking at?*
 
 ## 1. The vessel, in section
 
-<img src="concepts/vessel.svg" width="100%" alt="An engineering drawing of rustmapper as a ship's inboard profile: seeds A, B, C enter at the stern, a frontier of shard bins, a governor gauge reading 256 to 1024 permits, a worker pool, the write-ahead log along the keel, redb, and sitemap.xml leaving over the bow; a midship section beside it and a title block drawn 7 Oct 2026, revision 87.">
+<img src="vessel.svg" width="100%" alt="An engineering drawing of rustmapper as a ship's inboard profile: seeds A, B, C enter at the stern, a frontier of shard bins, a governor gauge reading 256 to 1024 permits, a worker pool, the write-ahead log along the keel, redb, and sitemap.xml leaving over the bow; a midship section beside it and a title block drawn 7 Oct 2026, revision 87.">
 
 **What it says about Ben.** He builds a machine, and he can draw it: a crawler with its parts named and placed the way a
 shipyard draws a hull, so a stranger learns in five seconds that this is systems work in Rust with a Python package on PyPI,
@@ -30,7 +28,7 @@ each night so a changed figure changes on the sheet.
 
 ## 2. The waterfall
 
-<img src="concepts/waterfall.svg" width="100%" alt="Ben Russell. I survey a web that is wrong about itself. An engraved sea whose every line pours over an edge at the right; a red-sailed sloop at the brink; the unsurveyed beyond, hatched. Chart of 21 repositories, 1,665 commits, surveys 2025 to 2026.">
+<img src="waterfall.svg" width="100%" alt="Ben Russell. I survey a web that is wrong about itself. An engraved sea whose every line pours over an edge at the right; a red-sailed sloop at the brink; the unsurveyed beyond, hatched. Chart of 21 repositories, 1,665 commits, surveys 2025 to 2026.">
 
 **What it says about Ben.** One picture: a surveyor at the edge of the charted world, sailing toward the part of the web
 nobody has mapped, with the thesis as the caption. It is the avatar's image made the page, a mood rather than a diagram,
@@ -43,7 +41,7 @@ survey. Nothing else moves, by design.
 
 ## 3. The survey lines
 
-<img src="concepts/lines.svg" width="100%" alt="Strip plot: one row per repository sorted by commit-days, one dot per commit-day with area proportional to commits that day, Sep 2025 to 7 Oct 2026; sweep days as red pecked verticals; the margin right of today hatched as unsurveyed; a 24-hour rose of commit-days by hour; Ben Russell and the thesis as the title block.">
+<img src="lines.svg" width="100%" alt="Strip plot: one row per repository sorted by commit-days, one dot per commit-day with area proportional to commits that day, Sep 2025 to 7 Oct 2026; sweep days as red pecked verticals; the margin right of today hatched as unsurveyed; a 24-hour rose of commit-days by hour; Ben Russell and the thesis as the title block.">
 
 **What it says about Ben.** Two long dense rows at the top (Scrapy, rustmapper) and a cluster of short ones, which is the
 truth of the account: two systems worked on across a year, a burst of smaller things in November and January, a game
