@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "updated_at": "2026-10-09T17:03:31Z",
+ "updated_at": "2026-10-09T22:50:12Z",
  "taken": "2026-10-09",
  "run_id": "local",
  "provenance": {
@@ -955,6 +955,11 @@
      "success"
     ]
    },
+   "head": {
+    "sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+    "short": "96e7a1a",
+    "date": "2026-10-08"
+   },
    "months": {
     "2025-09": 6,
     "2025-10": 15,
@@ -969,7 +974,7 @@
    "name": "BenjaminSRussell",
    "aliases": [],
    "slot": null,
-   "commits": 183,
+   "commits": 184,
    "merges": 1,
    "coauthored": {
     "count": 1,
@@ -977,8 +982,14 @@
     "agent": 0,
     "names": {}
    },
-   "all_hands": 183,
-   "others": [],
+   "all_hands": 185,
+   "others": [
+    {
+     "name": "github-actions[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
    "first": "2025-11-22",
    "last": "2026-10-09",
    "commit_days": 11,
@@ -1070,7 +1081,7 @@
     122,
     43,
     0,
-    14
+    15
    ],
    "week_days": [
     0,
@@ -1180,11 +1191,11 @@
     {
      "d": "2026-10-09",
      "h": 7,
-     "n": 1
+     "n": 2
     }
    ],
    "tz_offsets": {
-    "-0400": 179,
+    "-0400": 180,
     "-0500": 4
    },
    "active": true,
@@ -1197,11 +1208,11 @@
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 9,
-   "test_functions": 199,
+   "test_functions": 225,
    "workflows": 3,
    "manifest": null,
    "lines": {
-    "Python": 17123,
+    "Python": 18266,
     "JavaScript": 414,
     "Shell": 65
    },
@@ -1578,6 +1589,11 @@
      "success",
      "success"
     ]
+   },
+   "head": {
+    "sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+    "short": "32c2651",
+    "date": "2026-10-07"
    },
    "months": {
     "2025-10": 7,
@@ -2308,6 +2324,11 @@
     "Shell": 74
    },
    "stale_branch_count": 0,
+   "head": {
+    "sha": "159968a7d4b82bb116c2068489748ae357882e68",
+    "short": "159968a",
+    "date": "2026-10-07"
+   },
    "months": {
     "2025-11": 2,
     "2026-08": 2
@@ -5290,7 +5311,10 @@
     "time": "2025-11-08T19:52:41"
    }
   ],
-  "stale": false
+  "stale": false,
+  "scripts": [
+   "rust_sitemap"
+  ]
  },
  "notices": [
   {
@@ -5319,7 +5343,7 @@
    "repo": "Scrapy",
    "tag": "N3",
    "date": "2025-09",
-   "title": "Lights before speed.",
+   "title": "Dashboards before speed.",
    "url": "",
    "source": "hand",
    "body": "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one.",
@@ -6302,6 +6326,11 @@
     "n": 183,
     "date": "2026-10-09",
     "title": "v10: one chart, composed by hand, soundings in commit-days (round 4) (#15)"
+   },
+   {
+    "n": 184,
+    "date": "2026-10-09",
+    "title": "v11: one sheet of the year, measured; text written straight (round 5) (#16)"
    }
   ]
  },
@@ -6309,8 +6338,8 @@
   "workers": {
    "value": "256–1024",
    "unit": "permits",
-   "source": "Rust-sitemap:src/orchestration/governor.rs",
-   "sha": "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9",
+   "source": "Rust-sitemap:src/governor.rs",
+   "sha": null,
    "measured": false
   },
   "shards": {
@@ -6321,11 +6350,11 @@
    "measured": true
   },
   "scrape_interval": {
-   "value": 30,
+   "value": null,
    "unit": "s",
-   "source": "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)",
-   "sha": "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0",
-   "measured": true
+   "source": null,
+   "sha": null,
+   "measured": false
   }
  },
  "trial": null,
@@ -6346,7 +6375,7 @@
    "first": null
   }
  ],
- "commits": 2032,
+ "commits": 2033,
  "merges": 405,
  "coauthored_total": {
   "count": 502,
@@ -6367,10 +6396,11 @@
    "google-labs-jules[bot]": 125
   },
   "automation": {
-   "dependabot[bot]": 8
+   "dependabot[bot]": 8,
+   "github-actions[bot]": 1
   }
  },
- "all_hands": 2337,
+ "all_hands": 2339,
  "first_commit": "2025-09-25",
  "days_surveyed": 379,
  "hours": [
@@ -6410,7 +6440,7 @@
  ],
  "hours_basis": "author-local commit-days",
  "tz_offsets": {
-  "-0400": 1370,
+  "-0400": 1371,
   "-0500": 662
  },
  "variation": {
@@ -6868,13 +6898,13 @@
   },
   {
    "start": "2026-10-05",
-   "n": 725,
+   "n": 726,
    "days": 3,
    "sweep": 514,
    "repos": {
     "Data_science_dev": 308,
     "Scrapy": 173,
-    "BenjaminSRussell": 14,
+    "BenjaminSRussell": 15,
     "Rust-sitemap": 28,
     "Data-visualizer": 28,
     "FashionDB": 26,
@@ -6897,11 +6927,11 @@
  "tide": {
   "hw": {
    "start": "2026-10-05",
-   "n": 725,
+   "n": 726,
    "cause": "Data_science_dev",
    "cause_days": 2,
-   "cause_share": 0.425,
-   "sweep_share": 0.709
+   "cause_share": 0.424,
+   "sweep_share": 0.708
   },
   "lw": {
    "start": "2026-08-24",
@@ -6995,5 +7025,250 @@
   "2026-10-01",
   "2026-10-07"
  ],
- "sweep_threshold": 5
+ "sweep_threshold": 5,
+ "routes": {
+  "rustmapper": {
+   "repo": "Rust-sitemap",
+   "head_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "release": "0.1.3",
+   "header": "Crawls a site and writes one line for every page it reaches.",
+   "header_verified": true,
+   "header_missing": [],
+   "entries": [
+    {
+     "id": "S1",
+     "kind": "stop",
+     "file": "*_seeder.rs",
+     "text": "start URL, plus seeds from sitemaps, CT logs, Common Crawl",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "S2",
+     "kind": "stop",
+     "file": "frontier.rs",
+     "text": "one queue per host, paced by that host's robots.txt",
+     "verified_head": false,
+     "verified_release": true,
+     "missing": [
+      "head tests/robots_4xx_allows_crawl.rs: file missing"
+     ]
+    },
+    {
+     "id": "H1",
+     "kind": "trap",
+     "file": null,
+     "text": "subdomains are in scope and there is no depth limit",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "S3",
+     "kind": "stop",
+     "file": "governor.rs",
+     "text": "fewer fetch workers when redb commits lag",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "S4",
+     "kind": "stop",
+     "file": "wal.rs",
+     "text": "logged before stored; resume picks up after a kill",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "H2",
+     "kind": "trap",
+     "file": null,
+     "text": "written when the crawl stops: press Ctrl-C once, not twice",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "R13",
+     "kind": "end",
+     "file": "data/sitemap.jsonl",
+     "text": "one line per page: url, depth, status_code, title, …",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    },
+    {
+     "id": "R14",
+     "kind": "export",
+     "file": "sitemap.xml",
+     "text": "export-sitemap",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": []
+    }
+   ],
+   "gates": {
+    "cargo": {
+     "ok": false,
+     "missing": [
+      "head tests/robots_4xx_allows_crawl.rs: file missing",
+      "head tests/duration_stops_stalled_crawl.rs: file missing"
+     ]
+    }
+   },
+   "sdist": {
+    "filename": "rustmapper-0.1.3.tar.gz",
+    "sha256": "a586e1e10931b088ccb5d88681510de744e04eb9ff5c9ac98b3764c1d702f649"
+   }
+  }
+ },
+ "handoffs": [
+  {
+   "id": "sitemap-jsonl→ideal-url-organizer",
+   "from": "Rust-sitemap",
+   "to": "ideal-url-organizer",
+   "file": "data/sitemap.jsonl",
+   "from_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "to_sha": "159968a7d4b82bb116c2068489748ae357882e68",
+   "release": "0.1.3",
+   "reader_fields": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count"
+   ],
+   "writer_fields_head": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count",
+    "description",
+    "canonical_url",
+    "author",
+    "language",
+    "keywords",
+    "article_text_length",
+    "metadata_json",
+    "set_cookies",
+    "third_party_api_calls",
+    "external_resources",
+    "privacy_metadata_json",
+    "structured_data_json",
+    "tech_profile"
+   ],
+   "writer_fields_release": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count"
+   ],
+   "reader": "scripts/import_rust_sitemapper.py",
+   "test": "tests/test_import_rust_sitemapper.py",
+   "state": "runs",
+   "missing_fields": []
+  },
+  {
+   "id": "delta-export→Scrapy",
+   "from": "Rust-sitemap",
+   "to": "Scrapy",
+   "file": "stage1_discovery",
+   "from_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "to_sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+   "release": "0.1.3",
+   "reader_fields": [],
+   "writer_fields_head": [],
+   "writer_fields_release": [],
+   "reader": null,
+   "test": null,
+   "state": "no reader",
+   "writer": "python/rustmapper/export_parquet.py",
+   "readers": []
+  }
+ ],
+ "runcheck": {
+  "rustmapper": {
+   "date": "2026-10-09",
+   "runner": "Linux x86_64",
+   "python": "3.13.16",
+   "version": "0.1.3",
+   "scripts": [
+    "rust_sitemap"
+   ],
+   "install": "sdist (built with Rust)",
+   "steps": [
+    {
+     "cmd": "python3.13 -m venv v",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "cmd": "v/bin/pip install --no-cache-dir rustmapper==0.1.3",
+     "ok": true,
+     "detail": "sdist (built with Rust); Successfully installed rustmapper-0.1.3"
+    },
+    {
+     "cmd": "rust_sitemap --help",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "cmd": "rust_sitemap crawl --help mentions --start-url",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "cmd": "rust_sitemap export-sitemap --help",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d (no robots.txt; one SIGINT after 45 s)",
+     "ok": true,
+     "detail": "exit 0 after one SIGINT; 3 lines; keys url, depth, status_code, title present; status 200"
+    },
+    {
+     "cmd": "rust_sitemap export-sitemap --data-dir d --output s.xml",
+     "ok": true,
+     "detail": "3 <loc>"
+    }
+   ],
+   "ok": true
+  }
+ }
 }
