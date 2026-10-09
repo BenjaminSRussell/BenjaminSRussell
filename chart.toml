@@ -282,3 +282,10 @@ group = "LOOKOUT"
 name = "MLX · Qwen"
 repo = "mlx_Qwen_data_entry"
 group = "LOOKOUT"
+
+[facts]
+# The dependencies worth naming in each flagship's "Built on" line (round 5, F3.3), printed in this order where the
+# manifest has them (case and -/_ ignored; a name also matches its -binary build); a repository without a list
+# prints its manifest's first five.
+built_on.Scrapy = ["deltalake", "redis", "psycopg2", "prometheus-client", "datasketch"]
+built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]

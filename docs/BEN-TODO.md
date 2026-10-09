@@ -10,9 +10,10 @@ says what changes on the page when you do it. Items marked ✓ were done in the 
   first rustmapper bullet says only that the governor grows or shrinks the pool on redb commit latency, with no
   number. Make them agree (the code is the one to trust), then the figure returns to the bullet with the README's
   throughput figure beside it. (Item 5 below is the same ask for the sheet.)
-- **The co-author line.** The page says how many commits carry an AI co-author trailer (63 on 9 Oct 2026, default
-  branches, trailers naming a model; GitHub's squash trailers that name you are not counted). Strike it if you'd
-  rather not: delete the co-author item in `scripts/render_readme.py` `survey_block`.
+- **The co-author line.** The page says what share of your commits carry an AI co-author trailer (63 on 9 Oct
+  2026, about 3 %: default branches, trailers naming a model; GitHub's squash trailers that name you are not
+  counted), and how many more commits coding agents wrote outright (Claude, jules), which are not counted as yours.
+  Strike it if you'd rather not: delete the `agent_clause` item in `scripts/render_readme.py` `survey_block`.
 - **Fill the position and contact slots.** `chart.toml [position] text` ("role · city or timezone · open to /
   currently") prints after the role line under the image; `[contact] linkedin` / `resume` add two links to the row
   under it. Both are empty and the page omits them (same ask as round 4, still open).
