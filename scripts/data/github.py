@@ -1,13 +1,20 @@
 """github — the second instrument: GraphQL metadata, contribution calendar, followers.
 
-    fetch(token, login) -> dict        GraphQL (as the v1 build_stats did); raises on failure
+    fetch(token, login, window) -> dict   GraphQL metadata + the contribution window; raises on failure
     rest_repo(owner, repo, token=None) -> dict | None       repo-scoped REST fallback (token optional)
     rest_languages(owner, repo, token=None) -> dict | None  {language: bytes}
     rest_releases(owner, repo, token=None) -> list | None
 
-The GraphQL figures are never the hero number: `calendar_total` and `calendar_weeks` are a
-cross-check for the clone-derived weeks (MASTERPLAN decision 19). Token optional everywhere;
-without one, GraphQL is skipped and REST runs unauthenticated (60 req/h is plenty for 24 repos).
+The GraphQL figures are never the hero number (MASTERPLAN decision 19). What GitHub counts and the
+clones count are different things, so each figure says which it is:
+  calendar_total   commits GitHub credits to the account since it was created (default branches of
+                   every repository it can see, private ones only if the profile shows them);
+  calendar         contributionsCollection over the clone window (`from`..`to`), itemised: commits,
+                   issues, pull_requests, reviews, restricted (private), all (the green squares), and
+                   commits_by_repo for the account's own repositories; derive.calendar_check compares
+                   commits_by_repo of the surveyed repos with the clones, like against like;
+  calendar_weeks   the green squares per week over the window (every contribution type).
+Token optional everywhere; without one, GraphQL is skipped and REST runs unauthenticated.
 """
 from __future__ import annotations
 
@@ -40,11 +47,20 @@ query($login: String!) {
     }
   }
 }"""
-QUERY_TIDE = """
-query($login: String!) {
+QUERY_WINDOW = """
+query($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
-    contributionsCollection {
-      contributionCalendar { weeks { contributionDays { contributionCount date } } }
+    contributionsCollection(from: $from, to: $to) {
+      totalCommitContributions
+      totalIssueContributions
+      totalPullRequestContributions
+      totalPullRequestReviewContributions
+      restrictedContributionsCount
+      contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } }
+      commitContributionsByRepository(maxRepositories: 100) {
+        repository { name owner { login } isPrivate }
+        contributions { totalCount }
+      }
     }
   }
 }"""
@@ -76,10 +92,12 @@ def gql(token: str, query: str, variables: dict) -> dict:
     return out["data"]
 
 
-def fetch(token: str, login: str = LOGIN) -> dict:
+def fetch(token: str, login: str = LOGIN, window: tuple[dt.date, dt.date] | None = None, gql=gql) -> dict:
     """GraphQL metadata for the account. Keys: account_since, followers, stars, repo_count,
     repo_meta{name: {stars, archived, pushed, created, language, languages{name: bytes}}},
-    languages[] (by bytes, top 5 + Other), calendar_weeks[{start, n}], calendar_total, fetched_at."""
+    languages[] (by bytes, top 5 + Other), calendar_weeks[{start, n}], calendar_total, calendar{…}, fetched_at.
+    `window` = (first clone week's Monday, taken): the span the contribution figures are asked for
+    (GitHub allows at most one year); default the 365 days before now. `gql` is injectable for tests."""
     u = gql(token, QUERY_USER, {"login": login})["user"]
     created = dt.datetime.fromisoformat(u["createdAt"].replace("Z", "+00:00"))
     now = dt.datetime.now(dt.timezone.utc)
@@ -100,9 +118,31 @@ def fetch(token: str, login: str = LOGIN) -> dict:
             "language": (repo["primaryLanguage"] or {}).get("name"),
             "languages": {e["node"]["name"]: e["size"] for e in repo["languages"]["edges"]},
         }
-    tide = gql(token, QUERY_TIDE, {"login": login})["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    lo, hi = window or (now.date() - dt.timedelta(days=365), now.date())
+    frm, to = f"{lo.isoformat()}T00:00:00Z", f"{hi.isoformat()}T23:59:59Z"
+    cc = gql(token, QUERY_WINDOW, {"login": login, "from": frm, "to": to})["user"]["contributionsCollection"]
     calendar_weeks = [{"start": w["contributionDays"][0]["date"],
-                       "n": sum(d["contributionCount"] for d in w["contributionDays"])} for w in tide]
+                       "n": sum(d["contributionCount"] for d in w["contributionDays"])}
+                      for w in cc["contributionCalendar"]["weeks"] if w["contributionDays"]]
+    by_repo: dict[str, int] = {}
+    elsewhere = 0
+    for e in cc.get("commitContributionsByRepository") or []:
+        repo = e["repository"]
+        if (repo.get("owner") or {}).get("login") == login and not repo.get("isPrivate"):
+            by_repo[repo["name"]] = int(e["contributions"]["totalCount"])
+        else:
+            elsewhere += int(e["contributions"]["totalCount"])
+    calendar = {
+        "from": lo.isoformat(), "to": hi.isoformat(),
+        "commits": cc["totalCommitContributions"],
+        "issues": cc["totalIssueContributions"],
+        "pull_requests": cc["totalPullRequestContributions"],
+        "reviews": cc["totalPullRequestReviewContributions"],
+        "restricted": cc["restrictedContributionsCount"],
+        "all": cc["contributionCalendar"]["totalContributions"],
+        "commits_by_repo": by_repo,
+        "commits_elsewhere": elsewhere,
+    }
     return {
         "account_since": created.strftime("%Y-%m-%d"),
         "followers": u["followers"]["totalCount"],
@@ -112,6 +152,7 @@ def fetch(token: str, login: str = LOGIN) -> dict:
         "languages": languages_from_meta(meta),
         "calendar_weeks": calendar_weeks,
         "calendar_total": total,
+        "calendar": calendar,
         "fetched_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 

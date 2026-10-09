@@ -3,9 +3,15 @@
     survey(repo, workdir, identity) -> dict | None      one repo record (schema: model.Repo)
     survey_all(repos, identity, ...) -> dict[name, record|None]   parallel, 180 s timeout each
 
-Every statistic comes from one `git log --format=%H%x09%aI%x09%an%x09%ae%x09%s` per repo.
-`%aI` keeps the author's own offset, so hours and weekdays are counted in the author's local
-time, per COMMIT-DAY (a date in that offset), never per UTC instant (panel 32, 08).
+Every statistic comes from one `git log` of HEAD (the default branch) per repo, one record per
+commit: sha, `%aI` author date, author name and email, parent count, subject and the
+Co-authored-by trailers. `%aI` keeps the author's own offset, so hours and weekdays are counted in
+the author's local time, per COMMIT-DAY (a date in that offset), never per UTC instant (panel 32, 08).
+
+A commit is "Ben's" when its *author* field matches `[identity]` (name, email or the login's
+noreply address); merge commits count like any other commit (`merges` says how many), and a
+Co-authored-by trailer never moves a commit from one author to another (`co_authored` says how
+many of Ben's commits carry one).
 """
 from __future__ import annotations
 
@@ -36,6 +42,8 @@ class Commit(NamedTuple):
     name: str
     email: str
     subject: str
+    parents: int = 1       # > 1: a merge commit
+    co_authors: tuple = () # Co-authored-by trailer values, as written
 
     @property
     def local_date(self) -> dt.date:
@@ -106,27 +114,36 @@ def clone(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIME
     return dest if r.returncode == 0 else None
 
 
-def history(dest: str, ref: str = "HEAD") -> list[Commit]:
-    """Every commit reachable from HEAD, author-dated in the author's own offset."""
-    try:
-        out = _git(dest, "log", "--format=%H%x09%aI%x09%an%x09%ae%x09%s", ref)
-    except RuntimeError:
-        return []
+LOG_FORMAT = "%H%x1f%aI%x1f%an%x1f%ae%x1f%P%x1f%s%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1e"
+
+
+def parse_log(out: str) -> list[Commit]:
+    """Records of LOG_FORMAT (unit-separated fields, record-separated commits) → Commits."""
     commits: list[Commit] = []
-    for line in out.splitlines():
-        parts = line.split("\t", 4)
-        if len(parts) < 4:
+    for rec in out.split("\x1e"):
+        parts = rec.strip("\n").split("\x1f")
+        if len(parts) < 4 or not parts[0]:
             continue
-        sha, iso, name, email = parts[:4]
-        subject = parts[4] if len(parts) > 4 else ""
+        parts += [""] * (7 - len(parts))
+        sha, iso, name, email, parents, subject, trailers = parts[:7]
         try:
             when = dt.datetime.fromisoformat(iso)
         except ValueError:
             continue
         if when.tzinfo is None:
             when = when.replace(tzinfo=dt.timezone.utc)
-        commits.append(Commit(sha, when, name, email, subject))
+        co = tuple(t.strip() for t in trailers.split("\x1d") if t.strip())
+        commits.append(Commit(sha, when, name, email, subject, max(1, len(parents.split())), co))
     return commits
+
+
+def history(dest: str, ref: str = "HEAD") -> list[Commit]:
+    """Every commit reachable from HEAD (merges included), author-dated in the author's own offset."""
+    try:
+        out = _git(dest, "log", f"--format={LOG_FORMAT}", ref)
+    except RuntimeError:
+        return []
+    return parse_log(out)
 
 
 def stale_branches(dest: str, taken: dt.date, days: int = STALE_BRANCH_DAYS) -> list[dict]:
@@ -236,8 +253,7 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
     for day in days:
         hours[day["h"]] += 1
         weekdays[dt.date.fromisoformat(day["d"]).weekday()] += 1
-    basis = mine or commits
-    dates = sorted(c.local_date for c in basis)
+    dates = sorted(c.local_date for c in mine)   # Ben's own first and last; never another author's
     first = dates[0].isoformat() if dates else None
     last = dates[-1].isoformat() if dates else None
     offsets = Counter(c.offset for c in mine)
@@ -246,6 +262,8 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "aliases": [],
         "slot": None,
         "commits": len(mine),
+        "merges": sum(1 for c in mine if c.parents > 1),
+        "co_authored": sum(1 for c in mine if c.co_authors),
         "all_hands": len(commits),
         "others": others,
         "first": first,

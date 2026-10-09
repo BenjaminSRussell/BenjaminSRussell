@@ -58,10 +58,15 @@ def check(ctx=None) -> list[Finding]:
         out.append(Finding("fail", code, e))
     cc = stats.get("calendar_check")
     if cc and cc.get("disagreement") is not None and cc["disagreement"] > CALENDAR_TOLERANCE:
+        span = f" {cc['from']}..{cc['to']}" if cc.get("from") and cc.get("to") else " the last 52 weeks"
         out.append(Finding("warn", "data.calendar",
-                           f"clones {cc['clone']} vs calendar {cc['calendar']}: {cc['disagreement']:.0%} apart (> 10 %): mark SD"))
-    elif stats.get("calendar_weeks") is None:
-        out.append(Finding("info", "data.calendar", "no GraphQL calendar in this run; the second instrument is absent"))
+                           f"commits on the surveyed repositories over{span}: clones count {cc['clone']}, GitHub credits "
+                           f"{cc['calendar']}: {cc['disagreement']:.0%} apart (> 10 %): mark SD"))
+    elif cc and cc.get("disagreement") is None:
+        out.append(Finding("warn", "data.calendar", "GitHub credits no commits on the surveyed repositories in the window: "
+                           "check the author emails on the account"))
+    elif stats.get("calendar") is None:
+        out.append(Finding("info", "data.calendar", "no GraphQL contribution window in this run; the second instrument is absent"))
     for r in stats.get("repos", []):
         if r.get("stale"):
             out.append(Finding("warn", "data.stale", f"{r['name']}: not re-surveyed since {r.get('stale_since')} (Rep)"))

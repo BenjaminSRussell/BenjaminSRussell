@@ -39,6 +39,8 @@ class Repo(TypedDict, total=False):
     aliases: list[str]
     slot: str | None
     commits: int
+    merges: int          # of `commits`, those with two or more parents
+    co_authored: int     # of `commits`, those carrying a Co-authored-by trailer
     all_hands: int
     others: list[Other]
     first: str | None
@@ -103,9 +105,12 @@ class Stats(TypedDict, total=False):
     followers: int | None
     stars: int | None
     commits: int
+    merges: int
+    co_authored: int
     all_hands: int
     calendar_total: int | None
     calendar_weeks: list[dict] | None
+    calendar: dict | None
     first_commit: str | None
     days_surveyed: int | None
     languages: list[dict]
@@ -272,6 +277,9 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
         others = sum(o.get("commits", 0) for o in r.get("others") or [])
         if r.get("commits", 0) + others != r.get("all_hands"):
             errs.append(f"{n}: commits {r.get('commits')} + others {others} != all_hands {r.get('all_hands')}")
+        for key in ("merges", "co_authored"):
+            if key in r and r[key] > r.get("commits", 0):
+                errs.append(f"{n}: {key} {r[key]} > commits {r.get('commits')}")
         if len(r.get("weeks") or []) != 52:
             errs.append(f"{n}: weeks must have 52 entries")
         if isinstance(days, list) and r.get("weeks") and sum(r["weeks"]) > sum(d.get("n", 0) for d in days):
@@ -281,6 +289,9 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
             errs.append("commits != Σ repos[].commits")
         if stats.get("all_hands") != sum(r.get("all_hands", 0) for r in repos):
             errs.append("all_hands != Σ repos[].all_hands")
+        for key in ("merges", "co_authored"):
+            if key in stats and stats[key] != sum(r.get(key, 0) for r in repos):
+                errs.append(f"{key} != Σ repos[].{key}")
         for key, n in (("hours", 24), ("weekdays", 7)):
             tot = stats.get(key) or []
             if len(tot) != n or any(tot[i] != sum((r.get(key) or [0] * n)[i] for r in repos) for i in range(n)):
@@ -291,6 +302,8 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
     for i, w in enumerate(weeks):
         if isinstance(w, dict) and w.get("n") != sum((w.get("repos") or {}).values()):
             errs.append(f"weeks[{i}].n != Σ repos")
+        if isinstance(w, dict) and w.get("sweep", 0) > w.get("n", 0):
+            errs.append(f"weeks[{i}].sweep > n")
     tide = stats.get("tide") or {}
     if weeks and tide.get("hw") and tide["hw"].get("n") != max(w.get("n", 0) for w in weeks):
         errs.append("tide.hw.n != max weeks[].n")
