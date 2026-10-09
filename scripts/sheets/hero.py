@@ -592,7 +592,7 @@ def _build(ctx) -> str:
                 text_boxes.append((tx - 1, ty - lbl_h * 0.75, tx + tag_w + 1, ty + lbl_h * 0.2))
             t["tag_shown"] = fits
         if R["name_dy"] is not None:   # phone: the name line is the row's own; no mark lettering in it
-            text_boxes.append((x0 - 2, t["band"][0] - 2, x_end + 2, t["band"][0] + R["name_dy"] + 6))
+            text_boxes.append((x0 - 2, t["band"][0] + R["name_dy"] - lbl_h * 0.75, x_end + 2, t["band"][0] + R["name_dy"] + 6))
             for b in t["blocks"]:
                 assert min(p[1] for p in b["poly"]) > ny + 3, f"hero: {t['name']}'s bank meets its name line"
 
@@ -607,7 +607,7 @@ def _build(ctx) -> str:
     def place(t: dict, mx: float, my: float, text: str, r_mark: float) -> dict:
         """The first clear place for a mark's lettering, in a fixed order: on the centreline right of the mark's
         bank, left of it, then above and below the mark (sliding sideways and outwards in 4 px steps), each at least
-        CLEAR px from every coast and clear of every other run."""
+        CLEAR px from every coast and clear of every other run, inside the row's own band."""
         tw = width(text)
         blocks = sorted(t["blocks"], key=lambda b: b["x0"])
         home = next((b for b in blocks if b["x0"] - 1 <= mx <= b["x1"] + 1),
@@ -619,13 +619,30 @@ def _build(ctx) -> str:
         def box_at(xa_, ty):
             return (xa_ - 1, ty - lbl_h * 0.75, xa_ + tw + 1, ty + lbl_h * 0.2)
 
+        others = [poly for poly in all_polys if not any(poly is b["poly"] for b in blocks)]   # other rows' land
+        r_lo = max(y_lo, t["band"][0] + (R["name_dy"] + 6 if R["name_dy"] is not None else 0))
+        r_hi = min(y_hi, t["band"][1])
+
+        def leader_clear(box) -> bool:
+            """The leader from the mark to the box crosses no other row's land (it may cross its own row's)."""
+            bx0, by0, bx1, by1 = box
+            tx_, ty_ = min(max(mx, bx0), bx1), min(max(my, by0), by1)
+            L = math.hypot(tx_ - mx, ty_ - my)
+            for q in range(int(L / 2) + 1):
+                px = mx + (tx_ - mx) * q * 2 / max(L, 1)
+                py = my + (ty_ - my) * q * 2 / max(L, 1)
+                for poly in others:
+                    if c.point_in_polygon(px, py, poly) or min(math.hypot(px - a_, py - b_) for a_, b_ in poly) < 3:
+                        return False
+            return True
+
         def ok(box):
-            if box[0] < x0 - 0.5 or box[2] > x_end + 0.5 or box[1] < y_lo or box[3] > y_hi:
+            if box[0] < x0 - 0.5 or box[2] > x_end + 0.5 or box[1] < r_lo or box[3] > r_hi:
                 return None
             if any(_overlap(box, ob) for ob in text_boxes):
                 return None
             cl = clearance(box)
-            return cl if cl >= CLEAR else None
+            return cl if cl >= CLEAR and leader_clear(box) else None
 
         tries = [("right", [(home["x1"] + CLEAR + 3 + d, yb) for d in range(0, 400, 4)]),
                  ("left", [(home["x0"] - CLEAR - 3 - tw - d, yb) for d in range(0, 400, 4)])]

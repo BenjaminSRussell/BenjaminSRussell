@@ -1,10 +1,13 @@
-"""hero sheet (v11, round 5, D1): the coast of the year. Rows from the data with sweep days out, their order and
-threshold, the merged row, the repositories with no non-sweep day, the one light (period from claims), the one
-edition mark and its lettering in the water, the axis, honesty (nothing sloping, nothing unmeasured, no banned
-words), phone floors, still editions, budgets, night weights, alt agreement, and the live-like stats file."""
+"""hero sheet (v11, round 5, D1 + F1): the coast of the year, by the week. Rows from the data with sweep days out,
+their order and threshold, the profile repository merged, rows + N = repo_count, weekly banks on one scale (the
+busiest week 0.8 of the band, a one-day week an islet), shallows along every coast, a figure and a language on every
+named row, the one light (period from claims, on the latest bank), the one edition mark, mark lettering in the
+water, the axis ending at the survey date inside the border, honesty (nothing sloping, nothing unmeasured, no banned
+words), floors and the phone hierarchy, still editions, budgets, night weights, alt agreement, live-like stats."""
 from __future__ import annotations
 
 import copy
+import datetime as dt
 import json
 import os
 import re
@@ -32,26 +35,25 @@ LIVE = os.environ.get("HERO_LIVE_STATS",
 BANNED = re.compile(
     r"SOUNDINGS|LIMIT OF SURVEY|UNSURVEYED|CHART NO|\bSHEET\b|SMALL CORRECTIONS|IALA|\bVAR\b|\bHW\b|ROCKS|CHARTED|"
     r"Harbor|Harbour|\bBank\b|Shoal|\bI\.$|sitemap\.xml lies|ILLUSTRATIVE|PENDING|SEEDED|NOT FOR NAVIGATION|"
-    r"survey vessel|Fair winds|Here be dragons", re.I)
+    r"survey vessel|Fair winds|Here be dragons|AUTHOR'S COMMITS|SWEEP|coastline", re.I)
 NO_SYMBOLS = ("sloop", "sloop-glyph", "anchorage", "can", "nun", "waypoint", "wreck", "station", "rock")
 ANIM = re.compile(r"<(animate|animateTransform|set)\b")
 ALL = tuple(E.EDITION_NAMES) + tuple(E.HERO_EXTRA)
 
 
-def expected_rows(stats: dict, named_min: int, aliases: dict) -> tuple[list, list, list]:
-    """Independent of the module: (named [(name, days)] ordered, small repos, zero repos) with every sweep day
-    excluded for every repository."""
+def expected_rows(stats: dict, named_min: int, aliases: dict) -> tuple[list, list]:
+    """Independent of the module: (named [(name, days, repo)] ordered, rest [repo]) with every sweep day excluded for
+    every repository and the profile repository never named."""
     sweeps = {s["date"] for s in stats.get("sweeps") or []} | set(stats.get("sweep_dates") or [])
-    named, small, zero, seen = [], [], [], set()
+    named, rest = [], []
     for r in stats["repos"]:
-        if r["name"] in seen:
-            continue
-        seen.add(r["name"])
         days = len({d["d"] for d in r.get("days") or [] if d["d"] not in sweeps})
-        name = aliases.get(r["name"], r["name"])
-        (named if days >= named_min else small if days else zero).append((name, days, r["name"]))
+        if days >= named_min and r["name"] != stats["login"]:
+            named.append((aliases.get(r["name"], r["name"]), days, r["name"]))
+        else:
+            rest.append(r["name"])
     named.sort(key=lambda t: (-t[1], t[0].lower()))
-    return named, small, zero
+    return named, rest
 
 
 def _build(tmp, tag, stats=None, cfg_path=CFG, editions=None):
@@ -65,7 +67,7 @@ def _build(tmp, tag, stats=None, cfg_path=CFG, editions=None):
 
 
 class HeroBuild(unittest.TestCase):
-    """One build of every edition from the cached stats, shared by the tests below."""
+    """One build of every edition from the committed stats, shared by the tests below."""
 
     @classmethod
     def setUpClass(cls):
@@ -81,6 +83,7 @@ class HeroBuild(unittest.TestCase):
             cls.cfg = tomllib.load(fh)
         cls.named_min = int(cls.cfg["hero"]["named_min"])
         cls.aliases = dict(cls.cfg["hero"].get("aliases", {}))
+        cls.taken = dt.date.fromisoformat(cls.stats["taken"][:10])
 
     @classmethod
     def tearDownClass(cls):
@@ -120,44 +123,35 @@ class HeroBuild(unittest.TestCase):
         data = copy.deepcopy(self.stats)
         for r in data["repos"]:
             r.pop("days", None)
-            r.pop("months", None)
         n, _rep, _out = _build(self.tmp, "nodays", self.write_stats(data, "nodays"), editions=["still-day"])
         self.assertGreaterEqual(n, 1)
 
-    # ---- the rows: from the data, sweeps out, ordered, thresholded, merged
-    def test_rows_from_data_with_sweeps_out(self):
-        named, small, zero = expected_rows(self.stats, self.named_min, self.aliases)
+    # ---- the rows: from the data, sweeps out, the profile merged, adding up to the repository count
+    def test_rows_from_data_and_they_add_up(self):
+        named, rest = expected_rows(self.stats, self.named_min, self.aliases)
         for name in ("day", "phone-day", "night"):
             h = self.entry(name)["hero"]
             rows = [r for r in h["rows"] if not r["more"]]
             self.assertEqual([(r["name"], r["days"]) for r in rows], [(n, d) for n, d, _ in named], name)
             for r in rows:
-                self.assertEqual(sum(r["months"].values()), r["days"])
+                self.assertEqual(sum(r["weeks"]), r["days"], f"{name}: {r['name']} weeks add up to its days")
             more = [r for r in h["rows"] if r["more"]]
-            self.assertEqual(len(more), 1 if small else 0)
-            if small:
-                self.assertEqual(more[0]["name"], f"{len(small)} more")
-                self.assertEqual(more[0]["days"], sum(d for _n, d, _r in small))
-                self.assertEqual(sorted(more[0]["repos"]), sorted(r for _n, _d, r in small))
-            self.assertEqual(sorted(h["zero"]), sorted(r for _n, _d, r in zero))
-            self.assertEqual(h["counts"]["repositories"], self.stats["repo_count"])
-        # the committed figures (9 Oct cache), sweeps out: Scrapy and rustmapper lead
-        days = {r["name"]: r["days"] for r in self.entry("day")["hero"]["rows"]}
-        self.assertEqual(list(days)[:2], ["Scrapy", "rustmapper"])
-        self.assertGreaterEqual(days["Scrapy"], 24)
-        self.assertGreaterEqual(days["rustmapper"], 19)
+            self.assertEqual(len(more), 1)
+            n_more = self.stats["repo_count"] - len(rows)
+            self.assertEqual(more[0]["name"], f"{n_more} more")
+            self.assertEqual(len(rows) + more[0]["n"], self.stats["repo_count"], "named rows + N = repo_count")
+            self.assertEqual(sorted(more[0]["repos"]), sorted(rest))
+            self.assertIn(self.stats["login"], more[0]["repos"], "the profile repository joins the last row")
+            self.assertTrue(max(more[0]["weeks"]) <= 7, "a merged week counts a calendar day once")
+        texts = [t["s"] for t in self.texts("day")]
+        self.assertIn(f"{self.stats['repo_count'] - len(named)} MORE", texts)
+        self.assertNotIn(self.stats["login"].upper(), texts)
+        # on the committed data: the six named rows
+        self.assertEqual([n for n, _d, _r in named],
+                         ["Scrapy", "rustmapper", "Data_science_dev", "game_engine", "Wheel", "Data-visualizer"])
         scrapy = next(r for r in self.entry("day")["hero"]["rows"] if r["repo"] == "Scrapy")
         self.assertEqual(scrapy["first_ns"], "2025-09-25")
-        self.assertNotIn("2026-10-07", [scrapy["last_ns"]], "the 7 Oct sweep is not Scrapy's work")
-        self.assertEqual(sum(scrapy["months"].values()), scrapy["days"])
-
-    def test_threshold_gives_six_to_nine_rows(self):
-        rows = self.entry("day")["hero"]["rows"]
-        self.assertTrue(6 <= len(rows) <= 9, len(rows))
-        self.assertEqual(self.entry("day")["hero"]["named_min"], self.named_min)
-        for r in rows:
-            if not r["more"]:
-                self.assertGreaterEqual(r["days"], self.named_min)
+        self.assertNotIn(scrapy["last_ns"], self.stats.get("sweep_dates") or [])
 
     def test_named_min_is_read_from_chart_toml(self):
         with open(CFG, encoding="utf-8") as fh:
@@ -168,8 +162,9 @@ class HeroBuild(unittest.TestCase):
         n, rep, _out = _build(self.tmp, "nm7", cfg_path=p, editions=["day"])
         self.assertEqual(n, 0)
         rows = rep["sheets"]["hero-day"]["hero"]["rows"]
-        self.assertEqual([r["name"] for r in rows if not r["more"]],
-                         ["Scrapy", "rustmapper", "Data_science_dev", "BenjaminSRussell", "game_engine"])
+        named = [r["name"] for r in rows if not r["more"]]
+        self.assertEqual(named, [n for n, _d, _r in expected_rows(self.stats, 7, self.aliases)[0]])
+        self.assertEqual(len(named) + rows[-1]["n"], self.stats["repo_count"])
 
     def test_repo_with_no_non_sweep_day_is_not_land(self):
         data = copy.deepcopy(self.stats)
@@ -177,117 +172,172 @@ class HeroBuild(unittest.TestCase):
         ghost = copy.deepcopy(next(r for r in data["repos"] if r["name"] == "Wheel"))
         ghost["name"] = "Ghost_repo"
         ghost["days"] = [{"d": d, "h": 12, "n": 40} for d in sweeps]     # busy, but only on sweep days
-        ghost["commit_days"] = len(sweeps)
-        for k in ("months", "first_ns", "last_ns"):
-            ghost.pop(k, None)
         data["repos"].append(ghost)
+        data["repo_count"] += 1
         n, rep, _out = _build(self.tmp, "ghost", self.write_stats(data, "ghost"), editions=["day"])
         self.assertEqual(n, 0)
         h = rep["sheets"]["hero-day"]["hero"]
         self.assertIn("Ghost_repo", h["zero"])
-        self.assertFalse(any(r["repo"] == "Ghost_repo" or "Ghost_repo" in (r["repos"] or []) for r in h["rows"]))
-        self.assertNotIn("GHOST_REPO", [t["s"] for t in rep["sheets"]["hero-day"]["text"]])
+        more = h["rows"][-1]
+        self.assertIn("Ghost_repo", more["repos"], "counted in the last row")
+        self.assertEqual(more["weeks"], self.entry("day")["hero"]["rows"][-1]["weeks"], "but drawn as no land")
+        self.assertFalse(any(r["repo"] == "Ghost_repo" for r in h["rows"]))
 
-    def test_data_builder_keys_are_read_when_present(self):
-        """repos[].months / first_ns / last_ns from build_stats draw the same sheet as the sheet's own count."""
-        data = copy.deepcopy(self.stats)
-        sweeps = {s["date"] for s in data["sweeps"]}
-        for r in data["repos"]:
-            days = sorted(d["d"] for d in r.get("days") or [] if d["d"] not in sweeps)
-            months = {}
-            for d in days:
-                months[d[:7]] = months.get(d[:7], 0) + 1
-            r["months"], r["first_ns"], r["last_ns"] = months, (days[0] if days else None), (days[-1] if days else None)
-        n, rep, out = _build(self.tmp, "keyed", self.write_stats(data, "keyed"), editions=["day"])
-        self.assertEqual(n, 0)
-        with open(os.path.join(out, "hero-day.svg"), encoding="utf-8") as fh:
-            keyed = fh.read()
-        self.assertEqual(keyed.split("\n", 2)[2], self.svg["day"].split("\n", 2)[2])
-        # and the keys win: a months record the days do not show is what is drawn
-        r = next(r for r in data["repos"] if r["name"] == "game_engine")
-        r["months"] = {"2026-01": 8, "2026-03": 4}
-        n, rep, _out = _build(self.tmp, "keyed2", self.write_stats(data, "keyed2"), editions=["day"])
-        ge = next(x for x in rep["sheets"]["hero-day"]["hero"]["rows"] if x["repo"] == "game_engine")
-        self.assertEqual(ge["months"], {"2026-01": 8, "2026-03": 4})
+    # ---- the banks: weekly, one scale, islets, never overlapping
+    def test_weekly_bins_one_scale(self):
+        for name in ("day", "phone-day"):
+            h = self.entry(name)["hero"]
+            sc = h["scale"]
+            self.assertLessEqual(sc["max_week"], 7)
+            self.assertAlmostEqual(sc["half_max"] * 2, hero.FILL * sc["band"], delta=0.2, msg="busiest week 0.8 of the band")
+            self.assertAlmostEqual(sc["half_px_per_day"] * sc["max_week"], sc["half_max"], delta=0.05)
+            ax = h["axis"]
+            self.assertEqual(ax["start"], "2025-09-01")
+            self.assertEqual(dt.date.fromisoformat(ax["start"]).weekday(), 0, "ISO weeks start on Monday")
+            self.assertEqual(ax["weeks"], (self.taken - dt.date(2025, 9, 1)).days // 7 + 1)
+            for r in h["rows"]:
+                self.assertEqual(len(r["weeks"]), ax["weeks"])
+                for b in r["blocks"]:
+                    w0, w1 = b["weeks"]
+                    self.assertTrue(all(r["weeks"][i] > 0 for i in range(w0, w1 + 1)), "land only in weeks with days")
+                    self.assertTrue(w0 == 0 or r["weeks"][w0 - 1] == 0)
+                    width = b["x1"] - b["x0"]
+                    self.assertLessEqual(width, (w1 - w0 + 1) * ax["week_px"] + 0.6, "land for those weeks only")
+                    thick = b["bottom"] - b["top"]
+                    peak = max(r["weeks"][w0:w1 + 1])
+                    self.assertAlmostEqual(thick, 2 * sc["half_px_per_day"] * peak, delta=2.0,
+                                           msg=f"{name} {r['name']}: thickness linear in days")
+            # a one-day week is an islet: about a week wide, a day thick, no floor
+            islets = [b for r in h["rows"] for b in r["blocks"] if b["weeks"][0] == b["weeks"][1]
+                      and r["weeks"][b["weeks"][0]] == 1]
+            self.assertTrue(islets)
+            for b in islets:
+                self.assertLessEqual(b["bottom"] - b["top"], 2 * sc["half_px_per_day"] + 2)
 
     def test_rows_never_overlap(self):
         for name in ("day", "phone-day"):
             h = self.entry(name)["hero"]
             spec = hero.ROWS["phone" if "phone" in name else "desk"]
+            lbl = tokens.ROLES["phone" if "phone" in name else "desk"]["label"][1]
             for r in h["rows"]:
                 top, bottom = r["band"]
                 for b in r["blocks"]:
-                    self.assertGreaterEqual(b["top"], top + spec["label_dy"] + 4, f"{name} {r['name']}: bank meets its name")
-                    self.assertLessEqual(b["bottom"], bottom - spec["gap"] + 1.5, f"{name} {r['name']}")
+                    self.assertGreaterEqual(b["top"], top + spec["bank_dy"] - 0.5, f"{name} {r['name']}")
+                    self.assertLessEqual(b["bottom"], bottom - spec["gap"] + 0.5, f"{name} {r['name']}")
                     self.assertGreaterEqual(b["x0"], h["axis"]["x0"] - 0.5)
                     self.assertLessEqual(b["x1"], h["axis"]["x_end"] + 0.5)
-            # the gap below a bank (to the next name) is wider than the gap from a name to its bank
-            self.assertGreater(spec["gap"] + spec["label_dy"] - tokens.ROLES["phone" if "phone" in name else "desk"]["label"][1] * 0.75,
-                               spec["bank_dy"] - spec["label_dy"])
             for a, b in zip(h["rows"], h["rows"][1:]):
                 self.assertLessEqual(a["band"][1], b["band"][0] + 0.01)
+            if spec["name_dy"] is not None:   # phone: a bank is nearer its own name than the next row's
+                own = spec["bank_dy"] - spec["name_dy"]
+                nxt = spec["gap"] + spec["name_dy"] - lbl * 0.75
+                self.assertGreater(nxt, own)
 
-    def test_thickness_is_one_scale_and_steps_down(self):
-        data = copy.deepcopy(self.stats)
-        r = next(r for r in data["repos"] if r["name"] == "Scrapy")
-        r["days"] = list(r["days"]) + [{"d": f"2026-03-{d:02d}", "h": 12, "n": 1} for d in range(1, 31)]
-        for k in ("months", "first_ns", "last_ns"):
-            r.pop(k, None)
-        n, rep, _out = _build(self.tmp, "busy", self.write_stats(data, "busy"), editions=["day"])
-        self.assertEqual(n, 0)
-        s0 = self.entry("day")["hero"]["scale"]
-        s1 = rep["sheets"]["hero-day"]["hero"]["scale"]
-        self.assertEqual(s1["max_month"], 30)
-        self.assertLess(s1["half_px_per_day"], s0["half_px_per_day"])
-        self.assertAlmostEqual(s1["half_px_per_day"] * 30, s1["half_max"], delta=0.05)
+    def test_shallows_along_every_coast(self):
+        th = tokens.THEMES
+        for name in ("day", "night", "phone-day", "phone-night"):
+            t = th["night" if "night" in name else "day"]
+            body = self.svg[name].split("</defs>", 1)[1]
+            self.assertIn(f'fill="{t.shallow_a}"', body, name)
+            self.assertIn(f'fill="{t.shallow_b}"', body, name)
+            self.assertLess(body.index(f'fill="{t.shallow_a}"'), body.index(f'fill="{t.land}"'), "shallows under the land")
+        import checks.contrast as contrast
+        for t in th.values():
+            self.assertGreaterEqual(contrast.de_ok(t.shallow_a, t.land), 0.04)
+            self.assertGreaterEqual(contrast.de_ok(t.shallow_b, t.land), 0.04)
 
-    # ---- the axis
-    def test_axis_runs_to_the_survey_date(self):
+    # ---- the row lettering
+    def test_figure_and_language_on_every_named_row(self):
         for name in ("day", "phone-day"):
             h = self.entry(name)["hero"]
-            self.assertEqual(h["axis"]["start"], "2025-09-01")
-            self.assertEqual(h["axis"]["end"], self.stats["taken"])
-            self.assertEqual(h["axis"]["letters"], "SONDJFMAMJJASO")
-            self.assertEqual(h["axis"]["years"], [2025, 2026])
-            years = [t for t in self.texts(name) if (t["key"] or "").startswith("year:")]
-            self.assertEqual([t["s"] for t in years], ["2025", "2026"])
-            w = hero.SIZES["phone" if "phone" in name else "desk"][0]
+            texts = self.texts(name)
+            rows = [r for r in h["rows"] if not r["more"]]
+            for i, r in enumerate(rows):
+                fig = [t for t in texts if t["key"] == f"days:{r['repo']}"]
+                self.assertEqual(len(fig), 1)
+                self.assertEqual(fig[0]["s"], f"{r['days']} DAYS" if i == 0 else str(r["days"]))
+                self.assertEqual((fig[0]["truth"], fig[0]["slant"]), ("measured", "upright"))
+                rec = next(x for x in self.stats["repos"] if x["name"] == r["repo"])
+                want = rec.get("main_language") or max(rec["lines"], key=rec["lines"].get)
+                tag = [t for t in texts if t["key"] == f"lang:{r['repo']}"]
+                self.assertEqual([t["s"] for t in tag], [want.upper()], f"{name}: {r['name']}")
+            more = [t for t in texts if t["key"] == "days:more"]
+            self.assertEqual(len(more), 1)
+            self.assertEqual(sum(1 for t in texts if t["s"].endswith(" DAYS")), 1, "DAYS after the first figure only")
+        names = {t["s"] for t in self.texts("day") if (t["key"] or "").startswith("row:")}
+        self.assertIn("RUSTMAPPER", names)
+        self.assertNotIn("RUST-SITEMAP", names)
+
+    def test_language_falls_back_to_lines_never_rest(self):
+        data = copy.deepcopy(self.stats)
+        for r in data["repos"]:
+            r.pop("main_language", None)
+            r["language"] = "COBOL"
+        n, rep, _out = _build(self.tmp, "lang", self.write_stats(data, "lang"), editions=["day"])
+        self.assertEqual(n, 0)
+        tags = {t["key"]: t["s"] for t in rep["sheets"]["hero-day"]["text"] if (t["key"] or "").startswith("lang:")}
+        self.assertNotIn("COBOL", tags.values())
+        self.assertEqual(tags["lang:game_engine"], "C")
+
+    # ---- the axis
+    def test_axis_ends_at_the_survey_date_inside_the_border(self):
+        for name in ("day", "phone-day"):
+            h = self.entry(name)["hero"]
+            ax = h["axis"]
+            self.assertEqual(ax["end"], self.stats["taken"][:10])
+            self.assertEqual(ax["border"] - ax["x_end"], hero.INSIDE)
+            self.assertEqual(ax["survey"], f"{self.taken.day} {hero.MONTHS[self.taken.month - 1]}")
+            self.assertEqual(ax["letters"], "SONDJFMAMJJAS", "no initial for the cut-short survey month")
+            self.assertEqual(ax["years"], [2025, 2026])
+            tick = [t for t in self.texts(name) if t["key"] == "survey-tick"]
+            self.assertEqual([t["s"] for t in tick], [ax["survey"]])
+            self.assertLessEqual(tick[0]["x1"], ax["x_end"] + 0.5)
+            w, hgt = hero.SIZES["phone" if "phone" in name else "desk"]
+            border = ax["border"]
             for t in self.texts(name):
-                self.assertLessEqual(t["x1"], w - hero.RULES["phone" if "phone" in name else "desk"][1] + 0.5
-                                     if t["key"] != "imprint" else w, f"{name}: {t['s']!r} lettered beyond the survey date")
+                self.assertLessEqual(t["x1"], border, f"{name}: {t['s']!r} crosses the border")
+                self.assertLessEqual(t["y1"], hgt - hero.RULES["phone" if "phone" in name else "desk"][1],
+                                     f"{name}: {t['s']!r} below the border")
+        tops = [b["top"] for r in self.entry("day")["hero"]["rows"] for b in r["blocks"]]
+        self.assertGreaterEqual(min(tops), hero.RULES["desk"][1] + 24, "desk rows start 24 px below the top border")
+        for t in self.texts("day"):
+            if (t["key"] or "").startswith(("row:", "days:", "lang:")) or t["key"] in ("light", "edition"):
+                self.assertGreaterEqual(t["y0"], hero.RULES["desk"][1] + 24 - 6, t["s"])
 
     # ---- the light and the mark
-    def test_one_light_period_from_claims(self):
-        period = int(self.stats["claims"]["scrape_interval"]["value"])
+    def test_one_light_period_from_claims_on_the_latest_bank(self):
+        claim = self.stats["claims"]["scrape_interval"]
+        period = int(claim["value"])
+        src = claim["source"].split(":", 1)[0]
         for name in ("day", "night", "phone-day", "phone-night"):
             e = self.entry(name)
             self.assertEqual(len(e["lights"]), 1, name)
             lt = e["lights"][0]
             self.assertEqual(lt["character"], f"Fl {period}s")
-            self.assertEqual(lt["row"], "Scrapy")
+            self.assertEqual(lt["row"], src)
+            row = next(r for r in e["hero"]["rows"] if r["repo"] == src)
+            last = max(row["blocks"], key=lambda b: b["x0"])
+            self.assertTrue(last["x0"] - 1 <= lt["x"] <= last["x1"] + 1, "the light stands on the latest bank")
             svg = self.svg[name]
             self.assertEqual(svg.count('repeatCount="indefinite"'), 1, name)
             self.assertIn(f'dur="{period}s"', svg)
+            self.assertEqual(svg.count("<animate"), 1, "one beat per period, nothing else moves")
             m = e["motion"]
-            self.assertEqual(m["indefinite"], 1)
-            self.assertEqual(m["opening_end_s"], 0.0)
-            self.assertEqual(m["violations"], [])
-            self.assertEqual(m["continuous_windows"], [])
-            chars = [t for t in e["text"] if t["key"] == "light"]
-            self.assertEqual([t["s"] for t in chars], [f"Fl {period}s"])
-        # the period is the claim's, not a constant
+            self.assertEqual((m["indefinite"], m["opening_end_s"], m["violations"], m["continuous_windows"]),
+                             (1, 0.0, [], []))
+            self.assertEqual([t["s"] for t in e["text"] if t["key"] == "light"], [f"Fl {period}s"])
+        self.assertIn(period, tokens.LOOP_PERIODS)
         data = copy.deepcopy(self.stats)
-        data["claims"]["scrape_interval"]["value"] = 10
-        n, rep, out = _build(self.tmp, "fl10", self.write_stats(data, "fl10"), editions=["day"])
+        data["claims"]["scrape_interval"]["value"] = 15
+        n, rep, _out = _build(self.tmp, "fl15", self.write_stats(data, "fl15"), editions=["day"])
         self.assertEqual(n, 0)
-        self.assertEqual(rep["sheets"]["hero-day"]["lights"][0]["character"], "Fl 10s")
-        # an unmeasured claim draws no light
+        self.assertEqual(rep["sheets"]["hero-day"]["lights"][0]["character"], "Fl 15s", "the period is the claim's")
         data["claims"]["scrape_interval"]["measured"] = False
         n, rep, _out = _build(self.tmp, "nolight", self.write_stats(data, "nolight"), editions=["day"])
         self.assertEqual(n, 0)
-        self.assertEqual(rep["sheets"]["hero-day"]["lights"], [])
+        self.assertEqual(rep["sheets"]["hero-day"]["lights"], [], "an unmeasured claim draws no light")
 
-    def test_one_edition_mark_in_the_water(self):
+    def test_one_edition_mark_and_lettering_in_the_water(self):
         ed = self.stats["edition"]
         for name in ("day", "phone-day"):
             e = self.entry(name)
@@ -297,7 +347,9 @@ class HeroBuild(unittest.TestCase):
             self.assertEqual((mk["row"], mk["date"]), ("Rust-sitemap", ed["date"]))
             for p in e["hero"]["placements"]:
                 self.assertGreaterEqual(p["clear"], hero.CLEAR, f"{name}: {p['text']} sits on a coast")
-                self.assertIn(p["side"], ("right", "left"))
+                row = next(r for r in e["hero"]["rows"] if r["repo"] == (mk["row"] if p["what"] == "edition" else "Scrapy"))
+                self.assertGreaterEqual(p["box"][1], row["band"][0] - 0.5, f"{name}: {p['text']} leaves its row")
+                self.assertLessEqual(p["box"][3], row["band"][1] + 0.5, f"{name}: {p['text']} leaves its row")
 
     def test_no_theme_symbols(self):
         for name, svg in self.svg.items():
@@ -314,9 +366,7 @@ class HeroBuild(unittest.TestCase):
             for s in texts:
                 self.assertIsNone(BANNED.search(s), f"{name}: {s!r}")
             datum = [s for s in texts if "DATUM" in s.upper()]
-            self.assertEqual(len(datum), 1, name)
-            self.assertEqual(datum[0].count("DATUM"), 1)
-            self.assertIn("DATUM: MAIN", datum[0])
+            self.assertEqual(datum, [f"{self.stats['repo_count']} REPOSITORIES · DATUM: MAIN"], name)
             self.assertIsNone(BANNED.search(self.entry(name)["alt"]))
 
     def test_nothing_sloping_nothing_unmeasured(self):
@@ -327,40 +377,32 @@ class HeroBuild(unittest.TestCase):
                     self.assertEqual(t["truth"], "measured", f"{name}: unmeasured figure {t['s']!r}")
                 if t["truth"] is not None:
                     self.assertEqual(t["truth"], "measured")
+        when = f"{self.taken.day} {self.taken.strftime('%b').upper()} {self.taken.year}"
         texts = [t["s"] for t in self.texts("day")]
-        n = self.stats["repo_count"]
-        self.assertIn(f"{n} REPOSITORIES · AUTHOR'S COMMITS", texts)
-        self.assertIn("DATUM: MAIN · SWEEP DAYS EXCLUDED", texts)
-        import datetime as _dt
-        when = _dt.date.fromisoformat(self.stats["taken"][:10])
-        when = f"{when.day} {when.strftime('%b').upper()} {when.year}"
         self.assertIn(f"{when} · EASTERN TIME", texts)
         self.assertIn("CRAWL AND DATA INFRASTRUCTURE", texts)
         self.assertIn(f"GITHUB.COM/BENJAMINSRUSSELL · {when}", texts)
         self.assertEqual(sum(1 for s in texts if s in ("Ben", "Russell")), 2)
         phone = [t["s"] for t in self.texts("phone-day")]
         self.assertFalse(any(s.startswith("GITHUB.COM") for s in phone), "no imprint line on the phone")
-        self.assertIn("CRAWL AND DATA INFRASTRUCTURE · PYTHON AND RUST", phone)
 
-    def test_row_names_as_written(self):
-        names = {t["s"] for t in self.texts("day") if (t["key"] or "").startswith("row:")}
-        self.assertIn("RUSTMAPPER", names)
-        self.assertIn("SCRAPY", names)
-        self.assertIn("DATA_SCIENCE_DEV", names)
-        self.assertNotIn("RUST-SITEMAP", names)
-        tags = sorted(t["s"] for t in self.texts("day") if t["s"] in ("PYTHON", "RUST"))
-        rows = [r for r in self.entry("day")["hero"]["rows"] if not r["more"]]
-        known = {x["name"]: x.get("language") for x in self.stats["repos"]}
-        want = sorted(known[r["repo"]].upper() for r in rows if known.get(r["repo"]) in ("Python", "Rust"))
-        self.assertEqual(tags, want, "language tags exactly where the data knows them")
-
-    def test_type_floors(self):
+    def test_type_floors_and_phone_hierarchy(self):
         for name in ALL:
             sc = "phone" if "phone" in name else "desk"
             for t in self.texts(name):
                 self.assertGreaterEqual(t["size"], tokens.FLOORS[sc]["semantic"], f"{name}: {t['s']!r} {t['size']}")
-        for t in self.texts("phone-day"):
+        th = tokens.THEMES["day"]
+        ph = self.texts("phone-day")
+        for t in ph:
             self.assertGreaterEqual(t["size"], 26, "nothing under 26 px sheet type on the phone (13 px on screen)")
+        role = [t for t in ph if t["s"] in ("CRAWL AND DATA INFRASTRUCTURE", "PYTHON AND RUST")]
+        fine = [t for t in ph if t["key"] in ("repositories", "survey-date")]
+        self.assertEqual({t["size"] for t in role}, {30})
+        self.assertEqual({t["size"] for t in fine}, {26})
+        self.assertGreaterEqual(min(t["y0"] for t in fine) - max(t["y1"] for t in role), 12 - 6,
+                                "a 12 px gap between the role line and the fine print")
+        svg = self.svg["phone-day"]
+        self.assertIn(f'fill="{th.ink2}"', svg)
 
     def test_still_editions_are_frozen_finished_sheets(self):
         for name in ALL:
@@ -394,23 +436,27 @@ class HeroBuild(unittest.TestCase):
         alt = hero.alt(self.stats, build_assets.load_cfg(CFG))
         self.assertLessEqual(len(alt.split()), 25)
         self.assertFalse(alt.lower().startswith("the"))
-        self.assertIn(f"{self.stats['repo_count']} repositories", alt)
-        self.assertIn("Scrapy and rustmapper", alt)
+        self.assertNotIn("coastline", alt.lower())
+        self.assertIn(f"{self.stats['repo_count']} repositories by week", alt)
+        self.assertIn("Scrapy and rustmapper busiest", alt)
+        self.assertIn("quiet Feb to Jul 2026", alt)
         last = alt.rsplit(". ", 1)[-1]
+        self.assertLessEqual(len(last.split()), 10)
         self.assertEqual(last, self.cfg["alt"]["alt_poem"][0])
         self.assertTrue(self.cfg["alt"]["hero"].endswith(last))
-        self.assertIn("coastline", self.cfg["alt"]["hero"])
 
     # ---- the live-like stats file (the second gate)
     @unittest.skipUnless(os.path.exists(LIVE), "live-like stats file not present")
     def test_live_like_stats_build_clean(self):
         n, rep, _out = _build(self.tmp, "live", LIVE)
         self.assertEqual(n, 0, rep["problems"])
-        h = rep["sheets"]["hero-day"]["hero"]
-        names = [r["name"] for r in h["rows"]]
-        self.assertEqual(len(names), len(set(names)), "a repository listed twice is drawn once")
+        with open(LIVE, encoding="utf-8") as fh:
+            live = json.load(fh)
         for e in rep["sheets"].values():
-            for p in e["hero"]["placements"]:
+            h = e["hero"]
+            rows = [r for r in h["rows"] if not r["more"]]
+            self.assertEqual(len(rows) + h["rows"][-1]["n"], live["repo_count"])
+            for p in h["placements"]:
                 self.assertGreaterEqual(p["clear"], hero.CLEAR)
 
 
