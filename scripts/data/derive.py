@@ -25,7 +25,8 @@ import math
 import statistics
 from collections import Counter, defaultdict
 
-from .survey import Commit, WEEKS, is_ben, week_start, week_starts
+from .survey import AUTOMATION, Commit, WEEKS, is_ben, week_start, week_starts
+from .tree import main_language
 
 SWEEP_MIN_REPOS = 5
 ACTIVE_WEEKS = 12
@@ -180,6 +181,9 @@ def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
     for r in repos:
         r["active"], r["dormant"] = activity(r, taken, sweep_dates)
         r["months"], r["first_ns"], r["last_ns"] = months_without_sweeps(r, sweep_dates)
+        r["main_language"] = main_language(r.get("lines"))
+        if r.get("test_functions") == 0 and r["main_language"] not in ("Rust", "Python"):
+            r["test_functions"] = None     # only Rust and Python test functions are counted; no false "0 tests"
     weeks = weekly(repos, taken, sweep_dates)
     firsts = [r["first"] for r in repos if r.get("first")]
     first_commit = min(firsts) if firsts else None
@@ -191,6 +195,7 @@ def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
         "commits": sum(r.get("commits", 0) for r in repos),
         "merges": sum(r.get("merges", 0) for r in repos),
         "coauthored_total": coauthored_total(repos),
+        "agent_authored": agent_authored(repos),
         "all_hands": sum(r.get("all_hands", 0) for r in repos),
         "first_commit": first_commit,
         "days_surveyed": (taken - dt.date.fromisoformat(first_commit)).days if first_commit else None,
@@ -221,7 +226,21 @@ def coauthored_total(repos: list[dict]) -> dict:
         commits += int(r.get("commits", 0))
         names.update(c.get("names") or {})
     return {"count": count, "share": round(count / commits, 3) if commits else 0.0, "agent": agent,
-            "names": dict(names.most_common())}
+            "agent_share": round(agent / commits, 3) if commits else 0.0, "names": dict(names.most_common())}
+
+
+def agent_authored(repos: list[dict]) -> dict:
+    """Commits on HEAD whose *author* is a coding agent (`others[]` with bot: true, less dependency and CI
+    automation): {total, names{name: commits}, automation{name: commits}}. None of these is in `commits`."""
+    agents: Counter = Counter()
+    automation: Counter = Counter()
+    for r in repos:
+        for o in r.get("others") or []:
+            if not o.get("bot"):
+                continue
+            (automation if o["name"] in AUTOMATION else agents)[o["name"]] += int(o.get("commits", 0))
+    return {"total": sum(agents.values()), "names": dict(sorted(agents.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "automation": dict(sorted(automation.items(), key=lambda kv: (-kv[1], kv[0])))}
 
 
 def calendar_check(weeks: list[dict], calendar: dict, surveyed: list[str]) -> dict:

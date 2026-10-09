@@ -261,10 +261,13 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         records, failed = [], []
         profile_commits: list = []
         scrapy_dir = None
+        git_dirs: dict[str, str] = {}
         for name in names:
             rec = results.get(name)
             if rec:
                 instruments["clones"] = "live"
+                if rec.get("_git_dir"):
+                    git_dirs[name] = rec["_git_dir"]
                 if name == owner:
                     profile_commits = rec.get("_commits", [])
                 if name == "Scrapy":
@@ -294,6 +297,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         if not records:
             raise SystemExit("no history and no cache: nothing ships")
         trial = trial_from_clone(scrapy_dir)
+        claims = claims_mod.verify_scrape_interval(claims_mod.claims(cfg), lambda repo, sha, path: (
+            survey_mod.file_at(git_dirs[repo], sha, path) if repo in git_dirs else None))
         hand = [n for n in cfg.get("notices", []) if isinstance(n, dict)]
         notices = releases_mod.notices(flagship, ed, profile_commits, hand, token, owner, owner, identity,
                                        cached=cache.get("notices"))
@@ -306,7 +311,7 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     known = list(gh["repo_meta"].keys()) if gh.get("repo_meta") else []
     unsurveyed = derive_mod.unsurveyed(known, [r["name"] for r in records], failed)
     stats = assemble(records, taken, updated_at, run_id, mode, gh, ed, notices,
-                     derive_mod.corrections(profile_commits, identity), claims_mod.claims(cfg), trial, sources,
+                     derive_mod.corrections(profile_commits, identity), claims, trial, sources,
                      unsurveyed, instruments, features, soundings=soundings_taken(out))
     errs = model.validate(stats)
     if errs:
@@ -319,6 +324,11 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     cal = stats.get("calendar") or {}
     in_window = sum(w["n"] for w in stats["weeks"])
     co = stats["coauthored_total"]
+    ag = stats["agent_authored"]
+    si = stats["claims"].get("scrape_interval") or {}
+    print(f"agents authored {ag['total']} more ({', '.join(f'{k} {v}' for k, v in ag['names'].items()) or 'none'}); "
+          f"automation {ag['automation'] or 'none'} · scrape_interval {si.get('value')} {si.get('unit')} "
+          f"({'measured' if si.get('measured') else 'not measured'})")
     print(f"mode={mode} · {len(stats['repos'])} repos · {stats['commits']} commits authored by {owner} on HEAD "
           f"({stats['merges']} merges, {co['count']} with co-author trailers, {co['agent']} naming an agent) of "
           f"{stats['all_hands']} by anyone · sweeps {', '.join(stats['sweep_dates']) or 'none'} · "

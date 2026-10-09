@@ -1,7 +1,9 @@
 """tree — what the repository holds at HEAD, from the clones: tests, workflows, manifests, lines by language.
 
     tree_facts(git_dir, repo, lines_cfg) -> {tests, workflows, manifest}     paths from `git ls-tree`, a few blobs
-    lines_by_language(head_dir, repo, lines_cfg) -> {language: lines}        needs the blobs of HEAD (a depth-1 clone)
+    scan_head(head_dir, repo, lines_cfg) -> {lines, test_functions}         needs the blobs of HEAD (a depth-1 clone)
+    lines_by_language(head_dir, repo, lines_cfg) -> {language: lines}        scan_head's lines
+    main_language(lines) -> str | None                                       the largest programming language
     lines_config(cfg) -> {exclude_dirs, exclude}                             chart.toml [lines]
 
 Definitions (docs/data/AUDIT.md is the record):
@@ -11,6 +13,15 @@ Definitions (docs/data/AUDIT.md is the record):
   manifest   declared (top-level, not transitive) dependency names from Cargo.toml, pyproject.toml, package.json,
              go.mod and Package.swift found at the repository root or one directory down (depth ≤ 2), in file
              order, deduplicated; dev/test groups left out. requirements.txt is not a manifest here.
+  test_functions  test functions at HEAD, Rust and Python only: `#[test]`, `#[tokio::test]` (with or without
+             arguments) and `#[rstest]` attributes in any .rs file (Rust unit tests live inline, in
+             `#[cfg(test)]` modules), and `def test_…(` / `async def test_…(` in the Python files pytest
+             collects (`test_*.py`, `*_test.py`); same exclusions as `lines`. None when the repository has
+             no Rust or Python file, and (derive) a 0 is stated only when Rust or Python is the main
+             language, so a Swift repository with one helper script never reads "0 tests". Swift, Go and
+             JavaScript tests are counted only as files (`tests`).
+  main_language  the language with most `lines`, leaving out markup and data (Markdown, JSON, YAML, TOML,
+             HTML, CSS) unless nothing else is there.
   lines      newline count of text files at HEAD whose extension names a programming language, with the
              vendored, build and generated directories of `[lines] exclude_dirs` and the per-repository
              `[lines.exclude]` paths left out. Binary files (a NUL in the first 8 KB) and files over
@@ -40,6 +51,11 @@ TEST_PATTERNS = [re.compile(p) for p in (
 WORKFLOW = re.compile(r"^\.github/workflows/[^/]+\.ya?ml$")
 MANIFESTS = ("Cargo.toml", "pyproject.toml", "package.json", "go.mod", "Package.swift")
 MANIFEST_CAP = 40
+NOT_PROGRAMS = {"Markdown", "JSON", "YAML", "TOML", "HTML", "CSS"}
+RUST_TEST = re.compile(rb"^[ \t]*#\[[ \t]*(?:(?:tokio::)?test|rstest)[ \t]*[\](]", re.M)
+PY_TEST = re.compile(rb"^[ \t]*(?:async[ \t]+)?def[ \t]+test_\w*[ \t]*\(", re.M)
+PY_COLLECTED = re.compile(r"(^|/)(test_[^/]*|[^/]*_test)\.py$")   # the files pytest collects by default
+TEST_FUNCTION_RX = {"Rust": RUST_TEST, "Python": PY_TEST}
 MAX_FILE_BYTES = 512 * 1024   # a source file over 512 KB is data or generated output, not typed; skipped
 
 
@@ -174,13 +190,27 @@ def tree_facts(git_dir: str, repo: str, lines_cfg: dict | None = None) -> dict:
 
 # ---------------------------------------------------------------- lines by language
 
+def main_language(lines: dict[str, int] | None) -> str | None:
+    """The programming language with most lines; markup and data only when nothing else is there."""
+    if not lines:
+        return None
+    ranked = sorted(((n, lang) for lang, n in lines.items() if n > 0), key=lambda t: (-t[0], t[1]))
+    programs = [lang for _n, lang in ranked if lang not in NOT_PROGRAMS]
+    return (programs or [lang for _n, lang in ranked] or [None])[0]
+
+
 def lines_by_language(head_dir: str, repo: str, lines_cfg: dict | None = None) -> dict[str, int] | None:
     """Newlines per language over HEAD's text files (a clone that holds HEAD's blobs). None when git fails."""
+    return scan_head(head_dir, repo, lines_cfg)["lines"]
+
+
+def scan_head(head_dir: str, repo: str, lines_cfg: dict | None = None) -> dict:
+    """{lines: {language: lines} | None, test_functions: int | None} in one pass over HEAD's blobs."""
     lines_cfg = lines_cfg or lines_config(None)
     try:
         listing = _git(head_dir, "ls-tree", "-r", "-l", "HEAD")
     except RuntimeError:
-        return None
+        return {"lines": None, "test_functions": None}
     wanted: list[tuple[str, str]] = []
     for line in listing.splitlines():
         meta, _, path = line.partition("\t")
@@ -193,16 +223,17 @@ def lines_by_language(head_dir: str, repo: str, lines_cfg: dict | None = None) -
         except ValueError:
             size = 0
         if lang and size <= MAX_FILE_BYTES and not excluded(path, repo, lines_cfg):
-            wanted.append((parts[2], lang))
+            wanted.append((parts[2], lang, path))
     if not wanted:
-        return {}
+        return {"lines": {}, "test_functions": None}
     counts: Counter = Counter()
+    tests: Counter = Counter()
     proc = subprocess.Popen(["git", f"--git-dir={head_dir}", "cat-file", "--batch"], stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
 
     def feed() -> None:   # on its own thread: writing every id before reading would fill both pipes and stall
         try:
-            for sha, _lang in wanted:
+            for sha, _lang, _path in wanted:
                 proc.stdin.write((sha + "\n").encode())
             proc.stdin.close()
         except (BrokenPipeError, OSError):
@@ -211,7 +242,7 @@ def lines_by_language(head_dir: str, repo: str, lines_cfg: dict | None = None) -
     try:
         threading.Thread(target=feed, daemon=True).start()
         rd = proc.stdout
-        for sha, lang in wanted:
+        for sha, lang, path in wanted:
             header = rd.readline()
             if not header:
                 break
@@ -227,6 +258,11 @@ def lines_by_language(head_dir: str, repo: str, lines_cfg: dict | None = None) -
             if data and not data.endswith(b"\n"):
                 n += 1
             counts[lang] += n
+            rx = TEST_FUNCTION_RX.get(lang)
+            if rx is not None and (lang != "Python" or PY_COLLECTED.search(path)):
+                tests[lang] += len(rx.findall(data))
     finally:
         proc.wait(timeout=300)
-    return dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
+    has_rust_or_python = any(lang in TEST_FUNCTION_RX for _sha, lang, _path in wanted)
+    return {"lines": dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "test_functions": sum(tests.values()) if has_rust_or_python else None}

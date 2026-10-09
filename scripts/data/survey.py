@@ -93,6 +93,16 @@ def is_bot(name: str, identity: dict | None = None) -> bool:
     return n in ident.get("bots", []) or n.endswith("[bot]")
 
 
+AUTOMATION = {"dependabot[bot]", "renovate[bot]", "github-actions[bot]", "pre-commit-ci[bot]", "snyk-bot"}
+
+
+def is_agent_author(name: str, identity: dict | None = None) -> bool:
+    """A commit author that is a coding agent: a bot by `is_bot` that is not dependency or CI automation
+    (dependabot, renovate, github-actions, pre-commit-ci): Claude and google-labs-jules[bot] here."""
+    n = (name or "").strip()
+    return is_bot(n, identity) and n not in AUTOMATION
+
+
 def is_agent_trailer(trailer: str, identity: dict | None = None) -> bool:
     """A Co-authored-by value naming an agent: a `[identity] bots` name, exactly or as its first word
     ("Claude Sonnet 5 <…>"), or a `[bot]` account. Ben's own identities are never agents."""
@@ -203,6 +213,14 @@ def file_at_head(dest: str, path: str) -> str | None:
     try:
         return _git(dest, "show", f"HEAD:{path}", timeout=120)
     except RuntimeError:
+        return None
+
+
+def file_at(dest: str, rev: str, path: str) -> str | None:
+    """Contents of `path` at any commit (the blob is fetched on demand from a blobless clone); None if absent."""
+    try:
+        return _git(dest, "show", f"{rev}:{path}", timeout=120)
+    except (RuntimeError, subprocess.TimeoutExpired):
         return None
 
 
@@ -326,6 +344,7 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "span": span_label(first, last, taken) if first and last else None,
         "stale_branches": stale_refs or [],
         "tests": None,
+        "test_functions": None,
         "workflows": None,
         "manifest": None,
         "lines": None,
@@ -357,7 +376,8 @@ def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date
         lines_cfg = lines_cfg or tree_mod.lines_config(load_chart_toml())
         rec.update(tree_mod.tree_facts(dest, repo, lines_cfg))
         head = clone_head(repo, workdir, owner, timeout)
-        rec["lines"] = tree_mod.lines_by_language(head, repo, lines_cfg) if head else None
+        if head:
+            rec.update(tree_mod.scan_head(head, repo, lines_cfg))
     if keep_history:
         rec["_commits"] = commits
     return rec
