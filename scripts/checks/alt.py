@@ -2,7 +2,9 @@
 
 Each <img alt> ≤ 25 words, first word not "The", last sentence ≤ 10 words; every H2 carries a
 <sub> gloss; a plain paragraph (<sub>, <p> or body text) within 3 lines after each </picture>;
-the six last sentences are the alt poem and must equal chart.toml alt_poem (printed as info)."""
+the last sentences are the alt poem and must equal chart.toml alt_poem's lines for the sheets the
+README carries (printed as info). Since v10 the page carries the hero alone, so only its line is
+expected; alt_poem keeps a line per sheet for the sheets built on request."""
 from __future__ import annotations
 
 import re
@@ -10,6 +12,12 @@ import re
 from check import Finding, fail, warn, info
 
 TIER = "fast"
+POEM_ORDER = ("hero", "soundings", "approaches", "log", "instruments", "footer")   # chart.toml alt_poem's order
+_SRC = re.compile(r'<img[^>]*\bsrc="[^"]*/([\w-]+?)-(?:phone-)?(?:still-)?(?:day|night)\.svg"')
+
+
+def _sheets_on_page(text: str) -> list[str]:
+    return _SRC.findall(text)
 
 
 def check(ctx) -> list[Finding]:
@@ -34,6 +42,10 @@ def check(ctx) -> list[Finding]:
     # v9.1 (owner, 8 Oct 2026): no H2 gloss and no caption under a sheet; the alt carries the twin, the
     # sheet shows the rest. ALT-GLOSS and ALT-TWIN are retired.
     want = list((ctx.cfg or {}).get("alt", {}).get("alt_poem", []))
+    on_page = _sheets_on_page(text)
+    if len(want) == len(POEM_ORDER) and len(on_page) == len(alts):
+        lines = dict(zip(POEM_ORDER, want))
+        want = [lines[s] for s in on_page if s in lines]
     if want and poem != want:
         out.append(warn("ALT-POEM", "alt poem differs from chart.toml alt_poem:\n    " + "\n    ".join(poem)))
     else:

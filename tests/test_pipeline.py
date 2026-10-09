@@ -100,6 +100,14 @@ class BuildAssets(unittest.TestCase):
     def test_unknown_edition_rejected(self):
         self.assertEqual(self.build(["_blank"], editions=["dusk"]), 1)
 
+    def test_default_build_is_the_hero(self):
+        """D1: the default build is the page's one chart; the other sheets stay buildable by name."""
+        self.assertEqual(build_assets.SHEETS, ["hero"])
+        self.assertEqual(build_assets.ALL_SHEETS[0], "hero")
+        self.assertTrue({"soundings", "approaches", "log", "instruments", "footer"} <= set(build_assets.ALL_SHEETS))
+        for name in build_assets.ALL_SHEETS:
+            build_assets.load_sheet(name)
+
 
 class Gate(unittest.TestCase):
     """A throw-away repo root: chart.toml and stats.json copied, a clean README, the _blank build."""
@@ -142,6 +150,25 @@ class Gate(unittest.TestCase):
     def test_position_empty_is_a_warning(self):
         self.assertEqual(self.run_gate(["position"]), 2)
 
+    def test_unmeasured_figure_on_the_hero_fails(self):
+        """D5: a text run on the hero whose report truth is not measured fails the strings check."""
+        with open(self.report, encoding="utf-8") as fh:
+            rep = json.load(fh)
+        entry = dict(rep["sheets"]["_blank-day"])
+        entry["text"] = [{"s": "UNSURVEYED", "truth": None}, {"s": "12,440", "truth": "measured"}]
+        rep["sheets"]["hero-day"] = entry
+        with open(self.report, "w", encoding="utf-8") as fh:
+            json.dump(rep, fh)
+        self.assertEqual(self.run_gate(["strings"]), 0, "labels and measured figures pass")
+        entry["text"].append({"s": "4,096", "truth": "illustrative"})
+        with open(self.report, "w", encoding="utf-8") as fh:
+            json.dump(rep, fh)
+        self.assertEqual(self.run_gate(["strings"]), 1)
+        rep["sheets"]["log-day"] = rep["sheets"].pop("hero-day")       # off the page: its figures are its own
+        with open(self.report, "w", encoding="utf-8") as fh:
+            json.dump(rep, fh)
+        self.assertEqual(self.run_gate(["strings"]), 0)
+
     def test_broken_svg_fails(self):
         path = os.path.join(self.out, "_blank-day.svg")
         with open(path, "a", encoding="utf-8") as fh:
@@ -176,7 +203,9 @@ class Readme(unittest.TestCase):
         self.assertEqual(order, ["phone-still-night", "phone-still-day", "phone-night", "phone-day",
                                  "still-night", "still-day", "night", "day"])
         self.assertIn('alt="A &quot;boat&quot; &amp; co"', hero[-2])
+        # no pixel height: GitHub's markdown CSS keeps it while it narrows the width (letterboxed sheet)
         self.assertNotIn("height=", "".join(hero))
+        self.assertIn('width="100%"', hero[-2])
         log = render_readme.picture("log", self.cfg, "x").splitlines()
         self.assertEqual(len(log), 8)
         self.assertTrue(log[1].startswith('<source media="(max-width: 767px) and (prefers-color-scheme: dark)"'))
@@ -199,7 +228,65 @@ class Readme(unittest.TestCase):
         self.assertIn("<!-- picture:hero:start -->\n<picture>\n<source media=", once, "bare pictures are wrapped")
         self.assertIn("1. **Boring under load.**", once)
         self.assertIn("<!-- instruments:start -->\n<!-- instruments:end -->", once, "v9.1: the sheet shows it, no mirror")
-        self.assertIn("/footer-still-day.svg", once)
+        self.assertIn("/footer-still-day.svg", once, "a picture block the README carries is written")
+        self.assertNotIn("/soundings-day.svg", once, "a picture block the README does not carry is not")
+
+    def test_notices_first_four_and_no_release_line(self):
+        block = render_readme.notices_block(self.cfg, self.stats)
+        rows = [r for r in block.splitlines() if r.strip()]
+        self.assertEqual(len(rows), 4, block)
+        self.assertTrue(rows[0].startswith("1. **Boring under load.**"))
+        self.assertTrue(rows[-1].startswith("4. **Parse, don't pattern-match.**"))
+        self.assertNotIn("The surface is part of the system", block)
+        self.assertNotIn("editions", block)
+        self.assertNotIn("pypi.org", block)
+
+    def test_survey_block_is_from_stats_only(self):
+        figs = render_readme.figures(self.stats, self.cfg)
+        block = render_readme.survey_block(self.stats, figs)
+        self.assertTrue(block.startswith("<sub><b>Survey log</b> · ") and block.endswith(".</sub>"), block)
+        self.assertIn(f"{figs['commits']} commits", block)
+        self.assertIn(f"{figs['all_hands']} all hands", block)
+        self.assertIn(f"{figs['repo_count']} public repositories", block)
+        self.assertIn(f"taken {figs['taken']}", block)
+        inst = self.stats["provenance"]["instruments"]
+        self.assertIn("clones live" if inst["clones"] == "live" else "clones", block)
+        self.assertIn(f"{self.stats['edition']['project']} {self.stats['edition']['version']}", block)
+        # a thin stats.json prints only what it holds; nothing is guessed
+        thin = render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2})
+        self.assertEqual(thin, "<sub><b>Survey log</b> · taken 7 Oct 2026 · 2 public repositories read from the last clone, "
+                               "author's commits only · 12 commits.</sub>")
+        self.assertEqual(render_readme.survey_block({}), "")
+        failed = render_readme.survey_block({"taken": "2026-10-07", "provenance": {"mode": "cache-failed", "failed_at": "2026-10-11T06:20:00Z"}})
+        self.assertIn("the survey failed on 11 Oct 2026; these are the previous survey's figures", failed)
+
+    def test_page_sheets_and_position_inline(self):
+        self.assertEqual(render_readme.page_sheets("<!-- picture:footer:start -->\n<!-- picture:hero:start -->"), ["hero", "footer"])
+        self.assertEqual(render_readme.page_sheets("no pictures"), [])
+        cfg = dict(self.cfg, position={"text": "open to work · UTC−5"})
+        self.assertEqual(render_readme.position_block(cfg), "&nbsp;· <i>open to work · UTC−5</i>")
+        self.assertEqual(render_readme.position_block(self.cfg), "", "chart.toml's position is empty today")
+        self.assertIn("License", render_readme.license_block())
+        self.assertTrue(render_readme.license_block().startswith("<sub>"))
+
+    def test_committed_readme_is_the_one_chart_page(self):
+        """D1/D8: the README carries the hero's picture block and no other sheet, in the decided order."""
+        with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
+            text = fh.read()
+        self.assertEqual(render_readme.page_sheets(text), ["hero"])
+        for sheet in ("soundings", "approaches", "log", "instruments", "footer"):
+            self.assertNotIn(f"/{sheet}-day.svg", text, sheet)
+        order = ["<!-- picture:hero:end -->", "Crawl and data infrastructure · Python and Rust", "<!-- position:start",
+                 "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**", "is the survey vessel:**",
+                 "pip install rustmapper", "is where a run is operated:**", "**Other waters**", "Below the waterline",
+                 "**Notices to mariners**", "<!-- notices:start -->", "4. **Parse, don't pattern-match.**",
+                 "<!-- survey:start -->", "<b>Survey log</b>", "Redrawn from my repositories by", "DESIGN.md",
+                 "<!-- license:start -->", "**License**"]
+        positions = [text.index(m) for m in order]
+        self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
+        for gone in ("## Soundings", "## Approaches", "## Ship's log", "## Instruments", "<summary><b>Colophon</b>",
+                     "5. **The surface", "editions:", "<!-- figures:start", "<!-- instruments:start", "<!-- log_lede:start"):
+            self.assertNotIn(gone, text, gone)
 
     def test_figures_from_v1_and_v2(self):
         live = render_readme.figures(self.stats, self.cfg)     # whatever stats.json holds today
@@ -216,12 +303,12 @@ class Readme(unittest.TestCase):
 
     def test_alts_within_budget(self):
         figs = render_readme.figures(self.stats, self.cfg)
-        for sheet in render_readme.SHEETS:
+        for sheet in render_readme.SHEETS:       # every sheet the build knows, on the page or built on request
             alt = render_readme.alt_for(sheet, self.stats, self.cfg, figs, use_sheets=False)
             self.assertTrue(alt, sheet)
             self.assertLessEqual(len(alt.split()), 25, (sheet, alt))
             self.assertNotEqual(alt.split()[0].lower(), "the", sheet)
-        self.assertEqual(len(self.cfg["alt"]["alt_poem"]), 6)
+        self.assertEqual(len(self.cfg["alt"]["alt_poem"]), len(render_readme.SHEETS))
 
 
 class Publish(unittest.TestCase):

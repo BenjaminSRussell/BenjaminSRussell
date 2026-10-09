@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Draw every sheet of the chart in every edition, from assets/stats.json, into assets/v9/.
+"""Draw the chart's sheets in every edition, from assets/stats.json, into assets/v9/.
 
-    python3 scripts/build_assets.py                       # six sheets × six editions (+ hero phone stills)
-    python3 scripts/build_assets.py --sheets hero,log     # some sheets
+    python3 scripts/build_assets.py                       # the page's sheet (the hero) × six editions (+ phone stills)
+    python3 scripts/build_assets.py --sheets hero,log     # some sheets; the five supporting sheets build on request
     python3 scripts/build_assets.py --editions day,night  # some editions
     python3 scripts/build_assets.py --no-sounding         # yesterday's figures with the pencil note
     python3 scripts/build_assets.py --out /tmp/v9         # elsewhere
@@ -54,7 +54,10 @@ DEFAULT_REPORT = os.path.join(ASSETS, "build-report.json")
 DEFAULT_CFG = os.path.join(ROOT, "chart.toml")
 DEFAULT_STATS = os.path.join(ASSETS, "stats.json")
 
-SHEETS = ["hero", "soundings", "approaches", "log", "instruments", "footer"]
+# round 4, D1: the page is the hero and written text. The default build is the hero; the other five
+# sheet modules stay in the tree and build with --sheets (tests build them that way).
+SHEETS = ["hero"]
+ALL_SHEETS = ["hero", "soundings", "approaches", "log", "instruments", "footer"]
 ALL_EDITIONS = tuple(E.EDITIONS)
 ReportHook = Callable[["Ctx", str, dict], None]
 report_hooks: list[ReportHook] = []   # other modules append fn(ctx, svg_text, entry) -> None
@@ -475,7 +478,7 @@ def main(editions: list[str] | None = None, no_sounding: bool = False, heartbeat
                       f"{entry['elements']} elements")
             if name not in poem and entry["alt"]:
                 poem[name] = last_sentence(entry["alt"])
-    report["poem"] = [poem[n] for n in SHEETS if n in poem] + [poem[n] for n in poem if n not in SHEETS]
+    report["poem"] = [poem[n] for n in ALL_SHEETS if n in poem] + [poem[n] for n in poem if n not in ALL_SHEETS]
     os.makedirs(os.path.dirname(os.path.abspath(report_path)), exist_ok=True)
     with open(report_path, "w", encoding="utf-8") as fh:
         json.dump(report, fh, indent=1, ensure_ascii=False)
@@ -493,7 +496,7 @@ def _split(s: str | None) -> list[str] | None:
 
 def cli(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("names", nargs="*", help="sheet names (default: all six)")
+    ap.add_argument("names", nargs="*", help="sheet names (default: the hero)")
     ap.add_argument("--sheets", help="comma-separated sheet names")
     ap.add_argument("--editions", help="comma-separated edition names (default: every edition)")
     ap.add_argument("--out", default=DEFAULT_OUT, help="output folder (default assets/v9)")
@@ -503,13 +506,13 @@ def cli(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-sounding", action="store_true", help="draw from cache with the dated pencil note")
     hb = ap.add_mutually_exclusive_group()
     hb.add_argument("--heartbeat", dest="heartbeat", action="store_true", default=True,
-                    help="type the nightly heartbeat line on the log (default)")
+                    help="type the heartbeat line on the log (default)")
     hb.add_argument("--no-heartbeat", dest="heartbeat", action="store_false")
     ap.add_argument("--list", action="store_true", help="print sheets and editions, build nothing")
     ap.add_argument("-q", "--quiet", action="store_true")
     a = ap.parse_args(argv)
     if a.list:
-        print("sheets:", " ".join(SHEETS))
+        print("sheets:", " ".join(SHEETS), "· on request:", " ".join(n for n in ALL_SHEETS if n not in SHEETS))
         print("editions:", " ".join(E.EDITIONS))
         return 0
     sheets = (_split(a.sheets) or []) + list(a.names) or None

@@ -2,7 +2,7 @@
 """check.py — the gate. Three tiers, plug-ins under scripts/checks/, four exit codes.
 
     python3 scripts/check.py                    # local: fast + render
-    python3 scripts/check.py --ci               # fast + render + perf (the nightly gate)
+    python3 scripts/check.py --ci               # every tier incl. perf (CI runs --tier fast,render since round 4)
     python3 scripts/check.py --release          # --ci plus the release-only checks (OCR, engines)
     python3 scripts/check.py --dev              # permit what a local iteration needs (seeded data)
     python3 scripts/check.py --only hero,footer # only those sheets

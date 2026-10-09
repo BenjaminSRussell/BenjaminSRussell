@@ -1,12 +1,16 @@
-# The chart's nightly job: take the soundings, redraw the sheets, render the README, pass the gate,
-# commit the small JSON + README to main, publish the sheets to the orphan `chart` branch.
-# A failed sounding publishes yesterday's figures with the dated pencil note; a failed gate publishes
-# nothing and the job is red. Nothing is half-published: the publish is one force-push.
+# The chart's weekly job (round 4, D9: weekly and on push, not nightly): take the soundings, redraw the
+# hero, render the README, pass the gate, commit the small JSON + README to main, publish the sheet to
+# the orphan `chart` branch. A failed sounding publishes last week's figures with the dated pencil note;
+# a failed gate publishes nothing and the job is red. Nothing is half-published: the publish is one
+# force-push.
+#
+# The gate runs the fast and render tiers here. The perf tier (repaint budgets, scripts/checks/perf.py)
+# left CI in round 4 and is a dev tool: `python3 scripts/check.py --tier perf` locally.
 name: chart
 
 on:
   schedule:
-    - cron: "20 6 * * *"
+    - cron: "20 6 * * 0"    # Sunday 06:20 UTC
   workflow_dispatch:
     inputs:
       dry_run:
@@ -56,7 +60,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Playwright Chromium (render and perf tiers of check.py)
+      - name: Playwright Chromium (render tier of check.py)
         run: |
           npm install --no-save playwright@1.49.1
           npx playwright install --with-deps chromium
@@ -70,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/build_stats.py
 
-      - name: Draw every sheet in every edition
+      - name: Draw the hero in every edition
         id: assets
         run: python3 scripts/build_assets.py --heartbeat
 
@@ -78,11 +82,11 @@ jobs:
         id: readme
         run: python3 scripts/render_readme.py
 
-      - name: Gate (check.py --ci; exit 2 = warnings only, allowed)
+      - name: Gate (check.py, fast and render tiers; exit 2 = warnings only, allowed)
         id: gate
         run: |
           set +e
-          python3 scripts/check.py --ci
+          python3 scripts/check.py --tier fast,render
           rc=$?
           set -e
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi
@@ -113,11 +117,23 @@ jobs:
             exit 0
           fi
           git commit -m "chart: soundings $(date -u +%F)"
+          # the build leaves other tracked files modified (assets/build-report.json), and a plain
+          # `git pull --rebase` refuses with "You have unstaged changes" (run 9: both attempts failed and
+          # the step still went green because the loop just ended); --autostash parks them, and the
+          # step fails unless an attempt pushed
+          pushed=0
           for attempt in 1 2; do
-            git pull --rebase origin main && git push origin HEAD:main && break
+            if git pull --rebase --autostash origin main && git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
             echo "push attempt $attempt failed; retrying"
             sleep 5
           done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::error::could not push the survey to main after 2 attempts"
+            exit 1
+          fi
 
       - name: Social preview PNGs (ride the chart branch under social/)
         if: steps.gate.outcome == 'success'
@@ -139,7 +155,7 @@ jobs:
           python3 scripts/build_assets.py --no-sounding --heartbeat
           python3 scripts/render_readme.py
           set +e
-          python3 scripts/check.py --ci
+          python3 scripts/check.py --tier fast,render
           rc=$?
           set -e
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then exit "$rc"; fi

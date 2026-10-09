@@ -257,7 +257,8 @@ class SupportingSheets(unittest.TestCase):
             for tag in ("<text", "<tspan", "<textPath", "<pattern", "<filter", "<animateMotion", "<script", "<style"):
                 self.assertNotIn(tag, text, f"{tag} in {f}")
             for m in re.finditer(r'stroke-width="([\d.]+)"', text):
-                self.assertIn(float(m.group(1)), (*tokens.W.values(), 0.8, 0.22, 0.18, 0.45), f"{f}: stroke {m.group(1)}")
+                self.assertIn(float(m.group(1)), (*tokens.W.values(), *tokens.W_NIGHT.values(), 0.8, 0.22, 0.18, 0.45),
+                              f"{f}: stroke {m.group(1)}")
 
     def test_512_is_never_upright_on_the_log(self):
         """Decision 14: the worker count is disputed, so 512 appears only in the log, italic (the soundings
