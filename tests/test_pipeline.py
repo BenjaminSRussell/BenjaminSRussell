@@ -244,21 +244,23 @@ class Readme(unittest.TestCase):
     def test_survey_block_is_from_stats_only(self):
         figs = render_readme.figures(self.stats, self.cfg)
         block = render_readme.survey_block(self.stats, figs)
-        self.assertTrue(block.startswith("<sub><b>Survey log</b> · ") and block.endswith(".</sub>"), block)
-        self.assertIn(f"{figs['commits']} commits", block)
-        self.assertIn(f"{figs['all_hands']} all hands", block)
+        self.assertTrue(block.startswith("<sub><b>Data</b> · ") and block.endswith(".</sub>"), block)
+        # v11: the commit totals are off the page until the data audit settles them
+        for figure in ("commits", "all_hands", "calendar_total"):
+            self.assertNotIn(f"{figs[figure]} ", block, figure)
+        for word in ("all hands", "calendar", "surveyed", "instruments", "author's"):
+            self.assertNotIn(word, block, word)
         self.assertIn(f"{figs['repo_count']} public repositories", block)
-        self.assertIn(f"taken {figs['taken']}", block)
+        self.assertIn(f"collected {figs['taken']}", block)
         inst = self.stats["provenance"]["instruments"]
         self.assertIn("clones live" if inst["clones"] == "live" else "clones", block)
         self.assertIn(f"{self.stats['edition']['project']} {self.stats['edition']['version']}", block)
         # a thin stats.json prints only what it holds; nothing is guessed
         thin = render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2})
-        self.assertEqual(thin, "<sub><b>Survey log</b> · taken 7 Oct 2026 · 2 public repositories read from the last clone, "
-                               "author's commits only · 12 commits.</sub>")
+        self.assertEqual(thin, "<sub><b>Data</b> · collected 7 Oct 2026 · 2 public repositories read from the last clone.</sub>")
         self.assertEqual(render_readme.survey_block({}), "")
         failed = render_readme.survey_block({"taken": "2026-10-07", "provenance": {"mode": "cache-failed", "failed_at": "2026-10-11T06:20:00Z"}})
-        self.assertIn("the survey failed on 11 Oct 2026; these are the previous survey's figures", failed)
+        self.assertIn("the last collection failed on 11 Oct 2026; these are the previous run's figures", failed)
 
     def test_page_sheets_and_position_inline(self):
         self.assertEqual(render_readme.page_sheets("<!-- picture:footer:start -->\n<!-- picture:hero:start -->"), ["hero", "footer"])
@@ -277,15 +279,20 @@ class Readme(unittest.TestCase):
         for sheet in ("soundings", "approaches", "log", "instruments", "footer"):
             self.assertNotIn(f"/{sheet}-day.svg", text, sheet)
         order = ["<!-- picture:hero:end -->", "Crawl and data infrastructure · Python and Rust", "<!-- position:start",
-                 "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**", "is the survey vessel:**",
-                 "pip install rustmapper", "is where a run is operated:**", "**Other waters**", "Below the waterline",
-                 "**Notices to mariners**", "<!-- notices:start -->", "4. **Parse, don't pattern-match.**",
-                 "<!-- survey:start -->", "<b>Survey log</b>", "Redrawn from my repositories by", "DESIGN.md",
+                 "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
+                 "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
+                 "pip install rustmapper", "**[Scrapy Harbor](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
+                 "**Other repositories**", "<summary>15 more repositories", "<!-- notices:start -->",
+                 "4. **Parse, don't pattern-match.**", "<!-- survey:start -->", "<b>Data</b>",
+                 "Generated from my repositories by", "DESIGN.md",
                  "<!-- license:start -->", "**License**"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
         for gone in ("## Soundings", "## Approaches", "## Ship's log", "## Instruments", "<summary><b>Colophon</b>",
-                     "5. **The surface", "editions:", "<!-- figures:start", "<!-- instruments:start", "<!-- log_lede:start"):
+                     "5. **The surface", "editions:", "<!-- figures:start", "<!-- instruments:start", "<!-- log_lede:start",
+                     # v11: the text is written straight; the theme lives in the image only
+                     "survey vessel", "Other waters", "Below the waterline", "Notices to mariners", "Survey log",
+                     "wrong depth", "all hands", "mark in the channel", "leaves the harbor", "sheets and copy", "redraw"):
             self.assertNotIn(gone, text, gone)
 
     def test_figures_from_v1_and_v2(self):

@@ -227,17 +227,19 @@ def _instruments_block_retired(cfg: dict, fittings: list[dict] | None = None) ->
     return "<sub>" + " &nbsp;&nbsp; ".join(cols) + "</sub>"
 
 
-LICENSE_LINE = ("<sub>**License** Code MIT; sheets and copy CC BY 4.0; fonts under their own licenses in "
-                "[`scripts/fonts/`](scripts/fonts/). To draw your own, fork the repository, fill in `chart.toml` "
-                "and run the workflow; the sheets redraw from your repositories.</sub>")
+LICENSE_LINE = ("<sub>**License** Code MIT; images and text CC BY 4.0; fonts under their own licenses in "
+                "[`scripts/fonts/`](scripts/fonts/). To make your own, fork the repository, fill in `chart.toml` "
+                "and run the workflow; the images are regenerated from your repositories.</sub>")
 
 INSTRUMENT_WORDS = {"live": "live", "cache": "cached", "partial": "partial", "none": "not read"}
 INSTRUMENT_NAMES = {"clones": "clones", "graphql": "GraphQL", "rest": "REST", "pypi": "PyPI", "releases": "releases"}
 
 
 def survey_block(stats: dict, figs: dict | None = None) -> str:
-    """The survey's own log (D5): what was cloned, whose commits, when, which instruments were live or cached.
-    Every figure comes from stats.json; a key that is missing is left out, never guessed."""
+    """The data line at the foot of the page (D5): when the data was collected, how many repositories, which
+    sources were live or cached, rustmapper's version. Plain words, no theme. The commit totals are off the page
+    (v11: the three counts disagreed; a data audit decides what comes back). Every figure comes from stats.json;
+    a key that is missing is left out, never guessed."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
     parts: list[str] = []
@@ -245,28 +247,19 @@ def survey_block(stats: dict, figs: dict | None = None) -> str:
     if figs.get("taken_time"):
         when = f"{when}, {figs['taken_time']}" if when else figs["taken_time"]
     if when:
-        parts.append(f"taken {when}")
+        parts.append(f"collected {when}")
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
-        parts.append(f"the survey failed{' on ' + failed if failed else ''}; these are the previous survey's figures")
+        parts.append(f"the last collection failed{' on ' + failed if failed else ''}; these are the previous run's figures")
     repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
     if repo_count:
         cloned = "cloned" if prov.get("instruments", {}).get("clones") == "live" else "read from the last clone"
-        parts.append(f"{repo_count} public repositories {cloned}, author's commits only")
-    if stats.get("commits"):
-        parts.append(f"{figs['commits']} commits")
-    if stats.get("all_hands"):
-        parts.append(f"{figs['all_hands']} all hands")
-    if stats.get("calendar_total"):
-        parts.append(f"{figs['calendar_total']} by GitHub's calendar")
+        parts.append(f"{repo_count} public repositories {cloned}")
     inst = prov.get("instruments") if isinstance(prov.get("instruments"), dict) else {}
     readings = [f"{INSTRUMENT_NAMES.get(k, k)} {INSTRUMENT_WORDS.get(str(v), str(v))}"
                 for k, v in inst.items() if v is not None]
     if readings:
-        parts.append("instruments: " + ", ".join(readings))
-    st = prov.get("soundings_taken") if isinstance(prov.get("soundings_taken"), dict) else None
-    if st and st.get("of"):
-        parts.append(f"surveyed on {st.get('taken', 0)} of the last {st['of']} days")
+        parts.append("sources: " + ", ".join(readings))
     ed = stats.get("edition") if isinstance(stats.get("edition"), dict) else {}
     if ed.get("project") and ed.get("version"):
         line = f"{ed['project']} {ed['version']}"
@@ -275,7 +268,7 @@ def survey_block(stats: dict, figs: dict | None = None) -> str:
         parts.append(line)
     if not parts:
         return ""
-    return "<sub><b>Survey log</b> · " + " · ".join(parts) + ".</sub>"
+    return "<sub><b>Data</b> · " + " · ".join(parts) + ".</sub>"
 
 
 LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
