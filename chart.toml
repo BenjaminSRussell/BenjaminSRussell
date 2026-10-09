@@ -62,8 +62,9 @@ hero_png_sha = ""
 # The hero is the coast of the year: one axis (time), one row per repository with `named_min` non-sweep
 # commit-days or more, ordered by those days; the rest merged into one "N more" row. Nothing is placed by hand.
 # `named_min` is 5 today: D1's seven leaves five rows once the sweep days are out (Scrapy 24, rustmapper 19,
-# Data_science_dev 10, BenjaminSRussell 8, game_engine 8); five adds Wheel and Data-visualizer (seven rows, a
-# week of work each) and merges the rest; four would add two four-day slivers and 128 px of phone height.
+# Data_science_dev 10, BenjaminSRussell 8, game_engine 8); five adds Wheel 6 and Data-visualizer 5 (seven named
+# rows and the merged row, eight bands); four would add two four-day slivers (FashionDB, ideal-url-organizer) and
+# ten bands in the same height thin every bank from 16 to about 9 px half-thickness.
 # `aliases` maps a repository to the name the sheet prints (its package name); every other row prints the
 # GitHub name as written.
 

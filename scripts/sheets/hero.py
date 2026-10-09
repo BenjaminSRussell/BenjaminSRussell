@@ -1,26 +1,27 @@
 """hero.py — Sheet 1 (v11, round 5, D1): the coast of the year.
 
 Geography is time. One axis runs along the foot of the sheet from the first month of the survey to the survey
-date, lettered like a latitude scale (month initials, two year figures); the sheet ends at the survey date on
-the right neat line and nothing is lettered beyond it. One row per repository with NAMED_MIN non-sweep
-commit-days or more (chart.toml `[hero] named_min`), ordered by those days: each row is a bank, a land shape
-whose half-thickness at a month is that month's commit-days (sweep days excluded, so the housekeeping sweeps
-of 9–10 Nov 2025 and 1 and 7 Oct 2026 shape nothing), drawn as chartlib draws coast, with two derived tints
-where the month reached 5 and 10 days and the coast vignette on the big banks. Empty months are water. The
-repositories under the threshold are merged into one last row in the lightest ink, lettered "N more"; a
-repository with no non-sweep day is not drawn as land anywhere (it still counts in "21 repositories").
+date, lettered like a latitude scale (month initials, two year figures); the right neat line is the survey date
+and nothing is lettered beyond it. One row per repository with `named_min` non-sweep commit-days or more
+(chart.toml `[hero] named_min`), ordered by those days: each row is a bank, a land shape whose half-thickness in
+a month is proportional to that month's commit-days (sweep days excluded, so the housekeeping sweeps shape
+nothing). A month with commit-days is land for the whole month and a month without is water; the coast runs
+smoothly from month to month. Two derived tints mark where the month reached 5 and 10 commit-days, and the big
+banks carry the coast vignette. The repositories under the threshold are merged into one last row in the lightest
+ink, lettered "N more"; a repository with no non-sweep day is not drawn as land anywhere (it still counts in the
+repository total).
 
-Marks, all derived: the one light, `Fl 15s`, stands on the row of the repository that `claims.scrape_interval`
-cites, because Prometheus scrapes every 15 s there (measured, sha-cited) — it is the only thing that moves, a
-beat every 15 s, lit in the still editions; the one mark, `0.1.3 · PyPI`, is the edition record's date on the row
-of the project it names. The Rust-sitemap row is lettered `rustmapper` through chart.toml `[hero.aliases]`;
-every other row prints the GitHub name as written. The title block: the name, the thesis, the role line, and
-the datum and date in fine print (`DATUM: MAIN` is the one joke on the sheet and it is true).
+Marks, all derived: the one light, `Fl 15s`, stands at the thickest point of the row of the repository that
+`claims.scrape_interval` cites (Prometheus scrapes every 15 s there; measured, sha-cited); it is the only thing that
+moves, a beat every 15 s, lit in the still editions. The one mark, `0.1.3 · PyPI`, is the edition record's date on
+the row of the project it names. Mark lettering stands in the water beside its bank, clear of every coast. The
+Rust-sitemap row is lettered `rustmapper` through chart.toml `[hero.aliases]`; every other row prints the GitHub
+name as written. The title block: the name, the thesis, the role line, the datum and date in fine print.
 
-Nothing on the sheet is placed by hand and nothing data-placed can collide: there is one axis and the rows
-are fixed. Every glyph goes through typeset (ctx.k), every animation through the Timeline (ctx.tl), every
-line through chartlib. The phone editions are the same drawing stacked: title block, then the rows at full
-width with the name above each bank.
+Nothing is placed by hand and nothing data-placed can collide: one axis, fixed rows, the name above each bank in
+the row's own band. Every glyph goes through typeset (ctx.k), every animation through the Timeline (ctx.tl), every
+line through chartlib. The desk sets the title block in the left third and the rows in the right two thirds; the
+phone stacks the title block over the rows at full width. Same drawing, two layouts.
 """
 from __future__ import annotations
 
@@ -33,7 +34,7 @@ import tokens
 
 NAME = "hero"
 KIND = "chart"
-SIZES = {"desk": (1280, 610), "phone": (720, 1032)}
+SIZES = {"desk": (1280, 624), "phone": (720, 1140)}
 EDITIONS = None   # the runner's default six plus HERO_EXTRA (phone stills)
 
 BREAKS: list[tuple[str, str, str]] = [
@@ -43,23 +44,36 @@ BREAKS: list[tuple[str, str, str]] = [
      "check_type allows one label-caps run per sheet; the sheet has a dozen caps lines"),
     ("Name at 88 on the desk (D1: display size)",
      "the desk name is set at 88 (phone 132); the thesis breaks into two lines on both scales",
-     "the desk title block is the left third (56–440 px); the name at 141 is 516 px wide and the thesis at 41 is 580"),
+     "the desk title block is the left third (56–460 px); the name at 141 is 516 px wide and the thesis at 41 is 580"),
     ("Role line on two lines on the desk",
      "CRAWL AND DATA INFRASTRUCTURE / PYTHON AND RUST, one left edge; the phone keeps it on one line",
      "486 px at 19 px tracked 1.0 does not fit the left third"),
+    ("Row names above their banks",
+     "each row's name (and language tag) is lettered at the axis start above its bank, in the row's own band; the "
+     "gap from a bank to the next row's name is twice the gap from a name to its own bank",
+     "the timeline takes the right two thirds (from 38 %); a name column beside it would halve the months"),
     ("Half-thickness floor",
-     "a month with commit-days draws at least FLOOR px half-thickness (desk 2.5, phone 2.0) so a one-day month prints",
-     "thickness ∝ commit-days above the floor; a pen cannot draw a 1.3 px bank"),
+     "a month with commit-days draws at least `floor` px half-thickness (desk 3, phone 3) so a one-day month "
+     "prints", "thickness ∝ commit-days above the floor; a pen cannot draw a 1.3 px bank"),
     ("Thickness scale steps down",
-     "half-thickness is HALF_MAX px at 15 commit-days a month; a month beyond 15 steps the whole sheet's scale "
-     "down so the busiest month fills the row and nothing overlaps",
-     "rows are fixed; the scale is the one free constant and it is one constant for every row"),
+     "half-thickness is the band's half at 15 commit-days a month; a busier month steps the whole sheet's scale down "
+     "so it still fits its band", "rows are fixed; the scale is the one free constant and it is one constant for "
+                                  "every row"),
+    ("Month plateaus",
+     "a month with commit-days is land from its first to its last day (the coast rises over q = 20 % of the month at "
+     "each end of a run), crowned at mid-month; the transition between two active months is a monotone cubic",
+     "a burst's width is honest to the month; no land in a month without a commit-day"),
     ("Last month's letter",
-     "the survey month's initial is lettered only when the month's visible width holds it (Oct 2026 is seven days "
-     "wide today and gets no letter); the survey date is in the title block",
-     "nothing is lettered beyond the survey date, and the neat line is that date"),
-    ("Vignette clipped to its row",
-     "the coast vignette on the big banks is clipped to the row's band so no tick crosses into the next bank",
+     "the survey month's initial is set flush to the neat line when the month is too short to centre it in",
+     "the axis runs through October; nothing is lettered beyond the survey date"),
+    ("Mark lettering in the water",
+     "the light's character and the edition label stand on the bank's centreline in the water beyond its end (or "
+     "before its start), at least 8 px from every coast, with a hairline leader back to the mark",
+     "lettering over a coast is unreadable at 390 px"),
+    ("Light character upright",
+     "`Fl 15s` is set upright in role `label`, not italic caps",
+     "the sheet's rule is that every printed figure is measured and upright (D5); the interval is measured"),
+    ("Vignette clipped to its row", "the coast vignette is clipped to the row's band below its name",
      "a real vignette stops at the next coast"),
     ("No draw-in, no opening",
      "the whole sheet is on the paper at t = 0; motion.opening_end_s is 0 and coverage at 0 s is that of the still",
@@ -75,30 +89,33 @@ TRACK = {"desk": 1.6, "phone": 1.0}
 NAME_SIZE = {"desk": 88, "phone": 132}
 NAME_TRACK = {"desk": -1.5, "phone": -2.0}
 TITLE = {
-    "desk": {"x": 56, "name_y": 134, "thesis_y": (204, 250), "role_y": (296, 322), "fine_y": (360, 386, 412),
-             "box": (52, 50, 392, 372)},
+    "desk": {"x": 56, "name_y": 132, "thesis_y": (202, 248), "role_y": (296, 322), "fine_y": (362, 388, 414),
+             "box": (52, 44, 412, 384)},
     "phone": {"x": 36, "name_y": 146, "thesis_y": (230, 276), "role_y": (322,), "fine_y": (356, 388),
               "box": (30, 30, 668, 374)},
 }
 ROWS = {
-    # x_label: the names' left edge; x0: the axis start (first month); top/pitch: the row bands; half: HALF_MAX
-    "desk": {"x_label": 460, "x0": 690, "top": 64, "pitch": 54, "half": 24.0, "floor": 3.0, "stacked": False},
-    "phone": {"x_label": 36, "x0": 36, "top": 420, "pitch": 64, "half": 18.0, "floor": 2.5, "stacked": True},
+    # x0: the axis start (first month) and the names' left edge; top/pitch: the row bands; label_dy: the name's
+    # baseline below the band top; bank_dy: the bank's highest coast below the band top; gap: water kept under the
+    # bank before the next band (≥ 2 × the name-to-bank gap)
+    "desk": {"x0": 486, "top": 38, "pitch": 62, "label_dy": 16, "bank_dy": 21, "gap": 9, "floor": 3.0},
+    "phone": {"x0": 36, "top": 404, "pitch": 80, "label_dy": 24, "bank_dy": 30, "gap": 16, "floor": 3.0},
 }
-AXIS = {"desk": {"y": 516, "letters": 538, "years": 562}, "phone": {"y": 948, "letters": 974, "years": 1000}}
+AXIS = {"desk": {"y": 540, "letters": 562, "years": 586}, "phone": {"y": 1052, "letters": 1080, "years": 1108}}
 NAMED_MIN_DEFAULT = 5
-FULL_MONTH = 15                   # commit-days a month that fill a row (HALF_MAX); busier months step the scale down
+FULL_MONTH = 15                   # commit-days a month that fill a bank's band; busier months step the scale down
 LEVELS = (5, 10)                  # the derived tints: where the month reached 5 and 10 commit-days
-TINT_OPACITY = (0.10, 0.20)
+TINT_OPACITY = (0.18, 0.34)
+PLATEAU = (0.2, 12.0, 0.88)       # rise over 20 % of the month (≤ 12 px); shoulders at 88 % of the mid-month height
 VIGNETTE_MIN = 15                 # rows with this many commit-days carry the coast vignette ...
-VIGNETTE_HALF = 9.0               # ... on the banks at least this thick (px half-thickness): land, not a sliver
-VIGNETTE = {"lengths": (4.0, 2.8, 1.6), "gaps": (1.2, 1.5, 1.5)}
-BLUNT = (6.0, 0.55)               # a bank's end: 55 % of the first month's height 6 px in from the boundary
+VIGNETTE_HALF = 8.0               # ... on the banks at least this thick (px half-thickness): land, not a sliver
+VIGNETTE = {"step": 5.0, "lengths": (3.0, 1.8), "opacities": (0.45, 0.28), "gaps": (1.2, 1.4)}
 STEP = 3.0                        # px between coast samples
 JITTER = 0.5                      # px, the coast's hand (keyed by repo and sample, never by data)
 LIGHT_R = {"desk": 2.2, "phone": 3.0}
-HALO_R = {"desk": 14, "phone": 18}
-MARK_GAP = 11                     # px from a mark to its label
+HALO_R = {"desk": {"day": 10, "night": 14}, "phone": {"day": 13, "night": 18}}   # the beat is visible by day too
+CLEAR = 8.0                       # px of water between mark lettering and any coast
+LETTER_GAP = 12.0                 # px from a bank's end to its mark lettering
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
 MONTHS_MIXED = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 EASTERN = {"-0400", "-0500"}
@@ -129,9 +146,13 @@ def _next_month(d: dt.date) -> dt.date:
     return dt.date(d.year + (d.month // 12), d.month % 12 + 1, 1)
 
 
+def _mkey(d: dt.date) -> str:
+    return f"{d.year:04d}-{d.month:02d}"
+
+
 def _monotone(xs: list[float], ys: list[float]):
-    """Fritsch–Carlson monotone cubic through (xs, ys): a sampler f(x). Between 0 and h it stays in [0, h],
-    so a bank never dips below water or overshoots its month."""
+    """Fritsch–Carlson monotone cubic through (xs, ys): a sampler f(x). Between two control points it never
+    leaves their range, so a bank never dips below water or overshoots its month."""
     n = len(xs)
     if n == 1:
         return lambda x: ys[0]
@@ -163,7 +184,7 @@ def _monotone(xs: list[float], ys: list[float]):
         i = 0
         while i < n - 2 and x > xs[i + 1]:
             i += 1
-        hh = h[i]
+        hh = h[i] or 1.0
         t = (x - xs[i]) / hh
         t2, t3 = t * t, t * t * t
         return ((2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * hh * m[i]
@@ -171,14 +192,28 @@ def _monotone(xs: list[float], ys: list[float]):
     return f
 
 
+def _rect_dist(px: float, py: float, r: tuple) -> float:
+    x0, y0, x1, y1 = r
+    dx = max(x0 - px, 0.0, px - x1)
+    dy = max(y0 - py, 0.0, py - y1)
+    return math.hypot(dx, dy)
+
+
 # ---------------------------------------------------------------- data → rows
+def sweep_dates(data: dict) -> set[str]:
+    out = {str(d)[:10] for d in (data.get("sweep_dates") or [])}
+    out |= {str(s.get("date", ""))[:10] for s in (data.get("sweeps") or []) if s.get("date")}
+    return out
+
+
 def repo_months(repo: dict, sweeps: set[str]) -> tuple[dict[str, int], str | None, str | None]:
-    """(months {YYYY-MM: commit-days}, first, last) with every sweep day excluded, from the record's own
-    `months`/`first_ns`/`last_ns` when the data builder wrote them, else from `days`."""
+    """(months {YYYY-MM: commit-days}, first, last) with every sweep day excluded, for every repository alike
+    (a sweep day is out for all of them, named or not): the record's own `months`/`first_ns`/`last_ns` when the
+    data builder wrote them, else computed here from `days` and `sweeps`."""
     months = repo.get("months")
     if isinstance(months, dict) and "first_ns" in repo:
-        clean = {str(k): int(v) for k, v in months.items() if int(v) > 0}
-        return clean, repo.get("first_ns"), repo.get("last_ns")
+        clean = {str(k): int(v) for k, v in months.items() if int(v or 0) > 0}
+        return dict(sorted(clean.items())), repo.get("first_ns"), repo.get("last_ns")
     out: dict[str, int] = {}
     first = last = None
     for day in repo.get("days") or []:
@@ -188,7 +223,7 @@ def repo_months(repo: dict, sweeps: set[str]) -> tuple[dict[str, int], str | Non
         out[d[:7]] = out.get(d[:7], 0) + 1
         first = d if first is None or d < first else first
         last = d if last is None or d > last else last
-    return out, first, last
+    return dict(sorted(out.items())), first, last
 
 
 def plan_rows(data: dict, cfg: dict) -> dict:
@@ -197,14 +232,17 @@ def plan_rows(data: dict, cfg: dict) -> dict:
     hero_cfg = cfg.get("hero", {}) or {}
     named_min = int(hero_cfg.get("named_min", NAMED_MIN_DEFAULT))
     aliases = dict(hero_cfg.get("aliases", {}) or {})
-    sweeps = {str(s.get("date", ""))[:10] for s in (data.get("sweeps") or []) if s.get("date")}
+    sweeps = sweep_dates(data)
     repos = data.get("repos") or []
     if not repos:
         raise RuntimeError("hero: stats.json carries no repositories")
     if not any(r.get("days") or isinstance(r.get("months"), dict) for r in repos):
         raise RuntimeError("hero: stats.json carries no commit-days per repository (repos[].days); refusing to invent them")
-    rows, small, zero = [], [], []
+    rows, small, zero, seen = [], [], [], set()
     for r in repos:
+        if r["name"] in seen:          # a repository listed twice (a live survey's duplicate) is drawn once
+            continue
+        seen.add(r["name"])
         months, first, last = repo_months(r, sweeps)
         days = sum(months.values())
         rec = {"repo": r["name"], "name": aliases.get(r["name"], r["name"]), "days": days, "months": months,
@@ -223,7 +261,8 @@ def plan_rows(data: dict, cfg: dict) -> dict:
             merged[m] = merged.get(m, 0) + n
     more = None
     if small:
-        more = {"repo": None, "name": f"{len(small)} more", "days": sum(merged.values()), "months": merged,
+        more = {"repo": None, "name": f"{len(small)} more", "days": sum(merged.values()),
+                "months": dict(sorted(merged.items())),
                 "first_ns": min(t["first_ns"] for t in small), "last_ns": max(t["last_ns"] for t in small),
                 "language": None, "repos": [t["repo"] for t in small]}
     # the light: the row of the repository claims.scrape_interval cites (measured, sha-cited), else none
@@ -234,7 +273,7 @@ def plan_rows(data: dict, cfg: dict) -> dict:
         row = next((t for t in rows if t["repo"] == src_repo), None)
         if row is not None:
             period = int(claim["value"])
-            light = {"row": row["repo"], "character": f"Fl {period}s", "period": period, "unit": claim.get("unit", "s")}
+            light = {"row": row["repo"], "character": f"Fl {period}s", "period": period}
     # the mark: the edition's date on the row of the project it names
     ed = data.get("edition") or {}
     mark = None
@@ -296,8 +335,8 @@ def _build(ctx) -> str:
     T, R, A = TITLE[sc], ROWS[sc], AXIS[sc]
     r0, r1 = RULES[sc]
     x_end = w - r1                                 # the survey date is the right neat line
+    x0 = R["x0"]
 
-    # ---- lettering: one callback (the T6 label_cb contract); caps lines through role `label`
     def lbl(text, x, y, role="label", anchor="start", fill=None, caps=False, **kw):
         tracking = kw.pop("tracking", None)
         if caps:
@@ -323,37 +362,36 @@ def _build(ctx) -> str:
     span_days = (t1 - t0).days
 
     def x_of(d: dt.date) -> float:
-        return R["x0"] + (x_end - R["x0"]) * (d - t0).days / span_days
+        return x0 + (x_end - x0) * (d - t0).days / span_days
 
-    # ---- the thickness scale: one constant for every row; busier months step it down
+    # ---- the bands: fixed; a sheet with more rows than the pitch allows tightens the pitch, never overlaps
+    top = R["top"]
+    pitch = min(float(R["pitch"]), (A["y"] - 6 - top) / len(drawn))
+    half_max = (pitch - R["bank_dy"] - R["gap"]) / 2
+    if half_max < 6:
+        raise RuntimeError(f"hero: {len(drawn)} rows do not fit the {sc} sheet (named_min {plan['named_min']}); "
+                           "raise named_min")
     max_month = max((n for t in drawn for n in t["months"].values()), default=1)
-    k_half = R["half"] / max(FULL_MONTH, max_month)
+    k_half = half_max / max(FULL_MONTH, max_month)
     floor = R["floor"]
-
-    # ---- the rows' places: fixed bands, nothing placed by data except along x
-    pitch, top = R["pitch"], R["top"]
     for i, t in enumerate(drawn):
-        band_top = top + pitch * i
-        t["band"] = (band_top, band_top + pitch)
-        t["yc"] = band_top + (44 if R["stacked"] else pitch / 2)
-        t["label_y"] = band_top + 20 if R["stacked"] else t["yc"] + lbl_h * 0.36
-    rows_bottom = top + pitch * len(drawn)
-    if rows_bottom > A["y"] - 8:
-        raise RuntimeError(f"hero: {len(drawn)} rows do not fit above the axis on the {sc} sheet "
-                           f"(named_min {plan['named_min']}); raise named_min")
+        bt = top + pitch * i
+        t["band"] = (round(bt, 1), round(bt + pitch, 1))
+        t["label_y"] = bt + R["label_dy"]
+        t["yc"] = bt + R["bank_dy"] + half_max
 
-    # ---- the banks: per row, one land polygon per run of active months
+    # ---- the banks: per row, one land polygon per run of consecutive active months
     def profile(months: dict[str, int], level: float, use_floor: bool):
-        """[(xs, ys)] control points per contiguous run of active months, half-thickness above `level`."""
+        """[(xs, ys)] control points per run of months whose commit-days exceed `level` (half-thickness above
+        `level`): each month is a plateau from its first to its last day, crowned at mid-month."""
+        q_frac, q_max, shoulder = PLATEAU
         m = t0
         runs, cur = [], []
         while m <= t1:
-            key = f"{m.year:04d}-{m.month:02d}"
-            n = int(months.get(key, 0))
-            half = (max(k_half * n, floor) if use_floor else k_half * n) - level * k_half if n > 0 else 0.0
-            m_end = min(_next_month(m), t1)
-            if half > 0:
-                cur.append((m, m_end, half))
+            n = int(months.get(_mkey(m), 0))
+            if n > level:
+                hh = (max(k_half * n, floor) if use_floor else k_half * n) - level * k_half
+                cur.append((x_of(m), x_of(min(_next_month(m), t1)), hh))
             elif cur:
                 runs.append(cur)
                 cur = []
@@ -362,31 +400,39 @@ def _build(ctx) -> str:
             runs.append(cur)
         out = []
         for run in runs:
-            xa, xb = x_of(run[0][0]), x_of(run[-1][1])
-            xs = [xa, xa + BLUNT[0]]
-            ys = [0.0, run[0][2] * BLUNT[1]]
-            for ms, me, half in run:
-                xs.append(x_of(ms) + (x_of(me) - x_of(ms)) / 2)
-                ys.append(half)
-            xs += [xb - BLUNT[0], xb]
-            ys += [run[-1][2] * BLUNT[1], 0.0]
+            xs, ys = [run[0][0]], [0.0]
+            for xa, xb, hh in run:
+                q = min(q_frac * (xb - xa), q_max)
+                mid = (xa + xb) / 2
+                pts = [(xa + q, shoulder * hh), (mid, hh), (xb - q, shoulder * hh)] if xb - xa > 3 * q else [(mid, hh)]
+                for px, py in pts:
+                    if px > xs[-1] + 0.5:
+                        xs.append(px)
+                        ys.append(py)
+            if run[-1][1] > xs[-1] + 0.5:
+                xs.append(run[-1][1])
+                ys.append(0.0)
+            else:
+                ys[-1] = 0.0
             out.append((xs, ys))
         return out
 
     def polygon(xs, ys, yc: float, jname: str | None):
         f = _monotone(xs, ys)
-        x0_, x1_ = xs[0], xs[-1]
-        n = max(2, int((x1_ - x0_) / STEP))
-        xs_s = [x0_ + (x1_ - x0_) * i / n for i in range(n + 1)]
+        xa, xb = xs[0], xs[-1]
+        n = max(2, int((xb - xa) / STEP))
         j = c.Jitter(seed, f"hero/coast/{jname}") if jname else None
         tops, bots = [], []
-        for i, x in enumerate(xs_s):
+        for i in range(n + 1):
+            x = xa + (xb - xa) * i / n
             hh = max(0.0, f(x))
-            if j is not None and 0 < i < n:
-                hh = max(0.0, hh + max(-1.0, min(1.0, j.gauss(0.0, JITTER))))
-            tops.append((x, yc - hh))
-            bots.append((x, yc + hh))
-        return tops + bots[::-1]
+            hb = hh
+            if j is not None and 0 < i < n and hh > 1.0:
+                hh = max(0.5, hh + max(-1.0, min(1.0, j.gauss(0.0, JITTER))))
+                hb = max(0.5, hb + max(-1.0, min(1.0, j.gauss(0.0, JITTER))))
+            tops.append((x, yc - min(hh, half_max + 1)))
+            bots.append((x, yc + min(hb, half_max + 1)))
+        return tops + bots[::-1][1:-1]
 
     # ================================================================ drawing
     defs, body = [], []
@@ -402,140 +448,182 @@ def _build(ctx) -> str:
 
     body.append(c.frame(w, h, theme, "minute-bars", rules=RULES[sc]))
 
-    land_svg, text_svg = [], []
+    land_svg, text_svg, mark_svg = [], [], []
     row_report = []
+    all_polys: list[list[tuple[float, float]]] = []
     for i, t in enumerate(drawn):
         more = t["repo"] is None
         yc = t["yc"]
-        land_fill = theme.land
-        land_op = 0.4 if more else 1.0
         blocks = []
         for xs, ys in profile(t["months"], 0.0, True):
             poly = polygon(xs, ys, yc, t["name"])
-            d = c.smooth_path(poly, True, 2)
-            blocks.append({"x0": round(xs[0], 1), "x1": round(xs[-1], 1), "poly": poly, "d": d, "half": max(ys)})
+            blocks.append({"x0": xs[0], "x1": xs[-1], "poly": poly, "d": c.smooth_path(poly, True, 1),
+                           "half": max(ys), "xs": xs, "ys": ys})
+        t["blocks"] = blocks
         if not blocks:
             continue
+        all_polys.extend(b["poly"] for b in blocks)
         d_all = "".join(b["d"] for b in blocks)
-        op = f' fill-opacity="{c.op(land_op)}"' if land_op < 1 else ""
-        land_svg.append(f'<path d="{d_all}" fill="{land_fill}"{op}/>')
-        # the derived tints: where the month reached 5 and 10 commit-days, nested like contours
+        op = f' fill-opacity="{c.op(0.4)}"' if more else ""
+        land_svg.append(f'<path d="{d_all}" fill="{theme.land}"{op}/>')
         for level, opac in zip(LEVELS, TINT_OPACITY):
             tints = profile(t["months"], float(level), False)
             if not tints:
                 continue
-            dt_ = "".join(c.smooth_path(polygon(xs, ys, yc, None), True, 2) for xs, ys in tints)
+            dt_ = "".join(c.smooth_path(polygon(xs, ys, yc, None), True, 1) for xs, ys in tints)
             o = opac * (0.4 if more else 1.0)
             land_svg.append(f'<path d="{dt_}" fill="{theme.ink2}" fill-opacity="{c.op(o)}" '
-                            f'{c.stroke("HAIR", theme.ink2, 0.45)}/>')
-        # the coast: chartlib's coastline (LINE ink2 with the burin swell); the merged row in hair ink
+                            f'{c.stroke("HAIR", theme.ink2, 0.45 if not more else 0.25)}/>')
         if more:
             land_svg.append(f'<path d="{d_all}" fill="none" {c.stroke("HAIR", theme.ink2, 0.6)}/>')
         else:
             cs = [c.Contour(0.0, b["poly"], True, c.polyline_length(b["poly"], True), False) for b in blocks]
-            land_svg.append(c.coastline(cs, theme))
+            land_svg.append(c.coastline(cs, theme, every=1))
         if not more and t["days"] >= VIGNETTE_MIN:
             clip = f"row{i}"
-            defs.append(f'<clipPath id="{clip}"><rect x="{_fmt(R["x0"] - 20)}" y="{_fmt(t["band"][0])}" '
-                        f'width="{_fmt(x_end - R["x0"] + 40)}" height="{_fmt(pitch)}"/></clipPath>')
+            y_clip = t["label_y"] + 5
+            defs.append(f'<clipPath id="{clip}"><rect x="{_fmt(x0 - 12)}" y="{_fmt(y_clip)}" '
+                        f'width="{_fmt(x_end - x0 + 10)}" height="{_fmt(t["band"][1] - y_clip)}"/></clipPath>')
             vig = "".join(c.coast_vignette(b["poly"], theme, jit.sub(t["name"]), **VIGNETTE)
                           for b in blocks if b["half"] >= VIGNETTE_HALF)
-            land_svg.append(f'<g clip-path="url(#{clip})">{vig}</g>')
+            if vig:
+                land_svg.append(f'<g clip-path="url(#{clip})">{vig}</g>')
         row_report.append({"repo": t["repo"], "name": t["name"], "days": t["days"], "months": t["months"],
                            "first_ns": t["first_ns"], "last_ns": t["last_ns"], "language": t["language"],
-                           "y": round(yc, 1), "band": list(t["band"]), "more": more,
-                           "repos": t.get("repos"), "blocks": [{"x0": b["x0"], "x1": b["x1"]} for b in blocks]})
-        t["blocks"] = blocks
+                           "y": round(yc, 1), "band": list(t["band"]), "more": more, "repos": t.get("repos"),
+                           "blocks": [{"x0": round(b["x0"], 1), "x1": round(b["x1"], 1),
+                                       "top": round(min(p[1] for p in b["poly"]), 1),
+                                       "bottom": round(max(p[1] for p in b["poly"]), 1)} for b in blocks]})
 
-    # ---- the row names at the left (desk) or above the bank (phone), the language tag in lighter ink
-    label_overflow = []
+    # ---- the row names above their banks, the language tag in lighter ink
     for t in drawn:
         more = t["repo"] is None
-        x, y = R["x_label"], t["label_y"]
         name_w = width(t["name"].upper(), tracking=track)
-        col = (R["x0"] - 14 - x) if not R["stacked"] else (x_end - 8 - x)
-        if name_w > col:
-            label_overflow.append(t["name"])
-        text_svg.append(lbl(t["name"], x, y, fill=theme.muted if more else theme.ink, caps=True,
+        text_svg.append(lbl(t["name"], x0, t["label_y"], fill=theme.muted if more else theme.ink, caps=True,
                             truth="measured", key=("more" if more else f"row:{t['repo']}")))
+        t["name_x1"] = x0 + name_w
         if t["language"]:
             tag_w = width(t["language"].upper(), tracking=track)
-            if name_w + 12 + tag_w <= col:
-                text_svg.append(lbl(t["language"], x + name_w + 12, y, fill=theme.muted, caps=True))
-    report["label_overflow"] = label_overflow
+            if x0 + name_w + 12 + tag_w <= x_end - 6:
+                text_svg.append(lbl(t["language"], x0 + name_w + 12, t["label_y"], fill=theme.muted, caps=True))
+                t["name_x1"] = x0 + name_w + 12 + tag_w
+
+    # ---- mark lettering: on the bank's centreline in the water beyond the bank (or before it), clear of coasts
+    placements = []
+
+    def place(t: dict, ax: float, text: str) -> dict:
+        tw = width(text)
+        y = t["yc"] + lbl_h * 0.36
+        blocks = sorted(t["blocks"], key=lambda b: b["x0"])
+        home = next((b for b in blocks if b["x0"] - 1 <= ax <= b["x1"] + 1),
+                    min(blocks, key=lambda b: min(abs(b["x0"] - ax), abs(b["x1"] - ax))))
+        i = blocks.index(home)
+        nxt = blocks[i + 1]["x0"] if i + 1 < len(blocks) else x_end
+        prv = blocks[i - 1]["x1"] if i > 0 else x0
+        cands = [(home["x1"] + LETTER_GAP, "start", "right"), (home["x0"] - LETTER_GAP, "end", "left")]
+        above_y = t["label_y"]
+        for tx, anchor, side in cands:
+            xa_, xb_ = (tx, tx + tw) if anchor == "start" else (tx - tw, tx)
+            if side == "right" and xb_ > min(nxt - LETTER_GAP, x_end - 6):
+                continue
+            if side == "left" and xa_ < max(prv + LETTER_GAP, x0):
+                continue
+            box = (xa_ - 1, y - lbl_h * 0.75, xb_ + 1, y + lbl_h * 0.1)
+            clear = min((_rect_dist(px, py, box) for poly in all_polys for px, py in poly), default=99.0)
+            if clear >= CLEAR:
+                return {"x": tx, "y": y, "anchor": anchor, "side": side, "box": box, "clear": round(clear, 1)}
+        # last resort: above the bank, beside the row's name, in the band's lettering strip
+        tx = max(t["name_x1"] + 16, ax - tw / 2)
+        tx = min(tx, x_end - 6 - tw)
+        box = (tx - 1, above_y - lbl_h * 0.75, tx + tw + 1, above_y + lbl_h * 0.1)
+        clear = min((_rect_dist(px, py, box) for poly in all_polys for px, py in poly), default=99.0)
+        return {"x": tx, "y": above_y, "anchor": "start", "side": "above", "box": box, "clear": round(clear, 1)}
+
+    def leader(mx: float, my: float, p: dict, r_mark: float) -> str:
+        if p["side"] == "above":
+            return ""
+        xa_ = mx + r_mark if p["side"] == "right" else mx - r_mark
+        xb_ = p["box"][0] - 2 if p["side"] == "right" else p["box"][2] + 2
+        if abs(xb_ - xa_) < 6:
+            return ""
+        return f'<path d="M{_fmt(xa_)} {_fmt(my)}H{_fmt(xb_)}" fill="none" {c.stroke("HAIR", theme.ink, 0.8, caps="butt")}/>'
+
+    lights = []
+    light = plan["light"]
+    if light:
+        t = next(t for t in drawn if t["repo"] == light["row"])
+        best = max(((xs[j], ys[j]) for b in t["blocks"] for xs, ys in [(b["xs"], b["ys"])] for j in range(len(xs))),
+                   key=lambda p: p[1])
+        lx, ly = E.I(best[0]), E.I(t["yc"])
+        ms = 1.0 if not phone else 1.35
+        lit_id = "light-lit"
+        core = c.lit_core(lx, ly, theme, lit_id, r=LIGHT_R[sc], halo_r=HALO_R[sc]["night" if night else "day"], prefix=prefix)
+        flash = tl.flash(light["character"], begin=0.0, still="lit", name="light-flash")
+        p = place(t, lx, light["character"])
+        mark_svg.append(leader(lx, ly, p, 6 * ms))
+        mark_svg.append(use("flare", lx, ly, scale=ms)
+                        + f'<path d="{_star_d(lx, ly, 4.6 * ms, 1.9 * ms)}" fill="{theme.land}" {c.stroke("PEN", theme.ink)}/>'
+                        + f"<g>{flash}{core}</g>")
+        text_svg.append(lbl(light["character"], p["x"], p["y"], anchor=p["anchor"], fill=theme.ink,
+                            truth="measured", key="light"))
+        placements.append({"what": "light", "text": light["character"], **{kk: p[kk] for kk in ("side", "clear")},
+                           "box": [round(v, 1) for v in p["box"]]})
+        lights.append({"id": f"{NAME}-{lit_id}", "character": light["character"], "color": theme.light_core,
+                       "period": light["period"], "row": light["row"], "x": lx, "y": ly})
+    mark = plan["mark"]
+    mark_report = None
+    if mark:
+        t = next(t for t in drawn if t["repo"] == mark["row"])
+        md = _iso(mark["date"])
+        if md and t0 <= md <= t1:
+            mx, my = E.I(x_of(md)), E.I(t["yc"])
+            ms = 1.0 if not phone else 1.35
+            p = place(t, mx, mark["label"])
+            mark_svg.append(leader(mx, my, p, 3.5 * ms))
+            mark_svg.append(f'<circle cx="{_fmt(mx)}" cy="{_fmt(my)}" r="{_fmt(3.2 * ms)}" fill="{theme.land}" '
+                            f'{c.stroke("PEN", theme.ink)}/><circle cx="{_fmt(mx)}" cy="{_fmt(my)}" '
+                            f'r="{_fmt(1.2 * ms)}" fill="{theme.ink}"/>')
+            text_svg.append(lbl(mark["label"], p["x"], p["y"], anchor=p["anchor"], fill=theme.ink,
+                                truth="measured", key="edition"))
+            placements.append({"what": "edition", "text": mark["label"], **{kk: p[kk] for kk in ("side", "clear")},
+                               "box": [round(v, 1) for v in p["box"]]})
+            mark_report = {**mark, "x": mx, "y": my}
+    report["lights"] = lights
+    report["mark"] = mark_report
+    report["placements"] = placements
 
     # ---- the axis along the foot: a latitude scale — ticks at month starts, initials, the two years
     ay = A["y"]
-    ticks = [f"M{_fmt(R['x0'])} {_fmt(ay)}H{_fmt(x_end)}"]
+    tick = 6 if not phone else 8
+    ticks = [f"M{_fmt(x0)} {_fmt(ay)}H{_fmt(x_end)}"]
     m = t0
     year_x: dict[int, float] = {}
     letters = []
     while m <= t1:
         xm = x_of(m)
-        ticks.append(f"M{_fmt(xm)} {_fmt(ay)}v{6 if not phone else 8}")
-        m_end = min(_next_month(m), t1)
-        xe = x_of(m_end)
+        ticks.append(f"M{_fmt(xm)} {_fmt(ay)}v{tick}")
+        xe = x_of(min(_next_month(m), t1))
         initial = MONTHS[m.month - 1][0]
-        if width(initial) + 6 <= xe - xm:
-            letters.append((initial, (xm + xe) / 2))
+        iw = width(initial)
+        if iw + 6 <= xe - xm:
+            letters.append((initial, (xm + xe) / 2, "middle"))
+        elif _next_month(m) > t1:      # the survey month, cut short by the survey date: flush to the neat line
+            letters.append((initial, x_end, "end"))
         if m.month == 1 or m == t0:
             year_x.setdefault(m.year, xm)
         m = _next_month(m)
-    ticks.append(f"M{_fmt(x_end)} {_fmt(ay)}v{6 if not phone else 8}")
+    ticks.append(f"M{_fmt(x_end)} {_fmt(ay)}v{tick}")
     body.append(f'<path d="{"".join(ticks)}" fill="none" {c.stroke("PEN", theme.ink2, 0.9, caps="butt")}/>')
-    for initial, xm in letters:
-        text_svg.append(lbl(initial, xm, A["letters"], anchor="middle", fill=theme.ink2))
+    for initial, xm, anchor in letters:
+        text_svg.append(lbl(initial, xm, A["letters"], anchor=anchor, fill=theme.ink2))
     for yr, xm in sorted(year_x.items()):
         anchor = "start"
         if xm + width(str(yr)) > x_end:
-            anchor = "end"
-            xm = x_end
+            anchor, xm = "end", x_end
         text_svg.append(lbl(str(yr), xm, A["years"], anchor=anchor, fill=theme.ink2, truth="measured", key=f"year:{yr}"))
 
     body.append("".join(land_svg))                        # land is on the sheet at t = 0
-
-    # ---- the one light (claims.scrape_interval) and the one mark (the edition), both derived
-    lights = []
-    marks_svg = []
-    light = plan["light"]
-    if light:
-        row = next(t for t in drawn if t["repo"] == light["row"])
-        # the light stands at the bank's thickest point: the row's busiest month
-        best = None
-        for xs_, ys_ in profile(row["months"], 0.0, True):
-            j_ = max(range(1, len(ys_) - 1), key=lambda q: ys_[q])
-            if best is None or ys_[j_] > best[1]:
-                best = (xs_[j_], ys_[j_], xs_[-1])
-        lx, ly = E.I(best[0]), E.I(row["yc"])
-        lit_id = "light-lit"
-        core = c.lit_core(lx, ly, theme, lit_id, r=LIGHT_R[sc], halo_r=HALO_R[sc] if night else None, prefix=prefix)
-        flash = tl.flash(light["character"], begin=0.0, still="lit", name="light-flash")
-        star = _star_d(lx, ly, 4.5 if not phone else 6.0, 1.9 if not phone else 2.5)
-        marks_svg.append(use("flare", lx, ly, scale=1.0 if not phone else 1.3)
-                         + f'<path d="{star}" fill="none" {c.stroke("PEN", theme.ink)}/>'
-                         + f"<g>{flash}{core}</g>")
-        tx = max(lx + MARK_GAP + (0 if not phone else 4), best[2] + 6)     # the character stands in the water beside the bank
-        text_svg.append(lbl(light["character"], tx, ly + lbl_h * 0.36, fill=theme.ink, truth="measured", key="light"))
-        lights.append({"id": f"{NAME}-{lit_id}", "character": light["character"], "color": theme.light_core,
-                       "bbox": [lx - 8, ly - 16, 16 + width(light["character"]) + MARK_GAP, 24], "row": light["row"]})
-    mark = plan["mark"]
-    mark_report = None
-    if mark:
-        row = next(t for t in drawn if t["repo"] == mark["row"])
-        md = _iso(mark["date"])
-        if md and t0 <= md <= t1:
-            mx, my = E.I(x_of(md)), E.I(row["yc"])
-            marks_svg.append(use("fix", mx, my, scale=1.0 if not phone else 1.3))
-            tx = mx + MARK_GAP + (0 if not phone else 4)
-            anchor = "start"
-            if tx + width(mark["label"]) > x_end - 4:
-                tx, anchor = mx - MARK_GAP, "end"
-            text_svg.append(lbl(mark["label"], tx, my + lbl_h * 0.36, fill=theme.ink, anchor=anchor,
-                                truth="measured", key="edition"))
-            mark_report = {**mark, "x": mx, "y": my}
-    body.append("".join(marks_svg))
-    report["lights"] = lights
-    report["mark"] = mark_report
+    body.append("".join(mark_svg))
 
     # ---- the title block: the name, the thesis on two lines, the role line, the fine print
     block = []
@@ -550,7 +638,7 @@ def _build(ctx) -> str:
     cut = len(words) // 2 + 1
     for y, line in zip(T["thesis_y"], (" ".join(words[:cut]), " ".join(words[cut:]))):
         block.append(k.text(line, bx, y, "thesis", fill=theme.ink2, edition=ed, scale=sc, within=box))
-    role_parts = [p.strip() for p in role_line.split("·")] if len(T["role_y"]) > 1 else [role_line]
+    role_parts = [p_.strip() for p_ in role_line.split("·")] if len(T["role_y"]) > 1 else [role_line]
     for y, line in zip(T["role_y"], role_parts):
         block.append(lbl(line, bx, y, fill=theme.ink, caps=True, within=box))
     eastern = " · EASTERN TIME" if _eastern(data) else ""
@@ -574,11 +662,11 @@ def _build(ctx) -> str:
                         "more_days": plan["more"]["days"] if plan["more"] else 0}
     report["zero"] = plan["zero"]
     report["named_min"] = plan["named_min"]
-    report["axis"] = {"start": t0.isoformat(), "end": t1.isoformat(), "x0": R["x0"], "x_end": x_end,
-                      "px_per_month": round((x_end - R["x0"]) / (span_days / 30.44), 1),
-                      "letters": "".join(l for l, _x in letters), "years": sorted(year_x)}
-    report["scale"] = {"half_px_per_day": round(k_half, 3), "half_max": R["half"], "floor": floor, "max_month": max_month,
-                       "full_month": FULL_MONTH}
+    report["axis"] = {"start": t0.isoformat(), "end": t1.isoformat(), "x0": x0, "x_end": x_end,
+                      "px_per_month": round((x_end - x0) / (span_days / 30.44), 1),
+                      "letters": "".join(l_ for l_, _x, _a in letters), "years": sorted(year_x)}
+    report["scale"] = {"half_px_per_day": round(k_half, 3), "half_max": round(half_max, 1), "floor": floor,
+                       "max_month": max_month, "full_month": FULL_MONTH, "pitch": round(pitch, 1)}
     report["sweeps"] = plan["sweeps"]
     report["symbols_used"] = sorted(symbols_used)
     report["no_sounding"] = bool(ctx.no_sounding or data.get("no_sounding"))
@@ -602,8 +690,8 @@ def alt(data, cfg) -> str:
         t0, t1 = axis_span(data, plan)
         names = [t["name"] for t in plan["rows"][:2]]
     except Exception:
-        plan, names, t0, t1 = None, [], None, None
-    span = f", {_month_date(t0.isoformat())}–{_month_date(t1.isoformat())}" if t0 and t1 else ""
+        names, t0, t1 = [], None, None
+    span = f", {_month_date(t0.isoformat())} to {_month_date(t1.isoformat())}" if t0 and t1 else ""
     big = f", {names[0]} and {names[1]} the largest" if len(names) == 2 else (f", {names[0]} the largest" if names else "")
     return f"Chart of Ben Russell's {n} repositories as a coastline{span}{big}. One row is one repository."
 
@@ -620,7 +708,7 @@ def _report_hook(ctx, svg_text: str, entry: dict) -> None:
                          for r in x.get("rows", []) if not r["more"]]
     entry["area_law"] = "half-thickness∝commit-days (sweeps out)"
     entry["hero"] = {kk: x[kk] for kk in ("rows", "counts", "zero", "named_min", "axis", "scale", "sweeps", "mark",
-                                          "label_overflow", "no_sounding") if kk in x}
+                                          "placements", "no_sounding") if kk in x}
 
 
 def _register_hook() -> None:
