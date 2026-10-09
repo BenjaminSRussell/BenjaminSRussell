@@ -117,7 +117,7 @@ GRADE = {"day": ("spread", 0.22), "night": ("choke", 0.18)}
 
 # Motion tokens (T4): easings, loop periods, the discrete grid.
 EASE = {"settle": "0.16 0.84 0.44 1", "draw": "0.4 0 0.2 1", "sea": "0.37 0 0.63 1", "linear": "0 0 1 1"}
-LOOP_PERIODS = (1, 4, 10, 15, 96)
+LOOP_PERIODS = (1, 4, 10, 15, 30, 96)   # 30: the Scrapy light, claims.scrape_interval (scrapy_app job, round 5 F2)
 QUANTUM = 0.5
 PAGE_PERIOD = 96.0
 
@@ -156,10 +156,8 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-The README is a nautical chart of one person's open-web work. One sheet, one unit, every figure
-traceable to `assets/stats.json`: **depth is a count**. Contours at 5 and 10 enclose the water where
-fewer than that many commits were taken in a week; a repository is a feature that lifts the field,
-and its area at the 5-contour is proportional to its commit-days (asserted within 8 % at build).
+v11 (round 5, D1 + F1): the hero is the coast of the year — one axis from Sep 2025 to the survey date, one row per
+repository, a bank in every week with commit-days (sweep days out), its thickness that week's days, shallows along every coast.
 
 ## Honesty conventions
 
@@ -190,8 +188,8 @@ Sheets are published to the orphan `chart` branch under `assets/v9/`.
 One page-wide timeline of 96 s, SMIL only. Only `opacity` and `transform` animate (one moving pixel
 re-rasters a whole sheet, so nothing else is allowed to move); no `animateMotion`, no filters, no
 `<pattern>`. Every discrete instant sits on a 0.5 s grid; loop periods are drawn from
-{1, 4, 10, 15, 96} s. The hero draws itself in over 4 s, the boat sails in from 4 to 28 s and anchors;
-after that only the lights keep time. The footer is the only ambient sheet. A still edition is the
+{1, 4, 10, 15, 30, 96} s. The hero has no opening: it is whole at t = 0 and its one light, `Fl <n>s` (the
+crawler job's Prometheus scrape interval, `claims.scrape_interval`), is the only thing that moves. The footer is the only ambient sheet. A still edition is the
 sheet at 95 s, and every frame at every instant must read as a finished sheet.
 
 ## Actions playbook

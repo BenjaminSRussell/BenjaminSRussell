@@ -9,6 +9,13 @@
 Units (MASTERPLAN decision 18): weeks[].n = commits (author-filtered), weeks[].days = commit-days;
 hours and weekdays are commit-days in author-local time. Active = commit-days in ≥ 3 of the last
 12 weeks; dormant = no commit-day in 90 days; both after sweep days are removed (T7 decision 10).
+
+A sweep day (a commit-day in ≥ sweep_threshold repos at once: a mass merge, a rename, a license
+pass) is NOT removed from weeks[], tide, hours or commit_days: those count what the clones hold.
+It is named instead: weeks[].sweep = commits on sweep days in that week, tide.hw.sweep_share =
+their share of the high-water week, `sweep_dates` lists them. The figures the page draws from
+(round 5, D2) leave sweep days out and say so: repos[].months = commit-days per month without
+them, repos[].first_ns / last_ns = the first and last non-sweep commit-day.
 """
 from __future__ import annotations
 
@@ -18,7 +25,8 @@ import math
 import statistics
 from collections import Counter, defaultdict
 
-from .survey import Commit, WEEKS, is_ben, week_start, week_starts
+from .survey import AUTOMATION, Commit, WEEKS, is_ben, week_start, week_starts
+from .tree import main_language
 
 SWEEP_MIN_REPOS = 5
 ACTIVE_WEEKS = 12
@@ -53,9 +61,16 @@ def activity(repo: dict, taken: dt.date, sweep_dates: set[str]) -> tuple[bool, b
     return active, dormant
 
 
-def weekly(repos: list[dict], taken: dt.date) -> list[dict]:
+def months_without_sweeps(repo: dict, sweep_dates: set[str]) -> tuple[dict[str, int], str | None, str | None]:
+    """({YYYY-MM: commit-days}, first, last) over the repo's commit-days that are not sweep days."""
+    days = sorted(d["d"] for d in repo.get("days") or [] if d["d"] not in sweep_dates)
+    months: Counter = Counter(d[:7] for d in days)
+    return dict(sorted(months.items())), (days[0] if days else None), (days[-1] if days else None)
+
+
+def weekly(repos: list[dict], taken: dt.date, sweep_dates: set[str] = frozenset()) -> list[dict]:
     starts = week_starts(taken)
-    weeks = [{"start": s.isoformat(), "n": 0, "days": 0, "repos": {}} for s in starts]
+    weeks = [{"start": s.isoformat(), "n": 0, "days": 0, "sweep": 0, "repos": {}} for s in starts]
     idx = {s: i for i, s in enumerate(starts)}
     dates: list[set[str]] = [set() for _ in starts]
     for r in repos:
@@ -67,6 +82,8 @@ def weekly(repos: list[dict], taken: dt.date) -> list[dict]:
             i = idx.get(week_start(dt.date.fromisoformat(day["d"])))
             if i is not None:
                 dates[i].add(day["d"])
+                if day["d"] in sweep_dates:
+                    weeks[i]["sweep"] += day["n"]
     for i, w in enumerate(weeks):
         w["days"] = len(dates[i])   # distinct commit-days in the week (≤ 7), not repo-days
     return weeks
@@ -112,7 +129,8 @@ def tide(weeks: list[dict], repos: list[dict]) -> dict:
     mid = s_start + (s_end - s_start) / 2
     return {
         "hw": {"start": hw_week["start"], "n": hw_week["n"], "cause": cause, "cause_days": cause_days,
-               "cause_share": round(share, 3)},
+               "cause_share": round(share, 3),
+               "sweep_share": round(hw_week.get("sweep", 0) / hw_week["n"], 3) if hw_week["n"] else 0.0},
         "lw": {"start": complete[lo_i]["start"], "n": complete[lo_i]["n"]},
         "median": median,
         "slack": {"start": s_start.isoformat(), "end": s_end.isoformat(), "month": mid.strftime("%Y-%m"),
@@ -151,16 +169,22 @@ def variation(repos: list[dict], taken: dt.date, min_days: int = VARIATION_MIN_D
             "basis_days": basis, "min_basis_days": min_days}
 
 
-def derive(repos: list[dict], taken: dt.date, calendar: list[dict] | None = None,
+def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
            sweep_min: int = SWEEP_MIN_REPOS) -> dict:
-    """The derived block. Repos are copied; active/dormant are written on the copies ("repos")."""
+    """The derived block. Repos are copied; active/dormant are written on the copies ("repos").
+    `calendar` is github.fetch()'s window block (commits GitHub credits to the account over the
+    same 52 weeks, per repository); with it, `calendar_check` compares like with like."""
     repos = [copy.deepcopy(r) for r in repos]
     thr = sweep_threshold(len(repos), sweep_min)
     sw = sweeps(repos, thr)
     sweep_dates = {s["date"] for s in sw}
     for r in repos:
         r["active"], r["dormant"] = activity(r, taken, sweep_dates)
-    weeks = weekly(repos, taken)
+        r["months"], r["first_ns"], r["last_ns"] = months_without_sweeps(r, sweep_dates)
+        r["main_language"] = main_language(r.get("lines"))
+        if r.get("test_functions") == 0 and r["main_language"] not in ("Rust", "Python"):
+            r["test_functions"] = None     # only Rust and Python test functions are counted; no false "0 tests"
+    weeks = weekly(repos, taken, sweep_dates)
     firsts = [r["first"] for r in repos if r.get("first")]
     first_commit = min(firsts) if firsts else None
     offsets: Counter = Counter()
@@ -169,6 +193,9 @@ def derive(repos: list[dict], taken: dt.date, calendar: list[dict] | None = None
     out = {
         "repos": repos,
         "commits": sum(r.get("commits", 0) for r in repos),
+        "merges": sum(r.get("merges", 0) for r in repos),
+        "coauthored_total": coauthored_total(repos),
+        "agent_authored": agent_authored(repos),
         "all_hands": sum(r.get("all_hands", 0) for r in repos),
         "first_commit": first_commit,
         "days_surveyed": (taken - dt.date.fromisoformat(first_commit)).days if first_commit else None,
@@ -180,20 +207,58 @@ def derive(repos: list[dict], taken: dt.date, calendar: list[dict] | None = None
         "weeks": weeks,
         "tide": tide(weeks, repos) if repos else None,
         "sweeps": sw,
+        "sweep_dates": sorted(sweep_dates),
         "sweep_threshold": thr,
     }
-    if calendar:
-        out["calendar_check"] = calendar_check(weeks, calendar)
+    if isinstance(calendar, dict) and calendar.get("commits_by_repo") is not None:
+        out["calendar_check"] = calendar_check(weeks, calendar, [r["name"] for r in repos])
     return out
 
 
-def calendar_check(weeks: list[dict], calendar: list[dict]) -> dict:
-    """Σ clone weeks vs Σ GraphQL calendar over the overlapping span; check.py warns at > 10 %."""
-    starts = {w["start"] for w in weeks}
-    cal = sum(c["n"] for c in calendar if week_start(dt.date.fromisoformat(c["start"])).isoformat() in starts)
+def coauthored_total(repos: list[dict]) -> dict:
+    """Σ repos[].coauthored: {count, share (of Σ commits), agent, names}."""
+    count = agent = commits = 0
+    names: Counter = Counter()
+    for r in repos:
+        c = r.get("coauthored") or {}
+        count += int(c.get("count", 0))
+        agent += int(c.get("agent", 0))
+        commits += int(r.get("commits", 0))
+        names.update(c.get("names") or {})
+    return {"count": count, "share": round(count / commits, 3) if commits else 0.0, "agent": agent,
+            "agent_share": round(agent / commits, 3) if commits else 0.0, "names": dict(names.most_common())}
+
+
+def agent_authored(repos: list[dict]) -> dict:
+    """Commits on HEAD whose *author* is a coding agent (`others[]` with bot: true, less dependency and CI
+    automation): {total, names{name: commits}, automation{name: commits}}. None of these is in `commits`."""
+    agents: Counter = Counter()
+    automation: Counter = Counter()
+    for r in repos:
+        for o in r.get("others") or []:
+            if not o.get("bot"):
+                continue
+            (automation if o["name"] in AUTOMATION else agents)[o["name"]] += int(o.get("commits", 0))
+    return {"total": sum(agents.values()), "names": dict(sorted(agents.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "automation": dict(sorted(automation.items(), key=lambda kv: (-kv[1], kv[0])))}
+
+
+def calendar_check(weeks: list[dict], calendar: dict, surveyed: list[str]) -> dict:
+    """Like against like: Σ weeks[].n (Ben's commits on HEAD of the surveyed repos, the 52 clone weeks)
+    against the commits GitHub credits to the account in the SAME repositories over the SAME window
+    (`commits_by_repo`, from contributionsCollection(from, to)). Issues, pull requests, reviews,
+    private and unsurveyed repositories are left out of both sides; check.py warns at > 10 %.
+
+    What can still differ: a commit whose author email is not on the GitHub account (GitHub drops it),
+    a day's boundary (GitHub counts UTC days, the clones author-local days) and the window's edges."""
+    by_repo = calendar.get("commits_by_repo") or {}
+    cal = sum(int(by_repo.get(name, 0)) for name in surveyed)
     clone = sum(w["n"] for w in weeks)
     ratio = abs(clone - cal) / cal if cal else None
-    return {"clone": clone, "calendar": cal, "disagreement": None if ratio is None else round(ratio, 3)}
+    return {"clone": clone, "calendar": cal, "disagreement": None if ratio is None else round(ratio, 3),
+            "from": calendar.get("from"), "to": calendar.get("to"),
+            "basis": "commits by the account on the default branch of the surveyed public repositories, "
+                     "52 weeks: clones vs GitHub contributionsCollection"}
 
 
 def corrections(commits: list[Commit], identity: dict | None = None) -> dict[str, list[dict]]:

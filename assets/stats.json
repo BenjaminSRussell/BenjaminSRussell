@@ -1,18 +1,15 @@
 {
  "schema": 2,
- "updated_at": "2026-10-07T19:47:47Z",
- "taken": "2026-10-07",
+ "updated_at": "2026-10-09T17:03:31Z",
+ "taken": "2026-10-09",
  "run_id": "local",
  "provenance": {
   "mode": "cache",
   "failed_at": null,
-  "soundings_taken": {
-   "taken": 1,
-   "of": 150
-  },
+  "soundings_taken": null,
   "instruments": {
    "clones": "live",
-   "graphql": "cache",
+   "graphql": "none",
    "rest": "partial",
    "pypi": "live",
    "releases": "live"
@@ -20,44 +17,29 @@
   "graphql_at": null
  },
  "login": "BenjaminSRussell",
- "account_since": "2024-10",
+ "account_since": null,
  "repo_count": 21,
- "followers": 46,
- "stars": 0,
- "calendar_total": 1828,
+ "followers": null,
+ "stars": null,
+ "calendar_total": null,
  "calendar_weeks": null,
- "languages": [
-  {
-   "name": "Python",
-   "share": 0.46
-  },
-  {
-   "name": "Rust",
-   "share": 0.22
-  },
-  {
-   "name": "Swift",
-   "share": 0.13
-  },
-  {
-   "name": "C",
-   "share": 0.09
-  },
-  {
-   "name": "TypeScript",
-   "share": 0.06
-  },
-  {
-   "name": "Other",
-   "share": 0.04
-  }
- ],
+ "calendar": null,
+ "languages": [],
  "repos": [
   {
    "name": "game_engine",
    "aliases": [],
    "slot": null,
    "commits": 512,
+   "merges": 85,
+   "coauthored": {
+    "count": 5,
+    "share": 0.01,
+    "agent": 5,
+    "names": {
+     "Claude Haiku 4.5": 5
+    }
+   },
    "all_hands": 585,
    "others": [
     {
@@ -267,25 +249,60 @@
    "stars": null,
    "span": "Jan 2026",
    "stale_branches": [],
-   "stale_branch_count": 148
+   "tests": 7,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "C": 151872,
+    "Swift": 87488,
+    "GLSL": 4528,
+    "Python": 4478,
+    "Metal": 3688,
+    "Objective-C": 1058,
+    "Shell": 334,
+    "C++": 308,
+    "Lua": 151
+   },
+   "stale_branch_count": 148,
+   "months": {
+    "2026-01": 8
+   },
+   "first_ns": "2026-01-04",
+   "last_ns": "2026-01-13",
+   "main_language": "C"
   },
   {
    "name": "Data_science_dev",
    "aliases": [],
    "slot": null,
-   "commits": 308,
-   "all_hands": 308,
+   "commits": 467,
+   "merges": 133,
+   "coauthored": {
+    "count": 174,
+    "share": 0.373,
+    "agent": 1,
+    "names": {
+     "Claude Haiku 4.5": 1
+    }
+   },
+   "all_hands": 467,
    "others": [],
    "first": "2025-12-15",
-   "last": "2026-10-07",
-   "commit_days": 11,
+   "last": "2026-10-08",
+   "commit_days": 12,
    "months_active": 4,
    "hours": [
     0,
     1,
     0,
     0,
-    1,
+    2,
     1,
     0,
     1,
@@ -310,7 +327,7 @@
     2,
     3,
     3,
-    1,
+    2,
     2,
     0,
     0
@@ -367,7 +384,7 @@
     5,
     0,
     0,
-    149
+    308
    ],
    "week_days": [
     0,
@@ -421,7 +438,7 @@
     1,
     0,
     0,
-    1
+    2
    ],
    "days": [
     {
@@ -477,11 +494,16 @@
     {
      "d": "2026-10-07",
      "h": 12,
-     "n": 149
+     "n": 198
+    },
+    {
+     "d": "2026-10-08",
+     "h": 4,
+     "n": 110
     }
    ],
    "tz_offsets": {
-    "-0400": 299,
+    "-0400": 458,
     "-0500": 9
    },
    "active": true,
@@ -493,16 +515,61 @@
    "stars": null,
    "span": "Dec 2025–",
    "stale_branches": [],
-   "stale_branch_count": 0
+   "tests": 358,
+   "test_functions": 142,
+   "workflows": 2,
+   "manifest": {
+    "files": [
+     "package.json",
+     "pyproject.toml"
+    ],
+    "deps": [
+     "@floating-ui/dom",
+     "@pixi/particle-emitter",
+     "chart.js",
+     "interactjs",
+     "lit",
+     "pixi.js",
+     "three",
+     "zustand"
+    ]
+   },
+   "lines": {
+    "JavaScript": 108779,
+    "CSS": 6797,
+    "Python": 6003,
+    "HTML": 1833,
+    "C++": 1272,
+    "Ruby": 1018,
+    "C": 282
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2025-12": 2,
+    "2026-01": 1,
+    "2026-09": 7,
+    "2026-10": 1
+   },
+   "first_ns": "2025-12-15",
+   "last_ns": "2026-10-08",
+   "main_language": "JavaScript"
   },
   {
    "name": "Scrapy",
-   "aliases": [
-    "Scrapy Harbor"
-   ],
-   "slot": "harbour",
-   "commits": 265,
-   "all_hands": 340,
+   "aliases": [],
+   "slot": null,
+   "commits": 420,
+   "merges": 75,
+   "coauthored": {
+    "count": 195,
+    "share": 0.464,
+    "agent": 30,
+    "names": {
+     "Claude Sonnet 5": 28,
+     "Claude": 2
+    }
+   },
+   "all_hands": 499,
    "others": [
     {
      "name": "google-labs-jules[bot]",
@@ -516,13 +583,13 @@
     },
     {
      "name": "dependabot[bot]",
-     "commits": 4,
+     "commits": 8,
      "bot": true
     }
    ],
    "first": "2025-09-25",
-   "last": "2026-10-07",
-   "commit_days": 26,
+   "last": "2026-10-08",
+   "commit_days": 27,
    "months_active": 5,
    "hours": [
     1,
@@ -530,7 +597,7 @@
     0,
     0,
     0,
-    0,
+    1,
     0,
     1,
     2,
@@ -538,12 +605,12 @@
     0,
     1,
     3,
-    5,
+    4,
     2,
     2,
     3,
     3,
-    1,
+    2,
     0,
     0,
     0,
@@ -554,7 +621,7 @@
     4,
     3,
     4,
-    4,
+    5,
     5,
     2,
     4
@@ -611,7 +678,7 @@
     19,
     30,
     0,
-    18
+    173
    ],
    "week_days": [
     5,
@@ -665,7 +732,7 @@
     2,
     1,
     0,
-    1
+    2
    ],
    "days": [
     {
@@ -795,15 +862,20 @@
     },
     {
      "d": "2026-10-07",
-     "h": 13,
-     "n": 18
+     "h": 18,
+     "n": 82
+    },
+    {
+     "d": "2026-10-08",
+     "h": 5,
+     "n": 91
     }
    ],
    "tz_offsets": {
-    "-0400": 264,
+    "-0400": 419,
     "-0500": 1
    },
-   "active": false,
+   "active": true,
    "dormant": false,
    "archived": false,
    "stale": false,
@@ -818,20 +890,98 @@
      "author": "Benjamin Russell"
     }
    ],
-   "stale_branch_count": 1
+   "tests": 257,
+   "test_functions": 1920,
+   "workflows": 5,
+   "manifest": {
+    "files": [
+     "Scraping_project/pyproject.toml"
+    ],
+    "deps": [
+     "scrapy",
+     "deltalake",
+     "pyarrow",
+     "pandas",
+     "numpy",
+     "playwright",
+     "scrapy-playwright",
+     "httpx",
+     "aiohttp",
+     "beautifulsoup4",
+     "lxml",
+     "datasketch",
+     "yake",
+     "networkx",
+     "psycopg2-binary",
+     "redis",
+     "confluent-kafka",
+     "prometheus-client",
+     "kubernetes",
+     "pyyaml",
+     "tqdm",
+     "python-dotenv",
+     "click",
+     "psutil",
+     "python-dateutil",
+     "typing-extensions",
+     "pydantic",
+     "jsonlines",
+     "itemadapter",
+     "requests",
+     "w3lib",
+     "twisted",
+     "tenacity"
+    ]
+   },
+   "lines": {
+    "Python": 69036,
+    "JavaScript": 2561,
+    "Shell": 2334,
+    "HTML": 1883,
+    "Rust": 1003,
+    "SQL": 232
+   },
+   "stale_branch_count": 1,
+   "ci": {
+    "workflow": "CI/CD Pipeline",
+    "conclusion": "success",
+    "date": "2026-10-08",
+    "url": "https://github.com/BenjaminSRussell/Scrapy/actions/runs/37779293103",
+    "recent": [
+     "success",
+     "cancelled",
+     "cancelled",
+     "cancelled",
+     "success"
+    ]
+   },
+   "months": {
+    "2025-09": 6,
+    "2025-10": 15,
+    "2026-09": 3,
+    "2026-10": 1
+   },
+   "first_ns": "2025-09-25",
+   "last_ns": "2026-10-08",
+   "main_language": "Python"
   },
   {
    "name": "BenjaminSRussell",
-   "aliases": [
-    "Profile Shoal"
-   ],
-   "slot": "shoal",
-   "commits": 173,
-   "all_hands": 173,
+   "aliases": [],
+   "slot": null,
+   "commits": 183,
+   "merges": 1,
+   "coauthored": {
+    "count": 1,
+    "share": 0.005,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 183,
    "others": [],
    "first": "2025-11-22",
-   "last": "2026-10-07",
-   "commit_days": 9,
+   "last": "2026-10-09",
+   "commit_days": 11,
    "months_active": 4,
    "hours": [
     0,
@@ -841,7 +991,7 @@
     0,
     0,
     0,
-    0,
+    2,
     1,
     0,
     1,
@@ -863,8 +1013,8 @@
     2,
     1,
     1,
-    0,
     1,
+    2,
     3,
     1
    ],
@@ -920,7 +1070,7 @@
     122,
     43,
     0,
-    4
+    14
    ],
    "week_days": [
     0,
@@ -974,7 +1124,7 @@
     3,
     1,
     0,
-    1
+    3
    ],
    "days": [
     {
@@ -1021,31 +1171,66 @@
      "d": "2026-10-07",
      "h": 14,
      "n": 4
+    },
+    {
+     "d": "2026-10-08",
+     "h": 7,
+     "n": 9
+    },
+    {
+     "d": "2026-10-09",
+     "h": 7,
+     "n": 1
     }
    ],
    "tz_offsets": {
-    "-0400": 169,
+    "-0400": 179,
     "-0500": 4
    },
-   "active": false,
+   "active": true,
    "dormant": false,
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": 0,
+   "language": "Python",
+   "stars": 1,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 0
+   "tests": 9,
+   "test_functions": 199,
+   "workflows": 3,
+   "manifest": null,
+   "lines": {
+    "Python": 17123,
+    "JavaScript": 414,
+    "Shell": 65
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2025-11": 1,
+    "2025-12": 3,
+    "2026-09": 4,
+    "2026-10": 2
+   },
+   "first_ns": "2025-11-22",
+   "last_ns": "2026-10-09",
+   "main_language": "Python"
   },
   {
    "name": "Rust-sitemap",
-   "aliases": [
-    "rustmapper"
-   ],
-   "slot": "named-5",
-   "commits": 87,
-   "all_hands": 132,
+   "aliases": [],
+   "slot": null,
+   "commits": 101,
+   "merges": 31,
+   "coauthored": {
+    "count": 17,
+    "share": 0.168,
+    "agent": 1,
+    "names": {
+     "Claude Sonnet 5": 1
+    }
+   },
+   "all_hands": 146,
    "others": [
     {
      "name": "Claude",
@@ -1070,11 +1255,11 @@
     0,
     1,
     2,
-    3,
+    2,
     0,
     5,
     1,
-    4,
+    5,
     3,
     1,
     0,
@@ -1144,7 +1329,7 @@
     0,
     0,
     0,
-    14
+    28
    ],
    "week_days": [
     0,
@@ -1308,13 +1493,13 @@
     },
     {
      "d": "2026-10-07",
-     "h": 12,
-     "n": 14
+     "h": 16,
+     "n": 28
     }
    ],
    "tz_offsets": {
     "-0500": 56,
-    "-0400": 31
+    "-0400": 45
    },
    "active": false,
    "dormant": false,
@@ -1325,13 +1510,100 @@
    "stars": 1,
    "span": "Oct 2025–",
    "stale_branches": [],
-   "stale_branch_count": 0
+   "tests": 3,
+   "test_functions": 176,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Cargo.toml",
+     "pyproject.toml"
+    ],
+    "deps": [
+     "clap",
+     "rkyv",
+     "rkyv_derive",
+     "redb",
+     "reqwest",
+     "tokio",
+     "tokio-util",
+     "scraper",
+     "html5ever",
+     "readability",
+     "thiserror",
+     "tracing",
+     "tracing-subscriber",
+     "tracing-appender",
+     "tracing-error",
+     "tracing-log",
+     "url",
+     "serde",
+     "serde_json",
+     "futures-util",
+     "dashmap",
+     "parking_lot",
+     "redis",
+     "robotstxt",
+     "sitemap",
+     "chrono",
+     "async-compression",
+     "async-trait",
+     "async-stream",
+     "flume",
+     "crc32fast",
+     "fastbloom",
+     "tokio-stream",
+     "num_cpus",
+     "psl",
+     "crossbeam-queue",
+     "rand",
+     "pyo3",
+     "bincode",
+     "flate2"
+    ]
+   },
+   "lines": {
+    "Rust": 16390,
+    "Python": 848
+   },
+   "stale_branch_count": 0,
+   "ci": {
+    "workflow": "CI",
+    "conclusion": "success",
+    "date": "2026-10-07",
+    "url": "https://github.com/BenjaminSRussell/Rust-sitemap/actions/runs/37704909539",
+    "recent": [
+     "success",
+     "success",
+     "success",
+     "success",
+     "success"
+    ]
+   },
+   "months": {
+    "2025-10": 7,
+    "2025-11": 9,
+    "2025-12": 1,
+    "2026-05": 1,
+    "2026-08": 1
+   },
+   "first_ns": "2025-10-20",
+   "last_ns": "2026-08-08",
+   "main_language": "Rust"
   },
   {
    "name": "Data-visualizer",
    "aliases": [],
    "slot": null,
    "commits": 46,
+   "merges": 10,
+   "coauthored": {
+    "count": 7,
+    "share": 0.152,
+    "agent": 2,
+    "names": {
+     "Claude Fable 5": 2
+    }
+   },
    "all_hands": 54,
    "others": [
     {
@@ -1542,13 +1814,42 @@
    "stars": null,
    "span": "Sep 2025–",
    "stale_branches": [],
-   "stale_branch_count": 23
+   "tests": 12,
+   "test_functions": 134,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Python": 12488,
+    "HTML": 1204,
+    "Shell": 807,
+    "SQL": 340
+   },
+   "stale_branch_count": 23,
+   "months": {
+    "2025-09": 2,
+    "2025-10": 3
+   },
+   "first_ns": "2025-09-25",
+   "last_ns": "2025-10-28",
+   "main_language": "Python"
   },
   {
    "name": "FashionDB",
    "aliases": [],
    "slot": null,
    "commits": 39,
+   "merges": 13,
+   "coauthored": {
+    "count": 6,
+    "share": 0.154,
+    "agent": 0,
+    "names": {}
+   },
    "all_hands": 69,
    "others": [
     {
@@ -1754,13 +2055,43 @@
    "stars": null,
    "span": "Oct 2025–",
    "stale_branches": [],
-   "stale_branch_count": 20
+   "tests": 20,
+   "test_functions": 29,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": [
+     "praw"
+    ]
+   },
+   "lines": {
+    "Python": 5193
+   },
+   "stale_branch_count": 20,
+   "months": {
+    "2025-10": 1,
+    "2025-11": 3
+   },
+   "first_ns": "2025-10-29",
+   "last_ns": "2025-11-08",
+   "main_language": "Python"
   },
   {
    "name": "ideal-url-organizer",
    "aliases": [],
    "slot": null,
    "commits": 37,
+   "merges": 6,
+   "coauthored": {
+    "count": 15,
+    "share": 0.405,
+    "agent": 10,
+    "names": {
+     "Claude Sonnet 5": 10
+    }
+   },
    "all_hands": 47,
    "others": [
     {
@@ -1966,13 +2297,37 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 0
+   "tests": 15,
+   "test_functions": 67,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 12242,
+    "HTML": 1062,
+    "JavaScript": 260,
+    "Shell": 74
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2025-11": 2,
+    "2026-08": 2
+   },
+   "first_ns": "2025-11-11",
+   "last_ns": "2026-08-09",
+   "main_language": "Python"
   },
   {
    "name": "Course_crusader",
    "aliases": [],
    "slot": null,
    "commits": 33,
+   "merges": 14,
+   "coauthored": {
+    "count": 3,
+    "share": 0.091,
+    "agent": 0,
+    "names": {}
+   },
    "all_hands": 44,
    "others": [
     {
@@ -2163,13 +2518,263 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 16
+   "tests": 19,
+   "test_functions": 77,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Python": 10132
+   },
+   "stale_branch_count": 16,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "Ai_code_detector",
+   "aliases": [],
+   "slot": null,
+   "commits": 32,
+   "merges": 2,
+   "coauthored": {
+    "count": 18,
+    "share": 0.562,
+    "agent": 6,
+    "names": {
+     "Claude Sonnet 5": 6
+    }
+   },
+   "all_hands": 39,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 6,
+     "bot": true
+    },
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 3,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    2
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    17,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    12
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 16,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 1
+    },
+    {
+     "d": "2026-08-02",
+     "h": 16,
+     "n": 17
+    },
+    {
+     "d": "2026-10-07",
+     "h": 19,
+     "n": 12
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 29,
+    "-0500": 3
+   },
+   "active": false,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025–",
+   "stale_branches": [],
+   "tests": 25,
+   "test_functions": 127,
+   "workflows": 2,
+   "manifest": null,
+   "lines": {
+    "Python": 11863,
+    "TypeScript": 55,
+    "Go": 40,
+    "Rust": 22
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2026-08": 1
+   },
+   "first_ns": "2026-08-02",
+   "last_ns": "2026-08-02",
+   "main_language": "Python"
   },
   {
    "name": "go_go_go",
    "aliases": [],
    "slot": null,
    "commits": 28,
+   "merges": 7,
+   "coauthored": {
+    "count": 9,
+    "share": 0.321,
+    "agent": 0,
+    "names": {}
+   },
    "all_hands": 33,
    "others": [
     {
@@ -2360,215 +2965,49 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 18
-  },
-  {
-   "name": "Ai_code_detector",
-   "aliases": [],
-   "slot": null,
-   "commits": 22,
-   "all_hands": 29,
-   "others": [
-    {
-     "name": "Claude",
-     "commits": 6,
-     "bot": true
-    },
-    {
-     "name": "google-labs-jules[bot]",
-     "commits": 1,
-     "bot": true
-    }
-   ],
-   "first": "2025-11-09",
-   "last": "2026-10-07",
-   "commit_days": 4,
-   "months_active": 3,
-   "hours": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    1,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   "weekdays": [
-    1,
-    0,
-    1,
-    0,
-    0,
-    0,
-    2
-   ],
-   "weeks": [
-    0,
-    0,
-    0,
-    2,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    17,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2
-   ],
-   "week_days": [
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1
-   ],
-   "days": [
-    {
-     "d": "2025-11-09",
-     "h": 16,
-     "n": 2
-    },
-    {
-     "d": "2025-11-10",
-     "h": 10,
-     "n": 1
-    },
-    {
-     "d": "2026-08-02",
-     "h": 16,
-     "n": 17
-    },
-    {
-     "d": "2026-10-07",
-     "h": 12,
-     "n": 2
-    }
-   ],
-   "tz_offsets": {
-    "-0400": 19,
-    "-0500": 3
+   "tests": 20,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "go.mod"
+    ],
+    "deps": [
+     "goquery",
+     "bloom",
+     "chromedp",
+     "go-sqlite3",
+     "parquet-go",
+     "utls",
+     "cobra",
+     "robotstxt",
+     "net"
+    ]
    },
-   "active": false,
-   "dormant": false,
-   "archived": false,
-   "stale": false,
-   "stale_since": null,
-   "language": null,
-   "stars": null,
-   "span": "Nov 2025–",
-   "stale_branches": [],
-   "stale_branch_count": 0
+   "lines": {
+    "Go": 7138,
+    "Shell": 89
+   },
+   "stale_branch_count": 18,
+   "months": {
+    "2025-11": 1
+   },
+   "first_ns": "2025-11-11",
+   "last_ns": "2025-11-11",
+   "main_language": "Go"
   },
   {
    "name": "MLX_convertion",
    "aliases": [],
    "slot": null,
    "commits": 22,
+   "merges": 7,
+   "coauthored": {
+    "count": 3,
+    "share": 0.136,
+    "agent": 0,
+    "names": {}
+   },
    "all_hands": 39,
    "others": [
     {
@@ -2764,14 +3203,37 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 12
+   "tests": 8,
+   "test_functions": 26,
+   "workflows": 2,
+   "manifest": null,
+   "lines": {
+    "Python": 9747,
+    "Shell": 211
+   },
+   "stale_branch_count": 12,
+   "months": {
+    "2025-11": 2
+   },
+   "first_ns": "2025-11-08",
+   "last_ns": "2025-11-14",
+   "main_language": "Python"
   },
   {
    "name": "Wheel",
    "aliases": [],
    "slot": null,
-   "commits": 20,
-   "all_hands": 20,
+   "commits": 21,
+   "merges": 3,
+   "coauthored": {
+    "count": 9,
+    "share": 0.429,
+    "agent": 3,
+    "names": {
+     "Claude Fable 5": 3
+    }
+   },
+   "all_hands": 21,
    "others": [],
    "first": "2025-10-22",
    "last": "2026-10-07",
@@ -2864,7 +3326,7 @@
     0,
     0,
     3,
-    8
+    9
    ],
    "week_days": [
     0,
@@ -2959,11 +3421,11 @@
     {
      "d": "2026-10-07",
      "h": 12,
-     "n": 8
+     "n": 9
     }
    ],
    "tz_offsets": {
-    "-0400": 20
+    "-0400": 21
    },
    "active": false,
    "dormant": true,
@@ -2974,13 +3436,46 @@
    "stars": null,
    "span": "Oct 2025–",
    "stale_branches": [],
-   "stale_branch_count": 8
+   "tests": 8,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "postprocessing",
+     "three"
+    ]
+   },
+   "lines": {
+    "JavaScript": 2138,
+    "HTML": 435,
+    "Shell": 170,
+    "TypeScript": 32
+   },
+   "stale_branch_count": 8,
+   "months": {
+    "2025-10": 6
+   },
+   "first_ns": "2025-10-22",
+   "last_ns": "2025-10-29",
+   "main_language": "JavaScript"
   },
   {
    "name": "Elusive_trades_data",
    "aliases": [],
    "slot": null,
    "commits": 17,
+   "merges": 3,
+   "coauthored": {
+    "count": 10,
+    "share": 0.588,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
    "all_hands": 20,
    "others": [
     {
@@ -3171,13 +3666,487 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 13
+   "tests": 18,
+   "test_functions": 124,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 6303,
+    "Lua": 87
+   },
+   "stale_branch_count": 13,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "Spotify_to_apple_music",
+   "aliases": [],
+   "slot": null,
+   "commits": 16,
+   "merges": 4,
+   "coauthored": {
+    "count": 10,
+    "share": 0.625,
+    "agent": 2,
+    "names": {
+     "Claude Fable 5": 2
+    }
+   },
+   "all_hands": 26,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 10,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    12
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 18,
+     "n": 1
+    },
+    {
+     "d": "2025-11-10",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 20,
+     "n": 12
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 14,
+    "-0500": 2
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025–",
+   "stale_branches": [],
+   "tests": 13,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": [
+     "GRDB.swift",
+     "swift-crypto",
+     "swift-argument-parser"
+    ]
+   },
+   "lines": {
+    "Swift": 11819
+   },
+   "stale_branch_count": 11,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Swift"
+  },
+  {
+   "name": "3d-swift-widget",
+   "aliases": [],
+   "slot": null,
+   "commits": 13,
+   "merges": 2,
+   "coauthored": {
+    "count": 6,
+    "share": 0.462,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
+   "all_hands": 13,
+   "others": [],
+   "first": "2026-01-15",
+   "last": "2026-10-07",
+   "commit_days": 5,
+   "months_active": 2,
+   "hours": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    2,
+    1,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    6
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-01-15",
+     "h": 22,
+     "n": 4
+    },
+    {
+     "d": "2026-01-16",
+     "h": 1,
+     "n": 1
+    },
+    {
+     "d": "2026-01-17",
+     "h": 12,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 21,
+     "n": 6
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 7,
+    "-0500": 6
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026–",
+   "stale_branches": [],
+   "tests": 12,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Swift": 10556,
+    "Metal": 3342,
+    "C": 329,
+    "Shell": 88,
+    "Python": 31
+   },
+   "stale_branch_count": 6,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-17",
+   "main_language": "Swift"
   },
   {
    "name": "2d-swift-widgets",
    "aliases": [],
    "slot": null,
    "commits": 12,
+   "merges": 3,
+   "coauthored": {
+    "count": 5,
+    "share": 0.417,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
    "all_hands": 12,
    "others": [],
    "first": "2026-01-15",
@@ -3362,592 +4331,49 @@
    "stars": null,
    "span": "Jan 2026–",
    "stale_branches": [],
-   "stale_branch_count": 6
-  },
-  {
-   "name": "3d-swift-widget",
-   "aliases": [],
-   "slot": null,
-   "commits": 9,
-   "all_hands": 9,
-   "others": [],
-   "first": "2026-01-15",
-   "last": "2026-10-07",
-   "commit_days": 5,
-   "months_active": 2,
-   "hours": [
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0
-   ],
-   "weekdays": [
-    0,
-    0,
-    1,
-    2,
-    1,
-    1,
-    0
-   ],
-   "weeks": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    6,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    2
-   ],
-   "week_days": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1
-   ],
-   "days": [
-    {
-     "d": "2026-01-15",
-     "h": 22,
-     "n": 4
-    },
-    {
-     "d": "2026-01-16",
-     "h": 1,
-     "n": 1
-    },
-    {
-     "d": "2026-01-17",
-     "h": 12,
-     "n": 1
-    },
-    {
-     "d": "2026-10-01",
-     "h": 15,
-     "n": 1
-    },
-    {
-     "d": "2026-10-07",
-     "h": 12,
-     "n": 2
-    }
-   ],
-   "tz_offsets": {
-    "-0500": 6,
-    "-0400": 3
+   "tests": 2,
+   "test_functions": null,
+   "workflows": 0,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "clsx",
+     "framer-motion",
+     "lucide-react",
+     "react",
+     "react-dom"
+    ]
    },
-   "active": false,
-   "dormant": true,
-   "archived": false,
-   "stale": false,
-   "stale_since": null,
-   "language": null,
-   "stars": null,
-   "span": "Jan 2026–",
-   "stale_branches": [],
-   "stale_branch_count": 6
-  },
-  {
-   "name": "3d-swift-globe-widget",
-   "aliases": [],
-   "slot": null,
-   "commits": 8,
-   "all_hands": 8,
-   "others": [],
-   "first": "2026-01-15",
-   "last": "2026-01-17",
-   "commit_days": 3,
-   "months_active": 1,
-   "hours": [
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1
-   ],
-   "weekdays": [
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0
-   ],
-   "weeks": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    8,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   "week_days": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   "days": [
-    {
-     "d": "2026-01-15",
-     "h": 23,
-     "n": 3
-    },
-    {
-     "d": "2026-01-16",
-     "h": 0,
-     "n": 4
-    },
-    {
-     "d": "2026-01-17",
-     "h": 10,
-     "n": 1
-    }
-   ],
-   "tz_offsets": {
-    "-0500": 8
+   "lines": {
+    "TypeScript": 1224,
+    "CSS": 147,
+    "JavaScript": 40,
+    "Swift": 36,
+    "HTML": 13
    },
-   "active": false,
-   "dormant": true,
-   "archived": false,
-   "stale": false,
-   "stale_since": null,
-   "language": null,
-   "stars": null,
-   "span": "Jan 2026",
-   "stale_branches": [],
-   "stale_branch_count": 4
-  },
-  {
-   "name": "Spotify_to_apple_music",
-   "aliases": [],
-   "slot": null,
-   "commits": 8,
-   "all_hands": 18,
-   "others": [
-    {
-     "name": "Claude",
-     "commits": 10,
-     "bot": true
-    }
-   ],
-   "first": "2025-11-09",
-   "last": "2026-10-07",
-   "commit_days": 4,
-   "months_active": 2,
-   "hours": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0
-   ],
-   "weekdays": [
-    1,
-    0,
-    1,
-    1,
-    0,
-    0,
-    1
-   ],
-   "weeks": [
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    4
-   ],
-   "week_days": [
-    0,
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1
-   ],
-   "days": [
-    {
-     "d": "2025-11-09",
-     "h": 18,
-     "n": 1
-    },
-    {
-     "d": "2025-11-10",
-     "h": 11,
-     "n": 1
-    },
-    {
-     "d": "2026-10-01",
-     "h": 15,
-     "n": 2
-    },
-    {
-     "d": "2026-10-07",
-     "h": 11,
-     "n": 4
-    }
-   ],
-   "tz_offsets": {
-    "-0400": 6,
-    "-0500": 2
+   "stale_branch_count": 6,
+   "months": {
+    "2026-01": 2
    },
-   "active": false,
-   "dormant": true,
-   "archived": false,
-   "stale": false,
-   "stale_since": null,
-   "language": null,
-   "stars": null,
-   "span": "Nov 2025–",
-   "stale_branches": [],
-   "stale_branch_count": 11
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-16",
+   "main_language": "TypeScript"
   },
   {
    "name": "rust_llm_logger",
    "aliases": [],
    "slot": null,
-   "commits": 8,
-   "all_hands": 11,
+   "commits": 10,
+   "merges": 4,
+   "coauthored": {
+    "count": 3,
+    "share": 0.3,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 13,
    "others": [
     {
      "name": "Claude",
@@ -4051,7 +4477,7 @@
     0,
     0,
     0,
-    5
+    7
    ],
    "week_days": [
     0,
@@ -4121,11 +4547,11 @@
     {
      "d": "2026-10-07",
      "h": 11,
-     "n": 5
+     "n": 7
     }
    ],
    "tz_offsets": {
-    "-0400": 5,
+    "-0400": 7,
     "-0500": 3
    },
    "active": false,
@@ -4137,13 +4563,276 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 11
+   "tests": 3,
+   "test_functions": 35,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Cargo.toml"
+    ],
+    "deps": [
+     "tokio",
+     "axum",
+     "hyper",
+     "hyper-util",
+     "tower",
+     "tower-http",
+     "http-body-util",
+     "serde",
+     "serde_json",
+     "async-sse",
+     "futures",
+     "tracing",
+     "tracing-subscriber",
+     "anyhow",
+     "thiserror",
+     "bytes",
+     "clap",
+     "chrono",
+     "tokio-stream",
+     "async-trait",
+     "rusqlite",
+     "rand"
+    ]
+   },
+   "lines": {
+    "Rust": 2985,
+    "Shell": 48
+   },
+   "stale_branch_count": 11,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Rust"
+  },
+  {
+   "name": "3d-swift-globe-widget",
+   "aliases": [],
+   "slot": null,
+   "commits": 9,
+   "merges": 1,
+   "coauthored": {
+    "count": 1,
+    "share": 0.111,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 9,
+   "others": [],
+   "first": "2026-01-15",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    8,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-01-15",
+     "h": 23,
+     "n": 3
+    },
+    {
+     "d": "2026-01-16",
+     "h": 0,
+     "n": 4
+    },
+    {
+     "d": "2026-01-17",
+     "h": 10,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 20,
+     "n": 1
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 8,
+    "-0400": 1
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026–",
+   "stale_branches": [],
+   "tests": 3,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Swift": 1475
+   },
+   "stale_branch_count": 4,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-17",
+   "main_language": "Swift"
   },
   {
    "name": "cozy-game",
    "aliases": [],
    "slot": null,
    "commits": 7,
+   "merges": 0,
+   "coauthored": {
+    "count": 0,
+    "share": 0.0,
+    "agent": 0,
+    "names": {}
+   },
    "all_hands": 7,
    "others": [],
    "first": "2026-01-01",
@@ -4322,14 +5011,59 @@
    "stars": null,
    "span": "Jan 2026",
    "stale_branches": [],
-   "stale_branch_count": 183
+   "tests": 0,
+   "test_functions": null,
+   "workflows": 0,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "axios",
+     "expo",
+     "expo-av",
+     "expo-constants",
+     "expo-file-system",
+     "expo-sqlite",
+     "expo-status-bar",
+     "react",
+     "react-dom",
+     "react-native",
+     "react-native-gesture-handler",
+     "react-native-reanimated",
+     "react-native-web",
+     "react-native-worklets",
+     "zustand"
+    ]
+   },
+   "lines": {
+    "TypeScript": 35797,
+    "HTML": 4385,
+    "JavaScript": 1068,
+    "CSS": 162,
+    "Python": 111
+   },
+   "stale_branch_count": 183,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-01",
+   "last_ns": "2026-01-11",
+   "main_language": "TypeScript"
   },
   {
    "name": "mlx_Qwen_data_entry",
    "aliases": [],
    "slot": null,
-   "commits": 4,
-   "all_hands": 8,
+   "commits": 7,
+   "merges": 1,
+   "coauthored": {
+    "count": 5,
+    "share": 0.714,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 11,
    "others": [
     {
      "name": "Claude",
@@ -4354,15 +5088,15 @@
     0,
     0,
     0,
+    0,
+    0,
+    0,
+    0,
     1,
     0,
     0,
     0,
     1,
-    0,
-    0,
-    0,
-    0,
     0,
     0,
     0
@@ -4428,7 +5162,7 @@
     0,
     0,
     0,
-    2
+    5
    ],
    "week_days": [
     0,
@@ -4492,12 +5226,12 @@
     },
     {
      "d": "2026-10-07",
-     "h": 12,
-     "n": 2
+     "h": 20,
+     "n": 5
     }
    ],
    "tz_offsets": {
-    "-0400": 2,
+    "-0400": 5,
     "-0500": 2
    },
    "active": false,
@@ -4509,7 +5243,19 @@
    "stars": null,
    "span": "Nov 2025–",
    "stale_branches": [],
-   "stale_branch_count": 8
+   "tests": 10,
+   "test_functions": 52,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 5404,
+    "SQL": 333
+   },
+   "stale_branch_count": 8,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
   }
  ],
  "unsurveyed": [],
@@ -4555,7 +5301,7 @@
    "url": "",
    "source": "hand",
    "body": "The system worth having is the one still running after you have stopped watching it.",
-   "cite": "Scrapy Harbor, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.",
+   "cite": "Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.",
    "n": 1
   },
   {
@@ -4566,7 +5312,7 @@
    "url": "",
    "source": "hand",
    "body": "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten.",
-   "cite": "Scrapy Harbor, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.",
+   "cite": "Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.",
    "n": 2
   },
   {
@@ -4577,7 +5323,7 @@
    "url": "",
    "source": "hand",
    "body": "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one.",
-   "cite": "Scrapy Harbor, Sep 2025: Prometheus and Grafana.",
+   "cite": "Scrapy, Sep 2025: Prometheus and Grafana.",
    "n": 3
   },
   {
@@ -5506,6 +6252,56 @@
     "n": 173,
     "date": "2026-10-07",
     "title": "docs: More projects shelf + badge/Actions playbook (#1 #2) (#5)"
+   },
+   {
+    "n": 174,
+    "date": "2026-10-08",
+    "title": "Chart v9: the profile as a nautical chart of the open web (generated sheets, survey data, gated build) (#6)"
+   },
+   {
+    "n": 175,
+    "date": "2026-10-08",
+    "title": "fix the first live chart run: schema accepts calendar_check, log glyph budget covers the pencil-note edition (#7)"
+   },
+   {
+    "n": 176,
+    "date": "2026-10-08",
+    "title": "Hero: adaptive area scale so a sweep week cannot break the area law (#8)"
+   },
+   {
+    "n": 177,
+    "date": "2026-10-08",
+    "title": "hero: reserve the lateral marks' label boxes before any lettering; a land name evicts the texture week figures under it "
+   },
+   {
+    "n": 178,
+    "date": "2026-10-08",
+    "title": "hero: week-figure boxes sized by the real texture height on their printed baseline (phone collision from live run 4) (#1"
+   },
+   {
+    "n": 179,
+    "date": "2026-10-08",
+    "title": "workflow: stage the day's figures one file at a time; a missing lock file made git add stage nothing (#11)"
+   },
+   {
+    "n": 180,
+    "date": "2026-10-08",
+    "title": "hero: reserve every fixed late label before lettering; contour figures register as boxes (#12)"
+   },
+   {
+    "n": 181,
+    "date": "2026-10-08",
+    "title": "v9.1: sheets legible at GitHub's column width; show, don't tell (#13)"
+   },
+   {
+    "n": 182,
+    "date": "2026-10-08",
+    "title": "v9.2: round-3 review fixes; hero passes the gate on the live survey (#14)"
+   },
+   {
+    "n": 183,
+    "date": "2026-10-09",
+    "title": "v10: one chart, composed by hand, soundings in commit-days (round 4) (#15)"
    }
   ]
  },
@@ -5525,9 +6321,9 @@
    "measured": true
   },
   "scrape_interval": {
-   "value": 15,
+   "value": 30,
    "unit": "s",
-   "source": "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)",
+   "source": "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)",
    "sha": "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0",
    "measured": true
   }
@@ -5550,58 +6346,81 @@
    "first": null
   }
  ],
- "commits": 1665,
- "all_hands": 1966,
+ "commits": 2032,
+ "merges": 405,
+ "coauthored_total": {
+  "count": 502,
+  "share": 0.247,
+  "agent": 63,
+  "agent_share": 0.031,
+  "names": {
+   "Claude Sonnet 5": 45,
+   "Claude Fable 5": 10,
+   "Claude Haiku 4.5": 6,
+   "Claude": 2
+  }
+ },
+ "agent_authored": {
+  "total": 297,
+  "names": {
+   "Claude": 172,
+   "google-labs-jules[bot]": 125
+  },
+  "automation": {
+   "dependabot[bot]": 8
+  }
+ },
+ "all_hands": 2337,
  "first_commit": "2025-09-25",
- "days_surveyed": 377,
+ "days_surveyed": 379,
  "hours": [
   3,
   3,
   0,
   1,
-  1,
-  1,
-  0,
   2,
+  2,
+  0,
+  4,
   6,
   2,
   8,
-  10,
-  16,
+  9,
   12,
+  11,
   25,
   10,
-  14,
+  15,
   13,
-  7,
+  8,
+  5,
   4,
-  1,
-  2,
+  3,
   6,
   3
  ],
  "weekdays": [
   25,
   15,
-  31,
-  23,
-  19,
+  32,
+  26,
+  20,
   13,
   24
  ],
  "hours_basis": "author-local commit-days",
  "tz_offsets": {
-  "-0400": 1003,
+  "-0400": 1370,
   "-0500": 662
  },
  "variation": {
   "hour": 14,
   "year": 2026,
-  "prior_hour": 13,
+  "prior_hour": 12,
   "annual_change": null,
   "basis_days": [
-   135,
-   15
+   138,
+   17
   ],
   "min_basis_days": 60
  },
@@ -5610,6 +6429,7 @@
    "start": "2025-10-13",
    "n": 61,
    "days": 5,
+   "sweep": 0,
    "repos": {
     "Scrapy": 61
    }
@@ -5618,6 +6438,7 @@
    "start": "2025-10-20",
    "n": 16,
    "days": 5,
+   "sweep": 0,
    "repos": {
     "Rust-sitemap": 8,
     "Data-visualizer": 1,
@@ -5628,10 +6449,11 @@
    "start": "2025-10-27",
    "n": 16,
    "days": 4,
+   "sweep": 0,
    "repos": {
     "Rust-sitemap": 7,
-    "FashionDB": 1,
     "Data-visualizer": 6,
+    "FashionDB": 1,
     "Wheel": 2
    }
   },
@@ -5639,18 +6461,19 @@
    "start": "2025-11-03",
    "n": 85,
    "days": 6,
+   "sweep": 31,
    "repos": {
     "Scrapy": 1,
     "Rust-sitemap": 48,
-    "FashionDB": 9,
     "Data-visualizer": 1,
+    "FashionDB": 9,
     "ideal-url-organizer": 2,
-    "MLX_convertion": 11,
+    "Course_crusader": 2,
     "Ai_code_detector": 2,
     "go_go_go": 2,
-    "Course_crusader": 2,
-    "Spotify_to_apple_music": 1,
+    "MLX_convertion": 11,
     "Elusive_trades_data": 2,
+    "Spotify_to_apple_music": 1,
     "rust_llm_logger": 2,
     "mlx_Qwen_data_entry": 2
    }
@@ -5659,16 +6482,17 @@
    "start": "2025-11-10",
    "n": 25,
    "days": 5,
+   "sweep": 15,
    "repos": {
     "Rust-sitemap": 6,
     "FashionDB": 3,
     "ideal-url-organizer": 4,
-    "MLX_convertion": 3,
+    "Course_crusader": 2,
     "Ai_code_detector": 1,
     "go_go_go": 3,
-    "Course_crusader": 2,
-    "Spotify_to_apple_music": 1,
+    "MLX_convertion": 3,
     "Elusive_trades_data": 1,
+    "Spotify_to_apple_music": 1,
     "rust_llm_logger": 1
    }
   },
@@ -5676,6 +6500,7 @@
    "start": "2025-11-17",
    "n": 2,
    "days": 2,
+   "sweep": 0,
    "repos": {
     "BenjaminSRussell": 1,
     "Rust-sitemap": 1
@@ -5685,24 +6510,28 @@
    "start": "2025-11-24",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2025-12-01",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2025-12-08",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2025-12-15",
    "n": 7,
    "days": 2,
+   "sweep": 0,
    "repos": {
     "Data_science_dev": 5,
     "BenjaminSRussell": 1,
@@ -5713,6 +6542,7 @@
    "start": "2025-12-22",
    "n": 4,
    "days": 2,
+   "sweep": 0,
    "repos": {
     "Data_science_dev": 3,
     "BenjaminSRussell": 1
@@ -5722,6 +6552,7 @@
    "start": "2025-12-29",
    "n": 3,
    "days": 3,
+   "sweep": 0,
    "repos": {
     "game_engine": 1,
     "BenjaminSRussell": 1,
@@ -5732,6 +6563,7 @@
    "start": "2026-01-05",
    "n": 240,
    "days": 5,
+   "sweep": 0,
    "repos": {
     "game_engine": 233,
     "Data_science_dev": 1,
@@ -5742,6 +6574,7 @@
    "start": "2026-01-12",
    "n": 296,
    "days": 5,
+   "sweep": 0,
    "repos": {
     "game_engine": 278,
     "3d-swift-widget": 6,
@@ -5753,102 +6586,119 @@
    "start": "2026-01-19",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-01-26",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-02-02",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-02-09",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-02-16",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-02-23",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-03-02",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-03-09",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-03-16",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-03-23",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-03-30",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-04-06",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-04-13",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-04-20",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-04-27",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-05-04",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-05-11",
    "n": 1,
    "days": 1,
+   "sweep": 0,
    "repos": {
     "Rust-sitemap": 1
    }
@@ -5857,66 +6707,77 @@
    "start": "2026-05-18",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-05-25",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-06-01",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-06-08",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-06-15",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-06-22",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-06-29",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-07-06",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-07-13",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-07-20",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-07-27",
    "n": 17,
    "days": 1,
+   "sweep": 0,
    "repos": {
     "Ai_code_detector": 17
    }
@@ -5925,6 +6786,7 @@
    "start": "2026-08-03",
    "n": 15,
    "days": 2,
+   "sweep": 0,
    "repos": {
     "Rust-sitemap": 1,
     "ideal-url-organizer": 14
@@ -5934,24 +6796,28 @@
    "start": "2026-08-10",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-08-17",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-08-24",
    "n": 0,
    "days": 0,
+   "sweep": 0,
    "repos": {}
   },
   {
    "start": "2026-08-31",
    "n": 108,
    "days": 4,
+   "sweep": 0,
    "repos": {
     "Data_science_dev": 108
    }
@@ -5960,6 +6826,7 @@
    "start": "2026-09-07",
    "n": 37,
    "days": 2,
+   "sweep": 0,
    "repos": {
     "Data_science_dev": 37
    }
@@ -5968,9 +6835,10 @@
    "start": "2026-09-14",
    "n": 146,
    "days": 4,
+   "sweep": 0,
    "repos": {
-    "Scrapy": 19,
     "Data_science_dev": 5,
+    "Scrapy": 19,
     "BenjaminSRussell": 122
    }
   },
@@ -5978,6 +6846,7 @@
    "start": "2026-09-21",
    "n": 73,
    "days": 1,
+   "sweep": 0,
    "repos": {
     "Scrapy": 30,
     "BenjaminSRussell": 43
@@ -5987,48 +6856,52 @@
    "start": "2026-09-28",
    "n": 13,
    "days": 1,
+   "sweep": 13,
    "repos": {
     "Data-visualizer": 4,
-    "Spotify_to_apple_music": 2,
-    "Elusive_trades_data": 1,
     "Wheel": 3,
+    "Elusive_trades_data": 1,
+    "Spotify_to_apple_music": 2,
     "3d-swift-widget": 1,
     "2d-swift-widgets": 2
    }
   },
   {
    "start": "2026-10-05",
-   "n": 358,
-   "days": 1,
+   "n": 725,
+   "days": 3,
+   "sweep": 514,
    "repos": {
-    "Scrapy": 18,
-    "Data_science_dev": 149,
-    "BenjaminSRussell": 4,
-    "Rust-sitemap": 14,
-    "FashionDB": 26,
+    "Data_science_dev": 308,
+    "Scrapy": 173,
+    "BenjaminSRussell": 14,
+    "Rust-sitemap": 28,
     "Data-visualizer": 28,
+    "FashionDB": 26,
     "ideal-url-organizer": 17,
-    "MLX_convertion": 8,
-    "Ai_code_detector": 2,
-    "go_go_go": 23,
     "Course_crusader": 29,
-    "Spotify_to_apple_music": 4,
+    "Ai_code_detector": 12,
+    "go_go_go": 23,
+    "MLX_convertion": 8,
+    "Wheel": 9,
     "Elusive_trades_data": 13,
-    "Wheel": 8,
-    "3d-swift-widget": 2,
+    "Spotify_to_apple_music": 12,
+    "3d-swift-widget": 6,
     "2d-swift-widgets": 6,
-    "rust_llm_logger": 5,
-    "mlx_Qwen_data_entry": 2
+    "rust_llm_logger": 7,
+    "3d-swift-globe-widget": 1,
+    "mlx_Qwen_data_entry": 5
    }
   }
  ],
  "tide": {
   "hw": {
    "start": "2026-10-05",
-   "n": 358,
+   "n": 725,
    "cause": "Data_science_dev",
-   "cause_days": 1,
-   "cause_share": 0.416
+   "cause_days": 2,
+   "cause_share": 0.425,
+   "sweep_share": 0.709
   },
   "lw": {
    "start": "2026-08-24",
@@ -6092,9 +6965,10 @@
   },
   {
    "date": "2026-10-07",
-   "repos": 18,
+   "repos": 19,
    "names": [
     "2d-swift-widgets",
+    "3d-swift-globe-widget",
     "3d-swift-widget",
     "Ai_code_detector",
     "BenjaminSRussell",
@@ -6114,6 +6988,12 @@
     "rust_llm_logger"
    ]
   }
+ ],
+ "sweep_dates": [
+  "2025-11-09",
+  "2025-11-10",
+  "2026-10-01",
+  "2026-10-07"
  ],
  "sweep_threshold": 5
 }

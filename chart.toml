@@ -58,92 +58,39 @@ path = "assets/log.json"
 [social]
 hero_png_sha = ""
 
-# ----------------------------------------------------------------- features
-# The hero is composed by hand and driven by data (round 4, D3): a repository with seven commit-days or more is a
-# named feature and takes the slot set here (`desk` and `phone` are its centre in sheet coordinates); its radius
-# follows the data and its place never moves. Every other repository is a rock on the fringe below. A repository
-# that crosses seven days without a slot here is charted as a rock and reported until it is given one. The alias
-# is what every sheet prints; `kind` is harbour | island | bank (a submerged shoal) | vessel (the ship's own ground).
-
-[[features]]
-repo = "Scrapy"
-aliases = ["Scrapy Harbor"]
-kind = "harbour"
-desk = [830, 430]
-phone = [390, 630]
-
-[[features]]
-repo = "Rust-sitemap"
-aliases = ["rustmapper"]
-kind = "vessel"
-desk = [1005, 610]
-phone = [545, 730]
-
-[[features]]
-repo = "Data_science_dev"
-aliases = ["Data Science Bank"]
-kind = "bank"
-desk = [865, 160]
-phone = [330, 500]
-
-[[features]]
-repo = "BenjaminSRussell"
-aliases = ["Profile Shoal"]
-kind = "shoal"
-desk = [620, 490]
-phone = [150, 640]
-
-[[features]]
-repo = "game_engine"
-aliases = ["Game Engine I."]
-kind = "island"
-desk = [724, 262]
-phone = [64, 500]
-
-[[features]]
-repo = "Data-visualizer"
-aliases = ["Data-visualizer I."]
-kind = "island"
-desk = [770, 625]
-phone = [400, 795]
-
-[[features]]
-repo = "Wheel"
-aliases = ["Wheel I."]
-kind = "island"
-desk = [595, 625]
-phone = [225, 775]
-
-[[features]]
-repo = "FashionDB"
-aliases = ["FashionDB Bank"]
-kind = "bank"
-desk = [440, 560]
-phone = [130, 760]
-
-[[features]]
-repo = "ideal-url-organizer"
-aliases = ["URL Organizer I."]
-kind = "island"
-desk = [300, 530]
-phone = [64, 580]
+# ----------------------------------------------------------------- hero (v11, round 5, D1)
+# The hero is the coast of the year: one axis (time), one row per repository with `named_min` non-sweep
+# commit-days or more, ordered by those days; the rest merged into one "N more" row. Nothing is placed by hand.
+# `named_min` is 5 today: D1's seven leaves five rows once the sweep days are out (Scrapy 24, rustmapper 19,
+# Data_science_dev 10, BenjaminSRussell 8, game_engine 8); five adds Wheel 6 and Data-visualizer 5 (seven named
+# rows and the merged row, eight bands); four would add two four-day slivers (FashionDB, ideal-url-organizer) and
+# ten bands in the same height thin every bank from 16 to about 9 px half-thickness.
+# `aliases` maps a repository to the name the sheet prints (its package name); every other row prints the
+# GitHub name as written.
 
 [hero]
-# The rest of the hero's composition (D4), in sheet coordinates. The course runs from the limit of survey to the
-# harbour; its last two waypoints (the entrance and the anchorage) follow the harbour's slot and are not set here.
-# The rocks fringe is the polyline the unnamed repositories are marked along, south-west of the archipelago.
-course_desk = [[1080, 120], [1030, 200], [1000, 330]]
-course_phone = [[600, 470], [565, 510], [548, 575]]
-rocks_desk = [[210, 660], [300, 695], [400, 706], [480, 700]]
-rocks_phone = [[30, 848], [140, 864], [260, 870], [380, 868]]
-note_desk = [846, 80, -3]
+named_min = 5
+
+[hero.aliases]
+"Rust-sitemap" = "rustmapper"
+
+# ----------------------------------------------------------------- lines (round 5, D2)
+# `lines` counts newlines of source files at HEAD from a depth-1 clone. Directories here are never his lines:
+# vendored, build output, environments. `[lines.exclude]` names generated trees per repository.
+[lines]
+exclude_dirs = ["node_modules", "vendor", "target", "build", "dist", ".venv", "venv", "__pycache__", "site-packages", "third_party"]
+
+[lines.exclude]
+game_engine = ["src/engine"]   # 5,212 generated C files over 8 commit-days (round 5 data memo §2); not typed
 
 # ----------------------------------------------------------------- claims (figures about the code, not about Ben)
 # measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
 [claims.scrape_interval]
-value = 15
+# The crawler's own job, not Prometheus's global default (15 s, which only Prometheus's self-scrape uses).
+# build_stats re-reads the job at `sha` from the Scrapy clone and sets measured = false if it disagrees.
+value = 30
 unit = "s"
-source = "Scrapy:Scraping_project/monitoring/prometheus.yml (global scrape_interval)"
+source = "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)"
 sha = "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"
 measured = true
 
@@ -181,7 +128,7 @@ name = "COMMON CRAWL"
 n = 1
 title = "Boring under load."
 body = "The system worth having is the one still running after you have stopped watching it."
-cite = "Scrapy Harbor, Sep 2025: breakers on the Delta Lake, Redis and HTTP services."
+cite = "Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services."
 repo = "Scrapy"
 date = "2025-09"
 source = "toml"
@@ -190,7 +137,7 @@ source = "toml"
 n = 2
 title = "Keep the log. Raw before clean."
 body = "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten."
-cite = "Scrapy Harbor, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log."
+cite = "Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log."
 repo = "Scrapy"
 date = "2025-09"
 source = "toml"
@@ -199,7 +146,7 @@ source = "toml"
 n = 3
 title = "Lights before speed."
 body = "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one."
-cite = "Scrapy Harbor, Sep 2025: Prometheus and Grafana."
+cite = "Scrapy, Sep 2025: Prometheus and Grafana."
 repo = "Scrapy"
 date = "2025-09"
 source = "toml"
@@ -226,14 +173,14 @@ source = "toml"
 # Templates: {key} is filled from stats.json / derived figures; a sheet module's alt(data, cfg)
 # wins when it exists. ≤ 25 words, plain register, first word not "The".
 [alt]
-hero = "Chart of Ben Russell's repositories, soundings in commit-days: Scrapy Harbor, rustmapper's ground, the rest as islands and rocks. A boat sails in and anchors."
+hero = "Ben Russell's {repo_count} repositories by week, one row each, Scrapy and rustmapper busiest. The rest share one row."
 soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated. Every week sounded."
 approaches = "Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel."
 log = "Ship's log on ruled paper: one rustmapper crawl, computed from settings, unsigned. Types once; only the cursor keeps time."
 instruments = "Equipment list: languages, stores and queues, deck; the date each was first fitted. Bold: underway this quarter; the rest when asked."
 footer = "Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't."
 alt_poem = [
-  "A boat sails in and anchors.",
+  "The rest share one row.",
   "Every week sounded.",
   "The soundings fill in behind the vessel.",
   "Types once; only the cursor keeps time.",
@@ -335,3 +282,10 @@ group = "LOOKOUT"
 name = "MLX · Qwen"
 repo = "mlx_Qwen_data_entry"
 group = "LOOKOUT"
+
+[facts]
+# The dependencies worth naming in each flagship's "Built on" line (round 5, F3.3), printed in this order where the
+# manifest has them (case and -/_ ignored; a name also matches its -binary build); a repository without a list
+# prints its manifest's first five.
+built_on.Scrapy = ["deltalake", "redis", "psycopg2", "prometheus-client", "datasketch"]
+built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]

@@ -1,4 +1,4 @@
-<!-- The hero is redrawn weekly from assets/stats.json by scripts/build_assets.py and published to the `chart` branch. Text between x:start and x:end marker comments is written by scripts/render_readme.py; edit chart.toml, not this file, for those lines. -->
+<!-- The hero is regenerated weekly from assets/stats.json by scripts/build_assets.py and published to the `chart` branch. Text between x:start and x:end marker comments is written by scripts/render_readme.py; edit chart.toml, not this file, for those lines. -->
 
 <a name="top"></a>
 <!-- picture:hero:start -->
@@ -10,17 +10,14 @@
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Chart of Ben Russell's 21 repositories, soundings in commit-days: Scrapy Harbor, rustmapper's ground, the rest as islands and rocks. A boat sails in and anchors.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Ben Russell's 21 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Jul 2026. The rest share one row.">
 </picture>
 <!-- picture:hero:end -->
 
 <p align="center">
-  Crawl and data infrastructure · Python and Rust<!-- position:start — chart.toml [position] text; "" omits the slot -->
+  <!-- position:start — chart.toml [position] text; "" omits the slot -->
 <!-- position:end -->
-</p>
-
-<p align="center">
-  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>&nbsp;· <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy Harbor</b></a>&nbsp;· <a href="https://pypi.org/project/rustmapper/">PyPI</a>&nbsp;· <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
+  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>&nbsp;· <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy</b></a>&nbsp;· <a href="https://pypi.org/project/rustmapper/">PyPI</a>&nbsp;· <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
   <!-- contact:start — set linkedin / resume in chart.toml [contact]; "" drops the slot -->
 <!-- contact:end -->
 </p>
@@ -29,13 +26,16 @@
 **Languages** Python, Rust; Swift, C, TypeScript, Go.<br>
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap) is the survey vessel:** a concurrent sitemap crawler written in Rust and shipped to [PyPI](https://pypi.org/project/rustmapper/) as a Python package. Edition <!-- n:edition_version -->0.1.3<!-- /n -->, <!-- n:edition_date -->8 Nov 2025<!-- /n -->, provisional.
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
 
-- The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool between 256 and 1,024 permits, so the crawl slows when it cannot persist what it found.
+<!-- facts:Rust-sitemap:start -->
+*Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust · last commit 8 Aug 2026*
+<!-- facts:Rust-sitemap:end -->
+
+- The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
 - Every frontier event is written to a CRC32-framed write-ahead log (rkyv, zero-copy replay) before it reaches redb; a killed crawl resumes at the last record.
 - The frontier is rendezvous-hashed by registrable domain, one shard per core, so a host's queue lives in one place; robots.txt is read first and its crawl-delay honoured. Optional Redis for distributed runs.
 - Seeds from sitemaps, Certificate Transparency logs and the Common Crawl index: what a site says about itself, every host that ever held a certificate, and every URL someone once linked.
-- Rust CLI and a Python package built with maturin. Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
 
 ```sh
 pip install rustmapper
@@ -44,15 +44,21 @@ rustmapper export-sitemap --data-dir ./data \
     --output sitemap.xml
 ```
 
-**[Scrapy Harbor](https://github.com/BenjaminSRussell/Scrapy) is where a run is operated:** a multi-stage crawl platform built on the Scrapy framework.
+- Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
 
-- A scout spider goes first; analysis and summarization workers follow, each its own mark in the channel.
+**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
+
+<!-- facts:Scrapy:start -->
+*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python · last commit 8 Oct 2026*
+<!-- facts:Scrapy:end -->
+
+- A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Duplicates caught by URL hash and MinHash; summaries from BART-large-CNN on the worker itself, so nothing leaves the harbor for an API.
+- Duplicates caught by URL hash and MinHash; summaries from BART-large-CNN on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Circuit breakers wrap the HTTP, Delta Lake and Redis services; per-host throttles are separate. Docker Compose and a Helm chart for Kubernetes.
 
-<a name="other-waters"></a>
-**Other waters**
+<a name="also"></a>
+**Also**
 
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25+ ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
 - [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — the Go sibling of rustmapper: 256-worker pools, a Bloom filter sized for 100M+ URLs, the same three seed sources.
@@ -60,7 +66,7 @@ rustmapper export-sitemap --data-dir ./data \
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry down to git-history patterns.
 
 <details>
-<summary><b>Below the waterline</b> · 15 more repositories: Swift widgets, a C game engine, games, tooling</summary>
+<summary>15 more repositories: Swift widgets, a C game engine, games, tooling</summary>
 <br>
 
 - [**3d-swift-globe-widget**](https://github.com/BenjaminSRussell/3d-swift-globe-widget) — Titan: a native macOS 3D globe in MapKit and SwiftUI, permanent night mode, packets arcing from NYC to LA.
@@ -78,24 +84,23 @@ rustmapper export-sitemap --data-dir ./data \
 
 </details>
 
-<a name="notices"></a>
-**Notices to mariners**
+<a name="rules"></a>
+**Working rules**
 
 <!-- notices:start -->
-1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy Harbor, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
-2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy Harbor, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.*
-3. **Lights before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy Harbor, Sep 2025: Prometheus and Grafana.*
+1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
+2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.*
+3. **Lights before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Sep 2025: Prometheus and Grafana.*
 4. **Parse, don't pattern-match.** *ideal-url-organizer, Nov 2025.*
 <!-- notices:end -->
 
-Found a wrong depth? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
+Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
-<a name="survey"></a>
+<a name="data"></a>
 <!-- survey:start -->
-<sub><b>Survey log</b> · taken 7 Oct 2026, 19:47 UTC · 21 public repositories cloned, author's commits only · 1,665 commits · 1,966 all hands · 1,828 by GitHub's calendar · instruments: clones live, GraphQL cached, REST partial, PyPI live, releases live · surveyed on 1 of the last 150 days · rustmapper 0.1.3, 8 Nov 2025.</sub>
+<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
 <!-- survey:end -->
 
-<sub>Redrawn from my repositories by [`scripts/build_assets.py`](scripts/build_assets.py) · how it's drawn → [DESIGN.md](DESIGN.md)</sub>
 <!-- license:start -->
-<sub>**License** Code MIT; sheets and copy CC BY 4.0; fonts under their own licenses in [`scripts/fonts/`](scripts/fonts/). To draw your own, fork the repository, fill in `chart.toml` and run the workflow; the sheets redraw from your repositories.</sub>
+<sub>**License** Code MIT; images and text CC BY 4.0; fonts under their own licenses in [`scripts/fonts/`](scripts/fonts/). To make your own, fork the repository, fill in `chart.toml` and run the workflow; the images are regenerated from your repositories · how it's built → [DESIGN.md](DESIGN.md)</sub>
 <!-- license:end -->

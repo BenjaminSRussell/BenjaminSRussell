@@ -3,6 +3,24 @@
 The chart redraws itself weekly and on every push to `main`, but some facts are yours to set. Each item
 says what changes on the page when you do it. Items marked ✓ were done in the redesign branch.
 
+## Round 5 (9 Oct 2026, decisions D3 and D7): four asks
+
+- **Fix the rustmapper README's worker figure.** The repository disagrees with itself: `governor.rs` says the pool
+  runs 256–1,024 workers, the README says 32–512, the PyPI page says 256. Until the three agree, the page's
+  first rustmapper bullet says only that the governor grows or shrinks the pool on redb commit latency, with no
+  number. Make them agree (the code is the one to trust), then the figure returns to the bullet with the README's
+  throughput figure beside it. (Item 5 below is the same ask for the sheet.)
+- **The co-author line.** The page says what share of your commits carry an AI co-author trailer (63 on 9 Oct
+  2026, about 3 %: default branches, trailers naming a model; GitHub's squash trailers that name you are not
+  counted), and how many more commits coding agents wrote outright (Claude, jules), which are not counted as yours.
+  Strike it if you'd rather not: delete the `agent_clause` item in `scripts/render_readme.py` `survey_block`.
+- **Fill the position and contact slots.** `chart.toml [position] text` ("role · city or timezone · open to /
+  currently") prints after the role line under the image; `[contact] linkedin` / `resume` add two links to the row
+  under it. Both are empty and the page omits them (same ask as round 4, still open).
+- **Which name to print: `rustmapper` or `Rust-sitemap`.** The page and the image letter the project `rustmapper`
+  (the PyPI package name) and link to the `Rust-sitemap` repository. Say which you want printed; if you rename the
+  repository to `rustmapper`, the two agree and `chart.toml` carries the old name as an alias.
+
 ## Round 4 (8 Oct 2026, decision D10): three asks
 
 - **Fill the position and contact slots.** `chart.toml [position] text` is the one line a hiring manager

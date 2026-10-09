@@ -39,6 +39,18 @@ class Repo(TypedDict, total=False):
     aliases: list[str]
     slot: str | None
     commits: int
+    merges: int          # of `commits`, those with two or more parents
+    coauthored: dict     # {count, share, agent, names}: of `commits`, those carrying a Co-authored-by trailer
+    months: dict         # {YYYY-MM: commit-days}, sweep days excluded
+    first_ns: str | None # first / last commit-day that is not a sweep day
+    last_ns: str | None
+    tests: int | None    # test files at HEAD (data.tree)
+    test_functions: int | None  # Rust #[test]/#[tokio::test]/#[rstest] + Python def test_ at HEAD; None without .rs/.py
+    main_language: str | None   # largest programming language in `lines` (markup and data only if nothing else)
+    workflows: int | None
+    manifest: dict | None  # {files, deps}
+    lines: dict | None   # {language: lines} at HEAD, vendored/generated excluded
+    ci: dict             # flagships only, when the API answered: {workflow, conclusion, date, url, recent}
     all_hands: int
     others: list[Other]
     first: str | None
@@ -103,9 +115,14 @@ class Stats(TypedDict, total=False):
     followers: int | None
     stars: int | None
     commits: int
+    merges: int
+    coauthored_total: dict
+    agent_authored: dict        # {total, names, automation}: commits whose author is a coding agent
+    sweep_dates: list[str]
     all_hands: int
     calendar_total: int | None
     calendar_weeks: list[dict] | None
+    calendar: dict | None
     first_commit: str | None
     days_surveyed: int | None
     languages: list[dict]
@@ -272,6 +289,14 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
         others = sum(o.get("commits", 0) for o in r.get("others") or [])
         if r.get("commits", 0) + others != r.get("all_hands"):
             errs.append(f"{n}: commits {r.get('commits')} + others {others} != all_hands {r.get('all_hands')}")
+        if r.get("merges", 0) > r.get("commits", 0):
+            errs.append(f"{n}: merges {r['merges']} > commits {r.get('commits')}")
+        co = r.get("coauthored") or {}
+        if co.get("count", 0) > r.get("commits", 0) or co.get("agent", 0) > co.get("count", 0):
+            errs.append(f"{n}: coauthored {co} inconsistent with commits {r.get('commits')}")
+        if isinstance(r.get("months"), dict) and isinstance(days, list):
+            if sum(r["months"].values()) > len(days):
+                errs.append(f"{n}: Σ months {sum(r['months'].values())} > commit_days {len(days)}")
         if len(r.get("weeks") or []) != 52:
             errs.append(f"{n}: weeks must have 52 entries")
         if isinstance(days, list) and r.get("weeks") and sum(r["weeks"]) > sum(d.get("n", 0) for d in days):
@@ -281,6 +306,17 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
             errs.append("commits != Σ repos[].commits")
         if stats.get("all_hands") != sum(r.get("all_hands", 0) for r in repos):
             errs.append("all_hands != Σ repos[].all_hands")
+        if "merges" in stats and stats["merges"] != sum(r.get("merges", 0) for r in repos):
+            errs.append("merges != Σ repos[].merges")
+        ag = stats.get("agent_authored")
+        if ag and ag.get("total") != sum((ag.get("names") or {}).values()):
+            errs.append("agent_authored.total != Σ agent_authored.names")
+        bots = sum(o.get("commits", 0) for r in repos for o in r.get("others") or [] if o.get("bot"))
+        if ag and ag.get("total", 0) + sum((ag.get("automation") or {}).values()) != bots:
+            errs.append("agent_authored total + automation != Σ others[] with bot: true")
+        ct = stats.get("coauthored_total")
+        if ct and ct.get("count") != sum((r.get("coauthored") or {}).get("count", 0) for r in repos):
+            errs.append("coauthored_total.count != Σ repos[].coauthored.count")
         for key, n in (("hours", 24), ("weekdays", 7)):
             tot = stats.get(key) or []
             if len(tot) != n or any(tot[i] != sum((r.get(key) or [0] * n)[i] for r in repos) for i in range(n)):
@@ -291,6 +327,8 @@ def validate(stats: dict, today: dt.date | None = None, schema: dict | None = No
     for i, w in enumerate(weeks):
         if isinstance(w, dict) and w.get("n") != sum((w.get("repos") or {}).values()):
             errs.append(f"weeks[{i}].n != Σ repos")
+        if isinstance(w, dict) and w.get("sweep", 0) > w.get("n", 0):
+            errs.append(f"weeks[{i}].sweep > n")
     tide = stats.get("tide") or {}
     if weeks and tide.get("hw") and tide["hw"].get("n") != max(w.get("n", 0) for w in weeks):
         errs.append("tide.hw.n != max weeks[].n")

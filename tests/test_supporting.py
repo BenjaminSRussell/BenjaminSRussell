@@ -279,14 +279,20 @@ class SupportingSheets(unittest.TestCase):
         phone_caps = [t["s"] for t in Built.text_of("soundings-phone-day") if t["role"] == "label-caps" and t.get("key") != "folio"]
         self.assertEqual(phone_caps, ["SOUNDINGS IN COMMITS · DATUM: MAIN"])
         keys = {t.get("key"): t for t in runs if t.get("key")}
-        for k in ("commits", "all_hands", "calendar_total", "tide.hw", "tide.lw", "tide.median", "tide.slack"):
-            self.assertIn(k, keys)
-            self.assertEqual(keys[k]["slant"], "upright", k)
         with open(STATS, encoding="utf-8") as fh:
             stats = json.load(fh)
+        # calendar_total is null without a dated GraphQL fetch (docs/data/AUDIT.md); the sheet then omits it
+        wanted = ("commits", "all_hands") + (("calendar_total",) if stats.get("calendar_total") else ()) + \
+                 ("tide.hw", "tide.lw", "tide.median", "tide.slack")
+        for k in wanted:
+            self.assertIn(k, keys)
+            self.assertEqual(keys[k]["slant"], "upright", k)
+        if not stats.get("calendar_total"):
+            self.assertNotIn("calendar_total", keys, "a null figure is not printed")
         self.assertEqual(keys["commits"]["s"], f"{stats['commits']:,}")
         self.assertEqual(keys["all_hands"]["s"], f"{stats['all_hands']:,}")
-        self.assertEqual(keys["calendar_total"]["s"], f"{stats['calendar_total']:,}")
+        if stats.get("calendar_total"):
+            self.assertEqual(keys["calendar_total"]["s"], f"{stats['calendar_total']:,}")
         # upright soundings along the traverse from sounding(): every non-zero week (v9.2: a tide table lists every
         # reading) on one of two baselines, one 0 per run of zero weeks, each the week's own figure, none overprinting
         weeks = sorted((t for t in runs if (t.get("key") or "").startswith("week.")), key=lambda t: t["x0"])
@@ -313,7 +319,7 @@ class SupportingSheets(unittest.TestCase):
         cfg = build_assets.load_cfg()
         for r in stats["repos"]:
             self.assertIn(gazetteer.name_of(r["name"], stats, cfg).upper(), names, r["name"])
-        self.assertNotIn("SCRAPY", names)
+        self.assertNotIn("SCRAPY HARBOR", names)      # D3: the project is Scrapy; the v8 coinage is gone with [[features]]
         # the HW cause is named through the gazetteer on both editions
         for ed in ("day", "phone-day"):
             hw = next(t["s"] for t in Built.text_of(f"soundings-{ed}") if t.get("key") == "tide.hw")
