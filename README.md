@@ -10,7 +10,7 @@
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Chart of Ben Russell's 21 repositories as a coastline, Sep 2025 to Oct 2026, Scrapy and rustmapper the largest. One row is one repository.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Ben Russell's 21 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Jul 2026. The rest share one row.">
 </picture>
 <!-- picture:hero:end -->
 
@@ -29,7 +29,7 @@
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
 
 <!-- facts:Rust-sitemap:start -->
-*Built on tokio, redb, rkyv, reqwest, clap · CI passed 7 Oct 2026 · 16k lines of Rust · last commit 8 Aug 2026*
+*Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust · last commit 8 Aug 2026*
 <!-- facts:Rust-sitemap:end -->
 
 - The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
@@ -49,7 +49,7 @@ rustmapper export-sitemap --data-dir ./data \
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
 
 <!-- facts:Scrapy:start -->
-*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · CI passed 8 Oct 2026 · 69k lines of Python · last commit 8 Oct 2026*
+*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python · last commit 8 Oct 2026*
 <!-- facts:Scrapy:end -->
 
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
@@ -98,7 +98,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · regenerated weekly.</sub>
+<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->
