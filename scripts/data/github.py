@@ -1,13 +1,20 @@
 """github — the second instrument: GraphQL metadata, contribution calendar, followers.
 
-    fetch(token, login) -> dict        GraphQL (as the v1 build_stats did); raises on failure
+    fetch(token, login, window) -> dict   GraphQL metadata + the contribution window; raises on failure
     rest_repo(owner, repo, token=None) -> dict | None       repo-scoped REST fallback (token optional)
     rest_languages(owner, repo, token=None) -> dict | None  {language: bytes}
     rest_releases(owner, repo, token=None) -> list | None
 
-The GraphQL figures are never the hero number: `calendar_total` and `calendar_weeks` are a
-cross-check for the clone-derived weeks (MASTERPLAN decision 19). Token optional everywhere;
-without one, GraphQL is skipped and REST runs unauthenticated (60 req/h is plenty for 24 repos).
+The GraphQL figures are never the hero number (MASTERPLAN decision 19). What GitHub counts and the
+clones count are different things, so each figure says which it is:
+  calendar_total   commits GitHub credits to the account since it was created (default branches of
+                   every repository it can see, private ones only if the profile shows them);
+  calendar         contributionsCollection over the clone window (`from`..`to`), itemised: commits,
+                   issues, pull_requests, reviews, restricted (private), all (the green squares), and
+                   commits_by_repo for the account's own repositories; derive.calendar_check compares
+                   commits_by_repo of the surveyed repos with the clones, like against like;
+  calendar_weeks   the green squares per week over the window (every contribution type).
+Token optional everywhere; without one, GraphQL is skipped and REST runs unauthenticated.
 """
 from __future__ import annotations
 
@@ -34,17 +41,27 @@ query($login: String!) {
         isArchived
         pushedAt
         createdAt
+        defaultBranchRef { name }
         primaryLanguage { name }
         languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name } } }
       }
     }
   }
 }"""
-QUERY_TIDE = """
-query($login: String!) {
+QUERY_WINDOW = """
+query($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
-    contributionsCollection {
-      contributionCalendar { weeks { contributionDays { contributionCount date } } }
+    contributionsCollection(from: $from, to: $to) {
+      totalCommitContributions
+      totalIssueContributions
+      totalPullRequestContributions
+      totalPullRequestReviewContributions
+      restrictedContributionsCount
+      contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } }
+      commitContributionsByRepository(maxRepositories: 100) {
+        repository { name owner { login } isPrivate }
+        contributions { totalCount }
+      }
     }
   }
 }"""
@@ -76,10 +93,12 @@ def gql(token: str, query: str, variables: dict) -> dict:
     return out["data"]
 
 
-def fetch(token: str, login: str = LOGIN) -> dict:
+def fetch(token: str, login: str = LOGIN, window: tuple[dt.date, dt.date] | None = None, gql=gql) -> dict:
     """GraphQL metadata for the account. Keys: account_since, followers, stars, repo_count,
     repo_meta{name: {stars, archived, pushed, created, language, languages{name: bytes}}},
-    languages[] (by bytes, top 5 + Other), calendar_weeks[{start, n}], calendar_total, fetched_at."""
+    languages[] (by bytes, top 5 + Other), calendar_weeks[{start, n}], calendar_total, calendar{…}, fetched_at.
+    `window` = (first clone week's Monday, taken): the span the contribution figures are asked for
+    (GitHub allows at most one year); default the 365 days before now. `gql` is injectable for tests."""
     u = gql(token, QUERY_USER, {"login": login})["user"]
     created = dt.datetime.fromisoformat(u["createdAt"].replace("Z", "+00:00"))
     now = dt.datetime.now(dt.timezone.utc)
@@ -93,6 +112,7 @@ def fetch(token: str, login: str = LOGIN) -> dict:
     for repo in u["repositories"]["nodes"]:
         stars += repo["stargazerCount"]
         meta[repo["name"]] = {
+            "default_branch": ((repo.get("defaultBranchRef") or {}).get("name")) or "main",
             "stars": repo["stargazerCount"],
             "archived": repo["isArchived"],
             "pushed": (repo["pushedAt"] or "")[:10] or None,
@@ -100,9 +120,31 @@ def fetch(token: str, login: str = LOGIN) -> dict:
             "language": (repo["primaryLanguage"] or {}).get("name"),
             "languages": {e["node"]["name"]: e["size"] for e in repo["languages"]["edges"]},
         }
-    tide = gql(token, QUERY_TIDE, {"login": login})["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    lo, hi = window or (now.date() - dt.timedelta(days=365), now.date())
+    frm, to = f"{lo.isoformat()}T00:00:00Z", f"{hi.isoformat()}T23:59:59Z"
+    cc = gql(token, QUERY_WINDOW, {"login": login, "from": frm, "to": to})["user"]["contributionsCollection"]
     calendar_weeks = [{"start": w["contributionDays"][0]["date"],
-                       "n": sum(d["contributionCount"] for d in w["contributionDays"])} for w in tide]
+                       "n": sum(d["contributionCount"] for d in w["contributionDays"])}
+                      for w in cc["contributionCalendar"]["weeks"] if w["contributionDays"]]
+    by_repo: dict[str, int] = {}
+    elsewhere = 0
+    for e in cc.get("commitContributionsByRepository") or []:
+        repo = e["repository"]
+        if (repo.get("owner") or {}).get("login") == login and not repo.get("isPrivate"):
+            by_repo[repo["name"]] = int(e["contributions"]["totalCount"])
+        else:
+            elsewhere += int(e["contributions"]["totalCount"])
+    calendar = {
+        "from": lo.isoformat(), "to": hi.isoformat(),
+        "commits": cc["totalCommitContributions"],
+        "issues": cc["totalIssueContributions"],
+        "pull_requests": cc["totalPullRequestContributions"],
+        "reviews": cc["totalPullRequestReviewContributions"],
+        "restricted": cc["restrictedContributionsCount"],
+        "all": cc["contributionCalendar"]["totalContributions"],
+        "commits_by_repo": by_repo,
+        "commits_elsewhere": elsewhere,
+    }
     return {
         "account_since": created.strftime("%Y-%m-%d"),
         "followers": u["followers"]["totalCount"],
@@ -112,6 +154,7 @@ def fetch(token: str, login: str = LOGIN) -> dict:
         "languages": languages_from_meta(meta),
         "calendar_weeks": calendar_weeks,
         "calendar_total": total,
+        "calendar": calendar,
         "fetched_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
@@ -156,6 +199,7 @@ def rest_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
         "created": (d.get("created_at") or "")[:10] or None,
         "language": d.get("language"),
         "fork": bool(d.get("fork")),
+        "default_branch": d.get("default_branch") or "main",
     }
 
 
@@ -167,6 +211,21 @@ def rest_languages(owner: str, repo: str, token: str | None = None) -> dict | No
 def rest_releases(owner: str, repo: str, token: str | None = None) -> list | None:
     d = _rest(f"repos/{owner}/{repo}/releases?per_page=100", token)
     return d if isinstance(d, list) else None
+
+
+def rest_runs(owner: str, repo: str, token: str | None = None, branch: str = "main", n: int = 5) -> dict | None:
+    """The project's own CI on its default branch: the latest completed `push` run (`workflow`, `conclusion`,
+    `date`, `url`) and the conclusions of the last `n` such runs (`recent`). Dependabot's updater runs and
+    pull-request runs are not the question "does main pass", so they are left out. None when the API
+    does not answer (no token, rate limit, a proxy) or the repository has no such run."""
+    d = _rest(f"repos/{owner}/{repo}/actions/runs?branch={branch}&event=push&status=completed&per_page={n}", token)
+    runs = d.get("workflow_runs") if isinstance(d, dict) else None
+    if not runs:
+        return None
+    last = runs[0]
+    return {"workflow": last.get("name"), "conclusion": last.get("conclusion"),
+            "date": (last.get("updated_at") or last.get("created_at") or "")[:10] or None,
+            "url": last.get("html_url"), "recent": [r.get("conclusion") for r in runs]}
 
 
 def rest_meta(owner: str, repos: list[str], token: str | None = None) -> dict[str, dict]:
