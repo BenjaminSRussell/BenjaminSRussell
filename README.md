@@ -10,7 +10,7 @@
 <source media="(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-night.svg">
 <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-still-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Ben Russell's 21 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Jul 2026. The rest share one row.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="Ben Russell's 22 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Apr 2026. The rest share one row.">
 </picture>
 <!-- picture:hero:end -->
 
@@ -98,7 +98,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
+<sub>Measured 9 Oct 2026 from clones of 22 public repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

@@ -1,30 +1,307 @@
 {
  "schema": 2,
- "updated_at": "2026-10-09T17:03:31Z",
+ "updated_at": "2026-10-09T19:39:04Z",
  "taken": "2026-10-09",
- "run_id": "local",
+ "run_id": "37981589671",
  "provenance": {
-  "mode": "cache",
+  "mode": "live",
   "failed_at": null,
-  "soundings_taken": null,
+  "soundings_taken": {
+   "taken": 2,
+   "of": 150
+  },
   "instruments": {
    "clones": "live",
-   "graphql": "none",
-   "rest": "partial",
+   "graphql": "live",
+   "rest": "none",
    "pypi": "live",
    "releases": "live"
   },
-  "graphql_at": null
+  "graphql_at": "2026-10-09T19:39:07Z"
  },
  "login": "BenjaminSRussell",
- "account_since": null,
- "repo_count": 21,
- "followers": null,
- "stars": null,
- "calendar_total": null,
- "calendar_weeks": null,
- "calendar": null,
- "languages": [],
+ "account_since": "2024-10-08",
+ "repo_count": 22,
+ "followers": 48,
+ "stars": 4,
+ "calendar_total": 1619,
+ "calendar_weeks": [
+  {
+   "start": "2025-10-13",
+   "n": 99
+  },
+  {
+   "start": "2025-10-19",
+   "n": 26
+  },
+  {
+   "start": "2025-10-26",
+   "n": 20
+  },
+  {
+   "start": "2025-11-02",
+   "n": 85
+  },
+  {
+   "start": "2025-11-09",
+   "n": 87
+  },
+  {
+   "start": "2025-11-16",
+   "n": 5
+  },
+  {
+   "start": "2025-11-23",
+   "n": 23
+  },
+  {
+   "start": "2025-11-30",
+   "n": 2
+  },
+  {
+   "start": "2025-12-07",
+   "n": 1
+  },
+  {
+   "start": "2025-12-14",
+   "n": 6
+  },
+  {
+   "start": "2025-12-21",
+   "n": 5
+  },
+  {
+   "start": "2025-12-28",
+   "n": 2
+  },
+  {
+   "start": "2026-01-04",
+   "n": 36
+  },
+  {
+   "start": "2026-01-11",
+   "n": 510
+  },
+  {
+   "start": "2026-01-18",
+   "n": 0
+  },
+  {
+   "start": "2026-01-25",
+   "n": 0
+  },
+  {
+   "start": "2026-02-01",
+   "n": 0
+  },
+  {
+   "start": "2026-02-08",
+   "n": 0
+  },
+  {
+   "start": "2026-02-15",
+   "n": 0
+  },
+  {
+   "start": "2026-02-22",
+   "n": 0
+  },
+  {
+   "start": "2026-03-01",
+   "n": 0
+  },
+  {
+   "start": "2026-03-08",
+   "n": 0
+  },
+  {
+   "start": "2026-03-15",
+   "n": 0
+  },
+  {
+   "start": "2026-03-22",
+   "n": 0
+  },
+  {
+   "start": "2026-03-29",
+   "n": 0
+  },
+  {
+   "start": "2026-04-05",
+   "n": 0
+  },
+  {
+   "start": "2026-04-12",
+   "n": 0
+  },
+  {
+   "start": "2026-04-19",
+   "n": 0
+  },
+  {
+   "start": "2026-04-26",
+   "n": 0
+  },
+  {
+   "start": "2026-05-03",
+   "n": 0
+  },
+  {
+   "start": "2026-05-10",
+   "n": 2
+  },
+  {
+   "start": "2026-05-17",
+   "n": 0
+  },
+  {
+   "start": "2026-05-24",
+   "n": 2
+  },
+  {
+   "start": "2026-05-31",
+   "n": 0
+  },
+  {
+   "start": "2026-06-07",
+   "n": 0
+  },
+  {
+   "start": "2026-06-14",
+   "n": 0
+  },
+  {
+   "start": "2026-06-21",
+   "n": 0
+  },
+  {
+   "start": "2026-06-28",
+   "n": 0
+  },
+  {
+   "start": "2026-07-05",
+   "n": 0
+  },
+  {
+   "start": "2026-07-12",
+   "n": 0
+  },
+  {
+   "start": "2026-07-19",
+   "n": 0
+  },
+  {
+   "start": "2026-07-26",
+   "n": 0
+  },
+  {
+   "start": "2026-08-02",
+   "n": 0
+  },
+  {
+   "start": "2026-08-09",
+   "n": 0
+  },
+  {
+   "start": "2026-08-16",
+   "n": 0
+  },
+  {
+   "start": "2026-08-23",
+   "n": 0
+  },
+  {
+   "start": "2026-08-30",
+   "n": 3148
+  },
+  {
+   "start": "2026-09-06",
+   "n": 62
+  },
+  {
+   "start": "2026-09-13",
+   "n": 1071
+  },
+  {
+   "start": "2026-09-20",
+   "n": 111
+  },
+  {
+   "start": "2026-09-27",
+   "n": 201
+  },
+  {
+   "start": "2026-10-04",
+   "n": 1084
+  }
+ ],
+ "calendar": {
+  "from": "2025-10-13",
+  "to": "2026-10-09",
+  "commits": 1501,
+  "issues": 3685,
+  "pull_requests": 1359,
+  "reviews": 22,
+  "restricted": 0,
+  "all": 6588,
+  "commits_by_repo": {
+   "game_engine": 513,
+   "Scrapy": 245,
+   "Data_science_dev": 221,
+   "BenjaminSRussell": 177,
+   "Rust-sitemap": 100,
+   "FashionDB": 28,
+   "Course_crusader": 19,
+   "MLX_convertion": 19,
+   "Data-visualizer": 18,
+   "go_go_go": 18,
+   "Wheel": 16,
+   "Ai_code_detector": 15,
+   "ideal-url-organizer": 15,
+   "Elusive_trades_data": 14,
+   "Spotify_to_apple_music": 13,
+   "3d-swift-widget": 12,
+   "2d-swift-widgets": 9,
+   "3d-swift-globe-widget": 9,
+   "rust_llm_logger": 8,
+   "cozy-game": 7,
+   "mlx_Qwen_data_entry": 7,
+   "excel-and-vba": 4
+  },
+  "commits_elsewhere": 14
+ },
+ "languages": [
+  {
+   "name": "C",
+   "share": 0.5257,
+   "bytes": 27732553
+  },
+  {
+   "name": "Swift",
+   "share": 0.1268,
+   "bytes": 6688964
+  },
+  {
+   "name": "Python",
+   "share": 0.124,
+   "bytes": 6539494
+  },
+  {
+   "name": "JavaScript",
+   "share": 0.1106,
+   "bytes": 5835831
+  },
+  {
+   "name": "Makefile",
+   "share": 0.0222,
+   "bytes": 1172379
+  },
+  {
+   "name": "Other",
+   "share": 0.0907,
+   "bytes": 4783161
+  }
+ ],
  "repos": [
   {
    "name": "game_engine",
@@ -245,8 +522,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "C",
+   "stars": 0,
    "span": "Jan 2026",
    "stale_branches": [],
    "tests": 7,
@@ -511,8 +788,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "JavaScript",
+   "stars": 0,
    "span": "Dec 2025–",
    "stale_branches": [],
    "tests": 358,
@@ -969,7 +1246,7 @@
    "name": "BenjaminSRussell",
    "aliases": [],
    "slot": null,
-   "commits": 183,
+   "commits": 184,
    "merges": 1,
    "coauthored": {
     "count": 1,
@@ -977,7 +1254,7 @@
     "agent": 0,
     "names": {}
    },
-   "all_hands": 183,
+   "all_hands": 184,
    "others": [],
    "first": "2025-11-22",
    "last": "2026-10-09",
@@ -1070,7 +1347,7 @@
     122,
     43,
     0,
-    14
+    15
    ],
    "week_days": [
     0,
@@ -1180,11 +1457,11 @@
     {
      "d": "2026-10-09",
      "h": 7,
-     "n": 1
+     "n": 2
     }
    ],
    "tz_offsets": {
-    "-0400": 179,
+    "-0400": 180,
     "-0500": 4
    },
    "active": true,
@@ -1197,11 +1474,11 @@
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 9,
-   "test_functions": 199,
+   "test_functions": 225,
    "workflows": 3,
    "manifest": null,
    "lines": {
-    "Python": 17123,
+    "Python": 18266,
     "JavaScript": 414,
     "Shell": 65
    },
@@ -1810,8 +2087,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Sep 2025–",
    "stale_branches": [],
    "tests": 12,
@@ -2051,8 +2328,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Oct 2025–",
    "stale_branches": [],
    "tests": 20,
@@ -2293,8 +2570,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 15,
@@ -2514,8 +2791,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 19,
@@ -2741,8 +3018,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 1,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 25,
@@ -2961,8 +3238,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Go",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 20,
@@ -3199,8 +3476,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 8,
@@ -3432,8 +3709,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "JavaScript",
+   "stars": 0,
    "span": "Oct 2025–",
    "stale_branches": [],
    "tests": 8,
@@ -3662,8 +3939,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 18,
@@ -3880,8 +4157,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Swift",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 13,
@@ -4105,8 +4382,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Swift",
+   "stars": 0,
    "span": "Jan 2026–",
    "stale_branches": [],
    "tests": 12,
@@ -4327,8 +4604,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "TypeScript",
+   "stars": 0,
    "span": "Jan 2026–",
    "stale_branches": [],
    "tests": 2,
@@ -4559,8 +4836,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Rust",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 3,
@@ -4797,8 +5074,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Swift",
+   "stars": 0,
    "span": "Jan 2026–",
    "stale_branches": [],
    "tests": 3,
@@ -5007,8 +5284,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "TypeScript",
+   "stars": 0,
    "span": "Jan 2026",
    "stale_branches": [],
    "tests": 0,
@@ -5239,8 +5516,8 @@
    "archived": false,
    "stale": false,
    "stale_since": null,
-   "language": null,
-   "stars": null,
+   "language": "Python",
+   "stars": 0,
    "span": "Nov 2025–",
    "stale_branches": [],
    "tests": 10,
@@ -5255,6 +5532,206 @@
    "months": {},
    "first_ns": null,
    "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "excel-and-vba",
+   "aliases": [],
+   "slot": null,
+   "commits": 4,
+   "merges": 0,
+   "coauthored": {
+    "count": 2,
+    "share": 0.5,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 4,
+   "others": [],
+   "first": "2026-05-30",
+   "last": "2026-10-07",
+   "commit_days": 2,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-05-30",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 2
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 4
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Python",
+   "stars": 0,
+   "span": "May 2026–",
+   "stale_branches": [],
+   "tests": 0,
+   "test_functions": 0,
+   "workflows": 0,
+   "manifest": null,
+   "lines": {
+    "Python": 55
+   },
+   "stale_branch_count": 3,
+   "months": {
+    "2026-05": 1
+   },
+   "first_ns": "2026-05-30",
+   "last_ns": "2026-05-30",
    "main_language": "Python"
   }
  ],
@@ -6302,6 +6779,11 @@
     "n": 183,
     "date": "2026-10-09",
     "title": "v10: one chart, composed by hand, soundings in commit-days (round 4) (#15)"
+   },
+   {
+    "n": 184,
+    "date": "2026-10-09",
+    "title": "v11: one sheet of the year, measured; text written straight (round 5) (#16)"
    }
   ]
  },
@@ -6346,10 +6828,10 @@
    "first": null
   }
  ],
- "commits": 2032,
+ "commits": 2037,
  "merges": 405,
  "coauthored_total": {
-  "count": 502,
+  "count": 504,
   "share": 0.247,
   "agent": 63,
   "agent_share": 0.031,
@@ -6370,7 +6852,7 @@
    "dependabot[bot]": 8
   }
  },
- "all_hands": 2337,
+ "all_hands": 2342,
  "first_commit": "2025-09-25",
  "days_surveyed": 379,
  "hours": [
@@ -6386,10 +6868,10 @@
   2,
   8,
   9,
-  12,
+  13,
   11,
   25,
-  10,
+  11,
   15,
   13,
   8,
@@ -6402,15 +6884,15 @@
  "weekdays": [
   25,
   15,
-  32,
+  33,
   26,
   20,
-  13,
+  14,
   24
  ],
  "hours_basis": "author-local commit-days",
  "tz_offsets": {
-  "-0400": 1370,
+  "-0400": 1375,
   "-0500": 662
  },
  "variation": {
@@ -6419,7 +6901,7 @@
   "prior_hour": 12,
   "annual_change": null,
   "basis_days": [
-   138,
+   140,
    17
   ],
   "min_basis_days": 60
@@ -6440,8 +6922,8 @@
    "days": 5,
    "sweep": 0,
    "repos": {
-    "Rust-sitemap": 8,
     "Data-visualizer": 1,
+    "Rust-sitemap": 8,
     "Wheel": 7
    }
   },
@@ -6451,10 +6933,10 @@
    "days": 4,
    "sweep": 0,
    "repos": {
-    "Rust-sitemap": 7,
     "Data-visualizer": 6,
-    "FashionDB": 1,
-    "Wheel": 2
+    "Rust-sitemap": 7,
+    "Wheel": 2,
+    "FashionDB": 1
    }
   },
   {
@@ -6464,18 +6946,18 @@
    "sweep": 31,
    "repos": {
     "Scrapy": 1,
-    "Rust-sitemap": 48,
     "Data-visualizer": 1,
+    "Rust-sitemap": 48,
     "FashionDB": 9,
-    "ideal-url-organizer": 2,
-    "Course_crusader": 2,
-    "Ai_code_detector": 2,
-    "go_go_go": 2,
     "MLX_convertion": 11,
-    "Elusive_trades_data": 2,
+    "ideal-url-organizer": 2,
+    "go_go_go": 2,
+    "mlx_Qwen_data_entry": 2,
+    "Ai_code_detector": 2,
+    "Course_crusader": 2,
     "Spotify_to_apple_music": 1,
-    "rust_llm_logger": 2,
-    "mlx_Qwen_data_entry": 2
+    "Elusive_trades_data": 2,
+    "rust_llm_logger": 2
    }
   },
   {
@@ -6486,13 +6968,13 @@
    "repos": {
     "Rust-sitemap": 6,
     "FashionDB": 3,
-    "ideal-url-organizer": 4,
-    "Course_crusader": 2,
-    "Ai_code_detector": 1,
-    "go_go_go": 3,
     "MLX_convertion": 3,
-    "Elusive_trades_data": 1,
+    "ideal-url-organizer": 4,
+    "go_go_go": 3,
+    "Ai_code_detector": 1,
+    "Course_crusader": 2,
     "Spotify_to_apple_music": 1,
+    "Elusive_trades_data": 1,
     "rust_llm_logger": 1
    }
   },
@@ -6502,8 +6984,8 @@
    "days": 2,
    "sweep": 0,
    "repos": {
-    "BenjaminSRussell": 1,
-    "Rust-sitemap": 1
+    "Rust-sitemap": 1,
+    "BenjaminSRussell": 1
    }
   },
   {
@@ -6533,9 +7015,9 @@
    "days": 2,
    "sweep": 0,
    "repos": {
-    "Data_science_dev": 5,
+    "Rust-sitemap": 1,
     "BenjaminSRussell": 1,
-    "Rust-sitemap": 1
+    "Data_science_dev": 5
    }
   },
   {
@@ -6544,8 +7026,8 @@
    "days": 2,
    "sweep": 0,
    "repos": {
-    "Data_science_dev": 3,
-    "BenjaminSRussell": 1
+    "BenjaminSRussell": 1,
+    "Data_science_dev": 3
    }
   },
   {
@@ -6554,8 +7036,8 @@
    "days": 3,
    "sweep": 0,
    "repos": {
-    "game_engine": 1,
     "BenjaminSRussell": 1,
+    "game_engine": 1,
     "cozy-game": 1
    }
   },
@@ -6565,8 +7047,8 @@
    "days": 5,
    "sweep": 0,
    "repos": {
-    "game_engine": 233,
     "Data_science_dev": 1,
+    "game_engine": 233,
     "cozy-game": 6
    }
   },
@@ -6577,8 +7059,8 @@
    "sweep": 0,
    "repos": {
     "game_engine": 278,
-    "3d-swift-widget": 6,
     "2d-swift-widgets": 4,
+    "3d-swift-widget": 6,
     "3d-swift-globe-widget": 8
    }
   },
@@ -6712,10 +7194,12 @@
   },
   {
    "start": "2026-05-25",
-   "n": 0,
-   "days": 0,
+   "n": 2,
+   "days": 1,
    "sweep": 0,
-   "repos": {}
+   "repos": {
+    "excel-and-vba": 2
+   }
   },
   {
    "start": "2026-06-01",
@@ -6837,9 +7321,9 @@
    "days": 4,
    "sweep": 0,
    "repos": {
-    "Data_science_dev": 5,
     "Scrapy": 19,
-    "BenjaminSRussell": 122
+    "BenjaminSRussell": 122,
+    "Data_science_dev": 5
    }
   },
   {
@@ -6860,47 +7344,48 @@
    "repos": {
     "Data-visualizer": 4,
     "Wheel": 3,
-    "Elusive_trades_data": 1,
     "Spotify_to_apple_music": 2,
-    "3d-swift-widget": 1,
-    "2d-swift-widgets": 2
+    "Elusive_trades_data": 1,
+    "2d-swift-widgets": 2,
+    "3d-swift-widget": 1
    }
   },
   {
    "start": "2026-10-05",
-   "n": 725,
+   "n": 728,
    "days": 3,
-   "sweep": 514,
+   "sweep": 516,
    "repos": {
-    "Data_science_dev": 308,
     "Scrapy": 173,
-    "BenjaminSRussell": 14,
-    "Rust-sitemap": 28,
     "Data-visualizer": 28,
-    "FashionDB": 26,
-    "ideal-url-organizer": 17,
-    "Course_crusader": 29,
-    "Ai_code_detector": 12,
-    "go_go_go": 23,
-    "MLX_convertion": 8,
+    "Rust-sitemap": 28,
     "Wheel": 9,
-    "Elusive_trades_data": 13,
+    "FashionDB": 26,
+    "MLX_convertion": 8,
+    "ideal-url-organizer": 17,
+    "go_go_go": 23,
+    "mlx_Qwen_data_entry": 5,
+    "Ai_code_detector": 12,
+    "Course_crusader": 29,
     "Spotify_to_apple_music": 12,
-    "3d-swift-widget": 6,
-    "2d-swift-widgets": 6,
+    "Elusive_trades_data": 13,
     "rust_llm_logger": 7,
+    "BenjaminSRussell": 15,
+    "Data_science_dev": 308,
+    "2d-swift-widgets": 6,
+    "3d-swift-widget": 6,
     "3d-swift-globe-widget": 1,
-    "mlx_Qwen_data_entry": 5
+    "excel-and-vba": 2
    }
   }
  ],
  "tide": {
   "hw": {
    "start": "2026-10-05",
-   "n": 725,
+   "n": 728,
    "cause": "Data_science_dev",
    "cause_days": 2,
-   "cause_share": 0.425,
+   "cause_share": 0.423,
    "sweep_share": 0.709
   },
   "lw": {
@@ -6965,7 +7450,7 @@
   },
   {
    "date": "2026-10-07",
-   "repos": 19,
+   "repos": 20,
    "names": [
     "2d-swift-widgets",
     "3d-swift-globe-widget",
@@ -6982,6 +7467,7 @@
     "Scrapy",
     "Spotify_to_apple_music",
     "Wheel",
+    "excel-and-vba",
     "go_go_go",
     "ideal-url-organizer",
     "mlx_Qwen_data_entry",
@@ -6995,5 +7481,13 @@
   "2026-10-01",
   "2026-10-07"
  ],
- "sweep_threshold": 5
+ "sweep_threshold": 5,
+ "calendar_check": {
+  "clone": 1895,
+  "calendar": 1487,
+  "disagreement": 0.274,
+  "from": "2025-10-13",
+  "to": "2026-10-09",
+  "basis": "commits by the account on the default branch of the surveyed public repositories, 52 weeks: clones vs GitHub contributionsCollection"
+ }
 }
