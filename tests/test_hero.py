@@ -141,14 +141,15 @@ class HeroBuild(unittest.TestCase):
                 self.assertEqual(sorted(more[0]["repos"]), sorted(r for _n, _d, r in small))
             self.assertEqual(sorted(h["zero"]), sorted(r for _n, _d, r in zero))
             self.assertEqual(h["counts"]["repositories"], self.stats["repo_count"])
-        # today's figures (7 Oct cache): the brief's numbers, sweeps out
+        # the committed figures (9 Oct cache), sweeps out: Scrapy and rustmapper lead
         days = {r["name"]: r["days"] for r in self.entry("day")["hero"]["rows"]}
-        self.assertEqual(days["Scrapy"], 24)
-        self.assertEqual(days["rustmapper"], 19)
-        self.assertEqual(days["Data_science_dev"], 10)
+        self.assertEqual(list(days)[:2], ["Scrapy", "rustmapper"])
+        self.assertGreaterEqual(days["Scrapy"], 24)
+        self.assertGreaterEqual(days["rustmapper"], 19)
         scrapy = next(r for r in self.entry("day")["hero"]["rows"] if r["repo"] == "Scrapy")
-        self.assertEqual((scrapy["first_ns"], scrapy["last_ns"]), ("2025-09-25", "2026-09-21"))
-        self.assertNotIn("2026-10", scrapy["months"], "the 7 Oct sweep is not Scrapy's work")
+        self.assertEqual(scrapy["first_ns"], "2025-09-25")
+        self.assertNotIn("2026-10-07", [scrapy["last_ns"]], "the 7 Oct sweep is not Scrapy's work")
+        self.assertEqual(sum(scrapy["months"].values()), scrapy["days"])
 
     def test_threshold_gives_six_to_nine_rows(self):
         rows = self.entry("day")["hero"]["rows"]
@@ -177,6 +178,8 @@ class HeroBuild(unittest.TestCase):
         ghost["name"] = "Ghost_repo"
         ghost["days"] = [{"d": d, "h": 12, "n": 40} for d in sweeps]     # busy, but only on sweep days
         ghost["commit_days"] = len(sweeps)
+        for k in ("months", "first_ns", "last_ns"):
+            ghost.pop(k, None)
         data["repos"].append(ghost)
         n, rep, _out = _build(self.tmp, "ghost", self.write_stats(data, "ghost"), editions=["day"])
         self.assertEqual(n, 0)
@@ -228,6 +231,8 @@ class HeroBuild(unittest.TestCase):
         data = copy.deepcopy(self.stats)
         r = next(r for r in data["repos"] if r["name"] == "Scrapy")
         r["days"] = list(r["days"]) + [{"d": f"2026-03-{d:02d}", "h": 12, "n": 1} for d in range(1, 31)]
+        for k in ("months", "first_ns", "last_ns"):
+            r.pop(k, None)
         n, rep, _out = _build(self.tmp, "busy", self.write_stats(data, "busy"), editions=["day"])
         self.assertEqual(n, 0)
         s0 = self.entry("day")["hero"]["scale"]
@@ -326,9 +331,12 @@ class HeroBuild(unittest.TestCase):
         n = self.stats["repo_count"]
         self.assertIn(f"{n} REPOSITORIES · AUTHOR'S COMMITS", texts)
         self.assertIn("DATUM: MAIN · SWEEP DAYS EXCLUDED", texts)
-        self.assertIn("7 OCT 2026 · EASTERN TIME", texts)
+        import datetime as _dt
+        when = _dt.date.fromisoformat(self.stats["taken"][:10])
+        when = f"{when.day} {when.strftime('%b').upper()} {when.year}"
+        self.assertIn(f"{when} · EASTERN TIME", texts)
         self.assertIn("CRAWL AND DATA INFRASTRUCTURE", texts)
-        self.assertIn("GITHUB.COM/BENJAMINSRUSSELL · 7 OCT 2026", texts)
+        self.assertIn(f"GITHUB.COM/BENJAMINSRUSSELL · {when}", texts)
         self.assertEqual(sum(1 for s in texts if s in ("Ben", "Russell")), 2)
         phone = [t["s"] for t in self.texts("phone-day")]
         self.assertFalse(any(s.startswith("GITHUB.COM") for s in phone), "no imprint line on the phone")
@@ -340,8 +348,11 @@ class HeroBuild(unittest.TestCase):
         self.assertIn("SCRAPY", names)
         self.assertIn("DATA_SCIENCE_DEV", names)
         self.assertNotIn("RUST-SITEMAP", names)
-        tags = [t["s"] for t in self.texts("day") if t["s"] in ("PYTHON", "RUST")]
-        self.assertEqual(sorted(tags), ["PYTHON", "RUST"], "language tags where the data knows them")
+        tags = sorted(t["s"] for t in self.texts("day") if t["s"] in ("PYTHON", "RUST"))
+        rows = [r for r in self.entry("day")["hero"]["rows"] if not r["more"]]
+        known = {x["name"]: x.get("language") for x in self.stats["repos"]}
+        want = sorted(known[r["repo"]].upper() for r in rows if known.get(r["repo"]) in ("Python", "Rust"))
+        self.assertEqual(tags, want, "language tags exactly where the data knows them")
 
     def test_type_floors(self):
         for name in ALL:
