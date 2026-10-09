@@ -35,7 +35,7 @@ import tokens
 
 NAME = "hero"
 KIND = "chart"
-SIZES = {"desk": (1280, 624), "phone": (720, 1226)}
+SIZES = {"desk": (1280, 624), "phone": (720, 1126)}
 EDITIONS = None   # the runner's default six plus HERO_EXTRA (phone stills)
 
 BREAKS: list[tuple[str, str, str]] = [
@@ -44,7 +44,7 @@ BREAKS: list[tuple[str, str, str]] = [
      "`label` with explicit tracking (desk 1.6, phone 1.0); no run uses `label-caps`",
      "check_type allows one label-caps run per sheet; the sheet has a dozen caps lines"),
     ("Name at 88 on the desk (D1: display size)",
-     "the desk name is set at 88 (phone 132); the thesis wraps to the title column on both scales",
+     "the desk name is set at 88 (phone 132); under it only the role line and the fine print",
      "the desk title column is 56–386 px; the name at 141 is 516 px wide"),
     ("Weekly bins (F1.1)",
      "a week with commit-days (sweep days out) is land for that week only; half-thickness = k × days, one k for the "
@@ -91,18 +91,18 @@ TRACK = {"desk": 1.6, "phone": 1.0}
 NAME_SIZE = {"desk": 88, "phone": 132}
 NAME_TRACK = {"desk": -1.5, "phone": -2.0}
 TITLE = {
-    "desk": {"x": 56, "w": 330, "name_y": 132, "thesis_y": (196, 242), "role_y": (290, 316), "role_size": None,
-             "fine_y": (356, 382), "box": (52, 44, 338, 350)},
-    "phone": {"x": 36, "w": 300, "name_y": 146, "thesis_y": (230, 276), "role_y": (330, 366), "role_size": 30,
-              "fine_y": (404, 436), "box": (30, 30, 668, 418)},
+    "desk": {"x": 56, "w": 330, "name_y": 132, "role_y": (196, 222), "role_size": None,
+             "fine_y": (262, 288), "box": (52, 44, 338, 256)},
+    "phone": {"x": 36, "w": 300, "name_y": 146, "role_y": (230, 266), "role_size": 30,
+              "fine_y": (304, 336), "box": (30, 30, 668, 318)},
 }
 ROWS = {
     # x_name / x_fig: the name's left edge and the figure's right edge; x0: the axis start; top/pitch: the bands.
     # desk: the bank band is the whole pitch (names in their own column); phone: the band under the name line.
     "desk": {"x_name": 400, "x_fig": 630, "x0": 648, "top": 50, "pitch": 68, "name_dy": None, "bank_dy": 0, "gap": 0},
-    "phone": {"x_name": 36, "x_fig": None, "x0": 36, "top": 460, "pitch": 96, "name_dy": 24, "bank_dy": 32, "gap": 10},
+    "phone": {"x_name": 36, "x_fig": None, "x0": 36, "top": 360, "pitch": 96, "name_dy": 24, "bank_dy": 32, "gap": 10},
 }
-AXIS = {"desk": {"y": 536, "letters": 558, "years": 582}, "phone": {"y": 1142, "letters": 1170, "years": 1198}}
+AXIS = {"desk": {"y": 536, "letters": 558, "years": 582}, "phone": {"y": 1042, "letters": 1070, "years": 1098}}
 FILL = 0.8                         # the busiest week's thickness as a share of the bank band
 NAMED_MIN_DEFAULT = 5
 SHALLOWS = ((7.0, "shallow_a"), (3.5, "shallow_b"))   # (px beyond the coast, theme tint), outer first
@@ -391,7 +391,6 @@ def _build(ctx) -> str:
     taken = str(data.get("taken") or data.get("updated_at") or "")[:10]
     t1d = _iso(taken)
     login = data.get("login") or cfg.get("chart", {}).get("login", "")
-    thesis = cfg.get("copy", {}).get("thesis", "I survey a web that is wrong about itself.")
     role_line = cfg.get("copy", {}).get("role_line", "Crawl and data infrastructure · Python and Rust")
     t0, t1 = axis_span(data, plan)
     span_days = (t1 - t0).days + 1                 # the survey day is a whole day on the axis
@@ -757,7 +756,7 @@ def _build(ctx) -> str:
     body.append("".join(land_svg))                       # land is on the sheet at t = 0
     body.append("".join(mark_svg))
 
-    # ---- the title block: the name, the thesis, the role line, the fine print
+    # ---- the title block: the name, the role line, the fine print
     block = []
     bx, box = T["x"], T["box"]
     nsz = NAME_SIZE[sc]
@@ -766,11 +765,6 @@ def _build(ctx) -> str:
     russ = k.text("Russell", bx + wb, T["name_y"], "display", size=nsz, tracking=NAME_TRACK[sc], edition=ed, scale=sc,
                   within=box)
     block.append(ben + russ)
-    th_lines = _wrap(thesis.split(), lambda s: k.text_width(s, "thesis", edition=ed, scale=sc), T["w"])
-    if len(th_lines) > len(T["thesis_y"]):
-        th_lines = th_lines[:len(T["thesis_y"]) - 1] + [" ".join(th_lines[len(T["thesis_y"]) - 1:])]
-    for y, line in zip(T["thesis_y"], th_lines):
-        block.append(k.text(line, bx, y, "thesis", fill=theme.ink2, edition=ed, scale=sc, within=box))
     rs = T["role_size"]
     role_parts = [p_.strip() for p_ in role_line.split("·")]
     if len(T["role_y"]) == 1:
