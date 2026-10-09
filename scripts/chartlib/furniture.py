@@ -14,11 +14,12 @@ from dataclasses import dataclass
 
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-from tokens import W, DASH, INK  # noqa: E402
+from tokens import W, DASH, INK, NIGHT_WEIGHT  # noqa: E402
 
 from .field import fmt, polygon_area, clip_polyline
 
-__all__ = ["Jitter", "stroke", "op", "frame", "margin_graticule", "two_ring_rose", "Zone", "source_diagram",
+__all__ = ["Jitter", "stroke", "op", "width", "set_night", "weight_factor", "frame", "margin_graticule",
+           "two_ring_rose", "clock_rose", "Zone", "source_diagram",
            "area_key", "paper", "plate_mark", "course", "course_samples", "compass_bearing", "lateral_offset",
            "track_lines", "check_lines", "restricted_line", "catmull_rom", "polyline_at"]
 
@@ -53,6 +54,27 @@ class Jitter:
 
 
 # ------------------------------------------------------------------ the one stroke emitter
+_WEIGHT_FACTOR = 1.0     # v10 (D6): ×NIGHT_WEIGHT while a sheet builds its night edition (set_night)
+
+
+def set_night(night: bool) -> None:
+    """Night is redrawn, not swapped: every stroke() width is ×tokens.NIGHT_WEIGHT until set_night(False).
+    A sheet sets it for its night build and resets it in a finally, so other sheets keep the day table."""
+    global _WEIGHT_FACTOR
+    _WEIGHT_FACTOR = NIGHT_WEIGHT if night else 1.0
+
+
+def weight_factor() -> float:
+    return _WEIGHT_FACTOR
+
+
+def width(width_key: str) -> str:
+    """The stroke-width stroke() prints for `width_key` under the current factor (day: W as is)."""
+    if width_key not in W:
+        raise KeyError(f"stroke width {width_key!r} not in tokens.W")
+    return f"{round(W[width_key] * _WEIGHT_FACTOR, 2):g}"
+
+
 def op(v: float) -> str:
     """Opacity to two decimals, no leading zero: .55"""
     s = f"{v:.2f}"
@@ -65,7 +87,7 @@ def stroke(width_key: str, color: str, opacity: float | None = None, dash_key: s
     with `jit`, a seeded stroke-dashoffset so nothing is in phase."""
     if width_key not in W:
         raise KeyError(f"stroke width {width_key!r} not in tokens.W")
-    parts = [f'stroke="{color}"', f'stroke-width="{W[width_key]}"']
+    parts = [f'stroke="{color}"', f'stroke-width="{width(width_key)}"']
     if caps:
         parts.append(f'stroke-linecap="{caps}" stroke-linejoin="round"')
     if opacity is not None and opacity < 1:
@@ -218,6 +240,42 @@ def two_ring_rose(cx, cy, r, theme, hours24, modal: int, var_label_cb=None, labe
     out.append(f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="2" fill="{theme.ink}"/>')
     if var_label_cb:
         out.append(var_label_cb(round(cx, 1), round(cy + r + 30, 1)))
+    return "".join(out)
+
+
+def clock_rose(cx, cy, r, theme, hours24, label_cb=None, numerals=(0, 6, 12, 18)) -> str:
+    """v10 (D4): the rose as a 24-hour clock in author-local time whose ticks are the hour histogram.
+    One PEN ring; at every hour a tick inward from the ring, LINE weight, length 3 + (r − 14)·v/max for
+    the hours24[h] commit-days of that hour (a HAIR stub where the hour has none), 00 at the top; the
+    numerals (default 00 · 06 · 12 · 18) stand outside the ring via label_cb; a centre dot. No N, no
+    arrowhead, no hand: twenty-four measured values and nothing else."""
+    out = [f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(r)}" fill="none" {stroke("PEN", theme.ink, 0.85)}/>']
+    vals = [float(v) for v in (hours24 or [])] + [0.0] * 24
+    vals = vals[:24]
+    mx = max(vals) if vals else 0.0
+    bars, stubs = [], []
+    for hh in range(24):
+        a = math.radians(hh * 15 - 90)
+        ca, sa = math.cos(a), math.sin(a)
+        if mx > 0 and vals[hh] > 0:
+            L = 3 + (r - 14) * (vals[hh] / mx)
+            bars.append(f"M{fmt(cx + r * ca)} {fmt(cy + r * sa)}L{fmt(cx + (r - L) * ca)} {fmt(cy + (r - L) * sa)}")
+        else:
+            stubs.append(f"M{fmt(cx + r * ca)} {fmt(cy + r * sa)}L{fmt(cx + (r - 3) * ca)} {fmt(cy + (r - 3) * sa)}")
+    if bars:
+        out.append(_path("".join(bars), stroke("LINE", theme.ink, 0.8, caps="butt")))
+    if stubs:
+        out.append(_path("".join(stubs), stroke("HAIR", theme.ink, 0.7, caps="butt")))
+    out.append(f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="1.6" fill="{theme.ink}"/>')
+    if label_cb:
+        for hh in numerals:
+            a = math.radians(hh * 15 - 90)
+            ca, sa = math.cos(a), math.sin(a)
+            if abs(ca) < 0.01:             # top / bottom: centred above or below the ring
+                x, y, anc = cx, (cy - r - 7) if sa < 0 else (cy + r + 18), "middle"
+            else:                          # right / left: beside the ring on the baseline through the centre
+                x, y, anc = (cx + r + 6, cy + 5, "start") if ca > 0 else (cx - r - 6, cy + 5, "end")
+            out.append(label_cb(f"{hh:02d}", round(x, 1), round(y, 1), "label", anchor=anc))
     return "".join(out)
 
 

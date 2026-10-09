@@ -29,7 +29,8 @@ resume = ""
 [copy]
 thesis = "I survey a web that is wrong about itself."
 role_line = "Crawl and data infrastructure · Python and Rust"
-unit_hero = "SOUNDINGS IN COMMITS"
+unit_chart = "SOUNDINGS IN COMMIT-DAYS"   # the hero's unit line (v10, D2)
+unit_hero = "SOUNDINGS IN COMMITS"         # read by the soundings sheet (sheet 2) until that module retires; not the hero's
 unit_approaches = "SOUNDINGS IN URLS · THOUSANDS"
 limit_label = "LIMIT OF SURVEY 2026"
 footer_line = "The chart ends here. The web doesn't."
@@ -58,42 +59,84 @@ path = "assets/log.json"
 hero_png_sha = ""
 
 # ----------------------------------------------------------------- features
-# Repos with a fixed slot and a kind on the hero; the alias is what the chart prints.
-[[features]]
-repo = "Rust-sitemap"
-aliases = ["rustmapper"]
-slot = "named-5"
-kind = "vessel"
+# The hero is composed by hand and driven by data (round 4, D3): a repository with seven commit-days or more is a
+# named feature and takes the slot set here (`desk` and `phone` are its centre in sheet coordinates); its radius
+# follows the data and its place never moves. Every other repository is a rock on the fringe below. A repository
+# that crosses seven days without a slot here is charted as a rock and reported until it is given one. The alias
+# is what every sheet prints; `kind` is harbour | island | bank (a submerged shoal) | vessel (the ship's own ground).
 
 [[features]]
 repo = "Scrapy"
 aliases = ["Scrapy Harbor"]
-slot = "harbour"
 kind = "harbour"
+desk = [830, 430]
+phone = [390, 630]
 
 [[features]]
-repo = "BenjaminSRussell"
-aliases = ["Profile Shoal"]
-slot = "shoal"
-kind = "shoal"
-
-[[features]]
-repo = "game_engine"
-aliases = ["Game Engine I."]
-slot = "named"
-kind = "island"
+repo = "Rust-sitemap"
+aliases = ["rustmapper"]
+kind = "vessel"
+desk = [1005, 610]
+phone = [545, 730]
 
 [[features]]
 repo = "Data_science_dev"
 aliases = ["Data Science Bank"]
-slot = "named"
 kind = "bank"
+desk = [865, 160]
+phone = [330, 500]
+
+[[features]]
+repo = "BenjaminSRussell"
+aliases = ["Profile Shoal"]
+kind = "shoal"
+desk = [620, 490]
+phone = [150, 640]
+
+[[features]]
+repo = "game_engine"
+aliases = ["Game Engine I."]
+kind = "island"
+desk = [724, 262]
+phone = [64, 500]
+
+[[features]]
+repo = "Data-visualizer"
+aliases = ["Data-visualizer I."]
+kind = "island"
+desk = [770, 625]
+phone = [400, 795]
+
+[[features]]
+repo = "Wheel"
+aliases = ["Wheel I."]
+kind = "island"
+desk = [595, 625]
+phone = [225, 775]
 
 [[features]]
 repo = "FashionDB"
 aliases = ["FashionDB Bank"]
-slot = "named"
 kind = "bank"
+desk = [440, 560]
+phone = [130, 760]
+
+[[features]]
+repo = "ideal-url-organizer"
+aliases = ["URL Organizer I."]
+kind = "island"
+desk = [300, 530]
+phone = [64, 580]
+
+[hero]
+# The rest of the hero's composition (D4), in sheet coordinates. The course runs from the limit of survey to the
+# harbour; its last two waypoints (the entrance and the anchorage) follow the harbour's slot and are not set here.
+# The rocks fringe is the polyline the unnamed repositories are marked along, south-west of the archipelago.
+course_desk = [[1080, 120], [1030, 200], [1000, 330]]
+course_phone = [[600, 470], [565, 510], [548, 575]]
+rocks_desk = [[210, 660], [300, 695], [400, 706], [480, 700]]
+rocks_phone = [[30, 848], [140, 864], [260, 870], [380, 868]]
+note_desk = [846, 80, -3]
 
 # ----------------------------------------------------------------- claims (figures about the code, not about Ben)
 # measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
@@ -183,7 +226,7 @@ source = "toml"
 # Templates: {key} is filled from stats.json / derived figures; a sheet module's alt(data, cfg)
 # wins when it exists. ≤ 25 words, plain register, first word not "The".
 [alt]
-hero = "Chart of Ben Russell's repositories, titled: I survey a web that is wrong about itself. Right margin unsurveyed. A boat sails in and anchors."
+hero = "Chart of Ben Russell's repositories, soundings in commit-days: Scrapy Harbor, rustmapper's ground, the rest as islands and rocks. A boat sails in and anchors."
 soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated. Every week sounded."
 approaches = "Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel."
 log = "Ship's log on ruled paper: one rustmapper crawl, computed from settings, unsigned. Types once; only the cursor keeps time."
