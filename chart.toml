@@ -73,6 +73,15 @@ named_min = 5
 [hero.aliases]
 "Rust-sitemap" = "rustmapper"
 
+# ----------------------------------------------------------------- lines (round 5, D2)
+# `lines` counts newlines of source files at HEAD from a depth-1 clone. Directories here are never his lines:
+# vendored, build output, environments. `[lines.exclude]` names generated trees per repository.
+[lines]
+exclude_dirs = ["node_modules", "vendor", "target", "build", "dist", ".venv", "venv", "__pycache__", "site-packages", "third_party"]
+
+[lines.exclude]
+game_engine = ["src/engine"]   # 5,212 generated C files over 8 commit-days (round 5 data memo §2); not typed
+
 # ----------------------------------------------------------------- claims (figures about the code, not about Ben)
 # measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
 [claims.scrape_interval]

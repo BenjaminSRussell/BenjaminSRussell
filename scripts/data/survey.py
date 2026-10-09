@@ -3,9 +3,15 @@
     survey(repo, workdir, identity) -> dict | None      one repo record (schema: model.Repo)
     survey_all(repos, identity, ...) -> dict[name, record|None]   parallel, 180 s timeout each
 
-Every statistic comes from one `git log --format=%H%x09%aI%x09%an%x09%ae%x09%s` per repo.
-`%aI` keeps the author's own offset, so hours and weekdays are counted in the author's local
-time, per COMMIT-DAY (a date in that offset), never per UTC instant (panel 32, 08).
+Every statistic comes from one `git log` of HEAD (the default branch) per repo, one record per
+commit: sha, `%aI` author date, author name and email, parent count, subject and the
+Co-authored-by trailers. `%aI` keeps the author's own offset, so hours and weekdays are counted in
+the author's local time, per COMMIT-DAY (a date in that offset), never per UTC instant (panel 32, 08).
+
+A commit is "Ben's" when its *author* field matches `[identity]` (name, email or the login's
+noreply address); merge commits count like any other commit (`merges` says how many), and a
+Co-authored-by trailer never moves a commit from one author to another (`co_authored` says how
+many of Ben's commits carry one).
 """
 from __future__ import annotations
 
@@ -18,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import NamedTuple
 
 from . import LOGIN, load_chart_toml
+from . import tree as tree_mod
 
 DEFAULT_IDENTITY: dict = {
     "login": LOGIN,
@@ -36,6 +43,8 @@ class Commit(NamedTuple):
     name: str
     email: str
     subject: str
+    parents: int = 1       # > 1: a merge commit
+    co_authors: tuple = () # Co-authored-by trailer values, as written
 
     @property
     def local_date(self) -> dt.date:
@@ -84,6 +93,19 @@ def is_bot(name: str, identity: dict | None = None) -> bool:
     return n in ident.get("bots", []) or n.endswith("[bot]")
 
 
+def is_agent_trailer(trailer: str, identity: dict | None = None) -> bool:
+    """A Co-authored-by value naming an agent: a `[identity] bots` name, exactly or as its first word
+    ("Claude Sonnet 5 <…>"), or a `[bot]` account. Ben's own identities are never agents."""
+    ident = identity or DEFAULT_IDENTITY
+    name, _, rest = trailer.partition("<")
+    name = name.strip()
+    email = rest.rstrip(">").strip()
+    if is_ben(name, email, ident):
+        return False
+    bots = ident.get("bots", [])
+    return is_bot(name, ident) or (name.split() or [""])[0] in bots
+
+
 # ---------------------------------------------------------------- git plumbing
 
 def _git(dest: str, *args: str, timeout: int = 60) -> str:
@@ -94,11 +116,20 @@ def _git(dest: str, *args: str, timeout: int = 60) -> str:
 
 
 def clone(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIMEOUT_S) -> str | None:
-    """Bare blobless clone; returns the git dir or None on failure/timeout."""
-    dest = os.path.join(workdir, repo + ".git")
+    """Bare blobless clone (every commit, no file contents); returns the git dir or None on failure/timeout."""
+    return _clone(repo, workdir, owner, timeout, ["--filter=blob:none"], ".git")
+
+
+def clone_head(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIMEOUT_S) -> str | None:
+    """Bare depth-1 clone of the default branch (HEAD's file contents, no history): what `lines` is counted on."""
+    return _clone(repo, workdir, owner, timeout, ["--depth", "1", "--single-branch"], "-head.git")
+
+
+def _clone(repo: str, workdir: str, owner: str, timeout: int, opts: list[str], suffix: str) -> str | None:
+    dest = os.path.join(workdir, repo + suffix)
     url = f"https://github.com/{owner}/{repo}.git"
     try:
-        r = subprocess.run(["git", "clone", "-q", "--bare", "--filter=blob:none", url, dest],
+        r = subprocess.run(["git", "clone", "-q", "--bare", *opts, url, dest],
                            capture_output=True, text=True, timeout=timeout,
                            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
     except subprocess.TimeoutExpired:
@@ -106,27 +137,36 @@ def clone(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIME
     return dest if r.returncode == 0 else None
 
 
-def history(dest: str, ref: str = "HEAD") -> list[Commit]:
-    """Every commit reachable from HEAD, author-dated in the author's own offset."""
-    try:
-        out = _git(dest, "log", "--format=%H%x09%aI%x09%an%x09%ae%x09%s", ref)
-    except RuntimeError:
-        return []
+LOG_FORMAT = "%H%x1f%aI%x1f%an%x1f%ae%x1f%P%x1f%s%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1e"
+
+
+def parse_log(out: str) -> list[Commit]:
+    """Records of LOG_FORMAT (unit-separated fields, record-separated commits) → Commits."""
     commits: list[Commit] = []
-    for line in out.splitlines():
-        parts = line.split("\t", 4)
-        if len(parts) < 4:
+    for rec in out.split("\x1e"):
+        parts = rec.strip("\n").split("\x1f")
+        if len(parts) < 4 or not parts[0]:
             continue
-        sha, iso, name, email = parts[:4]
-        subject = parts[4] if len(parts) > 4 else ""
+        parts += [""] * (7 - len(parts))
+        sha, iso, name, email, parents, subject, trailers = parts[:7]
         try:
             when = dt.datetime.fromisoformat(iso)
         except ValueError:
             continue
         if when.tzinfo is None:
             when = when.replace(tzinfo=dt.timezone.utc)
-        commits.append(Commit(sha, when, name, email, subject))
+        co = tuple(t.strip() for t in trailers.split("\x1d") if t.strip())
+        commits.append(Commit(sha, when, name, email, subject, max(1, len(parents.split())), co))
     return commits
+
+
+def history(dest: str, ref: str = "HEAD") -> list[Commit]:
+    """Every commit reachable from HEAD (merges included), author-dated in the author's own offset."""
+    try:
+        out = _git(dest, "log", f"--format={LOG_FORMAT}", ref)
+    except RuntimeError:
+        return []
+    return parse_log(out)
 
 
 def stale_branches(dest: str, taken: dt.date, days: int = STALE_BRANCH_DAYS) -> list[dict]:
@@ -215,9 +255,26 @@ def span_label(first: str, last: str, taken: dt.date, dormant_days: int = 90) ->
     return f"{month_label(first)}–{month_label(last)}"
 
 
+def coauthored(mine: list[Commit], identity: dict | None = None) -> dict:
+    """Of the author's commits: how many carry any Co-authored-by trailer (`count`, `share`), how many name
+    an agent (`agent`), and the non-self names with their counts (`names`)."""
+    names: Counter = Counter()
+    agent = 0
+    for c in mine:
+        others = [t for t in c.co_authors if not is_ben(t.partition("<")[0].strip(), t.partition("<")[2].rstrip(">").strip(), identity)]
+        for t in others:
+            names[t.partition("<")[0].strip() or t] += 1
+        if any(is_agent_trailer(t, identity) for t in c.co_authors):
+            agent += 1
+    count = sum(1 for c in mine if c.co_authors)
+    return {"count": count, "share": round(count / len(mine), 3) if mine else 0.0, "agent": agent,
+            "names": dict(names.most_common())}
+
+
 def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
               stale_refs: list[dict] | None = None) -> dict:
-    """One repos[] record from a repo's history. Pure; derive() adds active/dormant later."""
+    """One repos[] record from a repo's history. Pure; derive() adds active/dormant, months, first_ns/last_ns."""
+    identity = identity or DEFAULT_IDENTITY
     mine = [c for c in commits if is_ben(c.name, c.email, identity)]
     others_c: Counter = Counter(c.name for c in commits if not is_ben(c.name, c.email, identity))
     others = [{"name": n, "commits": k, "bot": is_bot(n, identity)} for n, k in others_c.most_common()]
@@ -236,8 +293,7 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
     for day in days:
         hours[day["h"]] += 1
         weekdays[dt.date.fromisoformat(day["d"]).weekday()] += 1
-    basis = mine or commits
-    dates = sorted(c.local_date for c in basis)
+    dates = sorted(c.local_date for c in mine)   # Ben's own first and last; never another author's
     first = dates[0].isoformat() if dates else None
     last = dates[-1].isoformat() if dates else None
     offsets = Counter(c.offset for c in mine)
@@ -246,6 +302,8 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "aliases": [],
         "slot": None,
         "commits": len(mine),
+        "merges": sum(1 for c in mine if c.parents > 1),
+        "coauthored": coauthored(mine, identity),
         "all_hands": len(commits),
         "others": others,
         "first": first,
@@ -267,14 +325,20 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "stars": None,
         "span": span_label(first, last, taken) if first and last else None,
         "stale_branches": stale_refs or [],
+        "tests": None,
+        "workflows": None,
+        "manifest": None,
+        "lines": None,
     }
 
 
 # ---------------------------------------------------------------- the survey
 
 def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date | None = None,
-           owner: str = LOGIN, keep_history: bool = False, timeout: int = CLONE_TIMEOUT_S) -> dict | None:
-    """Clone + log + summarize. None when the clone fails or HEAD has no history.
+           owner: str = LOGIN, keep_history: bool = False, timeout: int = CLONE_TIMEOUT_S,
+           lines_cfg: dict | None = None, with_tree: bool = True) -> dict | None:
+    """Clone + log + summarize, then what HEAD holds (tests, workflows, manifest, lines). None when the
+    history clone fails or HEAD has no history; a failed depth-1 clone leaves `lines` None.
 
     With keep_history=True the record carries `_commits` (list[Commit]) for the caller
     (profile-repo corrections and `Notice:` commits); build_stats pops it before writing.
@@ -289,6 +353,11 @@ def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date
         return None
     rec = summarize(repo, commits, identity, taken, stale_branches(dest, taken))
     rec["_git_dir"] = dest
+    if with_tree:
+        lines_cfg = lines_cfg or tree_mod.lines_config(load_chart_toml())
+        rec.update(tree_mod.tree_facts(dest, repo, lines_cfg))
+        head = clone_head(repo, workdir, owner, timeout)
+        rec["lines"] = tree_mod.lines_by_language(head, repo, lines_cfg) if head else None
     if keep_history:
         rec["_commits"] = commits
     return rec
@@ -296,13 +365,14 @@ def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date
 
 def survey_all(repos: list[str], workdir: str, identity: dict | None = None, taken: dt.date | None = None,
                owner: str = LOGIN, keep_history_for: set[str] | None = None, workers: int = 6,
-               timeout: int = CLONE_TIMEOUT_S) -> dict[str, dict | None]:
+               timeout: int = CLONE_TIMEOUT_S, lines_cfg: dict | None = None) -> dict[str, dict | None]:
     """Parallel survey; a failed repo maps to None (the caller keeps yesterday's record, stale:true)."""
     keep = keep_history_for or set()
+    lines_cfg = lines_cfg or tree_mod.lines_config(load_chart_toml())
 
     def one(name: str) -> tuple[str, dict | None]:
         try:
-            return name, survey(name, workdir, identity, taken, owner, name in keep, timeout)
+            return name, survey(name, workdir, identity, taken, owner, name in keep, timeout, lines_cfg)
         except Exception:
             return name, None
 

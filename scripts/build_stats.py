@@ -4,6 +4,11 @@
     python3 scripts/build_stats.py                    # mode from the environment: live with GITHUB_TOKEN, else cache
     python3 scripts/build_stats.py --mode cache       # survey the clones + PyPI + REST; GraphQL from the cache
     python3 scripts/build_stats.py --mode cache-failed  # no sounding: re-stamp the cache (T1's `if: failure()` step)
+    python3 scripts/build_stats.py --out /tmp/s.json  # the cache is still assets/stats.json unless --cache says otherwise
+
+Cache mode carries a GraphQL figure (followers, stars, account_since, calendar_*) only when the cache
+says when it was fetched (`provenance.graphql_at`); a figure with no dated fetch behind it is dropped,
+not reprinted (the v1 file's seeded figures lived on that way until round 5).
 
     build_stats.main(mode) -> dict                     the model that was written
     build_stats.derive(repos, calendar, pypi, releases) -> dict   (T7 interface; thin over data.derive)
@@ -23,7 +28,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import ASSETS, LOG_PATH, LOGIN, ROOT, STATS_PATH, claims as claims_mod, derive as derive_mod  # noqa: E402
-from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod  # noqa: E402
+from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod, tree as tree_mod  # noqa: E402
 from data import load_chart_toml  # noqa: E402
 
 MODES = ("live", "cache", "cache-failed")
@@ -49,25 +54,24 @@ def load_cache(path: str = STATS_PATH) -> dict:
 
 
 def cache_fields(cache: dict) -> dict:
-    """GraphQL-sourced fields from the last file, v1 or v2, normalised to v2 names."""
+    """GraphQL-sourced fields from the last v2 file, carried only when that file records the fetch
+    (`provenance.graphql_at`). A file without one (a v1 file, or a v2 file built from it) has no
+    measurement behind those figures, so they come back None and the instrument reads "none"."""
     if not cache:
         return {}
-    v2 = cache.get("schema") == 2
-    since = cache.get("account_since") if v2 else cache.get("since")
-    if since and not re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", since):
-        try:
-            since = dt.datetime.strptime(since, "%b %Y").strftime("%Y-%m")
-        except ValueError:
-            since = None
+    fetched = (cache.get("provenance") or {}).get("graphql_at") if cache.get("schema") == 2 else None
+    if not fetched:
+        return {"graphql_at": None, "languages": []}
     return {
-        "account_since": since,
+        "account_since": cache.get("account_since"),
         "followers": cache.get("followers"),
         "stars": cache.get("stars"),
-        "repo_count": cache.get("repo_count") if v2 else None,
-        "calendar_total": cache.get("calendar_total") if v2 else cache.get("commits"),
-        "calendar_weeks": cache.get("calendar_weeks") if v2 else None,
+        "repo_count": cache.get("repo_count"),
+        "calendar_total": cache.get("calendar_total"),
+        "calendar_weeks": cache.get("calendar_weeks"),
+        "calendar": cache.get("calendar"),
         "languages": cache.get("languages") or [],
-        "graphql_at": (cache.get("provenance") or {}).get("graphql_at") if v2 else None,
+        "graphql_at": fetched,
     }
 
 
@@ -121,7 +125,7 @@ def assemble(records: list[dict], taken: dt.date, updated_at: str, run_id: str, 
              sources: list[dict], unsurveyed: list[dict], instruments: dict, features: dict | None = None,
              failed_at: str | None = None, soundings: dict | None = None) -> dict:
     """Pure: records + fetched blocks → the v2 model (also what the tests build fixtures with)."""
-    d = derive_mod.derive(records, taken, gh.get("calendar_weeks"))
+    d = derive_mod.derive(records, taken, gh.get("calendar"))
     repos = d.pop("repos")
     for r in repos:
         f = (features or {}).get(r["name"]) or {}
@@ -142,6 +146,7 @@ def assemble(records: list[dict], taken: dt.date, updated_at: str, run_id: str, 
         "stars": gh.get("stars"),
         "calendar_total": gh.get("calendar_total"),
         "calendar_weeks": gh.get("calendar_weeks"),
+        "calendar": gh.get("calendar"),
         "languages": gh.get("languages") or [],
         "repos": repos,
         "unsurveyed": unsurveyed,
@@ -180,13 +185,13 @@ def ensure_log(stats: dict, path: str = LOG_PATH) -> dict:
 
 
 def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = None, repos: list[str] | None = None,
-         write_log: bool = True, workers: int = 6) -> dict:
+         write_log: bool = True, workers: int = 6, cache_path: str | None = None) -> dict:
     cfg = load_chart_toml()
     token = github.token_from_env()
     mode = mode or ("live" if token else "cache")
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}")
-    cache = load_cache(out)
+    cache = load_cache(cache_path or STATS_PATH)
     now = now_utc()
     updated_at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     taken = now.date()
@@ -195,6 +200,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     owner = identity.get("login", LOGIN)
     features = {f["repo"]: f for f in cfg.get("features", []) if isinstance(f, dict) and f.get("repo")}
     flagship = next((f["repo"] for f in features.values() if f.get("kind") == "vessel"), FLAGSHIP)
+    flagships = {flagship, "Scrapy"} | {f["repo"] for f in features.values() if f.get("kind") in ("vessel", "harbour")}
+    lines_cfg = tree_mod.lines_config(cfg)
     sources = [{"letter": s.get("letter", ""), "name": s.get("name", ""), "first": s.get("first")} for s in cfg.get("sources", [])]
 
     if mode == "cache-failed":
@@ -212,11 +219,14 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         return stats
 
     gh = cache_fields(cache)
-    instruments = {"clones": "none", "graphql": "cache" if gh.get("calendar_total") is not None else "none",
+    instruments = {"clones": "none", "graphql": "cache" if gh.get("graphql_at") else "none",
                    "rest": "none", "pypi": "none", "releases": "none"}
+    if cache and not gh.get("graphql_at"):
+        print("cache has no dated GraphQL fetch: followers, stars, account_since and calendar figures are not carried")
     if mode == "live":
         try:
-            gh = github.fetch(token, owner) if token else gh
+            window = (survey_mod.week_starts(taken)[0], taken)   # the 52 clone weeks, so the check compares like with like
+            gh = github.fetch(token, owner, window) if token else gh
             instruments["graphql"] = "live" if token else instruments["graphql"]
         except Exception as exc:  # the second instrument is optional; the clones are the measurement
             print("graphql failed, keeping cached fields:", exc)
@@ -232,6 +242,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         instruments["rest"] = "live" if complete else "partial"
         if complete and any(m.get("languages") for m in meta.values()):
             gh["languages"] = github.languages_from_meta(meta)
+        if complete:   # the fleet's stars, measured today, rather than a cached account total
+            gh["stars"] = sum(int(m.get("stars") or 0) for m in meta.values())
     ed = pypi.edition(PYPI_PROJECT)
     if ed:
         instruments["pypi"] = "live"
@@ -243,8 +255,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     tmp = tempfile.TemporaryDirectory() if workdir is None else None
     wd = workdir or tmp.name
     try:
-        results = survey_mod.survey_all(names, wd, identity, taken, owner, keep_history_for={owner, flagship, "Scrapy"},
-                                        workers=workers)
+        results = survey_mod.survey_all(names, wd, identity, taken, owner, keep_history_for={owner} | flagships,
+                                        workers=workers, lines_cfg=lines_cfg)
         cached_v2 = {r["name"]: r for r in cache.get("repos", [])} if cache.get("schema") == 2 else {}
         records, failed = [], []
         profile_commits: list = []
@@ -272,6 +284,12 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
             rec["archived"] = bool(m.get("archived", rec.get("archived", False)))
             rec["stars"] = m.get("stars", rec.get("stars"))
             rec["language"] = m.get("language", rec.get("language"))
+            if name in flagships:   # D4: the project's own CI on its default branch, where the API answers
+                ci = github.rest_runs(owner, name, token, m.get("default_branch") or "main")
+                if ci is not None:
+                    rec["ci"] = ci
+                elif name in cached_v2 and cached_v2[name].get("ci"):
+                    rec["ci"] = dict(cached_v2[name]["ci"], stale=True)
             records.append(rec)
         if not records:
             raise SystemExit("no history and no cache: nothing ships")
@@ -297,8 +315,19 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     if write_log:
         ensure_log(stats)
     v = stats["variation"]
-    print(f"mode={mode} · {len(stats['repos'])} repos · {stats['commits']} commits (author-filtered) of "
-          f"{stats['all_hands']} all hands · calendar {stats['calendar_total']} · Var. {v['hour']}h ({v['year']}) · "
+    cc = stats.get("calendar_check") or {}
+    cal = stats.get("calendar") or {}
+    in_window = sum(w["n"] for w in stats["weeks"])
+    co = stats["coauthored_total"]
+    print(f"mode={mode} · {len(stats['repos'])} repos · {stats['commits']} commits authored by {owner} on HEAD "
+          f"({stats['merges']} merges, {co['count']} with co-author trailers, {co['agent']} naming an agent) of "
+          f"{stats['all_hands']} by anyone · sweeps {', '.join(stats['sweep_dates']) or 'none'} · "
+          f"{in_window} in the 52 clone weeks" +
+          (f" vs {cc.get('calendar')} GitHub credits on the same repos ({cc.get('disagreement', 0) or 0:.0%} apart)"
+           if cc else "") +
+          (f" · GitHub's green squares {cal['all']} = commits {cal['commits']} + issues {cal['issues']} + PRs "
+           f"{cal['pull_requests']} + reviews {cal['reviews']} + private {cal['restricted']}" if cal else "") +
+          f" · GitHub's all-time commit credit {stats['calendar_total']} · Var. {v['hour']}h ({v['year']}) · "
           f"HW {stats['tide']['hw']['n']} wk of {stats['tide']['hw']['start']} ({stats['tide']['hw']['cause']}, "
           f"{stats['tide']['hw']['cause_days']} days) · N={len(stats['notices'])}")
     return stats
@@ -315,11 +344,12 @@ def cli(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--mode", choices=MODES, default=None)
     ap.add_argument("--out", default=STATS_PATH)
+    ap.add_argument("--cache", default=None, help="the previous stats.json to carry fields from (default: assets/stats.json)")
     ap.add_argument("--no-log", action="store_true", help="do not touch assets/log.json")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("repos", nargs="*", help="survey only these repositories")
     a = ap.parse_args(argv)
-    main(a.mode, a.out, repos=a.repos or None, write_log=not a.no_log, workers=a.workers)
+    main(a.mode, a.out, repos=a.repos or None, write_log=not a.no_log, workers=a.workers, cache_path=a.cache)
     return 0
 
 
