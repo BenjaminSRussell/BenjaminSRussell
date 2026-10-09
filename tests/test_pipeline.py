@@ -198,10 +198,9 @@ class Readme(unittest.TestCase):
 
     def test_picture_order(self):
         hero = render_readme.picture("hero", self.cfg, 'A "boat" & co').splitlines()
-        self.assertEqual(len(hero), 10)
+        self.assertEqual(len(hero), 6)       # round 6: the hero does not move, so no reduced-motion sources
         order = [re.search(r"/hero-([\w-]+)\.svg", l).group(1) for l in hero[1:-1]]
-        self.assertEqual(order, ["phone-still-night", "phone-still-day", "phone-night", "phone-day",
-                                 "still-night", "still-day", "night", "day"])
+        self.assertEqual(order, ["phone-night", "phone-day", "night", "day"])
         self.assertIn('alt="A &quot;boat&quot; &amp; co"', hero[-2])
         # no pixel height: GitHub's markdown CSS keeps it while it narrows the width (letterboxed sheet)
         self.assertNotIn("height=", "".join(hero))
@@ -247,17 +246,17 @@ class Readme(unittest.TestCase):
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
         figs = render_readme.figures(self.stats, self.cfg)
         block = render_readme.survey_block(self.stats, figs)
-        self.assertTrue(block.startswith(f"<sub>Measured {figs['taken']} from clones of {figs['repo_count']} public "
-                                         "repositories, my commits on their default branches") and block.endswith(" · regenerated weekly.</sub>"), block)
+        self.assertTrue(block.startswith("<sub>The drawing is checked against rustmapper's code at `")
+                        and block.endswith(" · regenerated weekly.</sub>"), block)
+        self.assertIn(f"Test counts and CI results measured {figs['taken']} from clones of {figs['repo_count']} public "
+                      "repositories", block)
         for figure in ("commits", "all_hands", "calendar_total"):
             if self.stats.get(figure):          # a null figure is not printed anywhere, so there is nothing to look for
                 self.assertNotIn(render_readme.fmt_n(self.stats[figure]), block, figure)
         for word in ("all hands", "calendar", "surveyed", "instruments", "GraphQL", "clones live", "Data</b>", "sweep",
                      "author's commits", f"{(self.stats.get('coauthored_total') or {}).get('agent')} commits"):
             self.assertNotIn(word, block, word)
-        if self.stats.get("sweep_dates") or self.stats.get("sweeps"):
-            self.assertIn("; bulk-edit days (", block)
-            self.assertIn(", when one change touched most repositories) are left out of the chart", block)
+        self.assertNotIn("bulk-edit", block)      # round 6: no figure on the page uses commit-days
         cot = self.stats.get("coauthored_total") or {}
         self.assertEqual("% of my commits carry an AI co-author trailer" in block, "agent_share" in cot)
         self.assertEqual("written by coding agents" in block or "written by a coding agent" in block,
@@ -269,10 +268,19 @@ class Readme(unittest.TestCase):
                                      "names": {"Claude Sonnet 5": 45}},
                 "agent_authored": {"total": 297, "names": {"google-labs-jules[bot]": 125, "Claude": 172}}}
         self.assertEqual(render_readme.survey_block(full),
-                         "<sub>Measured 9 Oct 2026 from clones of 21 public repositories, my commits on their default branches; "
-                         "bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one change touched most repositories) are left "
-                         "out of the chart · 3\u00a0% of my commits carry an AI co-author trailer; 297 more were written by "
+                         "<sub>Test counts and CI results measured 9 Oct 2026 from clones of 21 public repositories · "
+                         "3\u00a0% of my commits carry an AI co-author trailer; 297 more were written by "
                          "coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>")
+        # round 6: with the route, its head and the run check, the line says what the drawing was checked against
+        routed = dict(full, edition={"project": "rustmapper", "version": "0.1.3"},
+                      routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
+                      repos=[{"name": "Rust-sitemap", "head": {"sha": "3" * 40, "short": "32c2651", "date": "2026-10-07"}}],
+                      runcheck={"rustmapper": {"ok": True, "date": "2026-10-09", "version": "0.1.3",
+                                               "runner": "macOS arm64", "install": "prebuilt wheel"}})
+        self.assertTrue(render_readme.survey_block(routed).startswith(
+            "<sub>The drawing is checked against rustmapper's code at `32c2651` and its 0.1.3 release on PyPI: a stop or "
+            "a trap is drawn only while the code it describes is found in both, and the install lines last ran "
+            "9 Oct 2026 on macOS arm64, from the prebuilt wheel. Test counts and CI results measured 9 Oct 2026"))
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
         no_share = dict(full, coauthored_total={"count": 502, "agent": 63})
@@ -293,8 +301,8 @@ class Readme(unittest.TestCase):
                          "1–3 and 9 Mar 2026, 20 May 2026")
         # a thin stats.json prints only what it holds; nothing is guessed
         thin = render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2})
-        self.assertEqual(thin, "<sub>Measured 7 Oct 2026 from clones of 2 public repositories, my commits on their default "
-                               "branches · regenerated weekly.</sub>")
+        self.assertEqual(thin, "<sub>Test counts and CI results measured 7 Oct 2026 from clones of 2 public repositories · "
+                               "regenerated weekly.</sub>")
         self.assertEqual(render_readme.survey_block({}), "")
         failed = render_readme.survey_block({"taken": "2026-10-07", "repo_count": 2,
                                              "provenance": {"mode": "cache-failed", "failed_at": "2026-10-11T06:20:00Z"}})
@@ -311,8 +319,7 @@ class Readme(unittest.TestCase):
                            "ci": {"workflow": "CI/CD", "conclusion": "failure", "date": "2026-10-08", "stale": True},
                            "lines": {"Python": 69120, "Rust": 1003}, "main_language": "Python", "last_ns": None}]}
         self.assertEqual(render_readme.facts_block(full, "rustmapper", self.cfg),
-                         "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests · CI passed 7 Oct 2026 · 16k lines of Rust · "
-                         "last commit 8 Aug 2026*")
+                         "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests · CI passed 7 Oct 2026 · 16k lines of Rust*")
         # no test_functions, no tests item (a file count reads wrong for inline Rust tests); stale CI says so; null last_ns omitted
         self.assertEqual(render_readme.facts_block(full, "Scrapy"),
                          "*CI failed 8 Oct 2026 (last known run) · 69k lines of Python*")
@@ -353,8 +360,7 @@ class Readme(unittest.TestCase):
                 self.assertIn(f" · {render_readme._plural(r['test_functions'], 'test')} · ", live, name)
             if (r.get("ci") or {}).get("conclusion") == "success":
                 self.assertIn(f"CI passed {render_readme.fmt_date(r['ci']['date'])}", live)
-            if r.get("last_ns"):
-                self.assertTrue(live.endswith(f" · last commit {render_readme.fmt_date(r['last_ns'])}*"), live)
+            self.assertNotIn("last commit", live)     # round 6: the code date on the hero answers "alive"
         tmpl = ("<!-- facts:Rust-sitemap:start -->\nold\n<!-- facts:Rust-sitemap:end -->\n"
                 "<!-- facts:Scrapy:start -->\n<!-- facts:Scrapy:end -->\n<!-- facts:nowhere:start -->x<!-- facts:nowhere:end -->\n")
         once = render_readme.main(tmpl, self.cfg, full, use_sheet_alts=False)
@@ -385,11 +391,12 @@ class Readme(unittest.TestCase):
         order = ["<!-- picture:hero:end -->", "<!-- position:start", '<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>',
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
                  "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
-                 "<!-- n:edition_version -->", "<!-- facts:Rust-sitemap:start -->", "pip install rustmapper",
-                 "- Prebuilt wheel for Apple silicon", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "**Also**", "<summary>15 more repositories", "**Working rules**",
+                 "<!-- n:edition_version -->", "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
+                 "pip install rustmapper", "Prebuilt wheel for Apple silicon", "- The throttle watches the database",
+                 "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
+                 "<!-- facts:Scrapy:start -->", "cd Scraping_project", "scrapy crawl scout", "**Also**", "<summary>15 more repositories", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>Measured ", " · regenerated weekly.</sub>",
+                 "<!-- survey:start -->", "<sub>The drawing is checked against", " · regenerated weekly.</sub>",
                  "<!-- license:start -->", "**License**", "[DESIGN.md](DESIGN.md)"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
@@ -402,7 +409,9 @@ class Readme(unittest.TestCase):
                      "**Other repositories**", "256 and 1,024", "provisional", "pre-1.0", "<b>Data</b>",
                      # round 5, F3: the role caption repeats the sheet; no generated-by footer; facts in plain italic
                      "Crawl and data infrastructure · Python and Rust", "Generated from my repositories", "test files",
-                     "last worked", "<sub>Built on"):
+                     "last worked", "<sub>Built on",
+                     # round 6: no command that fails, no last-commit date, no pun on the theme
+                     "rustmapper crawl --start-url", "last commit", "Lights before speed", "100M+"):
             self.assertNotIn(gone, text, gone)
         body = re.sub(r"<!--\s*picture:hero:start\b.*?picture:hero:end\s*-->", "", text, flags=re.S)   # the hero's alt is the hero builder's
         self.assertNotIn("Scrapy Harbor", body, "D3: the project is Scrapy; 'Scrapy Harbor' was coined for the v8 chart")

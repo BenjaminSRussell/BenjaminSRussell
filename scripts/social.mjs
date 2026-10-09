@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// social.mjs — the social-preview PNGs: hero still editions rendered at 1280 px, written to social/.
+// social.mjs — the social-preview PNGs: the hero's day and night editions rendered at 1280 px, written to social/.
 //   node scripts/social.mjs [--out social] [--width 1280]
 // GitHub's social preview is uploaded by hand (MASTERPLAN §5.12); the files ride the chart branch so the
 // upload is one click from https://raw.githubusercontent.com/<login>/<login>/chart/social/hero-day.png.
@@ -20,7 +20,9 @@ const o = { args: ['--no-sandbox'] };
 if (fs.existsSync(CHROME)) o.executablePath = CHROME;
 const browser = await chromium.launch(o);
 for (const [ed, bg] of [['day', '#ffffff'], ['night', '#0d1117']]) {
-  const svg = path.resolve('assets', 'v9', `hero-still-${ed}.svg`);
+  // round 6: the hero does not move and ships no still editions; an older build's still is used if it is there
+  const still = path.resolve('assets', 'v9', `hero-still-${ed}.svg`);
+  const svg = fs.existsSync(still) ? still : path.resolve('assets', 'v9', `hero-${ed}.svg`);
   if (!fs.existsSync(svg)) { console.error(`missing ${svg}`); continue; }
   const html = path.join(out, `hero-${ed}.html`);
   fs.writeFileSync(html, `<!doctype html><body style="margin:0;background:${bg}"><img src="file://${svg}" style="width:${width}px;display:block"></body>`);

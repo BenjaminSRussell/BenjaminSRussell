@@ -76,11 +76,12 @@ def check(ctx) -> list[Finding]:
         night = ed_name == "night"
         for ground_name in ("paper", "land"):
             ground = getattr(th, ground_name)
-            for ink_name, floor in (("ink", 4.5), ("ink2", 4.5), ("muted", 3.0)):
+            # round 6: muted carries 19 px text on the hero (the title block), so it needs 4.5:1 on paper too
+            for ink_name, floor in (("ink", 4.5), ("ink2", 4.5), ("muted", 4.5 if ground_name == "paper" else 3.0)):
                 c = wcag(getattr(th, ink_name), ground)
                 if c < floor:
                     out.append(fail("CONTRAST-TEXT", f"{ed_name}: {ink_name} on {ground_name} is {c:.2f}:1 < {floor}:1"))
-            for line_name in ("ink2", "accent"):
+            for line_name in ("ink2", "accent", "flare"):   # flare: the route's track and bars (round 6)
                 c = wcag(getattr(th, line_name), ground)
                 if c < 3.0:
                     out.append(fail("CONTRAST-LINE", f"{ed_name}: {line_name} line on {ground_name} is {c:.2f}:1 < 3:1"))

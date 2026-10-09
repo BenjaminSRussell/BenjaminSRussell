@@ -42,7 +42,11 @@ def check(ctx) -> list[Finding]:
         still_name = f"{sheet}-still-day"
         still = ctx.svgs.get(still_name)
         if not still:
-            out.append(warn("FRAMES-NO-STILL", "no still edition to compare against", name))
+            if not re.search(r"<(animate|animateTransform|animateMotion|set)\b", ctx.svg_text(name)):
+                # round 6: a sheet with no motion ships no still edition; every frame is the sheet itself
+                out.append(info("FRAMES", "no motion: the day edition is its own still", name))
+            else:
+                out.append(warn("FRAMES-NO-STILL", "no still edition to compare against", name))
             continue
         if re.search(r"<(animate|animateTransform|animateMotion|set)\b", ctx.svg_text(still_name)):
             out.append(fail("FRAMES-STILL-ANIM", "still edition contains animation elements", still_name))

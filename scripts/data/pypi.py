@@ -5,11 +5,21 @@
     `status` from the Development Status classifier ("alpha" | "beta" | "stable" | ... | null);
     `wheels` = platform tags of the latest version's .whl files, so T8 prints the one-wheel
     sentence from data. None on any failure; the caller keeps the cached edition, stale:true.
+
+    Round 6 (SPEC §5.2): `files` carries the latest version's wheel and sdist URLs;
+    `wheel_scripts(urls)` reads each wheel's RECORD (and entry_points.txt) for the executables it
+    installs, and `fetch_sdist(edition, dest)` downloads and unpacks the sdist for the release anchors.
 """
 from __future__ import annotations
 
+import hashlib
+import io
 import json
+import os
+import re
+import tarfile
 import urllib.request
+import zipfile
 
 from . import USER_AGENT
 
@@ -29,6 +39,8 @@ def parse(d: dict, project: str) -> dict:
         if c.startswith("Development Status ::"):
             status = STATUS.get(c.split("::", 1)[1].strip(), c.split("::", 1)[1].strip().lower())
     wheels = [wheel_tag(f["filename"]) for f in files if f["filename"].endswith(".whl")]
+    sdist = next(({"filename": f["filename"], "url": f.get("url"), "sha256": (f.get("digests") or {}).get("sha256")}
+                  for f in files if f.get("packagetype") == "sdist" or f["filename"].endswith(".tar.gz")), None)
     return {
         "project": project,
         "version": version,
@@ -38,6 +50,8 @@ def parse(d: dict, project: str) -> dict:
         "wheels": wheels,
         "uploads": uploads(d),
         "stale": False,
+        "_wheel_urls": [f["url"] for f in files if f["filename"].endswith(".whl") and f.get("url")],
+        "_sdist": sdist,
     }
 
 
@@ -57,6 +71,71 @@ def uploads(d: dict) -> list[dict]:
             out.append({"version": v, "date": ts[0][:10], "time": ts[0]})
     out.sort(key=lambda u: u["time"])
     return out
+
+
+def _get(url: str, timeout: int = 60) -> bytes:
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def scripts_in_wheel(data: bytes) -> list[str]:
+    """The executables a wheel installs: `<name>-<version>.data/scripts/<exe>` entries of its RECORD, plus the
+    console_scripts of entry_points.txt. Sorted, unique."""
+    out: set[str] = set()
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        names = z.namelist()
+        record = next((n for n in names if n.endswith(".dist-info/RECORD")), None)
+        rows = z.read(record).decode("utf-8", "replace").splitlines() if record else names
+        for row in rows:
+            path = row.split(",", 1)[0]
+            m = re.fullmatch(r"[^/]+-[^/]+\.data/scripts/([^/]+)", path)
+            if m:
+                out.add(m.group(1))
+        ep = next((n for n in names if n.endswith(".dist-info/entry_points.txt")), None)
+        if ep:
+            section = None
+            for line in z.read(ep).decode("utf-8", "replace").splitlines():
+                line = line.strip()
+                if line.startswith("["):
+                    section = line.strip("[]").strip()
+                elif section == "console_scripts" and "=" in line:
+                    out.add(line.split("=", 1)[0].strip())
+    return sorted(out)
+
+
+def wheel_scripts(urls: list[str], get=_get) -> list[str] | None:
+    """The union over every wheel of the release; None when any download fails (the caller keeps the cache)."""
+    out: set[str] = set()
+    for url in urls:
+        try:
+            out |= set(scripts_in_wheel(get(url)))
+        except Exception as exc:  # network, zip
+            print("pypi wheel read failed:", exc)
+            return None
+    return sorted(out)
+
+
+def fetch_sdist(ed: dict, dest: str, get=_get) -> dict | None:
+    """Download the release's sdist into `dest` and unpack it; {filename, sha256, root} or None."""
+    sd = (ed or {}).get("_sdist") or {}
+    if not sd.get("url"):
+        return None
+    try:
+        raw = get(sd["url"], timeout=120)
+    except Exception as exc:
+        print("pypi sdist download failed:", exc)
+        return None
+    sha = hashlib.sha256(raw).hexdigest()
+    if sd.get("sha256") and sd["sha256"] != sha:
+        print(f"pypi sdist sha256 {sha} != the index's {sd['sha256']}; not used")
+        return None
+    os.makedirs(dest, exist_ok=True)
+    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as t:
+        t.extractall(dest, filter="data")
+        tops = {m.name.split("/", 1)[0] for m in t.getmembers()}
+    root = os.path.join(dest, sorted(tops)[0]) if len(tops) == 1 else dest
+    return {"filename": sd["filename"], "sha256": sha, "root": root}
 
 
 def edition(project: str = "rustmapper", timeout: int = 20) -> dict | None:

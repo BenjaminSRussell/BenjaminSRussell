@@ -40,13 +40,44 @@ env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 jobs:
+  # Round 6 (SPEC §6): the image claims only what the tool does. Install PyPI's latest rustmapper on Apple silicon
+  # (the only platform with a prebuilt wheel), run each executable the wheel ships, crawl a local site with no
+  # robots.txt, send one Ctrl-C, check data/sitemap.jsonl and the exported sitemap. The record always uploads, pass
+  # or fail; the gate (check.py ROUTE-ENTRANCE) refuses to ship an entrance that did not run.
+  runcheck:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run the README's install lines
+        run: python3 scripts/runcheck.py --latest --python "$(which python3)" --out runcheck.json || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runcheck
+          path: runcheck.json
+          retention-days: 14
+
   chart:
+    needs: runcheck
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true      # no record: build_stats keeps the last one, and the gate fails once it is 14 days old
+        with:
+          name: runcheck
+          path: runcheck
 
       - uses: actions/setup-python@v5
         with:
@@ -72,7 +103,7 @@ jobs:
         id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 scripts/build_stats.py
+        run: python3 scripts/build_stats.py --runcheck runcheck/runcheck.json
 
       - name: Draw the hero in every edition
         id: assets

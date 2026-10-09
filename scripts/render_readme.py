@@ -6,7 +6,8 @@
     python3 scripts/render_readme.py --stdout   # print the rendered README
 
 Block markers (MASTERPLAN decision 3): `<!-- name:start -->…<!-- name:end -->` with names
-`picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10), `facts:<repo>` (v11, D4); `figures`,
+`picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10), `facts:<repo>` (v11, D4),
+`install:<repo>` and `handoffs` (round 6); `figures`,
 `instruments` and `log_lede` are still filled, empty, when a README carries them. A block the README
 does not carry is skipped: since v10 (round 4, D1) the page is the hero and written text, and a
 picture block is written only for a sheet whose markers are present. Inline figures:
@@ -127,10 +128,18 @@ class _Safe(dict):
 
 # ------------------------------------------------------------------ pieces
 
+# round 6: the hero does not move, so it ships four editions and no reduced-motion sources
+HERO_ROUTE_SOURCES = [
+    ("(max-width: {bp}px) and (prefers-color-scheme: dark)", "phone-night"),
+    ("(max-width: {bp}px)", "phone-day"),
+    ("(prefers-color-scheme: dark)", "night"),
+]
+
+
 def picture(sheet: str, cfg: dict, alt: str) -> str:
     base = cfg["chart"]["base_url"].rstrip("/") + "/"
     bp = cfg["chart"].get("breakpoint_px", 767)
-    srcs = (HERO_SOURCES if sheet == "hero" else []) + SOURCES
+    srcs = HERO_ROUTE_SOURCES if sheet == "hero" else SOURCES
     lines = ["<picture>"]
     for media, ed in srcs:
         lines.append(f'<source media="{media.format(bp=bp)}" srcset="{base}{sheet}-{ed}.svg">')
@@ -148,7 +157,8 @@ def alt_for(sheet: str, stats: dict, cfg: dict, figs: dict, use_sheets: bool = T
     if use_sheets:
         try:
             import importlib
-            mod = importlib.import_module(f"sheets.{sheet}")
+            import build_assets
+            mod = importlib.import_module(f"sheets.{build_assets.SHEET_MODULES.get(sheet, sheet)}")
             s = str(mod.alt(stats, cfg)).strip()
             if s:
                 return s
@@ -311,8 +321,7 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
     """D4 / F3.3: one plain italic line under a flagship, from the D2 keys (docs/data/AUDIT.md):
     `Built on …` (chart.toml [facts] built_on, else the manifest's first five), `N tests` from `test_functions`
     (no item without it: a file count reads wrong for inline Rust tests), `CI passed <date>` from `ci`, the main
-    language's lines from `lines` (`main_language` when present, else the largest), `last commit <date>` from
-    `last_ns`. An item whose key is absent or null is left out, never estimated; no keys, no line."""
+    language's lines from `lines` (`main_language` when present, else the largest). An item whose key is absent or null is left out, never estimated; no keys, no line."""
     r = _repo(stats, name)
     if not r:
         return ""
@@ -344,15 +353,83 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         lang = main if main in langs else (max(langs, key=langs.get) if langs else None)
         if lang:
             parts.append(f"{fmt_k(langs[lang])} lines of {lang}")
-    last = fmt_date(r.get("last_ns"))
-    if last:
-        parts.append(f"last commit {last}")
+    # round 6: no "last commit" date. It is sweep-adjusted, and beside a CI date and the code's own date it read as
+    # inaccurate; the hero's code date answers "is it alive".
     return "*" + " · ".join(p.replace("*", r"\*") for p in parts) + "*" if parts else ""
 
 
 def facts_repos(text: str) -> list[str]:
     """Every `facts:<repo>` block the README carries, in page order."""
     return list(dict.fromkeys(re.findall(r"<!--\s*facts:([\w.-]+):start\b", text)))
+
+
+# ------------------------------------------------------------------ round 6: how to run it, where its output goes
+
+def _wheel_sentence(wheels) -> str:
+    """The note under the install block, from the release's wheels (the same facts as the hero's platform note)."""
+    try:
+        from data import route as route_mod
+    except ImportError:
+        return ""
+    plats = route_mod.wheel_platforms(wheels)
+    names = {n for n, _ in plats}
+    if "any platform" in names or all(c in names for c in route_mod.COMMON):
+        return ""
+    if not plats:
+        return "No prebuilt wheel: `pip` builds from source and needs a Rust toolchain."
+    friendly = {"macOS arm64": "Apple silicon", "macOS x86_64": "Intel Macs"}
+    parts = []
+    for n, v in plats:
+        piece = f"{friendly.get(n, n)} on {v.replace('Python', 'CPython')}"
+        if piece not in parts:
+            parts.append(piece)
+    one = len(parts) == 1
+    return (f"Prebuilt wheel{'' if one else 's'} for {' and '.join(parts)}; elsewhere `pip` builds from source and "
+            "needs a Rust toolchain.")
+
+
+def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
+    """SPEC §4 block 5: the copyable lines, the command named as the release's wheel installs it (`edition.scripts`),
+    the wheel note, and the cargo line once the route's `cargo` gate holds at HEAD. No release or no scripts: no
+    block, never a guessed command."""
+    ed = stats.get("edition") or {}
+    route = next((r for r in (stats.get("routes") or {}).values() if isinstance(r, dict) and r.get("repo") == repo), None)
+    if not ed.get("version") or not ed.get("scripts") or route is None:
+        return ""
+    try:
+        from data import route as route_mod
+        cmd = route_mod.command_name(ed.get("scripts"), ed.get("project") or "rustmapper")
+    except Exception:
+        return ""
+    lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl --start-url <your-site>",
+             f"{cmd} export-sitemap --data-dir ./data \\", "    --output sitemap.xml"]   # short lines: a phone shows ~40 columns
+    gate = ((route.get("gates") or {}).get("cargo") or {})
+    if gate.get("ok"):
+        lines += ["", "# newer than the release:", f"cargo install --git https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
+    lines.append("```")
+    note = _wheel_sentence(ed.get("wheels"))
+    return "\n".join(lines) + (f"\n\n{note}" if note else "")
+
+
+def install_repos(text: str) -> list[str]:
+    return list(dict.fromkeys(re.findall(r"<!--\s*install:([\w.-]+):start\b", text)))
+
+
+def handoffs_block(stats: dict, cfg: dict) -> str:
+    """SPEC §4 block 8: one sentence per declared hand-off, following its computed state (handoffs[] in stats.json):
+    `says_runs` when the receiving side's code proves the join, `says_not` otherwise ("" prints nothing)."""
+    specs = {h.get("id"): h for h in cfg.get("handoffs") or [] if isinstance(h, dict)}
+    out = []
+    for h in stats.get("handoffs") or []:
+        spec = specs.get(h.get("id")) or {}
+        runs = h.get("state") == "runs"
+        tmpl = spec.get("says_runs" if runs else "says_not") or ""
+        if not tmpl:
+            continue
+        reader = h.get("reader") or ((h.get("readers") or [""])[0])
+        out.append(tmpl.format_map(_Safe({"to": h.get("to") or "", "url": spec.get("url") or "", "reader": reader,
+                                          "file": h.get("file") or ""})))
+    return " ".join(out)
 
 
 # ------------------------------------------------------------------ D5: the provenance line
@@ -451,25 +528,41 @@ def agent_clause(stats: dict) -> str:
     return "; ".join(p for p in (first, second) if p)
 
 
+RUNNER_WORDS = {"prebuilt wheel": "from the prebuilt wheel", "sdist (built with Rust)": "where pip builds the release from source"}
+
+
+def route_clause(stats: dict, figs: dict) -> str:
+    """Round 6, SPEC §4 block 14: what the drawing was checked against, and when the install lines last ran."""
+    route = (stats.get("routes") or {}).get("rustmapper") or {}
+    repo = next((r for r in stats.get("repos") or [] if r.get("name") == route.get("repo")), {})
+    head = repo.get("head") or {}
+    ed = stats.get("edition") or {}
+    if not route or not head.get("short") or not ed.get("version"):
+        return ""
+    out = (f"The drawing is checked against {ed.get('project') or 'rustmapper'}'s code at `{head['short']}` and its "
+           f"{ed['version']} release on PyPI: a stop or a trap is drawn only while the code it describes is found in both")
+    rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
+    if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(ed.get("version")):
+        how = RUNNER_WORDS.get(str(rc.get("install") or ""), "")
+        out += f", and the install lines last ran {fmt_date(rc['date'])} on {rc.get('runner')}" + (f", {how}" if how else "")
+    return out + "."
+
+
 def survey_block(stats: dict, figs: dict | None = None) -> str:
-    """D5 / F3.4: the provenance line at the foot, from stats only. `Measured 9 Oct 2026 from clones of 21 public
-    repositories, my commits on their default branches; bulk-edit days (9–10 Nov 2025, 1 and 7 Oct 2026, when one
-    change touched most repositories) are left out of the chart · 3 % of my commits carry an AI co-author trailer;
-    297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.`
-    An item whose key is absent is left out, never estimated (`sweep_dates` or the `sweeps` entries for the
-    bulk-edit days; agent_clause for its two halves). No commit total, no instrument roll-call."""
+    """Round 6, SPEC §4 block 14: the data line at the foot, from stats only. `The drawing is checked against
+    rustmapper's code at 32c2651 and its 0.1.3 release on PyPI: … Test counts and CI results measured 9 Oct 2026 from
+    clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more … · regenerated
+    weekly.` An item whose key is absent is left out, never estimated. No figure on the page uses commit-days now,
+    so the bulk-edit clause is gone."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
     parts: list[str] = []
     when = figs.get("taken") or ""
     repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
-    lead = "Measured" + (f" {when}" if when else "")
+    lead = "Test counts and CI results measured" + (f" {when}" if when else "")
     if repo_count:
-        lead += f" from clones of {repo_count} public repositories, my commits on their default branches"
-        dates = fmt_days(sweep_dates(stats))
-        if dates:
-            lead += f"; bulk-edit days ({dates}, when one change touched most repositories) are left out of the chart"
-    if lead != "Measured":
+        lead += f" from clones of {repo_count} public repositories"
+    if lead != "Test counts and CI results measured":
         parts.append(lead)
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
@@ -480,7 +573,8 @@ def survey_block(stats: dict, figs: dict | None = None) -> str:
     if not parts:
         return ""
     parts.append("regenerated weekly")
-    return "<sub>" + " · ".join(parts) + ".</sub>"
+    head = route_clause(stats, figs)
+    return "<sub>" + (head + " " if head else "") + " · ".join(parts) + ".</sub>"
 
 
 LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
@@ -582,6 +676,9 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "survey", survey_block(stats, figs))
     for name in facts_repos(text):
         text, _ = fill_block(text, f"facts:{name}", facts_block(stats, name, cfg))
+    for name in install_repos(text):
+        text, _ = fill_block(text, f"install:{name}", install_block(stats, name, cfg))
+    text, _ = fill_block(text, "handoffs", handoffs_block(stats, cfg))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     for key in inline_keys(text):

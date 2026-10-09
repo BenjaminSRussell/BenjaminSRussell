@@ -56,19 +56,9 @@ path = "assets/log.json"
 [social]
 hero_png_sha = ""
 
-# ----------------------------------------------------------------- hero (v11, round 5, D1)
-# The hero is the coast of the year: one axis (time), one row per repository with `named_min` non-sweep
-# commit-days or more, ordered by those days; the rest merged into one "N more" row. Nothing is placed by hand.
-# `named_min` is 5 today: D1's seven leaves five rows once the sweep days are out (Scrapy 24, rustmapper 19,
-# Data_science_dev 10, BenjaminSRussell 8, game_engine 8); five adds Wheel 6 and Data-visualizer 5 (seven named
-# rows and the merged row, eight bands); four would add two four-day slivers (FashionDB, ideal-url-organizer) and
-# ten bands in the same height thin every bank from 16 to about 9 px half-thickness.
-# `aliases` maps a repository to the name the sheet prints (its package name); every other row prints the
-# GitHub name as written.
-
-[hero]
-named_min = 5
-
+# ----------------------------------------------------------------- hero (round 6: the way into rustmapper)
+# The hero is drawn from `routes.rustmapper` (below, checked by scripts/data/route.py) and nothing else that has
+# a size. `aliases` maps a repository to the name the sheet prints (its package name).
 [hero.aliases]
 "Rust-sitemap" = "rustmapper"
 
@@ -83,22 +73,6 @@ game_engine = ["src/engine"]   # 5,212 generated C files over 8 commit-days (rou
 
 # ----------------------------------------------------------------- claims (figures about the code, not about Ben)
 # measured=true needs source + sha; otherwise the sheets set the figure sloping (decision 14).
-[claims.scrape_interval]
-# The crawler's own job, not Prometheus's global default (15 s, which only Prometheus's self-scrape uses).
-# build_stats re-reads the job at `sha` from the Scrapy clone and sets measured = false if it disagrees.
-value = 30
-unit = "s"
-source = "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)"
-sha = "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"
-measured = true
-
-[claims.workers]
-value = "256–1024"
-unit = "permits"
-source = "Rust-sitemap:src/orchestration/governor.rs"
-sha = "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9"
-measured = false      # the repo README (32–512), PyPI (256) and the code disagree: never upright
-
 [claims.shards]
 value = "num_cpus"
 unit = "shards"
@@ -142,7 +116,7 @@ source = "toml"
 
 [[notices]]
 n = 3
-title = "Lights before speed."
+title = "Dashboards before speed."
 body = "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one."
 cite = "Scrapy, Sep 2025: Prometheus and Grafana."
 repo = "Scrapy"
@@ -171,14 +145,14 @@ source = "toml"
 # Templates: {key} is filled from stats.json / derived figures; a sheet module's alt(data, cfg)
 # wins when it exists. ≤ 25 words, plain register, first word not "The".
 [alt]
-hero = "Ben Russell's {repo_count} repositories by week, one row each, Scrapy and rustmapper busiest. The rest share one row."
+hero = "How to start Ben Russell's crawler rustmapper and what happens to a URL inside it. It ends at data/sitemap.jsonl."
 soundings = "Tide table: fifty-two weeks of commits as a curve, high and low water dated. Every week sounded."
 approaches = "Chart of two systems: rustmapper's survey lines east, a buoyed channel west into Scrapy Harbor, legend below. The soundings fill in behind the vessel."
 log = "Ship's log on ruled paper: one rustmapper crawl, computed from settings, unsigned. Types once; only the cursor keeps time."
 instruments = "Equipment list: languages, stores and queues, deck; the date each was first fitted. Bold: underway this quarter; the rest when asked."
 footer = "Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't."
 alt_poem = [
-  "The rest share one row.",
+  "It ends at data/sitemap.jsonl; two traps are marked.",
   "Every week sounded.",
   "The soundings fill in behind the vessel.",
   "Types once; only the cursor keeps time.",
@@ -287,3 +261,119 @@ group = "LOOKOUT"
 # prints its manifest's first five.
 built_on.Scrapy = ["deltalake", "redis", "psycopg2", "prometheus-client", "datasketch"]
 built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]
+
+# ----------------------------------------------------------------- route (round 6, SPEC §5.3)
+# The way into rustmapper, in the order a URL goes through it. scripts/data/route.py checks every anchor in the
+# Rust-sitemap clone at its HEAD (`head`) and in the released sdist (`release`); an entry is drawn only when all of
+# them hold, and check.py fails while any does not. An anchor is {path} (the file exists), {path, text} (the file
+# contains the literal) or {path, absent} (it does not). kind: stop | trap | end | export.
+[route.rustmapper]
+repo = "Rust-sitemap"
+project = "rustmapper"
+header = "Crawls a site and writes one line for every page it reaches."
+header_anchors = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
+
+# README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
+# P1 test (a site whose robots.txt is a 404 is crawled) and the P2 test (--duration stops a stalled crawl) are at HEAD.
+[route.rustmapper.gates]
+cargo = [{path = "tests/robots_4xx_allows_crawl.rs"}, {path = "tests/duration_stops_stalled_crawl.rs"}]
+
+[[route.rustmapper.entry]]
+id = "S1"
+kind = "stop"
+file = "*_seeder.rs"
+text = "start URL, plus seeds from sitemaps, CT logs, Common Crawl"
+head = [{path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"}, {path = "src/common_crawl_seeder.rs"},
+        {path = "src/cli.rs", text = "seeding_strategy"}]
+release = [{path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"}, {path = "src/common_crawl_seeder.rs"},
+           {path = "src/cli.rs", text = "seeding_strategy"}]
+
+[[route.rustmapper.entry]]
+id = "S2"
+kind = "stop"
+file = "frontier.rs"
+text = "one queue per host, paced by that host's robots.txt"
+# the test file is P1 (SPEC §1): at 32c2651 a site whose robots.txt answers 404 is never crawled
+head = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"},
+        {path = "tests/robots_4xx_allows_crawl.rs"}]
+release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"}]
+
+[[route.rustmapper.entry]]
+id = "H1"
+kind = "trap"
+text = "subdomains are in scope and there is no depth limit"
+head = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/cli.rs", absent = "max_depth"}]
+release = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/cli.rs", absent = "max_depth"}]
+
+[[route.rustmapper.entry]]
+id = "S3"
+kind = "stop"
+file = "governor.rs"
+text = "fewer fetch workers when redb commits lag"
+head = [{path = "src/orchestration/governor.rs", text = "THROTTLE_THRESHOLD_MS"}]
+release = [{path = "src/main.rs", text = "THROTTLE_THRESHOLD_MS"}]
+
+[[route.rustmapper.entry]]
+id = "S4"
+kind = "stop"
+file = "wal.rs"
+text = "logged before stored; resume picks up after a kill"
+head = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"}, {path = "src/cli.rs", text = "Resume {"}]
+release = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"}, {path = "src/cli.rs", text = "Resume {"}]
+
+[[route.rustmapper.entry]]
+id = "H2"
+kind = "trap"
+text = "written when the crawl stops: press Ctrl-C once, not twice"
+head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
+        {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
+release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
+           {path = "src/main.rs", text = 'join("sitemap.jsonl")'}]
+
+[[route.rustmapper.entry]]
+id = "R13"
+kind = "end"
+file = "data/sitemap.jsonl"
+text = "one line per page: url, depth, status_code, title, …"
+head = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "src/state.rs", text = "pub depth: u32"},
+        {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
+release = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "src/state.rs", text = "pub depth: u32"},
+           {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
+
+[[route.rustmapper.entry]]
+id = "R14"
+kind = "export"
+file = "sitemap.xml"
+text = "export-sitemap"
+head = [{path = "src/cli.rs", text = "ExportSitemap"}]
+release = [{path = "src/cli.rs", text = "ExportSitemap"}]
+
+# ----------------------------------------------------------------- hand-offs (round 6, SPEC §5.4)
+# A join between two of his repositories counts only when code on the receiving side proves it.
+[[handoffs]]
+id = "sitemap-jsonl→ideal-url-organizer"
+kind = "fields"
+from = "Rust-sitemap"
+to = "ideal-url-organizer"
+file = "data/sitemap.jsonl"
+writer = "src/state.rs"
+writer_struct = "SitemapNode"
+reader = "scripts/import_rust_sitemapper.py"
+reader_list = "URL_RECORD_FIELDS"
+test = "tests/test_import_rust_sitemapper.py"
+url = "https://github.com/BenjaminSRussell/ideal-url-organizer"
+# README sentences (marker `handoffs`): {to}, {url}, {reader}, {file} are filled from the computed record
+says_runs = "Its `{file}` is read by [{to}]({url}) (`{reader}`, with a test)."
+says_not = ""
+
+[[handoffs]]
+id = "delta-export→Scrapy"
+kind = "mention"
+from = "Rust-sitemap"
+to = "Scrapy"
+file = "stage1_discovery"
+writer = "python/rustmapper/export_parquet.py"
+mentions = ["rustmapper", "Rust-sitemap"]
+url = "https://github.com/BenjaminSRussell/Scrapy"
+says_runs = "Its Delta export for Scrapy's `stage1_discovery` table is read by [Scrapy]({url}) (`{reader}`)."
+says_not = "Its Delta export for Scrapy's `stage1_discovery` table is not read by Scrapy yet."

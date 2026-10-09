@@ -29,9 +29,10 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import ASSETS, LOG_PATH, LOGIN, ROOT, STATS_PATH, claims as claims_mod, derive as derive_mod  # noqa: E402
 from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod, tree as tree_mod  # noqa: E402
-from data import load_chart_toml  # noqa: E402
+from data import load_chart_toml, route as route_mod  # noqa: E402
 
 MODES = ("live", "cache", "cache-failed")
+HEAD_REPOS = ("Rust-sitemap", "Scrapy", "ideal-url-organizer")   # round 6, SPEC §5.1: the code the page cites
 FLAGSHIP = "Rust-sitemap"
 PYPI_PROJECT = "rustmapper"
 SOUNDING_WINDOW_DAYS = 150
@@ -114,6 +115,108 @@ def charted_branches(branches: list[dict] | None, identity: dict | None = None) 
     return [b for b in branches or [] if not survey_mod.is_bot(str(b.get("author") or ""), identity)]
 
 
+def edition_scripts(ed: dict | None, cache: dict) -> dict | None:
+    """SPEC §5.2: `edition.scripts`, the executables the release's wheels install, carried from the cache while the
+    version is unchanged; the private download fields are dropped from what is written."""
+    if not ed:
+        return ed
+    ed = dict(ed)
+    urls = ed.pop("_wheel_urls", None)
+    ed.pop("_sdist", None)
+    old = cache.get("edition") or {}
+    if old.get("version") == ed.get("version") and old.get("scripts"):
+        ed["scripts"] = list(old["scripts"])
+    elif urls:
+        got = pypi.wheel_scripts(urls)
+        if got is not None:
+            ed["scripts"] = got
+    if "scripts" not in ed and old.get("scripts") and old.get("version") == ed.get("version"):
+        ed["scripts"] = list(old["scripts"])
+    return ed
+
+
+def route_records(cfg: dict, git_dirs: dict[str, str], ed_raw: dict | None, wd: str, cache: dict) -> dict:
+    """SPEC §5.1, 5.3, 5.4: repos[].head for the cited repositories, routes.<name> checked at HEAD and in the
+    release's sdist, and handoffs[] checked from both ends. Without a clone the record is the cache's, marked stale;
+    a route checked without a tree fails its anchors, so nothing is drawn on faith."""
+    heads: dict[str, dict] = {}
+    cached_heads = {r["name"]: r.get("head") for r in cache.get("repos") or [] if r.get("head")}
+    for name in HEAD_REPOS:
+        h = route_mod.head_of(git_dirs[name]) if name in git_dirs else None
+        if h is None and cached_heads.get(name):
+            h = dict(cached_heads[name], stale=True)
+        if h:
+            heads[name] = h
+    sdist = pypi.fetch_sdist(ed_raw or {}, os.path.join(wd, "sdist")) if ed_raw and ed_raw.get("_sdist") else None
+    release = (ed_raw or {}).get("version")
+
+    def reader_at(repo: str):
+        if repo not in git_dirs or repo not in heads:
+            return None
+        sha = heads[repo]["sha"]
+        return lambda path: survey_mod.file_at(git_dirs[repo], sha, path)
+
+    def reader_sdist():
+        if not sdist:
+            return None
+
+        def read(path: str):
+            full = os.path.join(sdist["root"], path)
+            try:
+                with open(full, encoding="utf-8", errors="replace") as fh:
+                    return fh.read()
+            except OSError:
+                return None
+        return read
+
+    routes = {}
+    for name, spec in ((cfg.get("route") or {}).items()):
+        repo = spec.get("repo")
+        routes[name] = route_mod.verify_route(spec, reader_at(repo), reader_sdist(),
+                                              (heads.get(repo) or {}).get("sha"), release)
+        routes[name]["sdist"] = {"filename": sdist["filename"], "sha256": sdist["sha256"]} if sdist else None
+    handoffs = []
+    for spec in cfg.get("handoffs") or []:
+        frm, to = spec.get("from"), spec.get("to")
+
+        def list_reader(to=to, words=tuple(spec.get("mentions") or ())):
+            """[(path, text)] of the files at the receiving repository's HEAD that name the writer (git grep on the
+            depth-1 clone, which holds every blob; the blobless one would fetch each file)."""
+            gd = os.path.join(wd, f"{to}-head.git")
+            gd = gd if os.path.isdir(gd) else git_dirs.get(to)
+            if not gd or not words:
+                return []
+            args = ["git", f"--git-dir={gd}", "grep", "-l", "-i", "-I", "-F"]
+            for w in words:
+                args += ["-e", w]
+            r = subprocess.run(args + ["HEAD"], capture_output=True, text=True, timeout=120)
+            paths = [ln.split(":", 1)[1] for ln in r.stdout.splitlines() if ":" in ln]
+            return [(pth, survey_mod.file_at(gd, "HEAD", pth) or "") for pth in paths]
+        rec = route_mod.handoff_state(spec, reader_at(frm), reader_sdist(), reader_at(to), list_reader,
+                                      (heads.get(frm) or {}).get("sha"), (heads.get(to) or {}).get("sha"), release)
+        handoffs.append(rec)
+    if not routes and not handoffs:
+        return {"heads": heads}
+    if not git_dirs:     # no clone this run: carry the last checked records, marked stale
+        return {"heads": heads, "routes": {k: dict(v, stale=True) for k, v in (cache.get("routes") or {}).items()},
+                "handoffs": [dict(h, stale=True) for h in cache.get("handoffs") or []]}
+    return {"heads": heads, "routes": routes, "handoffs": handoffs}
+
+
+def load_runcheck(path: str | None, cache: dict) -> dict | None:
+    """SPEC §6: `runcheck.rustmapper` from the run-check job's runcheck.json, else the cache's."""
+    if path:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                rec = json.load(fh)
+            if isinstance(rec, dict) and "ok" in rec:
+                return {"rustmapper": rec}
+            print(f"runcheck {path}: not a run-check record; keeping the cache's")
+        except (OSError, ValueError) as exc:
+            print(f"runcheck {path} unreadable ({exc}); keeping the cache's")
+    return cache.get("runcheck")
+
+
 def derive(repos: list[dict], calendar: list[dict] | None = None, pypi_edition: dict | None = None,
            releases: list[dict] | None = None, taken: dt.date | None = None) -> dict:
     """T7 interface: the derived block for a list of repos[] records."""
@@ -185,7 +288,8 @@ def ensure_log(stats: dict, path: str = LOG_PATH) -> dict:
 
 
 def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = None, repos: list[str] | None = None,
-         write_log: bool = True, workers: int = 6, cache_path: str | None = None) -> dict:
+         write_log: bool = True, workers: int = 6, cache_path: str | None = None,
+         runcheck_path: str | None = None) -> dict:
     cfg = load_chart_toml()
     token = github.token_from_env()
     mode = mode or ("live" if token else "cache")
@@ -304,15 +408,26 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
                                        cached=cache.get("notices"))
         instruments["releases"] = "live" if github.rest_releases(owner, flagship, token) is not None else \
             ("cache" if cache.get("notices") else "none")
+        extra = route_records(cfg, git_dirs, ed, wd, cache)
     finally:
         if tmp:
             tmp.cleanup()
 
+    ed = edition_scripts(ed, cache)
+    for rec in records:
+        if rec["name"] in extra.get("heads", {}):
+            rec["head"] = extra["heads"][rec["name"]]
     known = list(gh["repo_meta"].keys()) if gh.get("repo_meta") else []
     unsurveyed = derive_mod.unsurveyed(known, [r["name"] for r in records], failed)
     stats = assemble(records, taken, updated_at, run_id, mode, gh, ed, notices,
                      derive_mod.corrections(profile_commits, identity), claims, trial, sources,
                      unsurveyed, instruments, features, soundings=soundings_taken(out))
+    for key in ("routes", "handoffs"):
+        if key in extra:
+            stats[key] = extra[key]
+    rc = load_runcheck(runcheck_path, cache)
+    if rc is not None:
+        stats["runcheck"] = rc
     errs = model.validate(stats)
     if errs:
         raise SystemExit("model invalid; nothing written:\n  " + "\n  ".join(errs))
@@ -357,9 +472,11 @@ def cli(argv: list[str] | None = None) -> int:
     ap.add_argument("--cache", default=None, help="the previous stats.json to carry fields from (default: assets/stats.json)")
     ap.add_argument("--no-log", action="store_true", help="do not touch assets/log.json")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--runcheck", default=None, help="the run-check job's runcheck.json (scripts/runcheck.py)")
     ap.add_argument("repos", nargs="*", help="survey only these repositories")
     a = ap.parse_args(argv)
-    main(a.mode, a.out, repos=a.repos or None, write_log=not a.no_log, workers=a.workers, cache_path=a.cache)
+    main(a.mode, a.out, repos=a.repos or None, write_log=not a.no_log, workers=a.workers, cache_path=a.cache,
+         runcheck_path=a.runcheck)
     return 0
 
 

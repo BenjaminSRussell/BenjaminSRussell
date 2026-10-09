@@ -82,6 +82,7 @@ _DESK = {
     "figure-2":    ("serif", 68, -1.0, "figures", "none"),
     "thesis":      ("serif-italic", 41, -0.2, "mixed", "none"),
     "title":       ("serif", 41, -1.0, "mixed", "grade"),
+    "project":     ("serif", 41, -1.0, "mixed", "none"),             # round 6: the project's name on the hero
     "sea-name":    ("serif-italic", 41, 0.0, "mixed", "grade"),      # v10 (D7): italics untracked
     "place-water": ("serif-italic", 25, 0.0, "mixed", "grade"),
     "place-land":  ("serif", 25, 0.0, "mixed", "grade"),
@@ -99,6 +100,7 @@ _PHONE = {
     "display":     ("serif", 132, -2.0, "mixed", "none"),
     "thesis":      ("serif-italic", 40, -0.2, "mixed", "none"),
     "title":       ("serif", 30, -0.5, "mixed", "grade"),
+    "project":     ("serif", 40, -0.5, "mixed", "none"),             # round 6: the project's name on the hero
     "place-land":  ("serif", 30, 0.0, "mixed", "grade"),
     "place-water": ("serif-italic", 30, 0.0, "mixed", "grade"),
     "label":       ("cond", 26, 0.0, "mixed", "none"),
@@ -156,8 +158,19 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-v11 (round 5, D1 + F1): the hero is the coast of the year — one axis from Sep 2025 to the survey date, one row per
-repository, a bank in every week with commit-days (sweep days out), its thickness that week's days, shallows along every coast.
+Round 6 (docs/crit/round6/SPEC.md): the hero is the way into rustmapper. It answers one sentence: how you start it,
+what happens to a URL inside it in order, where a stranger goes wrong, and where the output goes next. Vertical position
+is the order a URL goes through the tool: the start bar, `pip install rustmapper` and the command the wheel installs, the
+platform note, the stops on the magenta track (the file, then what happens there), the traps as hatched blocks on the
+left of the track at the stop where they bite, the end bar, `data/sitemap.jsonl` with its real field names, the second
+output, and a thin line on to ideal-url-organizer, which reads that file and tests the join. The title block on the
+left says whose page it is, what he builds, that this is one of N public repositories, the code's sha and date, the
+project's CI on main and the date it was all read. Nothing has a size that depends on data. Each drawn element is a
+`<g id>` with a row in `scripts/sheets/route.py` `PURPOSE` (what a stranger learns, which visitor question, the source).
+
+A stop or trap is drawn only when its anchors hold in the code at HEAD and in the released sdist
+(`scripts/data/route.py`); the install lines only when the weekly run check passed (`scripts/runcheck.py`); the line
+past the end only when the reader's fields are in the writer's struct. `check.py` fails while any entry does not hold.
 
 ## Honesty conventions
 
@@ -172,31 +185,28 @@ repository, a bank in every week with commit-days (sweep days out), its thicknes
 
 ## Editions
 
-Six per sheet: `day`, `night`, `still-day`, `still-night`, `phone-day`, `phone-night` (the hero adds
-`phone-still-*`). `<picture>` sources are ordered most specific first: phone + dark, phone, reduced
-motion + dark, reduced motion, dark, then the day `<img>`. Night is designed, not inverted: the lights
-are the brightest things on the sheet. Phone editions are redrawn at the phone scale, not shrunk.
+The hero ships four: `day`, `night`, `phone-day`, `phone-night`; nothing on it moves, so it has no still editions and
+the README's `<picture>` carries no reduced-motion sources (phone + dark, phone, dark, then the day `<img>`). The
+supporting sheets, built on request, keep their six (`day`, `night`, `still-day`, `still-night`, `phone-day`,
+`phone-night`). Night is designed, not inverted, at +20 % stroke weight with the Light cuts of the sans and mono. Phone
+editions are redrawn at the phone scale, not shrunk, and break lines at the same words as the day edition.
 
-GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). Since v9.1 the desk scale
-carries that factor: the floors below (19 semantic · 16 texture · 25 serif on the sheet) are the old
-display floors (13 · 11 · 17) as the page actually shows them. Line weights carry it too. The phone
-scale (720 shown at ~360) always did.
-Sheets are published to the orphan `chart` branch under `assets/v9/`.
+GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). The desk scale carries that factor: the
+floors below (19 semantic · 16 texture · 25 serif on the sheet) are 13 · 11 · 17 px as the page shows them. The phone
+sheet is 720 wide, shown at 390 on an iPhone (×0.54): 26 px on the sheet is 14 px on the screen. The hero's height
+follows its content (desk ≤ 640, phone ≤ 1200). Sheets are published to the orphan `chart` branch under `assets/v9/`.
 
 ## Motion
 
-One page-wide timeline of 96 s, SMIL only. Only `opacity` and `transform` animate (one moving pixel
-re-rasters a whole sheet, so nothing else is allowed to move); no `animateMotion`, no filters, no
-`<pattern>`. Every discrete instant sits on a 0.5 s grid; loop periods are drawn from
-{1, 4, 10, 15, 30, 96} s. The hero has no opening: it is whole at t = 0 and its one light, `Fl <n>s` (the
-crawler job's Prometheus scrape interval, `claims.scrape_interval`), is the only thing that moves. The footer is the only ambient sheet. A still edition is the
-sheet at 95 s, and every frame at every instant must read as a finished sheet.
+The hero does not move. The supporting sheets keep the page-wide 96 s timeline, SMIL only: only `opacity` and
+`transform` animate, every discrete instant on a 0.5 s grid, loop periods from {1, 4, 10, 15, 30, 96} s; the footer is
+the only ambient sheet.
 
 ## Actions playbook
 
 | Workflow | File | Purpose |
 |---|---|---|
-| chart | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: survey → build → render → `check.py --ci` → commit figures and README → publish the `chart` branch |
+| chart | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: the run check on macos-14 (`runcheck.py`) → survey (`build_stats.py --runcheck`) → build → render → `check.py --tier fast,render` → commit figures and README → publish the `chart` branch |
 | perf | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
 | README links | `.github/workflows/links.yml` | lychee over README.md weekly and on pull requests |
 

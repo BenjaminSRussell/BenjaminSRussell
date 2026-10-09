@@ -29,6 +29,7 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 REPORT = os.path.join(ROOT, "assets", "build-report.json")
 SOCIAL = os.path.join(ROOT, "social")
 BRANCH = "chart"
+RETIRED = ("hero-still-", "hero-phone-still-")
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -57,6 +58,10 @@ def collect(root: str = ROOT, report_path: str = REPORT, social_dir: str = SOCIA
             raise PublishError(f"report names {rel}, which is not on disk")
         dst = os.path.relpath(src, root) if not os.path.isabs(rel) else os.path.join("assets", "v9", os.path.basename(src))
         files.append((src, dst.replace(os.sep, "/")))
+    # round 6: the hero does not move, so its still editions are retired. The branch is one orphan commit of exactly
+    # these files, so a still left from an older build is gone after this push; this filter keeps a stale report
+    # from carrying one back.
+    files = [(src, dst) for src, dst in files if not os.path.basename(dst).startswith(RETIRED)]
     if not files:
         raise PublishError("the build report names no sheets")
     files.append((report_path, "build-report.json"))

@@ -328,10 +328,9 @@ class Validate(unittest.TestCase):
         import json
         from data import load_chart_toml, STATS_PATH
         cfg = load_chart_toml()
-        if not (cfg.get("claims") or {}).get("scrape_interval"):
-            self.skipTest("no chart.toml claims")
-        want = claims(cfg)
-        self.assertTrue(upright_ok(want["scrape_interval"]))
+        want = claims(cfg)          # round 6: the one measured claim left in chart.toml is shards
+        self.assertTrue(upright_ok(want["shards"]))
+        self.assertFalse(want["scrape_interval"]["measured"])
         with open(STATS_PATH, encoding="utf-8") as fh:
             got = json.load(fh).get("claims") or {}
         self.assertEqual(got, want)
@@ -354,6 +353,9 @@ scrape_configs:
       - targets: ['localhost:9090']
 """
 
+    CLAIM = {"value": 30, "unit": "s", "measured": True, "sha": "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0",
+             "source": "Scrapy:Scraping_project/monitoring/prometheus.yml (job scrapy_app, scrape_interval, lines 27-28)"}
+
     def test_scrape_interval_is_the_jobs_not_the_global(self):
         text = self.PROMETHEUS_AT_74FD4F7
         self.assertEqual(job_interval(text, "scrapy_app"), 30)
@@ -361,13 +363,15 @@ scrape_configs:
         self.assertIsNone(job_interval(text, "kafka_jmx"))
         self.assertEqual((claims_mod.duration_s("1m30s"), claims_mod.duration_s("500ms"), claims_mod.duration_s("30")),
                          (90, 0, None))
-        cl = claims()["scrape_interval"]                          # chart.toml, as committed
+        # round 6: chart.toml no longer cites the interval (nothing prints it); the round-5 claim, as it was cited
+        self.assertFalse(claims()["scrape_interval"]["measured"])
+        cl = claims({"claims": {"scrape_interval": self.CLAIM}})["scrape_interval"]
         self.assertEqual((cl["value"], cl["unit"], cl["sha"]), (30, "s", "74fd4f71b341a2b02f036bf8c8b75b3c4b2818e0"))
         self.assertEqual(claims_mod.cited(cl), ("Scrapy", "Scraping_project/monitoring/prometheus.yml", "scrapy_app"))
         self.assertTrue(upright_ok(cl))
 
     def test_verify_scrape_interval_against_the_file(self):
-        cl = claims()
+        cl = claims({"claims": {"scrape_interval": self.CLAIM}})
         reads = []
 
         def read(repo, sha, path):

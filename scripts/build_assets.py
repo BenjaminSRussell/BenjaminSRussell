@@ -198,14 +198,18 @@ class Ctx:
 # ------------------------------------------------------------------ sheets
 
 REQUIRED = ("NAME", "KIND", "SIZES", "BREAKS", "build", "alt")
+# round 6: the hero is drawn by sheets/route.py (the way into rustmapper); sheets/hero.py, the coast of the year, is
+# retired. File names and README markers stay `hero`.
+SHEET_MODULES = {"hero": "route"}
 KINDS = ("chart", "strip", "paper", "edge")
 
 
 def load_sheet(name: str):
+    module = SHEET_MODULES.get(name, name)
     try:
-        mod = importlib.import_module(f"sheets.{name}")
+        mod = importlib.import_module(f"sheets.{module}")
     except ModuleNotFoundError as exc:
-        if exc.name in (f"sheets.{name}", "sheets"):
+        if exc.name in (f"sheets.{module}", "sheets"):
             raise BuildError(f"no sheet module scripts/sheets/{name}.py") from None
         raise BuildError(f"sheet {name} imports a missing module: {exc.name}") from None
     missing = [a for a in REQUIRED if not hasattr(mod, a)]
@@ -347,6 +351,7 @@ def build_one(mod, ed: E.Edition, data: dict, cfg: Cfg, log: dict | None, out_di
     if "<svg" not in doc:
         doc = E.svg(ed, w, h, doc, "", sheet=sheet)       # a bare body: wrap it
     doc = E.stamp(doc, stats_sha[:12])
+    h = int(ctx.extra.get("height", h))       # a sheet whose height follows its content says so (round 6, the hero)
     problems: list[str] = []
     m = _VIEWBOX_RE.search(doc)
     if not m:
