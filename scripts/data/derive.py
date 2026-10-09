@@ -13,7 +13,9 @@ hours and weekdays are commit-days in author-local time. Active = commit-days in
 A sweep day (a commit-day in ≥ sweep_threshold repos at once: a mass merge, a rename, a license
 pass) is NOT removed from weeks[], tide, hours or commit_days: those count what the clones hold.
 It is named instead: weeks[].sweep = commits on sweep days in that week, tide.hw.sweep_share =
-their share of the high-water week, so a sheet can draw such a week for what it is.
+their share of the high-water week, `sweep_dates` lists them. The figures the page draws from
+(round 5, D2) leave sweep days out and say so: repos[].months = commit-days per month without
+them, repos[].first_ns / last_ns = the first and last non-sweep commit-day.
 """
 from __future__ import annotations
 
@@ -56,6 +58,13 @@ def activity(repo: dict, taken: dt.date, sweep_dates: set[str]) -> tuple[bool, b
     active = len(recent) >= ACTIVE_MIN
     dormant = not any((taken - d).days <= DORMANT_DAYS for d in days)
     return active, dormant
+
+
+def months_without_sweeps(repo: dict, sweep_dates: set[str]) -> tuple[dict[str, int], str | None, str | None]:
+    """({YYYY-MM: commit-days}, first, last) over the repo's commit-days that are not sweep days."""
+    days = sorted(d["d"] for d in repo.get("days") or [] if d["d"] not in sweep_dates)
+    months: Counter = Counter(d[:7] for d in days)
+    return dict(sorted(months.items())), (days[0] if days else None), (days[-1] if days else None)
 
 
 def weekly(repos: list[dict], taken: dt.date, sweep_dates: set[str] = frozenset()) -> list[dict]:
@@ -170,6 +179,7 @@ def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
     sweep_dates = {s["date"] for s in sw}
     for r in repos:
         r["active"], r["dormant"] = activity(r, taken, sweep_dates)
+        r["months"], r["first_ns"], r["last_ns"] = months_without_sweeps(r, sweep_dates)
     weeks = weekly(repos, taken, sweep_dates)
     firsts = [r["first"] for r in repos if r.get("first")]
     first_commit = min(firsts) if firsts else None
@@ -180,7 +190,7 @@ def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
         "repos": repos,
         "commits": sum(r.get("commits", 0) for r in repos),
         "merges": sum(r.get("merges", 0) for r in repos),
-        "co_authored": sum(r.get("co_authored", 0) for r in repos),
+        "coauthored_total": coauthored_total(repos),
         "all_hands": sum(r.get("all_hands", 0) for r in repos),
         "first_commit": first_commit,
         "days_surveyed": (taken - dt.date.fromisoformat(first_commit)).days if first_commit else None,
@@ -192,11 +202,26 @@ def derive(repos: list[dict], taken: dt.date, calendar: dict | None = None,
         "weeks": weeks,
         "tide": tide(weeks, repos) if repos else None,
         "sweeps": sw,
+        "sweep_dates": sorted(sweep_dates),
         "sweep_threshold": thr,
     }
     if isinstance(calendar, dict) and calendar.get("commits_by_repo") is not None:
         out["calendar_check"] = calendar_check(weeks, calendar, [r["name"] for r in repos])
     return out
+
+
+def coauthored_total(repos: list[dict]) -> dict:
+    """Σ repos[].coauthored: {count, share (of Σ commits), agent, names}."""
+    count = agent = commits = 0
+    names: Counter = Counter()
+    for r in repos:
+        c = r.get("coauthored") or {}
+        count += int(c.get("count", 0))
+        agent += int(c.get("agent", 0))
+        commits += int(r.get("commits", 0))
+        names.update(c.get("names") or {})
+    return {"count": count, "share": round(count / commits, 3) if commits else 0.0, "agent": agent,
+            "names": dict(names.most_common())}
 
 
 def calendar_check(weeks: list[dict], calendar: dict, surveyed: list[str]) -> dict:

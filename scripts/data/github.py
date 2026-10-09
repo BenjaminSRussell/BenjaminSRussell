@@ -41,6 +41,7 @@ query($login: String!) {
         isArchived
         pushedAt
         createdAt
+        defaultBranchRef { name }
         primaryLanguage { name }
         languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name } } }
       }
@@ -111,6 +112,7 @@ def fetch(token: str, login: str = LOGIN, window: tuple[dt.date, dt.date] | None
     for repo in u["repositories"]["nodes"]:
         stars += repo["stargazerCount"]
         meta[repo["name"]] = {
+            "default_branch": ((repo.get("defaultBranchRef") or {}).get("name")) or "main",
             "stars": repo["stargazerCount"],
             "archived": repo["isArchived"],
             "pushed": (repo["pushedAt"] or "")[:10] or None,
@@ -197,6 +199,7 @@ def rest_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
         "created": (d.get("created_at") or "")[:10] or None,
         "language": d.get("language"),
         "fork": bool(d.get("fork")),
+        "default_branch": d.get("default_branch") or "main",
     }
 
 
@@ -208,6 +211,21 @@ def rest_languages(owner: str, repo: str, token: str | None = None) -> dict | No
 def rest_releases(owner: str, repo: str, token: str | None = None) -> list | None:
     d = _rest(f"repos/{owner}/{repo}/releases?per_page=100", token)
     return d if isinstance(d, list) else None
+
+
+def rest_runs(owner: str, repo: str, token: str | None = None, branch: str = "main", n: int = 5) -> dict | None:
+    """The project's own CI on its default branch: the latest completed `push` run (`workflow`, `conclusion`,
+    `date`, `url`) and the conclusions of the last `n` such runs (`recent`). Dependabot's updater runs and
+    pull-request runs are not the question "does main pass", so they are left out. None when the API
+    does not answer (no token, rate limit, a proxy) or the repository has no such run."""
+    d = _rest(f"repos/{owner}/{repo}/actions/runs?branch={branch}&event=push&status=completed&per_page={n}", token)
+    runs = d.get("workflow_runs") if isinstance(d, dict) else None
+    if not runs:
+        return None
+    last = runs[0]
+    return {"workflow": last.get("name"), "conclusion": last.get("conclusion"),
+            "date": (last.get("updated_at") or last.get("created_at") or "")[:10] or None,
+            "url": last.get("html_url"), "recent": [r.get("conclusion") for r in runs]}
 
 
 def rest_meta(owner: str, repos: list[str], token: str | None = None) -> dict[str, dict]:

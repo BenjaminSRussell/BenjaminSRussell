@@ -57,8 +57,8 @@ made between 25 Sep and 12 Oct 2025.
 |---|---|
 | `commits` | Σ over repositories of commits on `HEAD` whose author matches `[identity]` (`survey.py:238,264`; sum at `derive.py:182`). All time. Cache 7 Oct: 1,665. Today: 2,032. |
 | `merges` (new) | Of `commits`, those with two or more parents (`survey.py:265`). Today: 405 (20 %). |
-| `co_authored` (new) | Of `commits`, those carrying a `Co-authored-by` trailer (`survey.py:266`). Today: 502 (25 %); 440 of the trailers name you yourself (GitHub's squash-merge adds the PR author), 63 name a Claude model. |
-| `all_hands` | Every commit on `HEAD` by anyone, bots included (`survey.py:267`). 7 Oct: 1,966 = 1,665 yours + 301 others (jules 125, Claude 162, dependabot 4, …). |
+| `coauthored` (new) | Of `commits`, those carrying a `Co-authored-by` trailer: `{count, share, agent, names}` (`survey.py`, `coauthored()`). `count` = any trailer; `agent` = a trailer naming a `[identity] bots` name (exactly or as its first word, "Claude Sonnet 5") or a `[bot]` account; `names` = the non-self co-author names with counts. Today: 502 (25 %) carry a trailer, 440 of them naming you yourself (GitHub's squash-merge adds the PR author), 63 naming a Claude model. Top-level `coauthored_total` is the same shape over every repository. |
+| `all_hands` | Every commit on `HEAD` by anyone, bots included (`survey.py`, `summarize()`). 7 Oct: 1,966 = 1,665 yours + 301 others (jules 125, Claude 162, dependabot 4, …). |
 | `calendar_total` | GraphQL `contributionsCollection(from, to).totalCommitContributions`, one query per calendar year since the account was created, summed (`github.py:105`). GitHub's own rule: commits on the default branch (or `gh-pages`) of any non-fork repository the viewer can see, where the commit's author email is linked to the account. Private repositories only if the profile shows private contributions. **The cached 1,828 was seeded in v7 and never measured by this pipeline** (`git show 4b1c299:assets/stats.json`: `"seeded": true`). Cache mode now carries it only when `provenance.graphql_at` says when it was fetched (`build_stats.py:56`); until the next live run it is `null`. |
 | `calendar` (new) | The same collection asked once for the 52 clone weeks: `commits`, `issues`, `pull_requests`, `reviews`, `restricted` (private), `all` (the green squares) and `commits_by_repo` for your own public repositories (`github.py:50,121-143`). Live only. |
 | `calendar_weeks` | The green-square calendar per week over that window: every contribution type, Sunday-start weeks (`github.py:124`). Live only. It is not comparable with `weeks[]` and is no longer compared with it. |
@@ -70,7 +70,14 @@ made between 25 Sep and 12 Oct 2025.
 | `variation` | Most common commit-day hour in the last 365 days (`hour`) and the 365 before (`prior_hour`); `annual_change` only when both windows have ≥ 60 commit-days (`derive.py:137`). Today: 14 h vs 13 h, prior window has 15 days, so no change is stated. Unit: repository-days. |
 | `weeks[52]` | `n` = your commits per ISO week summed over repositories; `days` = distinct dates in the week with a commit (≤ 7); `repos` = commits per repository; `sweep` (new) = commits in the week that fell on sweep days (`derive.py:61`). Unit: **commits**, not days. |
 | `tide` | `hw` = the week with most commits (`n`, the repository with most of them as `cause`, that repository's longest run of consecutive commit-days overlapping the week as `cause_days`, `cause_share`, and now `sweep_share`); `lw` = the fewest commits among complete weeks; `median` of complete weeks; `slack` = the lowest four-week sum (`derive.py:97`). 7 Oct cache: `hw` = week of 5 Oct, 358 commits, 100 % of them on the 7 Oct sweep day. Today: 725, 71 % on sweep days. |
-| `sweeps` | Dates on which ≥ `sweep_threshold` repositories had a commit-day of yours; threshold = ⅓ of the repositories, capped at 5, never under 2 (`derive.py:35,40`). They are removed from `active`/`dormant` only (`derive.py:51`), never from `weeks`, `tide`, `hours` or `commit_days`. Four today: 9 Nov 2025 (13 repos, 31 commits), 10 Nov 2025 (10, 15), 1 Oct 2026 (6, 13), 7 Oct 2026 (19, 514). |
+| `sweeps` / `sweep_dates` | Dates on which ≥ `sweep_threshold` repositories had a commit-day of yours; threshold = ⅓ of the repositories, capped at 5, never under 2 (`derive.py:35,40`); `sweep_dates` is the plain list. They are removed from `active`/`dormant` and from the round-5 keys `months`, `first_ns`, `last_ns` (`derive.py`, `months_without_sweeps()`), never from `weeks`, `tide`, `hours` or `commit_days`. Four today: 9 Nov 2025 (13 repos, 31 commits), 10 Nov 2025 (10, 15), 1 Oct 2026 (6, 13), 7 Oct 2026 (19, 514). |
+| `repos[].months` (new) | Commit-days of yours per month, `{YYYY-MM: days}`, sweep days excluded; a month with none is absent. Rust-sitemap: `{"2025-10": 7, "2025-11": 9, "2025-12": 1, "2026-05": 1, "2026-08": 1}`. The series D1 draws. |
+| `repos[].first_ns` / `last_ns` (new) | First and last commit-day of yours that is not a sweep day; `null` when every day was a sweep (Course_crusader, Elusive_trades_data, Spotify_to_apple_music, rust_llm_logger, mlx_Qwen_data_entry today). Rust-sitemap: 20 Oct 2025 – 8 Aug 2026 (its raw `last` reads 7 Oct 2026, the sweep). |
+| `repos[].tests` (new) | Files at `HEAD` named `test_*.py`, `*_test.py`, `*_test.go`, `*.test.ts/.tsx/.js`, `*.spec.ts`, `*Tests.swift`, or any `.rs` under a `tests/` directory, vendored directories excluded (`tree.py`, `TEST_PATTERNS`). Scrapy 257, Rust-sitemap 3, cozy-game 0. A count of files, not of tests or of coverage. |
+| `repos[].workflows` (new) | Files `.github/workflows/*.yml|yaml` at `HEAD` (`tree.py`, `WORKFLOW`). Scrapy 5, Rust-sitemap 1; cozy-game and 2d-swift-widgets 0. |
+| `repos[].manifest` (new) | `{files, deps}`: the manifests found at the root or one directory down (`Cargo.toml`, `pyproject.toml`, `package.json`, `go.mod`, `Package.swift`) and the dependency names they declare, in file order, deduplicated, capped at 40, dev/test groups and transitive dependencies left out, Go module paths reduced to their last segment (`tree.py`, `deps_from()`). `null` when there is no manifest; `requirements.txt` is not read. Rust-sitemap: `clap, rkyv, rkyv_derive, redb, reqwest, tokio, …` (40). |
+| `repos[].lines` (new) | `{language: lines}` at `HEAD` from a depth-1 clone (`survey.py`, `clone_head()`; `tree.py`, `lines_by_language()`): newlines of files whose extension names a programming language (`tree.LANGUAGES`), skipping binary files, files over 512 KB, the directories in `chart.toml [lines] exclude_dirs` (node_modules, vendor, target, build, dist, .venv, venv, __pycache__, site-packages, third_party) and the per-repository `[lines.exclude]` paths (game_engine `src/engine`, 5,212 generated C files). Rust-sitemap `{"Rust": 16390, "Python": 848}`; Scrapy `{"Python": 69036, "JavaScript": 2561, "Shell": 2334, "HTML": 1883, "Rust": 1003, "SQL": 232}`. Lines in the clone, not lines you typed: game_engine still holds 151,872 lines of C outside `src/engine`. |
+| `repos[].ci` (new, flagships only) | REST `actions/runs?branch=<default>&event=push&status=completed&per_page=5` (`github.py`, `rest_runs()`): the project's own CI on its default branch, latest run's `{workflow, conclusion, date, url}` and the last five conclusions as `recent`. Pull-request runs and Dependabot's updater runs are left out on purpose (Scrapy's latest run of any kind is a failed Dependabot update). Absent when the API does not answer; carried from the cache with `stale: true` when it did before. Scrapy: `CI/CD Pipeline`, success, 8 Oct 2026, recent `[success, cancelled, cancelled, cancelled, success]`; Rust-sitemap: `CI`, success, 7 Oct 2026, five successes. |
 | `repos[].commit_days` / `months_active` / `days[]` | Distinct author-local dates with a commit of yours in that repository; distinct months; the per-date list (`survey.py:207`). 155 repository-days today. |
 | `repos[].active` / `dormant` | Commit-days in ≥ 3 of the last 12 weeks; no commit-day in 90 days; both with sweep days removed (`derive.py:51`). |
 | `languages` | Live: GraphQL bytes per language, top 8 per repository, summed over the public non-fork repositories, top 5 + Other (`github.py:160`). Cache mode: the REST `/languages` endpoint per repository (all languages, not top 8) when it answered for every repository, else nothing (`build_stats.py:239-243`). These are GitHub's linguist byte counts and include vendored and generated files as linguist classifies them. The cached shares were seeded in v7 and are no longer carried. |
@@ -172,21 +179,44 @@ Drop = ill defined or unmeasured, leave off the page and the sheets.
   with the per-repository figures.
 - **`first`/`last` are your own** (`survey.py:256`): a repository with none of your commits reports `null`,
   not another author's dates.
-- **New measurements from the same `git log`** (`survey.py:117`): `merges` and `co_authored` per repository
-  and in total; `weeks[].sweep` and `tide.hw.sweep_share`. The validator checks `merges ≤ commits`,
-  `co_authored ≤ commits`, `sweep ≤ n` and the totals (`model.py`), and the schema admits the keys. Nothing
-  is removed from `weeks`, `tide` or `commit_days`: the sweep is named, not hidden.
+- **New measurements from the same `git log`** (`survey.py:117`): `merges` and `coauthored` per repository
+  and in total (`coauthored_total`); `weeks[].sweep`, `tide.hw.sweep_share` and `sweep_dates`. The validator
+  checks `merges ≤ commits`, `coauthored.count ≤ commits`, `agent ≤ count`, `sweep ≤ n`, `Σ months ≤
+  commit_days` and the totals (`model.py`), and the schema admits the keys. Nothing is removed from `weeks`,
+  `tide` or `commit_days`: the sweep is named, not hidden; the round-5 keys below leave it out and say so.
 - **`--cache`** (`build_stats.py:194`): the previous file is `assets/stats.json` unless `--cache` says
   otherwise; `--out` no longer silently means "no cache" when it points elsewhere.
-- Tests: `tests/test_data.py` covers the log parser, merge/co-author counting, first/last, the dated-fetch
-  rule, the itemised fetch with a fake GraphQL, the like-for-like check and the warning text.
-  `python3 -m unittest`: 207 tests, all passing (199 before).
+- **Round 5, D2** (second commit on this branch): per repository `months`, `first_ns`, `last_ns`,
+  `coauthored`, `tests`, `workflows`, `manifest`, `lines` and, for the flagships, `ci`; top-level
+  `coauthored_total` and `sweep_dates`. A new module `scripts/data/tree.py` reads `HEAD`'s file list from the
+  history clone and the lines from a second, depth-1 clone per repository (`survey.py`, `clone_head()`; the
+  whole cache-mode build of 21 repositories took 31 s here; Data_science_dev's depth-1 clone is 0.9 GB).
+  `chart.toml [lines]` holds the exclusions. Cache mode produces every key the same way (it clones); a
+  repository whose clone fails keeps its previous record, new keys included, marked `stale`. `commits`,
+  `all_hands` and `calendar_total` stay in the file and are printed nowhere. The calendar comparison is
+  re-scoped as described above (commits against commits on the surveyed public repositories) rather than
+  removed; it stays a CI warning only.
+- Tests: `tests/test_data.py` covers the log parser, merge/co-author counting and classification, first/last,
+  the dated-fetch rule, the itemised fetch with a fake GraphQL, the like-for-like check, the warning text,
+  months/first_ns/last_ns without sweeps, the test/workflow patterns, the five manifest parsers, the line
+  count on a real temporary repository (exclusions, binary and oversize files) and the CI reader.
+  `python3 -m unittest`: 212 tests, all passing (199 before).
 
 Not changed, by design: what the README and the sheets print (their builders own that); `assets/stats.json`
 (the workflow regenerates it; the committed 7 Oct file still validates).
 
 Known small differences left as they are: live `languages` takes the top 8 languages per repository
 (`github.py:46`) while cache-mode REST takes all of them; GraphQL lists at most 100 repositories.
+
+### The D4 line, from these keys
+
+Under rustmapper: `manifest.deps[:4]` → "Built on clap, rkyv, rkyv_derive, redb" (the page may prefer tokio, redb,
+rkyv, reqwest: all four are in the list; the file order is the crate's own), `tests` 3 → "3 test files",
+`workflows` 1 and `ci` → "1 workflow, last run passed 7 Oct 2026", `lines` → "16k lines of Rust", `last_ns` →
+"last worked 8 Aug 2026". Under Scrapy: "Built on scrapy, deltalake, pyarrow, pandas · 257 test files · 5
+workflows, last run passed 8 Oct 2026 · 69k lines of Python · last worked 8 Oct 2026". The D5 line:
+`sweep_dates` → "sweep days (9–10 Nov 2025, 1 and 7 Oct 2026) excluded", `coauthored_total.agent` → "63 commits
+carry agent co-author trailers" (or `.count` 502 for any trailer; the page should say which).
 
 ## 6. What is worth showing, and what else the clones can say
 

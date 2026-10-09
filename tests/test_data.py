@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(HERE), "scripts"))
 
 from data import derive as D, logsim, model, releases  # noqa: E402
 from data.claims import claims, upright_ok  # noqa: E402
-from data import github  # noqa: E402
+from data import github, tree  # noqa: E402
 from data.survey import Commit, commit_days, is_ben, is_bot, parse_log, span_label, summarize, week_starts  # noqa: E402
 import build_stats  # noqa: E402
 
@@ -114,17 +114,19 @@ class CommitDays(unittest.TestCase):
         self.assertEqual(sum(r["weeks"]), 201)
         self.assertEqual(r["tz_offsets"], {"-0500": 200, "-0400": 1})
         self.assertEqual(r["span"], "Jan 2026–")
-        self.assertEqual((r["merges"], r["co_authored"]), (0, 0))
+        self.assertEqual((r["merges"], r["coauthored"]), (0, {"count": 0, "share": 0.0, "agent": 0, "names": {}}))
+        self.assertEqual((r["tests"], r["workflows"], r["manifest"], r["lines"]), (None, None, None, None))
 
     def test_merges_and_co_authors_are_counted_not_reattributed(self):
         claude = ("Claude", "noreply@anthropic.com")
         commits = [c(2026, 3, 1, 10), c(2026, 3, 1, 11, parents=2, subject="Merge pull request #4"),
                    c(2026, 3, 2, 9, co=["Claude Sonnet 5 <noreply@anthropic.com>"]),
+                   c(2026, 3, 2, 11, co=["Benjamin Russell <russell27sail@gmail.com>"]),   # GitHub's squash adds the PR author
                    c(2026, 3, 2, 10, who=claude, co=["Benjamin Russell <russell27sail@gmail.com>"])]
         r = summarize("r", commits, None, TAKEN)
-        self.assertEqual(r["commits"], 3)              # the trailer naming Ben does not make Claude's commit his
+        self.assertEqual(r["commits"], 4)              # the trailer naming Ben does not make Claude's commit his
         self.assertEqual(r["merges"], 1)
-        self.assertEqual(r["co_authored"], 1)          # and his commit with a Claude trailer stays his, counted once
+        self.assertEqual(r["coauthored"], {"count": 2, "share": 0.5, "agent": 1, "names": {"Claude Sonnet 5": 1}})
         self.assertEqual(r["others"], [{"name": "Claude", "commits": 1, "bot": True}])
 
     def test_first_and_last_are_the_authors_own(self):
@@ -203,7 +205,22 @@ class Derive(unittest.TestCase):
         self.assertEqual(hw["sweep_share"], round(22 / 142, 3))
         self.assertEqual(sum(w["n"] for w in self.d["weeks"]), sum(sum(r["weeks"]) for r in self.recs))  # nothing removed
         self.assertEqual(self.d["merges"], 0)
-        self.assertEqual(self.d["co_authored"], 0)
+        self.assertEqual(self.d["coauthored_total"], {"count": 0, "share": 0.0, "agent": 0, "names": {}})
+        self.assertEqual(self.d["sweep_dates"], [sw["date"] for sw in self.d["sweeps"]])
+
+    def test_months_first_last_without_sweeps(self):
+        by = {r["name"]: r for r in self.d["repos"]}
+        sweeps = set(self.d["sweep_dates"])
+        self.assertIn("2026-10-07", sweeps)
+        dormant = by["dormant"]      # 9 Nov 2025, 10 Nov 2025 (a Monday: steady's too, so a sweep at threshold 2), 7 Oct 2026
+        self.assertEqual(dormant["months"], {"2025-11": 1})
+        self.assertEqual((dormant["first_ns"], dormant["last_ns"]), ("2025-11-09", "2025-11-09"))
+        self.assertEqual((dormant["first"], dormant["last"]), ("2025-11-09", "2026-10-07"))   # raw dates untouched
+        for r in self.d["repos"]:
+            self.assertEqual(sum(r["months"].values()), sum(1 for d in r["days"] if d["d"] not in sweeps))
+        sprint = by["sprint"]
+        self.assertEqual(sprint["months"], {"2026-01": 10 - 2})       # the two sprint Mondays are sweeps (threshold 2)
+        self.assertEqual((sprint["first_ns"], sprint["last_ns"]), ("2026-01-04", "2026-01-13"))
 
     def test_calendar_check_compares_the_surveyed_repos_only(self):
         d = D.derive(self.recs, TAKEN, fixture_calendar())
@@ -367,6 +384,80 @@ class Instruments(unittest.TestCase):
         self.assertIn("GitHub credits 1700", msgs[0])
         s["calendar_check"]["disagreement"] = 0.05
         self.assertEqual([f for f in cdata.check({"stats": s, "today": TAKEN}) if f.code == "data.calendar"], [])
+
+
+class Tree(unittest.TestCase):
+    CFG = {"exclude_dirs": tree.EXCLUDE_DIRS, "exclude": {"game_engine": ["src/engine"]}}
+
+    def test_patterns_and_exclusions(self):
+        paths = ["tests/test_a.py", "pkg/b_test.go", "web/c.test.ts", "Tests/DTests.swift", "tests/e.rs", "src/f.rs",
+                 "node_modules/x/test_y.py", "conftest.py", ".github/workflows/ci.yml", ".github/workflows/cd.yaml",
+                 ".github/workflows/README.md", "src/engine/test_gen.py"]
+        self.assertEqual(tree.count_tests(paths, "r", self.CFG), 6)
+        self.assertEqual(tree.count_tests(paths, "game_engine", self.CFG), 5)   # src/engine/test_gen.py is excluded there
+        self.assertEqual(tree.count_workflows(paths), 2)
+        self.assertTrue(tree.excluded("target/debug/a.rs", "r", self.CFG))
+        self.assertFalse(tree.excluded("src/target.rs", "r", self.CFG))
+
+    def test_manifest_parsers(self):
+        self.assertEqual(tree.deps_from("Cargo.toml", '[package]\nname="x"\n[dependencies]\ntokio = { version = "1" }\nredb = "2"\n'
+                                        '[dev-dependencies]\ncriterion = "0.5"\n'), ["tokio", "redb"])
+        self.assertEqual(tree.deps_from("pyproject.toml", '[project]\nname="x"\ndependencies = ["scrapy>=2.11", "Delta-Lake[extra] ; python_version>\'3\'", "pyarrow"]\n'),
+                         ["scrapy", "delta-lake", "pyarrow"])
+        self.assertEqual(tree.deps_from("package.json", '{"dependencies": {"three": "^0.160", "lit": "3"}, "devDependencies": {"vite": "5"}}'),
+                         ["three", "lit"])
+        self.assertEqual(tree.deps_from("go.mod", "module m\n\ngo 1.22\n\nrequire (\n\tgithub.com/PuerkitoBio/goquery v1.9.2\n"
+                                        "\tgithub.com/chromedp/chromedp v0.9.5\n\tgithub.com/x/y/v3 v3.0.1\n\tgolang.org/x/net v0.25.0 // indirect\n)\n"),
+                         ["goquery", "chromedp", "y"])
+        self.assertEqual(tree.deps_from("Package.swift", 'let p = Package(dependencies: [.package(url: "https://github.com/a/SwiftUIX.git", from: "1.0"),'
+                                        ' .package(name: "Local", path: "../Local")])'), ["SwiftUIX", "Local"])
+        self.assertEqual(tree.deps_from("Cargo.toml", "not = toml ["), [])
+
+    def test_lines_by_language_from_a_real_repository(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@x", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@x",
+                   "PATH": os.environ.get("PATH", "")}
+            subprocess.run(["git", "init", "-q", d], check=True, env=env)
+            os.makedirs(os.path.join(d, "src", "engine")); os.makedirs(os.path.join(d, "node_modules", "x"))
+            open(os.path.join(d, "main.py"), "w").write("a\nb\nc\n")
+            open(os.path.join(d, "src", "lib.rs"), "w").write("fn main() {}\n// two")        # no final newline: 2 lines
+            open(os.path.join(d, "src", "engine", "gen.c"), "w").write("x\n" * 50)
+            open(os.path.join(d, "node_modules", "x", "i.js"), "w").write("y\n" * 9)
+            open(os.path.join(d, "README.md"), "w").write("not code\n")
+            open(os.path.join(d, "blob.py"), "wb").write(b"\x00\x01\n\n")
+            open(os.path.join(d, "big.js"), "w").write("z\n" * 300000)                   # 600 KB: data, skipped
+            subprocess.run(["git", "-C", d, "add", "-A"], check=True, env=env)
+            subprocess.run(["git", "-C", d, "commit", "-q", "-m", "x"], check=True, env=env)
+            git_dir = os.path.join(d, ".git")
+            self.assertEqual(tree.lines_by_language(git_dir, "r", self.CFG), {"C": 50, "Python": 3, "Rust": 2})
+            self.assertEqual(tree.lines_by_language(git_dir, "game_engine", self.CFG), {"Python": 3, "Rust": 2})
+            facts = tree.tree_facts(git_dir, "r", self.CFG)
+            self.assertEqual((facts["tests"], facts["workflows"], facts["manifest"]), (0, 0, None))
+        self.assertIsNone(tree.lines_by_language("/nonexistent/.git", "r", self.CFG))
+
+    def test_rest_runs_reads_main_push_runs(self):
+        calls = []
+
+        def fake_rest(path, token=None, timeout=20):
+            calls.append(path)
+            return {"workflow_runs": [
+                {"name": "CI", "conclusion": "success", "updated_at": "2026-10-07T23:59:21Z", "html_url": "u1"},
+                {"name": "CI", "conclusion": "failure", "updated_at": "2026-10-07T20:00:00Z", "html_url": "u2"}]}
+        orig = github._rest
+        github._rest = fake_rest
+        try:
+            ci = github.rest_runs("o", "r", None, "main")
+            self.assertEqual(ci, {"workflow": "CI", "conclusion": "success", "date": "2026-10-07", "url": "u1",
+                                  "recent": ["success", "failure"]})
+            self.assertIn("branch=main&event=push&status=completed", calls[0])
+            github._rest = lambda *a, **k: None
+            self.assertIsNone(github.rest_runs("o", "r"))
+            github._rest = lambda *a, **k: {"workflow_runs": []}
+            self.assertIsNone(github.rest_runs("o", "r"))
+        finally:
+            github._rest = orig
 
 
 class LogSim(unittest.TestCase):

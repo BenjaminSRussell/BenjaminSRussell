@@ -24,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import NamedTuple
 
 from . import LOGIN, load_chart_toml
+from . import tree as tree_mod
 
 DEFAULT_IDENTITY: dict = {
     "login": LOGIN,
@@ -92,6 +93,19 @@ def is_bot(name: str, identity: dict | None = None) -> bool:
     return n in ident.get("bots", []) or n.endswith("[bot]")
 
 
+def is_agent_trailer(trailer: str, identity: dict | None = None) -> bool:
+    """A Co-authored-by value naming an agent: a `[identity] bots` name, exactly or as its first word
+    ("Claude Sonnet 5 <…>"), or a `[bot]` account. Ben's own identities are never agents."""
+    ident = identity or DEFAULT_IDENTITY
+    name, _, rest = trailer.partition("<")
+    name = name.strip()
+    email = rest.rstrip(">").strip()
+    if is_ben(name, email, ident):
+        return False
+    bots = ident.get("bots", [])
+    return is_bot(name, ident) or (name.split() or [""])[0] in bots
+
+
 # ---------------------------------------------------------------- git plumbing
 
 def _git(dest: str, *args: str, timeout: int = 60) -> str:
@@ -102,11 +116,20 @@ def _git(dest: str, *args: str, timeout: int = 60) -> str:
 
 
 def clone(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIMEOUT_S) -> str | None:
-    """Bare blobless clone; returns the git dir or None on failure/timeout."""
-    dest = os.path.join(workdir, repo + ".git")
+    """Bare blobless clone (every commit, no file contents); returns the git dir or None on failure/timeout."""
+    return _clone(repo, workdir, owner, timeout, ["--filter=blob:none"], ".git")
+
+
+def clone_head(repo: str, workdir: str, owner: str = LOGIN, timeout: int = CLONE_TIMEOUT_S) -> str | None:
+    """Bare depth-1 clone of the default branch (HEAD's file contents, no history): what `lines` is counted on."""
+    return _clone(repo, workdir, owner, timeout, ["--depth", "1", "--single-branch"], "-head.git")
+
+
+def _clone(repo: str, workdir: str, owner: str, timeout: int, opts: list[str], suffix: str) -> str | None:
+    dest = os.path.join(workdir, repo + suffix)
     url = f"https://github.com/{owner}/{repo}.git"
     try:
-        r = subprocess.run(["git", "clone", "-q", "--bare", "--filter=blob:none", url, dest],
+        r = subprocess.run(["git", "clone", "-q", "--bare", *opts, url, dest],
                            capture_output=True, text=True, timeout=timeout,
                            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
     except subprocess.TimeoutExpired:
@@ -232,9 +255,26 @@ def span_label(first: str, last: str, taken: dt.date, dormant_days: int = 90) ->
     return f"{month_label(first)}–{month_label(last)}"
 
 
+def coauthored(mine: list[Commit], identity: dict | None = None) -> dict:
+    """Of the author's commits: how many carry any Co-authored-by trailer (`count`, `share`), how many name
+    an agent (`agent`), and the non-self names with their counts (`names`)."""
+    names: Counter = Counter()
+    agent = 0
+    for c in mine:
+        others = [t for t in c.co_authors if not is_ben(t.partition("<")[0].strip(), t.partition("<")[2].rstrip(">").strip(), identity)]
+        for t in others:
+            names[t.partition("<")[0].strip() or t] += 1
+        if any(is_agent_trailer(t, identity) for t in c.co_authors):
+            agent += 1
+    count = sum(1 for c in mine if c.co_authors)
+    return {"count": count, "share": round(count / len(mine), 3) if mine else 0.0, "agent": agent,
+            "names": dict(names.most_common())}
+
+
 def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
               stale_refs: list[dict] | None = None) -> dict:
-    """One repos[] record from a repo's history. Pure; derive() adds active/dormant later."""
+    """One repos[] record from a repo's history. Pure; derive() adds active/dormant, months, first_ns/last_ns."""
+    identity = identity or DEFAULT_IDENTITY
     mine = [c for c in commits if is_ben(c.name, c.email, identity)]
     others_c: Counter = Counter(c.name for c in commits if not is_ben(c.name, c.email, identity))
     others = [{"name": n, "commits": k, "bot": is_bot(n, identity)} for n, k in others_c.most_common()]
@@ -263,7 +303,7 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "slot": None,
         "commits": len(mine),
         "merges": sum(1 for c in mine if c.parents > 1),
-        "co_authored": sum(1 for c in mine if c.co_authors),
+        "coauthored": coauthored(mine, identity),
         "all_hands": len(commits),
         "others": others,
         "first": first,
@@ -285,14 +325,20 @@ def summarize(repo: str, commits: list[Commit], identity: dict, taken: dt.date,
         "stars": None,
         "span": span_label(first, last, taken) if first and last else None,
         "stale_branches": stale_refs or [],
+        "tests": None,
+        "workflows": None,
+        "manifest": None,
+        "lines": None,
     }
 
 
 # ---------------------------------------------------------------- the survey
 
 def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date | None = None,
-           owner: str = LOGIN, keep_history: bool = False, timeout: int = CLONE_TIMEOUT_S) -> dict | None:
-    """Clone + log + summarize. None when the clone fails or HEAD has no history.
+           owner: str = LOGIN, keep_history: bool = False, timeout: int = CLONE_TIMEOUT_S,
+           lines_cfg: dict | None = None, with_tree: bool = True) -> dict | None:
+    """Clone + log + summarize, then what HEAD holds (tests, workflows, manifest, lines). None when the
+    history clone fails or HEAD has no history; a failed depth-1 clone leaves `lines` None.
 
     With keep_history=True the record carries `_commits` (list[Commit]) for the caller
     (profile-repo corrections and `Notice:` commits); build_stats pops it before writing.
@@ -307,6 +353,11 @@ def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date
         return None
     rec = summarize(repo, commits, identity, taken, stale_branches(dest, taken))
     rec["_git_dir"] = dest
+    if with_tree:
+        lines_cfg = lines_cfg or tree_mod.lines_config(load_chart_toml())
+        rec.update(tree_mod.tree_facts(dest, repo, lines_cfg))
+        head = clone_head(repo, workdir, owner, timeout)
+        rec["lines"] = tree_mod.lines_by_language(head, repo, lines_cfg) if head else None
     if keep_history:
         rec["_commits"] = commits
     return rec
@@ -314,13 +365,14 @@ def survey(repo: str, workdir: str, identity: dict | None = None, taken: dt.date
 
 def survey_all(repos: list[str], workdir: str, identity: dict | None = None, taken: dt.date | None = None,
                owner: str = LOGIN, keep_history_for: set[str] | None = None, workers: int = 6,
-               timeout: int = CLONE_TIMEOUT_S) -> dict[str, dict | None]:
+               timeout: int = CLONE_TIMEOUT_S, lines_cfg: dict | None = None) -> dict[str, dict | None]:
     """Parallel survey; a failed repo maps to None (the caller keeps yesterday's record, stale:true)."""
     keep = keep_history_for or set()
+    lines_cfg = lines_cfg or tree_mod.lines_config(load_chart_toml())
 
     def one(name: str) -> tuple[str, dict | None]:
         try:
-            return name, survey(name, workdir, identity, taken, owner, name in keep, timeout)
+            return name, survey(name, workdir, identity, taken, owner, name in keep, timeout, lines_cfg)
         except Exception:
             return name, None
 

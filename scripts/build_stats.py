@@ -28,7 +28,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import ASSETS, LOG_PATH, LOGIN, ROOT, STATS_PATH, claims as claims_mod, derive as derive_mod  # noqa: E402
-from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod  # noqa: E402
+from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod, tree as tree_mod  # noqa: E402
 from data import load_chart_toml  # noqa: E402
 
 MODES = ("live", "cache", "cache-failed")
@@ -200,6 +200,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     owner = identity.get("login", LOGIN)
     features = {f["repo"]: f for f in cfg.get("features", []) if isinstance(f, dict) and f.get("repo")}
     flagship = next((f["repo"] for f in features.values() if f.get("kind") == "vessel"), FLAGSHIP)
+    flagships = {flagship, "Scrapy"} | {f["repo"] for f in features.values() if f.get("kind") in ("vessel", "harbour")}
+    lines_cfg = tree_mod.lines_config(cfg)
     sources = [{"letter": s.get("letter", ""), "name": s.get("name", ""), "first": s.get("first")} for s in cfg.get("sources", [])]
 
     if mode == "cache-failed":
@@ -253,8 +255,8 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     tmp = tempfile.TemporaryDirectory() if workdir is None else None
     wd = workdir or tmp.name
     try:
-        results = survey_mod.survey_all(names, wd, identity, taken, owner, keep_history_for={owner, flagship, "Scrapy"},
-                                        workers=workers)
+        results = survey_mod.survey_all(names, wd, identity, taken, owner, keep_history_for={owner} | flagships,
+                                        workers=workers, lines_cfg=lines_cfg)
         cached_v2 = {r["name"]: r for r in cache.get("repos", [])} if cache.get("schema") == 2 else {}
         records, failed = [], []
         profile_commits: list = []
@@ -282,6 +284,12 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
             rec["archived"] = bool(m.get("archived", rec.get("archived", False)))
             rec["stars"] = m.get("stars", rec.get("stars"))
             rec["language"] = m.get("language", rec.get("language"))
+            if name in flagships:   # D4: the project's own CI on its default branch, where the API answers
+                ci = github.rest_runs(owner, name, token, m.get("default_branch") or "main")
+                if ci is not None:
+                    rec["ci"] = ci
+                elif name in cached_v2 and cached_v2[name].get("ci"):
+                    rec["ci"] = dict(cached_v2[name]["ci"], stale=True)
             records.append(rec)
         if not records:
             raise SystemExit("no history and no cache: nothing ships")
@@ -310,8 +318,10 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     cc = stats.get("calendar_check") or {}
     cal = stats.get("calendar") or {}
     in_window = sum(w["n"] for w in stats["weeks"])
+    co = stats["coauthored_total"]
     print(f"mode={mode} · {len(stats['repos'])} repos · {stats['commits']} commits authored by {owner} on HEAD "
-          f"({stats['merges']} merges, {stats['co_authored']} with co-author trailers) of {stats['all_hands']} by anyone · "
+          f"({stats['merges']} merges, {co['count']} with co-author trailers, {co['agent']} naming an agent) of "
+          f"{stats['all_hands']} by anyone · sweeps {', '.join(stats['sweep_dates']) or 'none'} · "
           f"{in_window} in the 52 clone weeks" +
           (f" vs {cc.get('calendar')} GitHub credits on the same repos ({cc.get('disagreement', 0) or 0:.0%} apart)"
            if cc else "") +
