@@ -1,6 +1,6 @@
 # Round 5 — the navigator's memo
 
-Deck officer, 38, paper and ECDIS. A real chart is terse because every mark on it is something you steer by. v10 is the other kind: an eight-line title block, invented lights, a compass rose that corrects nothing, and a hatched "unsurveyed" margin when `stats.json` says `unsurveyed: []`. That is the test below.
+Deck officer, 38, paper and ECDIS. A real chart is terse because every mark is something you steer by. v10 has an eight-line title block, invented lights, a compass rose that corrects nothing, and a hatched "unsurveyed" margin when `stats.json` says `unsurveyed: []`.
 
 ## 1. What a visitor needs to know about Ben
 
@@ -8,33 +8,33 @@ Deck officer, 38, paper and ECDIS. A real chart is terse because every mark on i
 2. **What I can use today.** `pip install rustmapper`, 0.1.3 on PyPI. Answered in text; the image hides it as "edition".
 3. **What is alive and what is parked.** Scrapy Harbor (26 commit-days since Sep 2025) and rustmapper (22) are the working projects; most of the other 19 are a day or four. Not answered. (For the audit: 18 repos share `last: 2026-10-07`, one sweep day, not 18 live projects.)
 4. **How deep the engineering goes.** Governor on redb latency, CRC32 WAL, rendezvous shards, breakers, raw-first Delta Lake. Answered well by the bullets; the image carries none of it.
-5. **What will bite me.** Non-Apple `pip` needs a Rust toolchain; the worker-pool figure is reported three ways. Half answered, in bullet five.
+5. **What will bite me.** Non-Apple `pip` needs a Rust toolchain; the worker-pool figure is reported three ways. Buried in bullet five.
 6. **Where and when he works.** Eastern time (every commit is -0400/-0500), afternoons, all week. Answered only as "VAR 14h", which nobody decodes.
 7. **How to reach him.** Email only; LinkedIn and résumé slots are empty.
-8. **Can I trust the numbers.** Not answered: three commit totals in the survey log talk the reader out of the rest.
+8. **Can I trust the numbers.** Three commit totals in the survey log say no.
 
 ## 2. What a real chart carries, and which conventions map honestly
 
-On watch, in order: datum and date (can I trust it), soundings and contours (where is safe water), lights and characters (what will I see and when), hazards (what will sink me), the buoyed channel (the safe way in), notices (what changed), title block (what the sheet is for). Everything else is edge.
+On watch, in order: datum and date (can I trust it), soundings and contours (where is safe water), lights and characters (what will I see and when), hazards, the buoyed channel (the safe way in), notices (what changed), title block. Everything else is edge.
 
 **Honest**
 
 - **Datum and survey date** = "author's commits on main, 7 Oct 2026". The one piece of fine print that must stay.
-- **Source diagram** (which survey each part came from) = provenance: clones live, GraphQL cached, REST partial. Exactly what the box is for. A box, not a sentence with three totals.
+- **Source diagram** (which survey each part came from) = provenance: clones live, GraphQL cached, REST partial. A small box, not a sentence with three totals.
 - **Contours** = activity bands by month. Water of like depth, months of like work. Answers item 3.
-- **Light character** = something in his code that repeats on a fixed period. He has two measured ones: Prometheus scrapes every 15 s (sha-cited); the governor samples redb every 250 ms. *Fl 15s* on Scrapy Harbor is true the way a light list is true. *Fl R 4s* in v10 is invented, and a sailor sees an invented character before anything else.
-- **Buoyed channel** = the documented safe way in: the three-line install block. Draw the code block, not buoys.
+- **Light character** = something in his code that repeats on a fixed period. Two measured ones: Prometheus scrapes every 15 s (sha-cited); the governor samples redb every 250 ms. *Fl 15s* on Scrapy Harbor is true the way a light list is true. *Fl R 4s* in v10 is invented, and a sailor sees an invented character before anything else.
+- **Buoyed channel** = the documented way in: the three-line install block. Draw the code block, not buoys.
 - **Clearing limits** = robots.txt, crawl-delay honoured, per-host throttle. Limits the crawler stays outside by design.
 - **Hazard mark** = a known gotcha: the toolchain requirement; 148 stale branches on `game_engine`. Wreck = an archived repo (none yet).
 - **(rep.)** = reported, not surveyed. The pool is 256–1024 in code, 32–512 in the README, 256 on PyPI. *256–1024 (rep.)* is how a chart prints exactly that.
-- **Scale and inset** = the two real projects at large scale, the rest small. The text does this; the image should.
+- **Scale and inset** = the two real projects at large scale, the rest small.
 - **Limit of survey** = today's date at the right edge. Honest as a date; hatching beyond it claims unsounded ground that does not exist.
-- **IALA Region B** = he is in the Americas. True, cheap, lands once as a word; never as a buoy scheme.
+- **IALA Region B** = he is in the Americas. True, lands once as a word; never as a buoy scheme.
 
 **Forced (wince)**
 
-- **Soundings in commit-days.** A sounding is useful because the reader has a draught. Nobody has a draught in commit-days. Measured, so not a lie; still decoration.
-- **Compass rose, VAR 14h.** Variation is a correction applied to a bearing, printed with year and annual change. A peak hour corrects nothing.
+- **Soundings in commit-days.** A sounding is useful because the reader has a draught. Nobody has a draught in commit-days.
+- **Compass rose, VAR 14h.** Variation is a correction you apply to a bearing. A peak hour corrects nothing.
 - **HW / tidal diamonds.** Tides are periodic. "HW sweep 7 Oct 358" is one day touching 18 repos, the opposite of a tide.
 - **Rocks.** A rock is a hazard to the reader. A four-commit repo is shallow water: a small figure, unnamed at this scale.
 - **Small corrections 2026—5—173.** Charts cite the last notice applied; 173 is the profile repo's commit count. Fabricated provenance is worse than none.
@@ -47,7 +47,7 @@ One sheet, chart-styled, geography is time. Desk 870×460; phone 390×560 portra
 
 **Desk.** A coastline runs left to right. The bottom edge is a scale from Sep 2025 to Oct 2026 drawn like a latitude scale: month ticks, no word "time". Right edge is 7 Oct 2026, nothing beyond it. Title block top-left, three lines: *Ben Russell* large; *Crawl and data infrastructure · Python and Rust*; in 11 px, *21 repositories · author's commits on main · 7 Oct 2026 · Eastern time*.
 
-Along the coast, the nine repos with seven commit-days or more are shaded banks spanning first to last active month, contour-tinted in three bands by commit-days per month, no figures inside. Labels are repo names as written, 13 px minimum. Scrapy Harbor is the largest feature and carries the one light, *Fl 15s*. rustmapper carries a berth mark, *0.1.3 · PyPI*, the figure *256–1024 (rep.)*, and one hazard mark noted *pip builds from source off Apple silicon; needs Rust*. The other twelve repos are plain soundings: a small figure at their first active month, no name, no symbol. Bottom-right, a source-diagram box: *clones live · GraphQL cached · REST partial*. Nothing else.
+Along the coast, the nine repos with seven commit-days or more are shaded banks spanning first to last active month, tinted in three contour bands by commit-days per month, no figures inside. Labels are repo names as written, 13 px minimum. Scrapy Harbor is the largest feature and carries the one light, *Fl 15s*. rustmapper carries a berth mark, *0.1.3 · PyPI*, the figure *256–1024 (rep.)*, and one hazard mark noted *pip builds from source off Apple silicon; needs Rust*. The other twelve repos are plain soundings: a small figure at their first active month, no name, no symbol. Bottom-right, a source-diagram box: *clones live · GraphQL cached · REST partial*. Nothing else.
 
 **Phone.** The same sheet as a strip, the way a river or Intracoastal pilot runs along the route: title on top, scale down the left edge, coast running down, labels to the right, nothing under 13 px, nothing overlapping. The twelve soundings become one line at the foot: *12 more below seven commit-days*.
 
