@@ -184,6 +184,30 @@ def idea(stats: dict, cfg: dict) -> str:
     return " ".join(out)
 
 
+def probed(stats: dict, cfg: dict | None = None) -> str:
+    """Review round 13 (the historian): which of the cautions the README prints a run-check probe tested, and which
+    were only checked in the code (a source note says how good each part is, not only that it was checked). Counted
+    from the drawn route: an `item` text entry with words is printed; it was tested when its drawn wording names a
+    probe (`runs` or `fails`). Each untested one is named by its `short`."""
+    from data import route as route_mod
+    ed = stats.get("edition") or {}
+    route = (stats.get("routes") or {}).get(ed.get("project") or "rustmapper") or {}
+    rc = (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper")
+    items = [e for e in route_mod.drawn(route, rc) if e.get("kind") == "text" and e.get("item")
+             and str(e.get("text") or "").strip()]
+    if not items:
+        return "Its probes test what the picture's install and stop rows say"
+    bare = [e for e in items if not (e.get("runs") or e.get("fails"))]
+    if not bare:
+        return "Its probes test every caution the README prints"
+    n, k = len(items), len(items) - len(bare)
+    names = ", ".join(str(e.get("short") or e.get("id")) for e in bare)
+    rest = "the other one" if len(bare) == 1 else f"the other {len(bare)}"
+    verb = "is" if len(bare) == 1 else "are"
+    return (f"Its probes test {k} of the {n} cautions the README prints; {rest} ({names}) {verb} checked in the "
+            "code only")
+
+
 def markdown_tables() -> str:
     """The hero's tokens, weights and roles, with what each draws; generated so the page cannot drift."""
     from sheets import route as sheet
@@ -213,7 +237,7 @@ assets/stats.json; edit those, not this file. check.py fails (DESIGN-FRESH) when
 {idea}
 
 The run check (`scripts/runcheck.py`) installs the release, crawls a local three-page site with `--seeding-strategy
-none`, presses Ctrl-C once and exports the sitemap; its probes check each caution the README prints. What each
+none`, presses Ctrl-C once and exports the sitemap. {probed}. What each
 element is for is in `scripts/sheets/route.py` (`PURPOSE`); `check.py` fails while any row does not hold.
 
 ## Editions
@@ -275,7 +299,7 @@ def design_md(stats: dict | None = None, cfg: dict | None = None) -> str:
     bp = int(ch.get("breakpoint_px", 1199))
     mid = int(ch.get("mid_from_px") or bp + 1)
     head = DESIGN_HEAD.format(
-        idea=idea(stats, cfg), pmax=mid - 1, mid=mid, bp=bp, desk=bp + 1, tall=f"{column.TALL_PX:g}",
+        idea=idea(stats, cfg), probed=probed(stats, cfg), pmax=mid - 1, mid=mid, bp=bp, desk=bp + 1, tall=f"{column.TALL_PX:g}",
         mid_px=f"{FLOORS['mid']['semantic'] * column.column_px(mid) / 820:.1f}",
         desk_px=f"{FLOORS['desk']['semantic'] * column.column_px(bp + 1) / 1280:.1f}",
         h_desk=route_check.HEIGHT["desk"], h_mid=route_check.HEIGHT["mid"], h_phone=f"{route_check.HEIGHT['phone']:,}")

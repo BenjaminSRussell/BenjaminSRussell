@@ -607,17 +607,20 @@ def _file_name(path: str) -> str:
     return path[2:] if str(path).startswith("./") else str(path)
 
 
-LIST_MAX_ITEMS = 8          # review round 9: one short list (Microsoft's style guide: 2 to 7 items); round 10: L5 is the 7th; review round 12: X3, redirects, is the 8th (a chooser reads this list line by line)
+LIST_MAX_ITEMS = 7          # review round 9: one short list (Microsoft's style guide: 2 to 7 items); review round 13 (the owner): back to 7, for the open list and for the fold each (round 12 had raised it to 8 to fit X3)
 LIST_MAX_WORDS = 25         # review round 9: each item at most this many words
 
 
 def text_paragraphs(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,
-                    items: bool | None = None) -> list[str]:
+                    items: bool | None = None, fold: bool | None = None) -> list[str]:
     """The text entries joined into paragraphs: a new one at each entry marked `para` (review round 8). `items`
-    True keeps only the list's entries (one string each), False only the others, None all."""
+    True keeps only the list's entries (one string each), False only the others, None all. Review round 13: `fold`
+    True keeps only the items marked `fold`, False only the others, None both."""
     out: list[list[str]] = [[]]
-    for text, para, item in text_entries(route, rc, ed, repo, with_para=True):
+    for text, para, item, folded in text_entries(route, rc, ed, repo, with_para=True, with_fold=True):
         if items is not None and item != items:
+            continue
+        if fold is not None and item and folded != fold:
             continue
         if item and items:
             out.append([text])
@@ -633,14 +636,25 @@ def text_blocks(route: dict | None, rc: dict | None, ed: dict | None, repo: dict
     site, what it cannot see, what the file leaves out) as one Markdown list introduced by the route's `list_lead`;
     an item that retires drops out, and with none left the lead-in goes too. Then any other text entry (M1, what
     main has fixed) as a paragraph."""
-    items = text_paragraphs(route, rc, ed, repo, items=True)
+    rel = str((ed or {}).get("version") or "the release")
+    items = text_paragraphs(route, rc, ed, repo, items=True, fold=False)
+    folded = text_paragraphs(route, rc, ed, repo, items=True, fold=True)
+    label = str((route or {}).get("fold_lead") or "").strip().replace("{release}", rel)
+    if folded and not label:      # no label, no fold: the items join the open list
+        items, folded = items + folded, []
     out = []
     if items:
         # review round 10: the lead names the release the items describe ({release}; the facts line above dates main)
         lead = str((route or {}).get("list_lead") or "").strip()
-        lead = lead.replace("{release}", str((ed or {}).get("version") or "the release"))
+        lead = lead.replace("{release}", rel)
         body = "\n".join(f"- {lever_line(keep_together(t))}" for t in items)
         out.append(f"{lead}\n\n{body}" if lead else body)
+    if folded:
+        # review round 13 (the owner): what the files miss or get wrong, one labelled step away (a <details> is
+        # closed by default and its <summary> is all a reader sees until they ask); the blank lines let GitHub read
+        # the Markdown list inside it
+        body = "\n".join(f"- {lever_line(keep_together(t))}" for t in folded)
+        out.append(f"<details>\n<summary>{label}</summary>\n\n{body}\n\n</details>")
     out += [keep_together(p) for p in text_paragraphs(route, rc, ed, repo, items=False)]
     return out
 
@@ -657,7 +671,7 @@ def lever_line(text: str) -> str:
 
 
 def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,
-                 with_para: bool = False) -> list:
+                 with_para: bool = False, with_fold: bool = False) -> list:
     """Review round 3: the route's `text` entries (how hard it hits a site; the release's single sitemap file), each
     printed only while its anchors hold, through the same engine as the image's rows; a retired one prints nothing,
     an unverified one nothing (ROUTE-UNVERIFIED fails it). Review round 5: an entry with `ci` (what main has fixed)
@@ -681,7 +695,10 @@ def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dic
                 if not head:
                     continue
                 text = text.replace("{head}", head)
-            out.append((text, bool(e.get("para")), bool(e.get("item"))) if with_para else text)
+            if with_para and with_fold:
+                out.append((text, bool(e.get("para")), bool(e.get("item")), bool(e.get("fold"))))
+            else:
+                out.append((text, bool(e.get("para")), bool(e.get("item"))) if with_para else text)
     return out
 
 
@@ -723,6 +740,12 @@ def pick_block(stats: dict, cfg: dict) -> str:
     # review round 4: "no services to run" rests on the release (Redis is an opt-in flag of its crawl)
     if "no services" in text and not ((route.get("gates") or {}).get("no_services") or {}).get("ok"):
         return ""
+    # review round 13 (the navigator): Scrapy's politeness, its own clause, printed only while each of its rows holds
+    polite = str((cfg.get("copy") or {}).get("pick_polite") or "").strip()
+    prow = [r for r in stats.get("figures") or [] if r.get("use") == "pick_polite"]
+    pwant = [f for f in cfg.get("figures") or [] if f.get("use") == "pick_polite"]
+    if polite and pwant and len(prow) == len(pwant) and all(r.get("holds") for r in prow):
+        text = f"{text} {polite}"
     return text
 
 

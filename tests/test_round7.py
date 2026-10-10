@@ -161,8 +161,8 @@ class RuleOne(unittest.TestCase):
         for b in bodies:
             self.assertNotRegex(b, r"you cannot .* you cannot")
         # review r11-1 #2: the rule carries the breaker's numbers; the Scrapy bullet no longer says it
-        self.assertEqual(bodies[0], "When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest "
-                                    "of the crawl goes on.")
+        self.assertEqual(bodies[0], "When 5 URLs in a row on one host fail every retry, that host is left alone for 60 s; "
+                                    "the rest of the crawl goes on.")      # review round 13: in a row
         self.assertTrue(bodies[2].startswith("Metrics were exported {days:prometheus} days"), bodies[2])
 
 
@@ -193,14 +193,18 @@ class Writer(unittest.TestCase):
         self.assertTrue(got["verified"], got)
         self.assertEqual(got["text"], "logged to disk, then saved to redb, in batches")
 
-    def test_every_n_ms_only_on_a_timed_flush(self):
+    def test_no_period_wording(self):
+        # review round 13: the "every 50 ms" wording is gone (no tree ever slept between flushes); a timed flush
+        # changes nothing the row says
         got = self.resolve("thread::sleep(Duration::from_millis(BATCH_TIMEOUT_MS));")
-        self.assertEqual(got["text"], "logged to disk, then saved to redb, every 50 ms")
+        self.assertEqual(got["text"], "logged to disk, then saved to redb, in batches")
+        cfg, _ = load()
+        self.assertFalse(any("BATCH_TIMEOUT_MS" in c["text"] for c in [entry(cfg, "W1")] + entry(cfg, "W1")["instead"]))
 
     def test_committed(self):
         _, stats = load()
         w1 = next(e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"]) if e["id"] == "W1")
-        self.assertEqual(w1["text"], "logged to disk, then saved to redb, in batches")
+        self.assertEqual(w1["text"], "saved as it goes; export works after a kill")      # review round 13
         self.assertNotIn("every 50 ms", sheet.PURPOSE["W1"][0])
 
 

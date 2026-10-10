@@ -23,6 +23,9 @@ Review round 7: `{text, repo, path, keys, count}` holds when the dict literal as
 (`self.methods = {…}`, read with ast) has `count` keys; `also = [{path, literal}]` must hold too; `handoff = true`
 marks the row the image's hand-off label reads (sheets/route.handoff_words).
 
+Review round 13: `absent = [{path, pattern}]` must not match (a regular expression; the file must exist): config.yml
+with no top-level `scrapy:` section, so the UConn user agent is the one sent.
+
 Review round 8: `{text, repo, glob, contains, count}` counts only the matching files that contain the literal (the four
 organizers that take `List[PageContent]`), and `parts = [text, …]` on a row asks that the counts of those rows add up
 to its own (25 = 21 + 4: one count for ideal-url-organizer across the page). A rule's body may print
@@ -304,6 +307,15 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
             if s2 is None or str(a.get("literal")) not in s2:
                 rec["holds"] = False
                 rec["why"] = f"{a.get('path')}: no {a.get('literal')!r} at HEAD"
+        for a in f.get("absent") or []:   # review round 13: a pattern that would make the claim false
+            if not rec["holds"]:
+                break
+            s2 = read(gd, str(a.get("path")))
+            if s2 is None:
+                rec["holds"], rec["why"] = False, f"{a.get('path')}: file missing at HEAD"
+            elif re.search(str(a.get("pattern")), s2):
+                rec["holds"] = False
+                rec["why"] = f"{a.get('path')}: {a.get('pattern')!r} matches at HEAD"
         out.append(rec)
     by_text = {(r["text"], r["repo"]): r for r in out}
     for rec in out:          # review round 8: a split's parts add up to the whole

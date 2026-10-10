@@ -44,6 +44,10 @@ footer_line = "The chart ends here. The web doesn't."
 # Review round 7: "His **Scrapy** repository", not the Scrapy framework (64.7k stars, `Scrapy` on PyPI); no
 # "pipeline", which names the framework's item pipelines; American spelling, as the rest of the page.
 pick = "**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker."
+# Review round 13 (the navigator): the cautions say what rustmapper 0.1.3 does not do for the site it crawls; this
+# says that his other tool does it. Appended to `pick` only while every [[figures]] row with use = "pick_polite"
+# holds (render_readme.pick_block); the caps (60 s, 120 s) stay in Scrapy's README
+pick_polite = "It obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`."
 # Review round 7: the Languages line's first two (what the page is about); the rest is every other main_language of
 # his public repositories, ordered by how many repositories, then lines (render_readme.languages_block)
 languages_lead = ["Python", "Rust"]
@@ -125,7 +129,10 @@ title = "Boring under load."
 # of stage 2 (`_host_breakers`, stage2_worker.py): after 5 URLs on a host fail every retry, it is left alone 60 s.
 # review round 11 (the owner): the breaker is told once, here, with its numbers (the Scrapy bullet no longer repeats
 # it); the figures are the [[figures]] rows "5 URLs on one host" and "60 s" (block = "notices", checks/figures.py)
-body = "When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on."
+# review round 13 (the owner): "in a row". CircuitBreaker.record_success (utils/retry.py) puts the count back to 0
+# while the breaker is closed, and stage 2 calls it on every page that comes back (stage2_worker.py), so five
+# failures with a success between them never trip it; the [[figures]] row anchors the reset
+body = "When 5 URLs in a row on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on."
 cite = "Scrapy, {month:breaker}: a circuit breaker for each host in stage 2."
 anchors = [{key = "breaker", repo = "Scrapy", text = "_host_breakers", author = "self"}]
 repo = "Scrapy"
@@ -311,6 +318,47 @@ repo = "Scrapy"
 path = "Scraping_project/start.py"
 literal = '"local": ("docker", "docker-compose")'
 
+# review round 13 (the navigator): the pick sentence's politeness clause (pick_polite). The scout's settings
+# (get_spider_settings("scout"), its custom_settings) obey robots.txt unless config.yml turns it off, swap Scrapy's
+# robots middleware for one that honours Crawl-delay, and wait out a Retry-After on 429 and 503; each row also names
+# the test that holds it
+[[figures]]
+text = "It obeys `robots.txt`"
+use = "pick_polite"
+repo = "Scrapy"
+path = "Scraping_project/src/stage1/middlewares/spider_config.py"
+literal = '"ROBOTSTXT_OBEY": bool(spider_config.get("robotstxt_obey", True))'
+also = [{path = "Scraping_project/src/stage1/scout_spider.py", literal = 'custom_settings = get_spider_settings("scout")'}]
+absent = [{path = "Scraping_project/config.yml", pattern = '(?im)^\s*robotstxt_obey\s*:\s*(false|no|off|0)\b'}]
+
+[[figures]]
+text = "its `Crawl-delay`"
+use = "pick_polite"
+repo = "Scrapy"
+path = "Scraping_project/src/stage1/middlewares/spider_config.py"
+literal = 'PoliteRobotsTxtMiddleware": 100'
+also = [{path = "Scraping_project/src/stage1/middlewares/spider_config.py", literal = '"scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware": None'},
+        {path = "Scraping_project/tests/unit/stage1/test_robots_policy.py", literal = "def test_disallowed_path_is_never_requested_and_crawl_delay_is_capped"}]
+
+[[figures]]
+text = "waits out a `Retry-After`"
+use = "pick_polite"
+repo = "Scrapy"
+path = "Scraping_project/src/stage1/middlewares/spider_config.py"
+literal = 'RetryAfterMiddleware": 560'
+also = [{path = "Scraping_project/tests/unit/stage1/test_retry_after.py", literal = "Retry-After"}]
+
+# review round 13 (the navigator): who the page's Scrapy command says it is. settings.py's USER_AGENT falls back to
+# the UConn name unless config.yml has a `scrapy:` section with user_agent, and it has none; the scout's own settings
+# do not set one. The run sentence names it and the code block gives `-s USER_AGENT`, which wins over both
+[[figures]]
+text = "`UConn-Discovery-Crawler/1.0`"
+repo = "Scrapy"
+path = "Scraping_project/src/settings.py"
+literal = 'USER_AGENT = _scrapy_config.get("user_agent", "UConn-Discovery-Crawler/1.0")'
+absent = [{path = "Scraping_project/config.yml", pattern = '(?m)^scrapy\s*:'},
+          {path = "Scraping_project/src/stage1/middlewares/spider_config.py", pattern = 'USER_AGENT'}]
+
 # review round 8: the Scrapy run sentence names the hyphenated command start.py looks for (shutil.which) and runs
 # (`docker-compose up -d`); once start.py accepts `docker compose` this row fails and the sentence goes back to
 # "it needs Docker and Docker Compose"
@@ -372,13 +420,17 @@ count = 134807
 # review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
 # utils/retry.py have no caller. The two figures are the defaults the worker reads. Review round 11: they are printed
 # once, in working rule 1's body (`block = "notices"`: checks/figures.py reads the printed rules' bodies too)
+# review round 13 (the owner): "in a row" rests on the closed-state reset in record_success (the `else:` branch; the
+# same assignment in __init__ proves nothing) and on stage 2 calling it after each page that comes back
 [[figures]]
-text = "5 URLs on one host"
+text = "5 URLs in a row on one host"
 block = "notices"
 repo = "Scrapy"
 path = "Scraping_project/src/stage2/stage2_worker.py"
 literal = "DEFAULT_STAGE2_BREAKER_FAILURES = 5"
-also = [{path = "Scraping_project/src/stage2/stage2_worker.py", literal = "_host_breakers"}]
+also = [{path = "Scraping_project/src/stage2/stage2_worker.py", literal = "_host_breakers"},
+        {path = "Scraping_project/src/stage2/stage2_worker.py", literal = "breaker.record_success()"},
+        {path = "Scraping_project/src/utils/retry.py", literal = "        else:\n            self.failure_count = 0\n\n    def record_failure"}]
 
 [[figures]]
 text = "60 s"
@@ -534,6 +586,9 @@ header_runs = ["crawl_ctrl_c"]
 # just above dates main (whose --workers default is 512 and seeding default "none"), so the lead names the release
 # ({release}, filled by render_readme.text_blocks) and no item repeats it
 list_lead = "Before you run {release}:"
+# review round 13 (the owner): the items marked `fold` (what the files miss or get wrong, nothing a server feels)
+# go in one <details> after the open list, under this label; the open list keeps what you set or decide first
+fold_lead = "What {release}'s files miss or get wrong"
 
 # README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
 # P1 test (a site whose robots.txt is a 404 is crawled) and the P2 test (--duration stops a stalled crawl) are at HEAD.
@@ -673,28 +728,35 @@ release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_l
 runs = ["crawl_ctrl_c"]
 
 # The write path, in its order (review round 5). writer_loop appends each batch to the write-ahead log and fsyncs it
-# (sync_all) before it commits the batch to redb (order anchors, `before`). That is why an export after a kill has
-# something to read. Review round 7: no period. drain_batch waits at most BATCH_TIMEOUT_MS (50) for the first event
-# (recv_deadline), then takes whatever is queued, up to MAX_BATCH_SIZE, with try_recv and returns at once: during a
-# crawl batches are written back to back, and 50 ms is the idle wait, not a save period. "every N ms" is said only
-# if writer_loop ever sleeps on the constant between flushes (the first wording, which does not hold today).
+# (sync_all) before it commits the batch to redb (order anchors, `before`). drain_batch waits at most
+# BATCH_TIMEOUT_MS (50) for the first event (recv_deadline), then takes whatever is queued, up to MAX_BATCH_SIZE,
+# with try_recv and returns at once: batches are written as events arrive, with no period.
+# Review round 13 (the owner, with the navigator's wording): the row says what that buys the reader, not its parts.
+# After a kill the release keeps the pages for export-sitemap (probe export_after_kill), and only that: a kill writes
+# no sitemap.jsonl (kill_writes_file failed) and resume cannot open the store (resume_after_kill failed), so not "a
+# kill keeps the crawl". One phone line (tests/test_round13.py): a second would draw the phone sheet over 900 px at
+# 851, and "export-sitemap works after a kill" takes two (1,155 units, measured); the code block under the list
+# names the command. The day a kill writes the file, kill_writes_file passes and the old wording comes back until
+# this is reworded.
 [[route.rustmapper.entry]]
 id = "W1"
 kind = "stop"
 loop = true
 file = "writer_thread.rs"
-text = "logged to disk, then saved to redb, every {const:BATCH_TIMEOUT_MS} ms"
-audit = "Printed only while `writer_loop` sleeps on the constant between flushes; at 0.1.3 and at HEAD it does not (`drain_batch` waits up to 50 ms for the first event, then takes what is queued, up to 5,000, and returns), so the image says \"in batches\" with no figure"
-head = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-        {path = "src/writer_thread.rs", fn = "writer_loop", text = "sleep(Duration::from_millis(BATCH_TIMEOUT_MS))"},
+text = "saved as it goes; export works after a kill"
+head = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_deadline(deadline)"},
+        {path = "src/writer_thread.rs", fn = "drain_batch", text = "try_recv()"},
         {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.append(&record)", before = "wal_writer.fsync()"},
         {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.fsync()", before = "state.apply_event_batch(&batch)"},
         {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
-release = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-           {path = "src/writer_thread.rs", fn = "writer_loop", text = "sleep(Duration::from_millis(BATCH_TIMEOUT_MS))"},
+release = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_deadline(deadline)"},
+           {path = "src/writer_thread.rs", fn = "drain_batch", text = "try_recv()"},
            {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.append(&record)", before = "wal.fsync()"},
            {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.fsync()", before = "state.apply_event_batch(&batch)"},
-           {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
+           {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"}]
+runs = ["export_after_kill"]
+fails = ["kill_writes_file"]
 [[route.rustmapper.entry.instead]]
 text = "logged to disk, then saved to redb, in batches"
 head = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_deadline(deadline)"},
@@ -803,6 +865,11 @@ release = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "sr
            {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
 runs = ["crawl_ctrl_c"]
 
+# Review round 13: each caution has a `stage`, where on the route it bites (server: all along, how it treats any
+# server; start, links, file, export: in the drawing's order), and the list runs in that order (the historian:
+# pilot books describe the coast in the order you meet it); `short` names it in DESIGN.md's count of which cautions
+# a probe ran; `fold` puts it in the <details> after the open list (the owner: what the files hold, not what a
+# server feels).
 # Review round 3 (the developer choosing a crawler): sentences under the install block, checked by the same engine
 # and never drawn (kind "text"). Review round 9: the cautions are one short list under the wheel note (`item = true`,
 # introduced by the route's `list_lead`), each a problem with its lever where it has one, at most 25 words an item;
@@ -815,6 +882,8 @@ runs = ["crawl_ctrl_c"]
 # requests open at once by default and one with `--workers 1`. The printed 1 is the probe's own argument.
 [[route.rustmapper.entry]]
 id = "L1"
+stage = "server"
+short = "load"
 kind = "text"
 scope = "release"
 item = true
@@ -842,6 +911,8 @@ runs = ["workers_cap", "crawl_delay_obeyed"]
 # /secret.html fetched.
 [[route.rustmapper.entry]]
 id = "L4"
+stage = "server"
+short = "robots.txt"
 kind = "text"
 scope = "release"
 item = true
@@ -865,6 +936,8 @@ runs = ["robots_read", "crawl_delay_obeyed"]
 # --seeding-strategy none turns every seeder off (bfs_crawler.rs:189-192), so it starts from your URL alone.
 [[route.rustmapper.entry]]
 id = "L2"
+stage = "start"
+short = "seeding"
 kind = "text"
 scope = "release"
 item = true
@@ -885,6 +958,8 @@ release = [{path = "src/cli.rs", arg = "seeding_strategy", equals = "all"},
 # anchor goes.
 [[route.rustmapper.entry]]
 id = "L5"
+stage = "start"
+short = "the www scope"
 kind = "text"
 item = true
 text = "From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all."
@@ -910,6 +985,9 @@ release = [{path = "src/url_utils.rs"}]
 # --enable-js-rendering is the [[figures]] row "optional headless-Chrome rendering".
 [[route.rustmapper.entry]]
 id = "L3"
+stage = "links"
+short = "JavaScript"
+fold = true
 kind = "text"
 scope = "release"
 item = true
@@ -918,31 +996,33 @@ release = [{path = "Cargo.toml", text = 'scraper = "'}, {path = "Cargo.toml", ab
            {path = "Cargo.toml", absent = "headless_chrome"}, {path = "Cargo.toml", absent = "fantoccini"},
            {path = "Cargo.toml", absent = "deno_core"}, {path = "Cargo.toml", absent = "rusty_v8"}]
 
-# X1, release only: 0.1.3's export writes every page into one <urlset>; the sitemap format allows 50,000 URLs per
-# file, the figure main's own SitemapIndexWriter splits at (sitemap_writer.rs). Retired once a release splits.
+# X3, review round 12 (the developer choosing): what it does after a redirect. reqwest follows it, and neither tree
+# reads the response's final URL (`Response::url()`): the node keeps the address it asked for, and the page's
+# relative links are resolved against it (`effective_base = base_href … unwrap_or(&job_url_clone)`, HEAD `&job.url`).
+# A browser resolves them against the final URL (RFC 3986 §5.1.3), so on a site that redirects /docs to /docs/ every
+# relative link under it is fetched one folder up. Probe redirect_kept: /dir (301 to /dir/) links child.html;
+# /child.html is asked for, /dir/child.html never. It retires once a release reads the final URL (the probe fails).
 [[route.rustmapper.entry]]
-id = "X1"
+id = "X3"
+stage = "links"
+short = "redirects"
+fold = true
 kind = "text"
-scope = "release"
 item = true
-from_head = true
-# Review round 12 (the developer choosing): what goes into the file, too. 0.1.3's export writes every node whose
-# status_code is 200 (`if node.status_code == Some(200)`) and reads neither a canonical link nor a robots meta tag,
-# so a URL that redirects (X3) and a noindex page are listed. Probe sitemap_keeps_noindex (the redirect fixture):
-# /old and canon.html (noindex, canonical to /new.html) are in the one file. Main skips canonicalized pages
-# (orchestration/export.rs), so this is release scope, under "Before you run 0.1.3:".
-text = "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex` and canonicalized pages."
-audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at. 200 is the status `run_export_sitemap_command` keeps (`node.status_code == Some(200)`); probe `sitemap_keeps_noindex` listed the redirecting `/old` and the noindex, canonicalized `canon.html`"
-head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
-release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "canonical"},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
-           {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
-runs = ["sitemap_keeps_noindex"]
+text = "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`."
+audit = "Probe `redirect_kept` (crawled with `--timeout 3`): on the redirect fixture, `/old` (301 to `/new.html`) was written as url `/old` with `status_code` 200 and title \"New\"; `/dir` (301 to `/dir/`, as http.server and Apache's `DirectorySlash` answer a folder) links `child.html`, and the server was asked for `/child.html`, never `/dir/child.html`"
+head = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job.url)"},
+        {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
+        {path = "src/network.rs", absent = "redirect::Policy"}]
+release = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job_url_clone)"},
+           {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
+           {path = "src/network.rs", absent = "redirect::Policy"}]
+runs = ["redirect_kept"]
 [[route.rustmapper.entry.instead]]
 text = ""
-release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
+head = [{path = "src/bfs_crawler.rs"}]
+release = [{path = "src/bfs_crawler.rs"}]
+fails = ["redirect_kept"]
 
 # X2, review round 9 (the navigator): what the file cannot tell you. The image names `status_code`; in 0.1.3 only a
 # 200 goes on to parsing (process_url_streaming: `Ok(response) if … == 200`, then `Ok(_) =>` returns
@@ -956,6 +1036,9 @@ release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
 # It retires once a release records the status or asks again (the probe then fails).
 [[route.rustmapper.entry]]
 id = "X2"
+stage = "file"
+short = "status codes"
+fold = true
 kind = "text"
 scope = "release"
 item = true
@@ -977,30 +1060,34 @@ text = ""
 release = [{path = "src/bfs_crawler.rs"}]
 fails = ["non200_status"]
 
-# X3, review round 12 (the developer choosing): what it does after a redirect. reqwest follows it, and neither tree
-# reads the response's final URL (`Response::url()`): the node keeps the address it asked for, and the page's
-# relative links are resolved against it (`effective_base = base_href … unwrap_or(&job_url_clone)`, HEAD `&job.url`).
-# A browser resolves them against the final URL (RFC 3986 §5.1.3), so on a site that redirects /docs to /docs/ every
-# relative link under it is fetched one folder up. Probe redirect_kept: /dir (301 to /dir/) links child.html;
-# /child.html is asked for, /dir/child.html never. It retires once a release reads the final URL (the probe fails).
+# X1, release only: 0.1.3's export writes every page into one <urlset>; the sitemap format allows 50,000 URLs per
+# file, the figure main's own SitemapIndexWriter splits at (sitemap_writer.rs). Retired once a release splits.
 [[route.rustmapper.entry]]
-id = "X3"
+id = "X1"
+stage = "export"
+short = "sitemap.xml"
+fold = true
 kind = "text"
+scope = "release"
 item = true
-text = "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`."
-audit = "Probe `redirect_kept` (crawled with `--timeout 3`): on the redirect fixture, `/old` (301 to `/new.html`) was written as url `/old` with `status_code` 200 and title \"New\"; `/dir` (301 to `/dir/`, as http.server and Apache's `DirectorySlash` answer a folder) links `child.html`, and the server was asked for `/child.html`, never `/dir/child.html`"
-head = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job.url)"},
-        {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
-        {path = "src/network.rs", absent = "redirect::Policy"}]
-release = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job_url_clone)"},
-           {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
-           {path = "src/network.rs", absent = "redirect::Policy"}]
-runs = ["redirect_kept"]
+from_head = true
+# Review round 12 (the developer choosing): what goes into the file, too. 0.1.3's export writes every node whose
+# status_code is 200 (`if node.status_code == Some(200)`) and reads neither a canonical link nor a robots meta tag,
+# so a URL that redirects (X3) and a noindex page are listed. Probe sitemap_keeps_noindex (the redirect fixture):
+# /old and canon.html (noindex, canonical to /new.html) are in the one file. Main skips canonicalized pages
+# (orchestration/export.rs), so this is release scope, under "Before you run 0.1.3:".
+text = "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex` and canonicalized pages."
+audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at. 200 is the status `run_export_sitemap_command` keeps (`node.status_code == Some(200)`); probe `sitemap_keeps_noindex` listed the redirecting `/old` and the noindex, canonicalized `canon.html`"
+head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
+release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "canonical"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
+           {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
+runs = ["sitemap_keeps_noindex"]
 [[route.rustmapper.entry.instead]]
 text = ""
-head = [{path = "src/bfs_crawler.rs"}]
-release = [{path = "src/bfs_crawler.rs"}]
-fails = ["redirect_kept"]
+release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
 
 # M1, review round 5: what main has fixed, said in text while the release still has the fault (H1). The regression
 # test for #65 is at HEAD, not ignored, run by `cargo test` in CI, and CI passed at the sha the route was read at

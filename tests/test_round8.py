@@ -357,8 +357,9 @@ class WhatItSees(unittest.TestCase):
     def test_committed_paragraphs(self):
         text = read(README)
         # review round 9: items of the cautions list
+        # review round 13: first in the fold, then X3 (links too), X2 (the file), X1 (the export)
         self.assertRegex(text, r"\n- It reads links from the HTML a server sends, and no JavaScript runs\. go_go_go can "
-                               r"render pages in headless Chrome\.\n- Its `sitemap\.xml` is every page")
+                               r"render pages in headless Chrome\.\n- After a redirect it keeps the old address")
 
 
 class Compose(unittest.TestCase):

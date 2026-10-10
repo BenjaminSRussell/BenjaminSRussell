@@ -127,7 +127,7 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X1", "X2", "X3",
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X3", "X2", "X1",
                       "M1"])
         # r7: G1 in F1; r8: L2, L3; r9: L4 (the robots clause, its own item), X2 (what the file cannot say)
         if not by["S2"]["verified_head"]:
@@ -165,9 +165,11 @@ class Anchors(unittest.TestCase):
         # review round 9: a verb; round 11: after the command it names
         self.assertTrue(drawn["S1"]["text"].startswith("`{script} crawl` starts from your URL; "))
         # review round 7: the write path in its order, in batches: 50 ms is drain_batch's wait for the first event
-        self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, in batches")
+        # review round 13: the row says what that buys (export-sitemap after a kill), on the probes that showed it
+        self.assertEqual(drawn["W1"]["text"], "saved as it goes; export works after a kill")
+        self.assertEqual((drawn["W1"]["runs"], drawn["W1"]["fails"]), (["export_after_kill"], ["kill_writes_file"]))
         self.assertEqual(m1["ci"], "Test")
-        self.assertNotIn("kill", drawn["W1"]["text"])
+        self.assertNotIn("keeps the crawl", drawn["W1"]["text"], "a kill writes no file and resume fails (r13-3 #3)")
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
 
 
@@ -633,7 +635,8 @@ class RoundFive(unittest.TestCase):
             befores = [(a["text"], a["before"]) for a in w1[side] if "before" in a]
             self.assertEqual(len(befores), 2, side)
             self.assertTrue(befores[1][1] == "state.apply_event_batch(&batch)" and "fsync" in befores[1][0], side)
-        self.assertIn("then saved to redb", w1["text"])
+        self.assertIn("then saved to redb", w1["instead"][0]["text"])
+        self.assertEqual(w1["text"], "saved as it goes; export works after a kill")   # review round 13: what it buys
 
     def test_threshold_prints_as_a_whole_number(self):
         spec = {"repo": "x", "entry": [{"id": "G1", "kind": "note", "scope": "release",

@@ -92,7 +92,7 @@ class BreakerOnce(unittest.TestCase):
         hits = [b for b in self.blocks(read(README)) if re.search(r"circuit breaker|left alone", b, re.I)]
         self.assertEqual(len(hits), 1, hits)
         self.assertIn("Boring under load.", hits[0])
-        self.assertIn("When 5 URLs on one host fail every retry, that host is left alone for 60", hits[0])
+        self.assertIn("When 5 URLs in a row on one host fail every retry, that host is left alone for 60", hits[0])
         self.assertIn("- Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.",
                       read(README))
 
@@ -104,7 +104,7 @@ class BreakerOnce(unittest.TestCase):
         bad = figures_check.check(ctx(dict(cfg, notices=nts), stats, read(README)))
         msgs = " ".join(f.msg for f in bad)
         self.assertIn("'7'", msgs, "a typed number in a rule needs a row")
-        self.assertIn("'5 URLs on one host' is marked for the working rules", msgs, "a notices row must be printed")
+        self.assertIn("'5 URLs in a row on one host' is marked for the working rules", msgs, "a notices row must be printed")
 
 
 class BareLink(unittest.TestCase):
@@ -112,7 +112,7 @@ class BareLink(unittest.TestCase):
 
     def test_committed(self):
         text = read(README)
-        details = text.split("<details>", 1)[1].split("</details>", 1)[0]
+        details = text.split('<a name="also"></a>', 1)[1].split("<details>", 1)[1].split("</details>", 1)[0]
         bare = next(ln for ln in details.splitlines() if ln.startswith("- Also: "))
         self.assertIn("[excel-and-vba](https://github.com/BenjaminSRussell/excel-and-vba)", bare)
         self.assertNotIn("spreadsheet automation", text)
@@ -287,7 +287,9 @@ class DrawnRegister(unittest.TestCase):
         self.assertNotIn("M1", rows, "retired: nothing printed")
         loose = {r["entry"]: r for r in audit_figures.route_rows(cfg)}
         self.assertIn("{const:THROTTLE_THRESHOLD_MS}", loose["F1"]["printed"], "with no stats, every wording")
-        self.assertIn("W1", loose)
+        # review round 13: no W1 wording prints a figure now (the "every 50 ms" one is gone)
+        self.assertNotIn("W1", loose)
+        self.assertIn("X1", loose)
 
     def test_register_follows_the_stats(self):
         cfg, stats = load()

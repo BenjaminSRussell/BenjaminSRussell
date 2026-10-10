@@ -64,7 +64,8 @@ class ScrapyRun(unittest.TestCase):
                 "`python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs "
                 "Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). "
                 "It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on "
-                "uconn.edu. The last command crawls your site.")
+                "uconn.edu. The last command crawls your site as `<your-bot>`; without that line, its requests say "
+                "`UConn-Discovery-Crawler/1.0`.")   # review round 13: who the crawl says it is
 
     def test_committed(self):
         text = read(README)
@@ -235,11 +236,12 @@ class ScopeLever(unittest.TestCase):
         return R.resolve(r, {"version": "0.1.3", "ok": True, "steps": []})[0]
 
     def test_committed(self):
-        items = install(read(README)).split("Before you run 0.1.3:", 1)[1].split("```", 1)[0].strip().splitlines()
-        self.assertEqual(len(items), 8)
+        # review round 13: the open list is the four cautions you act on before you run; the rest are in a fold
+        items = install(read(README)).split("Before you run 0.1.3:", 1)[1].split("<details>", 1)[0].strip().splitlines()
+        self.assertEqual(len(items), 4)
         self.assertEqual(items[3], "- " + self.WORDS)
         self.assertLessEqual(len(self.WORDS.split()), rr.LIST_MAX_WORDS)
-        self.assertEqual(rr.LIST_MAX_ITEMS, 8)
+        self.assertEqual(rr.LIST_MAX_ITEMS, 7)
 
     def test_anchors(self):
         e = self.resolve(self.files())

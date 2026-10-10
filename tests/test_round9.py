@@ -71,7 +71,7 @@ class Cautions(unittest.TestCase):
         self.assertTrue(paras[0].startswith("Prebuilt for Apple silicon"), paras[0])
         self.assertEqual(paras[1], "Before you run 0.1.3:")      # review round 10: the lead names the release
         items = paras[2].strip().splitlines()
-        self.assertEqual(len(items), 8)                    # review round 10: L5, the scope lever; round 12: X3
+        self.assertEqual(len(items), 4)                    # review round 13: the four you act on; the rest folded
         for it in items:
             self.assertTrue(it.startswith("- "), it)
             self.assertLessEqual(len(it[2:].split()), rr.LIST_MAX_WORDS, it)

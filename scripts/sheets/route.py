@@ -80,10 +80,12 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "never slows", "Q1",
            "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 state.rs max_inflight, frontier.rs "
            "current_inflight; main.rs governor_task MIN_PERMITS)"),
-    "W1": ("what it has found is written to a log on disk, fsynced, then committed to redb in batches (as events "
-           "arrive, up to 5,000 at a time; no period), so an export after a kill has something to read", "Q5",
+    "W1": ("what saving as it goes buys the reader (review round 13): after a kill, export-sitemap still has the "
+           "pages to write, because each batch is logged to disk and fsynced before redb commits it (as events "
+           "arrive; no period). Not \"a kill keeps the crawl\": a kill writes no sitemap.jsonl and resume cannot "
+           "open the store", "Q5",
            "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; drain_batch recv_deadline, "
-           "try_recv; redb)"),
+           "try_recv; redb; main.rs run_export_sitemap_command); runcheck export_after_kill, kill_writes_file"),
     "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
            "says it is done, with how long it must stay quiet (review round 9: a clearing mark is only as good as its "
            "number), counted once those lines have started and stop (review round 10: every seeder runs first, in "

@@ -230,10 +230,10 @@ class Wording(unittest.TestCase):
                   "a C game engine": ["game_engine"],
                   "": ["excel-and-vba"]}
         text = read(README)
-        fold = text.split("<details>", 1)[1].split("</details>", 1)[0]
+        fold = text.split('<a name="also"></a>', 1)[1].split("<details>", 1)[1].split("</details>", 1)[0]
         listed = re.findall(r"\(https://github\.com/BenjaminSRussell/([\w.-]+)\)", fold)
         self.assertEqual(sorted(listed), sorted(n for v in groups.values() for n in v), "the table is the fold")
-        label = re.search(r"<summary>(.*?)</summary>", text).group(1)
+        label = re.search(r"<summary>(.*?)</summary>", text.split('<a name="also"></a>', 1)[1]).group(1)
         named = [g for g in groups if g and g in label]
         largest = max(groups, key=lambda g: len(groups[g]))
         self.assertEqual(named[0], largest, "the label leads with the largest group")
@@ -259,7 +259,10 @@ class Redirects(unittest.TestCase):
         self.assertTrue(steps["redirect_kept"]["ok"] and steps["sitemap_keeps_noindex"]["ok"])
         items = rr.text_paragraphs(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"], stats["edition"],
                                    items=True)
-        self.assertEqual(len(items), rr.LIST_MAX_ITEMS)
+        self.assertEqual(len(items), 8)
+        for fold in (False, True):      # review round 13: the open list and the fold, each within the cap
+            self.assertLessEqual(len(rr.text_paragraphs(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"],
+                                                        stats["edition"], items=True, fold=fold)), rr.LIST_MAX_ITEMS)
         for t in items:
             self.assertLessEqual(len(t.split()), rr.LIST_MAX_WORDS, t)
         self.assertEqual(readme_check.cautions(read(README)), [])

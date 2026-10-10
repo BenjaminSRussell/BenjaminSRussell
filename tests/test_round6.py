@@ -314,13 +314,13 @@ class Wording(unittest.TestCase):
         self.assertNotIn("Circuit breakers wrap the HTTP, Delta Lake and Redis services", text)
         # review r11-1 #2: the breaker is told once, in working rule 1, not in the Scrapy bullet as well
         self.assertNotIn("Each host has its own circuit breaker", text)
-        self.assertIn("When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the "
-                      "crawl goes on.", text.replace("\u00a0", " "))
+        self.assertIn("When 5 URLs in a row on one host fail every retry, that host is left alone for 60 s; the rest "
+                      "of the crawl goes on.", text.replace("\u00a0", " "))      # review round 13: in a row
         self.assertNotIn("costs the caller nothing", text)
         self.assertIn("logged only after the client has its last byte", text)
         self.assertNotIn("concurrent sitemap crawler written in Rust", text)
         cfg, _ = load()
-        for t in ("5 URLs on one host", "60 s"):
+        for t in ("5 URLs in a row on one host", "60 s"):
             row = next(f for f in cfg["figures"] if f["text"] == t)
             self.assertIn("DEFAULT_STAGE2_BREAKER_", row["literal"])
             self.assertEqual(row["block"], "notices")

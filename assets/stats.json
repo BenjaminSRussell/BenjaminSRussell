@@ -7567,16 +7567,17 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "logged to disk, then saved to redb, every 50 ms",
+     "text": "saved as it goes; export works after a kill",
      "file": "writer_thread.rs",
-     "verified_head": false,
-     "verified_release": false,
-     "missing": [
-      "head src/writer_thread.rs fn writer_loop: no 'sleep(Duration::from_millis(BATCH_TIMEOUT_MS))'",
-      "release src/writer_thread.rs fn writer_loop: no 'sleep(Duration::from_millis(BATCH_TIMEOUT_MS))'"
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "export_after_kill"
      ],
-     "runs": [],
-     "fails": [],
+     "fails": [
+      "kill_writes_file"
+     ],
      "paths": {
       "head": [
        "src/state.rs",
@@ -7584,6 +7585,7 @@
        "src/writer_thread.rs"
       ],
       "release": [
+       "src/main.rs",
        "src/state.rs",
        "src/wal.rs",
        "src/writer_thread.rs"
@@ -7774,6 +7776,8 @@
       ]
      },
      "item": true,
+     "stage": "server",
+     "short": "load",
      "instead": [
       {
        "text": "It sends requests with no pause unless the site's `robots.txt` sets a `Crawl-delay`, up to 256 at a time across all hosts. `--workers 1` sends one at a time.",
@@ -7822,6 +7826,8 @@
       ]
      },
      "item": true,
+     "stage": "server",
+     "short": "robots.txt",
      "instead": [
       {
        "text": "It ignores `Crawl-delay`.",
@@ -7883,7 +7889,9 @@
        "src/ct_log_seeder.rs"
       ]
      },
-     "item": true
+     "item": true,
+     "stage": "start",
+     "short": "seeding"
     },
     {
      "id": "L5",
@@ -7912,6 +7920,8 @@
       ]
      },
      "item": true,
+     "stage": "start",
+     "short": "the www scope",
      "instead": [
       {
        "text": "",
@@ -7950,95 +7960,10 @@
        "Cargo.toml"
       ]
      },
-     "item": true
-    },
-    {
-     "id": "X1",
-     "kind": "text",
-     "scope": "release",
-     "loop": false,
-     "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
-     "file": null,
-     "verified_head": true,
-     "verified_release": true,
-     "missing": [],
-     "runs": [
-      "sitemap_keeps_noindex"
-     ],
-     "fails": [],
-     "paths": {
-      "head": [
-       "src/sitemap_writer.rs"
-      ],
-      "release": [
-       "src/main.rs",
-       "src/sitemap_writer.rs"
-      ]
-     },
      "item": true,
-     "instead": [
-      {
-       "text": "",
-       "file": null,
-       "verified_head": true,
-       "verified_release": false,
-       "missing": [
-        "release src/sitemap_writer.rs: no 'SitemapIndexWriter'"
-       ],
-       "runs": [],
-       "fails": [],
-       "paths": {
-        "head": [],
-        "release": [
-         "src/sitemap_writer.rs"
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "id": "X2",
-     "kind": "text",
-     "scope": "release",
-     "loop": false,
-     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.",
-     "file": null,
-     "verified_head": true,
-     "verified_release": true,
-     "missing": [],
-     "runs": [
-      "non200_status",
-      "redirect_kept"
-     ],
-     "fails": [],
-     "paths": {
-      "head": [],
-      "release": [
-       "src/bfs_crawler.rs",
-       "src/frontier.rs",
-       "src/network.rs"
-      ]
-     },
-     "item": true,
-     "instead": [
-      {
-       "text": "",
-       "file": null,
-       "verified_head": true,
-       "verified_release": true,
-       "missing": [],
-       "runs": [],
-       "fails": [
-        "non200_status"
-       ],
-       "paths": {
-        "head": [],
-        "release": [
-         "src/bfs_crawler.rs"
-        ]
-       }
-      }
-     ]
+     "stage": "links",
+     "short": "JavaScript",
+     "fold": true
     },
     {
      "id": "X3",
@@ -8065,6 +7990,9 @@
       ]
      },
      "item": true,
+     "stage": "links",
+     "short": "redirects",
+     "fold": true,
      "instead": [
       {
        "text": "",
@@ -8082,6 +8010,99 @@
         ],
         "release": [
          "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "X2",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "non200_status",
+      "redirect_kept"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/frontier.rs"
+      ]
+     },
+     "item": true,
+     "stage": "file",
+     "short": "status codes",
+     "fold": true,
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "non200_status"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "X1",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "sitemap_keeps_noindex"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/sitemap_writer.rs"
+      ],
+      "release": [
+       "src/main.rs",
+       "src/sitemap_writer.rs"
+      ]
+     },
+     "item": true,
+     "stage": "export",
+     "short": "sitemap.xml",
+     "fold": true,
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/sitemap_writer.rs: no 'SitemapIndexWriter'"
+       ],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/sitemap_writer.rs"
         ]
        }
       }
@@ -8187,6 +8208,7 @@
     }
    },
    "list_lead": "Before you run {release}:",
+   "fold_lead": "What {release}'s files miss or get wrong",
    "sdist": {
     "filename": "rustmapper-0.1.3.tar.gz",
     "sha256": "a586e1e10931b088ccb5d88681510de744e04eb9ff5c9ac98b3764c1d702f649"
@@ -8567,6 +8589,53 @@
    "use": "pick"
   },
   {
+   "text": "It obeys `robots.txt`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "\"ROBOTSTXT_OBEY\": bool(spider_config.get(\"robotstxt_obey\", True))",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "its `Crawl-delay`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "PoliteRobotsTxtMiddleware\": 100",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "waits out a `Retry-After`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "RetryAfterMiddleware\": 560",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "`UConn-Discovery-Crawler/1.0`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/settings.py",
+   "literal": "USER_AGENT = _scrapy_config.get(\"user_agent\", \"UConn-Discovery-Crawler/1.0\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
    "text": "the `docker-compose` command",
    "repo": "Scrapy",
    "path": "Scraping_project/start.py",
@@ -8625,7 +8694,7 @@
    "host": "uconn.edu"
   },
   {
-   "text": "5 URLs on one host",
+   "text": "5 URLs in a row on one host",
    "repo": "Scrapy",
    "path": "Scraping_project/src/stage2/stage2_worker.py",
    "literal": "DEFAULT_STAGE2_BREAKER_FAILURES = 5",

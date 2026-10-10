@@ -836,3 +836,75 @@ probe was run on the installed 0.1.3 binary (`scratchpad/r6/rc12/steps.json`) an
   it passes (0 fail, 0 warn); HERO-COLUMN-PX: every viewport 360 to 1,920 px gets 11 px text, and from 768 a picture
   at most 900 px tall. DESIGN-FRESH, README-SUBCOMMAND, README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER,
   README-STALE and AUDIT-STALE are clean.
+
+## Round 13
+
+Reviews: `review-r13-1.md` (the owner) **9 / 10**, `review-r13-2.md` (the historian of charts and sailing
+directions) **9 / 10**, `review-r13-3.md` (the deck officer and yacht navigator) **8 / 10**. None meets the goal yet.
+All three would ship the image as it is. What was left: a working rule that said more than the code does, a caution
+list that had grown past its own cap and was the densest stretch of the phone page, a row in the picture whose reason
+was only in our reviews (review 1); a method page that claimed every caution was probed, and cautions in an order
+that did not follow the drawing (review 2); and a Scrapy command that crawls as UConn's bot, with a pick sentence that
+never says Scrapy is polite where rustmapper 0.1.3 is not (review 3). One conflict: review 1's W1 wording ("so a kill
+keeps the crawl") is false by the run check; review 3's correction is taken, shortened to fit review 1's one-line
+limit.
+
+Renders: `scratchpad/r6/build/round-13/` (the standard set, plus the mid sheets at 746, the phone sheets at 308, the
+phone page at 360, and `page-1180-1.png`, `page-900-1.png`). `stats.json` was re-read from the local trees with
+`scratchpad/r6/reroute13.py` (no new probe run; the round 12 run check stands).
+
+### What was measured first
+
+- **The breaker (review 1).** Scrapy `96e7a1a`, `src/utils/retry.py`: `record_success` sets `failure_count = 0` in its
+  `else:` branch (the closed state); `stage2_worker.py:791` calls `breaker.record_success()` after every page that
+  comes back. Five failures with a success between them never trip it: the count is five in a row.
+- **W1 on one phone line (reviews 1 and 3).** Built each wording into the six editions (`scratchpad/r6/r13/try_w1.py`):
+  "saved as it goes; export-sitemap works after a kill" (review 3's, 51 characters) and its comma and colon variants
+  take two lines on the phone sheet, which grows from 1,121 to 1,155 units. "saved as it goes; export works after a
+  kill" is one line on every edition and the phone sheet stays 1,121.
+- **The user agent (review 3).** `settings.py:115` falls back to `UConn-Discovery-Crawler/1.0`; `config.yml` has no
+  top-level `scrapy:` section; the scout's settings (`get_spider_settings("scout")`, its `custom_settings`) set no
+  `USER_AGENT`. Scrapy's `-s` settings rank above a spider's `custom_settings`, so `-s USER_AGENT=…` wins.
+- **The politeness (review 3).** `spider_config.py`: `"ROBOTSTXT_OBEY": bool(spider_config.get("robotstxt_obey",
+  True))`, Scrapy's `RobotsTxtMiddleware` set to `None` and `PoliteRobotsTxtMiddleware` at 100, `RetryAfterMiddleware`
+  at 560; `config.yml` sets no `robotstxt_obey`; the tests `test_robots_policy.py`
+  (`test_disallowed_path_is_never_requested_and_crawl_delay_is_capped`) and `test_retry_after.py` are at HEAD.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: "in a row" | Rule 1: "When 5 URLs in a row on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on." The `[[figures]]` row is "5 URLs in a row on one host"; its `also` gains stage 2's `breaker.record_success()` and the reset in `record_success`'s `else:` branch (the same assignment in `__init__` proves nothing, so the anchor is that branch, to `def record_failure`). Test: a `retry.py` without the reset, or a stage 2 that never reports a success, fails the row. |
+| r1-2: the fold | `chart.toml`: L3, X3, X2, X1 have `fold = true`; route `fold_lead = "What {release}'s files miss or get wrong"`. `render_readme.text_blocks` prints the open list (L1, L4, L2, L5) and then, before the code block, `<details><summary>What 0.1.3's files miss or get wrong</summary>` with the four folded items; with no label, the items join the open list. `LIST_MAX_ITEMS` is 7 again, for each list. README-CAUTIONS reads the fold (one fold, one list in it, a label, at most 7 items, each at most 25 words; the label is the folded list's lead-in and names the release) and, new, `cautions_placed`: every drawn caution is printed, a folded one inside the `<details>` and the others in the open list. Tests: no folded item in the open list; every open item has its lever (a flag or "Start at") or is L4; an X1 moved to the open list or dropped fails; an eighth item in a list fails. AUDIT §7 has a row for the label. |
+| r1-3, r3-3: W1 | The drawn wording is "saved as it goes; export works after a kill", on the old order anchors plus `run_export_sitemap_command` opening `CrawlerState`, with `runs = ["export_after_kill"]` and `fails = ["kill_writes_file"]`. The day a kill writes the file (or the export after a kill stops working) the row falls back to "logged to disk, then saved to redb, in batches". The "every 50 ms" wording, which no tree ever held, is gone. `PURPOSE["W1"]` says what the row buys and what it does not claim. DESIGN.md's opening now quotes "saved as it goes". Test: W1 is one line on all six editions and the phone sheet is 1,121 units. |
+| r2-1: DESIGN.md's probe sentence | Each caution has a `short` (load, robots.txt, seeding, the www scope, JavaScript, redirects, status codes, sitemap.xml). `tokens.probed` counts the printed cautions whose drawn wording names a probe: "Its probes test 5 of the 8 cautions the README prints; the other 3 (seeding, the www scope, JavaScript) are checked in the code only." With every caution probed it says so. Tests: the counts match the route, and taking `runs` off X3 gives "4 of the 8 … (seeding, the www scope, JavaScript, redirects)". |
+| r2-2: the order | `chart.toml`: L1, L4, L2, L5, L3, X3, X2, X1, each with `stage` (server, start, links, file, export; `data/route.STAGES`, checked by `verify_route` and the schema). With the fold, X1 is the last item, right above the export command. `cautions_placed` fails when the printed items, open list first, then the fold, are out of stage order; a test swaps X3 and X1 and sees it fail. |
+| r3-1: the user agent | README: "The last command crawls your site as `<your-bot>`; without that line, its requests say `UConn-Discovery-Crawler/1.0`." The code block gains `  -s USER_AGENT=<your-bot> \` (28 columns) before the `-a` lines. `[[figures]]` row on the `settings.py` literal, with a new `absent` check (`data/proof.py`: a regular expression that must not match) on `config.yml` (`^scrapy\s*:`) and on `spider_config.py` (`USER_AGENT`). Tests: a `scrapy:` section, a new default or a scout-level `USER_AGENT` each fail the row. |
+| r3-2: Scrapy's politeness | `[copy] pick_polite`, "It obeys robots.txt and its Crawl-delay, and waits out a Retry-After.", appended to the pick sentence while its three `use = "pick_polite"` rows hold (`render_readme.pick_block`): `ROBOTSTXT_OBEY` with the scout's `custom_settings` and no `robotstxt_obey: false` in `config.yml`; `PoliteRobotsTxtMiddleware": 100` with Scrapy's own middleware off and the robots-policy test; `RetryAfterMiddleware": 560` with `test_retry_after.py`. Tests: a failed or missing row drops the clause and keeps the rest of the sentence; `robotstxt_obey: false` fails its row. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r1-3: "so a kill keeps the crawl" | False by the run check (review 3): `kill_writes_file` and `resume_after_kill` failed; only `export_after_kill` passed. |
+| r3-3: "export-sitemap works after a kill" | Two lines on the phone sheet (1,155 units, measured), against review 1's hard limit; "export works after a kill" is one line. The code block right under the cautions names the command and its comment reads "# sitemap.xml, even after a kill". |
+| r1-2: the fold's order "L3, X1, X2, X3" | The split is review 1's; the order inside the fold is review 2's (L3, X3, X2, X1), so the whole list follows the drawing and X1 sits above the export command. The two reviews do not conflict on what is open and what is folded. |
+| r1-1: the anchor `self.failure_count = 0` | That assignment is also in `__init__`, so it would hold without the reset. The anchor is the `else:` branch of `record_success`, plus stage 2's call. |
+| r2-1: "checked against the 0.1.3 source only" | L5 is checked in both trees (the 0.1.3 sdist and HEAD), so the sentence says "checked in the code only". |
+| r3-1: "without `-s USER_AGENT`, its requests say …" | FLAG-WRAP failed: at 360 px `-s USER_AGENT` breaks after its hyphen. The sentence names the placeholder instead and points at "that line". It is hand-typed prose like the rest of the run sentence, so when the default or the config changes FIGURES fails and the weekly run goes red, as for every typed figure; the builder does not drop it by itself. |
+| r3-2: `use = "pick"` | `use = "pick"` rows gate the whole pick sentence; the clause has its own (`pick_polite`), so a failed row drops only the clause, as the review's test asks. The `robotstxt_obey` check covers all of `config.yml`, not only the scout: stricter, simpler to read. |
+| Notes, not ranked (review 3) | The robots.txt port (0.1.3 builds `https://{host}/robots.txt` without the port) goes on the owner's 0.1.4 list. The next leg's command (`import_rust_sitemapper.py`) and renaming the repository to `rustmapper` are not must-fixes and are not taken. |
+| Owner, outside this repository | Carried from round 12 (0.1.4 with P1, `response.url()` as the base, `noindex` and canonicalized pages out of `export-sitemap`, `resume` after a kill, a LICENSE and `[project.scripts]`; the Scrapy quick start's "Sample URLs loaded"; the GitHub bio; the iOS and Android apps; an iPad check on a real device). New: change Scrapy's default user agent to a name and contact for the project, and the hard-coded ones in `stage4/large_doc_processor.py:86` and `stage1/sitemap_parser.py:299` (the user-agent clause and the `-s` line's sentence then need rewording, which FIGURES will flag); build 0.1.4's robots.txt URL from the queued URL's scheme, host and port. |
+
+### Measured state of this build
+
+- Desk sheet 1,280 x 571 (gate 620); mid 820 x 707 (gate 964); phone 600 x 1,121 (gate 1,246). W1 is one line on
+  all six editions.
+- Page: desk 2,774 px at 1,280 (was 2,830); phone 4,965 CSS px at 390 (was 5,213) and 5,365 at 360 (was 5,685). The
+  fold saves more than the pick clause and the user-agent sentence add.
+- `python3 -m unittest`: 466 tests, all pass (21 new in `tests/test_round13.py`; older tests that pinned the 8-item
+  list, the item order, W1's old wording and rule 1's old body now hold the new ones).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
+  it passes (0 fail, 0 warn). README-CAUTIONS, FIGURES, FLAG-WRAP, STRINGS-TWICE, DESIGN-FRESH, AUDIT-COVER,
+  README-STALE and AUDIT-STALE are clean.

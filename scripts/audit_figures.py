@@ -85,6 +85,9 @@ FIXED = [
     ("install", "Before you run <version>:", "`edition.version`", "review round 10: the release the cautions describe "
      "(the list's entries are checked on the sdist pip installs; the facts line above them dates main), the latest "
      "version on PyPI", "README-CAUTIONS; README-STALE", (r"Before you run \d+\.\d+\.\d+:",)),
+    ("install", "What <version>'s files miss or get wrong", "`edition.version`", "review round 13: the label of the "
+     "fold after the open list (route `fold_lead`), the same release as the list's lead-in; it holds the cautions "
+     "marked `fold`", "README-CAUTIONS; README-STALE", (r"What \d+\.\d+\.\d+'s files miss or get wrong",)),
     ("install", "# <version> runs until stopped … for N s", "`edition.version`, `routes.rustmapper` H1 `quiet`",
      "review round 10: the release and H1's `{quiet}`, filled as the image fills them; printed only while H1 is drawn "
      "with its number (`render_readme.stop_lines`)", "test_round10 StopLines; README-STALE",
@@ -262,6 +265,9 @@ def records(cfg: dict, stats: dict | None = None) -> list[dict]:
                 f"`.{f['host']}`" if f.get("host") else "")) if f.get("csv_rows") else f"`{f['path']}` exists")
         how += "".join(f"; `{a['path']}` contains `{str(a['literal']).replace(chr(10), '⏎')}`"
                        for a in f.get("also") or [])
+        # review round 13: what would make the claim false, a regular expression that must not match
+        how += "".join(f"; `{a['path']}` has no match for `{str(a['pattern']).replace('|', chr(92) + '|')}`"
+                       for a in f.get("absent") or [])
         out.append({"where": "README prose", "printed": f["text"], "key": f"`[[figures]]` ({f['repo']})",
                     "definition": f"at HEAD, {how}", "check": "FIGURES", "figure": f["text"]})
     return out

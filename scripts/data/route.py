@@ -39,7 +39,9 @@ Review round 6: a string in a file shows a setter exists, not that anything call
 carries an anchor marked `producer = true` that is not an assignment to a field (SETTER): the code that decides,
 not the code that stores. A `text` entry may also name a `gate` (a HEAD gate in `gates`); the README prints it only
 while that gate holds (render_readme.text_entries). Review round 8: `para = true` starts a new paragraph with it.
-Review round 9: `item = true` makes it an item of the cautions list under the install block; `{quiet}` in a text is
+Review round 13: an item's `stage` (server, start, links, file, export: STAGES) says where on the route it bites
+and the list keeps that order; `short` names it in DESIGN.md; `fold = true` prints it in the <details> after the
+open list. Review round 9: `item = true` makes it an item of the cautions list under the install block; `{quiet}` in a text is
 `quiet_secs` of the release's `arg:timeout` and `const:MAX_FAILURES_THRESHOLD` value anchors (review round 11: and
 the `wait:network_permits.acquire_owned()` anchor, the seconds a tokio timeout gives the permit wait), and a probe that
 records `quiet_secs` must have waited at least that long.
@@ -57,6 +59,7 @@ KINDS = ("stop", "step", "note", "trap", "end", "export", "text")   # text: a RE
 CONDITIONAL = re.compile(r"\b(unless|when|only|if)\b", re.I)    # review round 6: words that state a condition
 SETTER = re.compile(r"\b\w+(?:\.\w+)+\s*=(?!=)")                 # `host_state.crawl_delay_secs = delay`
 STATES = ("runs", "fields differ", "no reader")
+STAGES = ("server", "start", "links", "file", "export")         # review round 13: the cautions' order, the route's
 
 
 # ---------------------------------------------------------------- anchors
@@ -305,6 +308,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
         eid = str(e.get("id"))
         if kind not in KINDS:
             raise ValueError(f"route entry {eid}: kind {kind!r} not in {KINDS}")
+        if e.get("stage") and str(e["stage"]) not in STAGES:
+            raise ValueError(f"route entry {eid}: stage {e['stage']!r} not in {STAGES}")
         scope = str(e.get("scope") or "both")
         first = _candidate(e, rh, rr, no_head, no_rel, scope, eid, kind=kind)
         rec = {"id": eid, "kind": kind, "scope": scope, "loop": bool(e.get("loop")), **first}
@@ -316,6 +321,11 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
             rec["para"] = True
         if e.get("item"):        # review round 9: a README caution, one item of the list under the install block
             rec["item"] = True
+        for k in ("stage", "short"):   # review round 13: where on the route a caution bites; its name in DESIGN.md
+            if e.get(k):
+                rec[k] = str(e[k])
+        if e.get("fold"):        # review round 13: a caution printed in the fold after the open list
+            rec["fold"] = True
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -336,7 +346,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
     return {"repo": spec.get("repo"), "head_sha": head_sha, "release": release, "header": spec.get("header"),
             "header_verified": not header_missing, "header_missing": header_missing,
             "header_runs": [str(x) for x in spec.get("header_runs") or []], "entries": entries, "gates": gates,
-            **({"list_lead": str(spec["list_lead"])} if spec.get("list_lead") else {})}
+            **({"list_lead": str(spec["list_lead"])} if spec.get("list_lead") else {}),
+            **({"fold_lead": str(spec["fold_lead"])} if spec.get("fold_lead") else {})}
 
 
 # ---------------------------------------------------------------- the run check's probes
@@ -420,6 +431,9 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             base["para"] = True
         if e.get("item"):
             base["item"] = True
+        for k in ("stage", "short", "fold"):
+            if e.get(k):
+                base[k] = e[k]
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
@@ -427,6 +441,7 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
                         "verified": True, "missing": [], "retired": not str(chosen["text"]).strip(),
                         "wording": at,     # review round 11: which wording was drawn (AUDIT §7 follows it)
                         "fails": list(chosen.get("fails") or []),
+                        "runs": list(chosen.get("runs") or []),     # review round 13: which probes ran it
                         # review round 10: the quiet the drawn wording prints, for the README's stop lines
                         **({"quiet": chosen["quiet"]} if chosen.get("quiet") is not None else {})})
         else:

@@ -27,7 +27,7 @@
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <!-- pick:start -->
-**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker.
+**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker. It obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`.
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
@@ -46,10 +46,16 @@ Before you run 0.1.3:
 - It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.
 - By default it asks crt.sh and Common Crawl about your domain.<br>`--seeding-strategy none` asks no one.
 - From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
+
+<details>
+<summary>What 0.1.3's files miss or get wrong</summary>
+
 - It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
-- Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.
-- Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.
 - After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.
+- Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.
+- Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.
+
+</details>
 
 ```sh
 pip install rustmapper
@@ -77,13 +83,14 @@ rust_sitemap export-sitemap
 - Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.
 
-Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site.
+Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site as `<your-bot>`; without that line, its requests say `UConn-Discovery-Crawler/1.0`.
 
 ```sh
 cd Scrapy/Scraping_project
 python start.py
 docker-compose run --rm \
   scraper scrapy crawl scout \
+  -s USER_AGENT=<your-bot> \
   -a allowed_domains=<domain> \
   -a start_urls=<url>
 ```
@@ -120,7 +127,7 @@ Grafana opens on `localhost:3000`. What it writes lands in Delta tables under `d
 **Working rules**
 
 <!-- notices:start -->
-1. **Boring under load.** When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
+1. **Boring under load.** When 5 URLs in a row on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
 2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*
 3. **Measure in week one.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
 <!-- notices:end -->

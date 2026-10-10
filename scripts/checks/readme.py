@@ -109,17 +109,44 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 _FENCE = re.compile(r"^```[^\n]*\n(.*?)^```\s*$", re.S | re.M)
 
 
-def cautions(text: str, max_items: int = 8, max_words: int = 25) -> list[str]:
+_FOLD = re.compile(r"<details>\s*<summary>(.*?)</summary>(.*?)</details>", re.S)
+
+
+def split_fold(body: str) -> tuple[str, list[tuple[str, str]]]:
+    """Review round 13: an install block's text outside its <details> folds, and each fold's (summary, body)."""
+    folds = [(m.group(1).strip(), m.group(2)) for m in _FOLD.finditer(body or "")]
+    return _FOLD.sub("\n\n", body or ""), folds
+
+
+def cautions(text: str, max_items: int = 7, max_words: int = 25) -> list[str]:
     """README-CAUTIONS (review round 9): in each install block, outside its code (review round 11: before it), at
     most one prose paragraph (the wheel note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
-    colon right before the list is its lead-in, not prose."""
+    colon right before the list is its lead-in, not prose. Review round 13 (the owner): and at most one <details>
+    fold, holding one list and nothing else, of at most `max_items` items too."""
     out = []
-    for name, body in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
-        if not _FENCE.search(body):
+    for name, whole in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
+        if not _FENCE.search(whole):
             continue
+        body, folds = split_fold(_COMMENT.sub("", _FENCE.sub("\n\n", whole)))
+        if len(folds) > 1:
+            out.append(f"{name}: {len(folds)} folds beside the code block (at most 1)")
+        for summary, fbody in folds:
+            fparas = [p.strip() for p in re.split(r"\n\s*\n", fbody) if p.strip()]
+            if not summary:
+                out.append(f"{name}: a fold with no label")
+            if len(fparas) != 1 or not all(ln.startswith("- ") for ln in fparas[0].splitlines()):
+                out.append(f"{name}: a fold holds {len(fparas)} paragraphs, not one list")
+                continue
+            items = fparas[0].splitlines()
+            if len(items) > max_items:
+                out.append(f"{name}: {len(items)} items in the fold (at most {max_items})")
+            for it in items:
+                n = len(it[2:].split())
+                if n > max_words:
+                    out.append(f"{name}: an item is {n} words (at most {max_words}): {it[2:60]!r}")
         # review round 11: the wheel note and the list come before the code (they say what to add to it); the
         # rule holds for the block's prose wherever it sits
-        tail = _COMMENT.sub("", _FENCE.sub("\n\n", body))
+        tail = body
         paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
         lists = [p for p in paras if all(ln.startswith("- ") for ln in p.splitlines())]
         prose = [p for i, p in enumerate(paras) if p not in lists
@@ -159,16 +186,60 @@ def cautions_scope(text: str, stats: dict) -> list[str]:
         if not any(e.get("scope") == "release" for e in items):
             continue
         tail = _COMMENT.sub("", _FENCE.sub("\n\n", body))       # review round 11: the prose around the code
-        paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
-        for i, p in enumerate(paras):
+        tail, folds = split_fold(tail)
+        paras = [(p.strip(), None) for p in re.split(r"\n\s*\n", tail) if p.strip()]
+        for summary, fbody in folds:       # review round 13: a fold's lead-in is its label
+            paras += [(p.strip(), summary) for p in re.split(r"\n\s*\n", fbody) if p.strip()]
+        for i, (p, summary) in enumerate(paras):
             if not all(ln.startswith("- ") for ln in p.splitlines()):
                 continue
-            lead = paras[i - 1] if i and paras[i - 1].endswith(":") else ""
+            lead = summary if summary is not None else (
+                paras[i - 1][0] if i and paras[i - 1][0].endswith(":") else "")
             if ver not in lead:
                 out.append(f"{name}: the list describes {ver} and its lead-in {lead!r} does not name it")
             for ln in p.splitlines():
                 if ln[2:].lstrip().startswith(ver):
                     out.append(f"{name}: an item starts with {ver}, which the lead-in already names: {ln[2:60]!r}")
+    return out
+
+
+def cautions_placed(text: str, stats: dict) -> list[str]:
+    """README-CAUTIONS (review round 13, the owner): every caution the route draws (a verified `item` text entry with
+    words) is printed in its install block, a folded one (`fold`) inside the block's <details> and any other in the
+    open list; and the items run in the route's order (`stage`, data/route.STAGES; the historian), open list first."""
+    try:
+        from data import route as route_mod
+        import render_readme as rr
+    except ImportError:
+        return []
+    out = []
+    ver = str(((stats or {}).get("edition") or {}).get("version") or "the release")
+    rc = ((stats or {}).get("runcheck") or {}).get(str(((stats or {}).get("edition") or {}).get("project") or "rustmapper"))
+    for name, whole in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
+        route = next((r for r in ((stats or {}).get("routes") or {}).values()
+                      if isinstance(r, dict) and r.get("repo") == name), None)
+        if route is None:
+            continue
+        body, folds = split_fold(_FENCE.sub("\n\n", _COMMENT.sub("", whole)))
+        folded = "".join(f for _, f in folds)
+        items = [e for e in route_mod.drawn(route, rc) if e.get("kind") == "text" and e.get("item")
+                 and str(e.get("text") or "").strip()]
+        at = []
+        for e in items:
+            line = rr.lever_line(rr.keep_together(str(e["text"]).replace("{release}", ver)))
+            in_fold = bool(e.get("fold") and folds)
+            where, other = (folded, body) if in_fold else (body, folded)
+            if f"- {line}" not in where:
+                out.append(f"{name}: {e.get('id')} is not printed " + ("inside the fold" if in_fold else "in the open list")
+                           + (" (it is on the other side)" if f"- {line}" in other else ""))
+                continue
+            # where it is printed: the open list first, then the fold, each in reading order
+            at.append(((int(in_fold), where.index(f"- {line}")), list(route_mod.STAGES).index(e["stage"])
+                       if e.get("stage") in route_mod.STAGES else -1, e.get("id")))
+        at.sort()
+        for a, b in zip(at, at[1:]):
+            if a[1] > b[1]:
+                out.append(f"{name}: {b[2]} comes after {a[2]} and is earlier on the route (stage order)")
     return out
 
 
@@ -247,7 +318,7 @@ def check(ctx) -> list[Finding]:
         lim = (_rr.LIST_MAX_ITEMS, _rr.LIST_MAX_WORDS)
     except Exception:
         lim = (7, 25)
-    for msg in cautions(text, *lim) + cautions_scope(text, ctx.stats or {}):
+    for msg in cautions(text, *lim) + cautions_scope(text, ctx.stats or {}) + cautions_placed(text, ctx.stats or {}):
         out.append(fail("README-CAUTIONS", msg, "README.md"))
     for msg in failed_subcommands(text, ctx.stats or {}):
         out.append(fail("README-SUBCOMMAND", msg, "README.md"))
