@@ -153,11 +153,11 @@ class Anchors(unittest.TestCase):
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
         # review round 9: the clearing mark with its number (computed, quiet_secs; probe quiet_slow_page)
-        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; quit when `Received work item` lines stop for 60 s")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
         self.assertEqual(drawn["C1"]["text"],
-                         "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file")
+                         "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file")
         # review round 6: the scope in a visitor's words, not the code's ("above or below")
         # review round 8: F1 says the per-host cap; 0.1.3's governor stops at 32 idle permits and never slows a site
         self.assertEqual(drawn["F1"]["text"], "fetches up to 20 pages at a time from each host; queues their "
@@ -279,7 +279,7 @@ class Quiet(unittest.TestCase):
         # review round 9: the clearing mark with its number, on both quiet probes
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True,
                                quiet_slow_page=True)["text"],
-                         "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
+                         "{release} never exits by itself; quit when `Received work item` lines stop for 60 s")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
                          "{release} never exits by itself, even after the last page", "no slow-page probe: no number")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False,
@@ -453,6 +453,11 @@ class Commands(unittest.TestCase):
                                                          '# "Received work item" stops',
                                                          "# for 60 s, then Ctrl-C once",
                                                          "",       # review round 11: the two comments apart
+                                                         # review round 16: how many rows are blank
+                                                         "# count the blank rows",
+                                                         "grep -c '\"crawled_at\":null' \\",
+                                                         "  data/sitemap.jsonl",
+                                                         "",
                                                          "# sitemap.xml, even after a kill",
                                                          "rust_sitemap export-sitemap"])
         self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))
@@ -592,9 +597,11 @@ class RoundThree(unittest.TestCase):
         one = tree({"src/main.rs": "fn run_export_sitemap_command(output: String) { SitemapWriter::new(&output); "
                                    "if node.status_code == Some(200) {} }",
                     "src/sitemap_writer.rs": "pub struct SitemapWriter {}"})
-        rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "sitemap_keeps_noindex", "ok": True, "gate": False}]}
+        rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "sitemap_keeps_noindex", "ok": True, "gate": False},
+                                                        {"id": "sitemap_keeps_disallowed", "ok": True, "gate": False}]}
         e = R.drawn(R.verify_route(spec, head, one, "abc", "0.1.3"), rc)[0]
         self.assertIn("allows 50,000 URLs per file", e["text"])
+        self.assertIn("canonicalized and disallowed pages", e["text"])      # review round 16
         split = tree({"src/main.rs": "SitemapIndexWriter", "src/sitemap_writer.rs": "pub struct SitemapIndexWriter {}"})
         r = R.verify_route(spec, head, split, "abc", "0.1.4")
         self.assertEqual((R.drawn(r), R.unverified(r)), ([], []))
@@ -880,8 +887,9 @@ class RouteSheet(unittest.TestCase):
             words = [t for t in self.freport["sheets"][f"hero-{e}"]["text"] if t["key"] == "routes:H1"]
             x0, y0, x1, y1 = mk[0]["box"]
             for t in words:      # the words sit inside the line, at least the padding away
-                self.assertGreaterEqual(t["x0"] - x0, sheet.DANGER_PAD - 0.5)
-                self.assertGreaterEqual(x1 - t["x1"], sheet.DANGER_PAD - 0.5)
+                pad = sheet.DANGER_PAD_X[{"day": "desk", "night": "desk"}.get(e, e.split("-")[0])]
+                self.assertGreaterEqual(t["x0"] - x0, pad - 0.5)
+                self.assertGreaterEqual(x1 - t["x1"], pad - 0.5)
 
     def test_the_gap_shows_without_colour(self):                  # review round 3: the shape alone says it
         for e in EDITIONS:

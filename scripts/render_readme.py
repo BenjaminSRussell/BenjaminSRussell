@@ -629,6 +629,7 @@ def stop_lines(rc: dict | None, gates: dict | None = None, route: dict | None = 
             out.append("# stop it with one Ctrl-C")
     elif ends is not None and not ends.get("ok") and ctrl is not None and ctrl.get("ok"):
         out.append("# stop it with one Ctrl-C")
+    out += blank_lines(steps, gates)
     kill, after = steps.get("kill_writes_file"), steps.get("export_after_kill")
     gate = (gates or {}).get("export_after_kill") or {}
     if kill is not None and not kill.get("ok") and after is not None and after.get("ok") and gate.get("ok"):
@@ -638,6 +639,27 @@ def stop_lines(rc: dict | None, gates: dict | None = None, route: dict | None = 
             out.append("")
         out.append(f"# {_file_name((gate.get('values') or {}).get('arg:output') or './sitemap.xml')}, even after a kill")
     return out
+
+
+BLANK_LINES = ("# count the blank rows", "grep -c '\"crawled_at\":null' \\", "  {file}")
+
+
+def blank_lines(steps: dict, gates: dict | None = None) -> list[str]:
+    """Review round 16 (the data engineer): after the stop rule, how many rows of the file have no page: a blank
+    `crawled_at` is an error, a timeout, a non-HTML 200 or a page never reached (the fold's X2), and after a stall
+    (H0) that can be half the file while the quiet minute was met. Printed while the release gate `blank_rows` holds
+    (each node is one compact serde_json line, so a blank is the literal `"crawled_at":null`; the crawl writes
+    sitemap.jsonl in its ./data) and the run check's `blank_rows` did not fail (a skipped one leaves the code anchors
+    alone to hold it). A blank line first, as before the export caption."""
+    gate = (gates or {}).get("blank_rows") or {}
+    st = (steps or {}).get("blank_rows")
+    if not gate.get("ok") or st is None or (not st.get("ok") and not st.get("skipped")):
+        return []
+    data = _file_name((gate.get("values") or {}).get("arg:data_dir") or "./data")
+    lines = [ln.format(file=f"{data}/sitemap.jsonl") for ln in BLANK_LINES]
+    if any(len(ln) > 32 for ln in lines):
+        return []
+    return [""] + lines
 
 
 def _file_name(path: str) -> str:

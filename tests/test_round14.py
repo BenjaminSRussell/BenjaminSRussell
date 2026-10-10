@@ -103,7 +103,7 @@ class StageTwo(unittest.TestCase):
 
     # review round 15 (the owner): the same form as rustmapper's list
     SENT = ("It loads no seeds: the last command gives the spider your site.\n\nBefore you run it:\n\n"
-            "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that line, "
+            "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without the `USER_AGENT` line, "
             "`UConn-Discovery-Crawler/1.0`).\n"
             "- The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per "
             "host, as `Python/3.11 aiohttp/3.13.1`.")
@@ -205,7 +205,7 @@ class ResetCut(unittest.TestCase):
 class BulletThree(unittest.TestCase):
     """r14-2 #3: the third Scrapy bullet says how it is run: an alert on its own metric, the kill switch, a runbook."""
 
-    LINE = ("- Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards. "
+    LINE = ("- Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards show them. "
             "A kill switch stops new downloads within 5" + NB + "s, with a runbook. Docker Compose and a Helm chart for "
             "Kubernetes.")
 

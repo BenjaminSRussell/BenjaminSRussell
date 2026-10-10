@@ -302,12 +302,22 @@ path = "Scraping_project/src/stage4/large_doc_processor.py"
 literal = "bart-large-cnn"
 
 # the `pick` sentence's claims about Scrapy (no numbers; they gate the sentence, review round 3)
+# Review round 16 (the data engineer): "deduplicated" rests on the URL dedup that runs, not on the literal
+# MinHashLSH. Stage 3 builds its MinHash index fresh for each batch and does not mark a skipped page done, so the
+# drain loop summarized a near-duplicate on its next pass (Stage3Worker.run() called twice). What holds: the spider's
+# dupe filter drops a repeat request by its fingerprint (settings.py, config.yml has no `scrapy:` section to change
+# it), every queue row is keyed by the hash of its canonical URL (pipelines.py _canonical_queue_row), and stage 2
+# upserts by that hash. The near-duplicate clause may come back on a test that runs run() twice and expects one summary.
 [[figures]]
 text = "deduplicated"
 use = "pick"
 repo = "Scrapy"
-path = "Scraping_project/src/stage3/stage3_worker.py"
-literal = "MinHashLSH"
+path = "Scraping_project/src/settings.py"
+literal = 'DUPEFILTER_CLASS = _scrapy_config.get("dupefilter_class", "scrapy.dupefilters.RFPDupeFilter")'
+also = [{path = "Scraping_project/src/pipelines.py", literal = "def _canonical_queue_row"},
+        {path = "Scraping_project/src/pipelines.py", literal = "self.stage2_queue_batch.add(_canonical_queue_row(item))"},
+        {path = "Scraping_project/src/stage2/stage2_worker.py", literal = "# #311: upsert by url_hash"}]
+absent = [{path = "Scraping_project/config.yml", pattern = '(?m)^scrapy\s*:'}]
 
 [[figures]]
 text = "summarized"
@@ -474,7 +484,8 @@ literal = '"local": ("docker", "docker-compose")'
 also = [{path = "Scraping_project/start.py", literal = 'shutil.which('}]
 
 # Review round 10 (the owner): what `python start.py` does at 96e7a1a. start.py runs `docker-compose up -d` (every
-# service: PostgreSQL, Redis, Grafana, a worker per stage) and loads seeds only `if args.reset_delta:`, through
+# service: PostgreSQL, Redis, Prometheus (review round 16: the alerts and Grafana's datasource need it), Grafana, a
+# worker per stage) and loads seeds only `if args.reset_delta:`, through
 # `cli.py reset`, from LOCAL_SEED_FILE. The scout spider's start URLs are `-a start_urls` or else the Delta table
 # seed_urls, and with no table `_load_seed_urls` returns [] (src/stage1/experimental/base_spider.py). So a fresh
 # clone crawls nothing until --reset-delta, and the seeds that flag loads are a university's live site.
@@ -489,6 +500,7 @@ also = [{path = "Scraping_project/docker-compose.yml", literal = "\n  stage2-wor
         {path = "Scraping_project/docker-compose.yml", literal = "\n  postgres:"},
         {path = "Scraping_project/docker-compose.yml", literal = "\n  redis:"},
         {path = "Scraping_project/docker-compose.yml", literal = "\n  grafana:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  prometheus:"},
         {path = "Scraping_project/start.py", literal = '("docker-compose", "up", "-d")'}]
 
 # Review round 14 (the owner): the `--reset-delta` sentence is cut. Since b787e65 (8 Oct 2026) `cli.py reset` goes
@@ -707,6 +719,14 @@ export_after_kill = [{path = "src/main.rs", fn = "run_export_sitemap_command", t
                      {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
                      {path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new"},
                      {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
+# review round 16 (the data engineer): the block's count of blank rows. 0.1.3 writes each node as one line of
+# `serde_json::to_string` (compact, so a blank is the literal `"crawled_at":null`, no space) to sitemap.jsonl in the
+# crawl's ./data; probe blank_rows checked that `grep -c` of that literal counts exactly the blank rows
+# (render_readme.stop_lines prints it while this holds and the probe did not fail).
+blank_rows = [{path = "src/state.rs", text = "pub crawled_at: Option<"},
+              {path = "src/bfs_crawler.rs", fn = "export_to_jsonl", text = "serde_json::to_string(&node)"},
+              {path = "src/main.rs", text = 'join("sitemap.jsonl")'},
+              {path = "src/cli.rs", block = "Crawl", arg = "data_dir", equals = "./data"}]
 
 # The route is the run's order: what you type, what happens to each URL, how you stop it, what you get. The rows with
 # `loop = true` repeat for every page, and the image draws one line back from the last of them to the first.
@@ -835,7 +855,11 @@ runs = ["crawl_ctrl_c"]
 # (add_url_to_local_queue_unchecked pushes the host again). Probe robots_stall: robots.txt (Disallow: /secret)
 # answered at once, the home page linking p1-p5, secret.html, p6-p10: p1-p5 fetched, p6-p10 never in 30 s. Probe
 # robots_resume: the same site with one new link on p1.html, answered 3 s late: p6-p10 only after it. A stalled host
-# also stops the `Received work item` lines, so H1's rule reads a stall as done; the dotted line marks it as a catch.
+# also stops the `Received work item` lines, so H1 says "quit when", not "done when" (review round 16): after the
+# quiet minute nothing more comes, stalled or finished, but only a finished crawl is done.
+# Review round 16 (the owner): "stalls its host" read, to a site owner, as harm to the server. The words say what the
+# visitor loses and use L6's verb: the pages behind the disallowed link wait (a new link to the host wakes them, so
+# not "never"). One phone line in every edition (tests/test_round15.py).
 # The day a release re-pushes the host (main has since 6bcb6cd), robots_stall fails and the empty wording retires it.
 [[route.rustmapper.entry]]
 id = "H0"
@@ -843,7 +867,7 @@ kind = "trap"
 scope = "release"
 loop = true
 file = "frontier.rs"
-text = "on https, a disallowed link stalls its host"
+text = "on https, pages behind a disallowed link wait"
 audit = "`src/frontier.rs` `get_next_url`: the disallowed branch prints \"Shard {}: URL {} blocked by robots.txt\" and then `continue;`, with no `push_ready_host`; `add_url_to_local_queue_unchecked` pushes the host again only when a new URL is queued. Probe `robots_stall` (https on 127.0.0.1:443, robots.txt answered at once): of the five links after the disallowed one, none fetched in 30 s; probe `robots_resume`: all five fetched once a late page brought a new link"
 release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
                                     self.shard_id, queued.url
@@ -854,7 +878,7 @@ release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: 
 runs = ["robots_stall", "robots_resume"]
 [[route.rustmapper.entry.instead]]
 # the https probes could not run (port 443, the certificate): the code alone, which shows the same branch
-text = "on https, a disallowed link stalls its host"
+text = "on https, pages behind a disallowed link wait"
 release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
                                     self.shard_id, queued.url
                                 );
@@ -945,7 +969,10 @@ loop = true
 # (process_url_streaming: `tokio::time::timeout(Duration::from_secs(30), network_permits.acquire_owned())`, the
 # governor's semaphore, fair, so a late item waits behind every earlier one), and only then fetches. The bound is
 # 30 + 20 + 4 + 1 = 55, rounded up: 60. The permit wait is a value anchor (`wait`), read like the --timeout default.
-text = "{release} never exits by itself; done when `Received work item` lines stop for {quiet} s"
+# Review round 16 (the owner): "quit when", not "done when". H0, one row up, stalls a crawl and stops the same lines,
+# so "done" was false after a stall; after {quiet} s of quiet nothing more comes either way, so the instruction holds
+# both ways. Same 9 characters, so no edition's line breaks move.
+text = "{release} never exits by itself; quit when `Received work item` lines stop for {quiet} s"
 audit = "It sums the wait for a network permit (`src/bfs_crawler.rs` `process_url_streaming`, `timeout(Duration::from_secs(30), network_permits.acquire_owned())`, 30 s; the `Received work item` line is printed before it) + the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 60. Probe `quiet_slow_page` waited that long"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", wait = "network_permits.acquire_owned()"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
@@ -981,7 +1008,10 @@ kind = "step"
 # again to force quit"; the handler for that second press is spawned before the export and calls exit(1), so a second
 # press before `Saved to:` leaves no sitemap.jsonl (0.1.3 main.rs:508, :520, :536-539; HEAD shutdown.rs:22, :34,
 # :44-47). Probe second_ctrl_c: SIGINT, another 0.3 s later, exit 1 and no file. The end row names the file.
-text = "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file"
+# Review round 16 (the copy editor): the instruction first, then the warning with its own subject; "a second press
+# before the `Saved to` line quits" read as "the `Saved to` line quits". Same anchors (the order of the export and
+# the print).
+text = "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file"
 head = [{path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "Press Ctrl+C again to force quit"},
         {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "std::process::exit(1)", before = "export_to_jsonl(&path)"},
         {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "export_to_jsonl(&path)", before = 'println!("Saved to: '},
@@ -1134,6 +1164,9 @@ fails = ["robots_late"]
 # to a server, with the way it resumes. On a shop-shaped https fixture with Shopify's default Disallow lines (/cart,
 # /search), 0.1.3 fetched 4 pages in 70 s and none of the 12 products (review r15-2). Probes robots_stall and
 # robots_resume; retired by the empty wording once a release re-pushes the host (robots_stall fails).
+# Review round 16: "a link that" (the copy editor: without it "each link `robots.txt`" read as the subject), "pages"
+# as the subject (the owner: what the visitor loses, in H0's words), and the sign: the blocked branch's `eprintln!`,
+# the same literal the anchors hold, is on the terminal the visitor watches. 23 words (the list's cap is 25).
 [[route.rustmapper.entry]]
 id = "L6"
 stage = "server"
@@ -1141,8 +1174,8 @@ short = "robots.txt stall"
 kind = "text"
 scope = "release"
 item = true
-text = "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host."
-audit = "`src/frontier.rs` `get_next_url`: \"blocked by robots.txt\", then `continue;` with no `push_ready_host`; `add_url_to_local_queue_unchecked` pushes the host back when a new URL is queued. Probe `robots_stall`: p1-p5 fetched, `/secret.html` not, p6-p10 never in 30 s; probe `robots_resume`: p6-p10 fetched only after a page answered 3 s late brought a new link"
+text = "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`."
+audit = "`src/frontier.rs` `get_next_url`: \"blocked by robots.txt\", then `continue;` with no `push_ready_host`; `add_url_to_local_queue_unchecked` pushes the host back when a new URL is queued. Probe `robots_stall`: p1-p5 fetched, `/secret.html` not, p6-p10 never in 30 s; probe `robots_resume`: p6-p10 fetched only after a page answered 3 s late brought a new link. The sign is that branch's `eprintln!`, on the terminal: `Shard 3: URL https://localhost/secret.html blocked by robots.txt` in the robots_stall run's output"
 release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
                                     self.shard_id, queued.url
                                 );
@@ -1152,7 +1185,7 @@ release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: 
 runs = ["robots_stall", "robots_resume"]
 [[route.rustmapper.entry.instead]]
 # the https probes could not run: the code alone
-text = "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host."
+text = "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`."
 release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
                                     self.shard_id, queued.url
                                 );
@@ -1279,16 +1312,37 @@ item = true
 # Review round 12 (the developer choosing): reqwest follows redirects (no policy is set on the client, network.rs;
 # the default follows up to 10), so a URL that redirects to an HTML 200 is written as 200 (probe redirect_kept:
 # /old, 301 to /new.html, is status_code 200). "redirected or not" keeps the sentence true on a site that redirects.
-text = "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried."
-audit = "Probe `non200_status` (crawled with `--timeout 3`): on the fixture site, busy.html (429, `Retry-After: 2`), gone.html (404), err (500), feed (200, `application/json`) and hang.html (held 8 s) were each asked for once in 12 s, beyond.html (linked only from busy.html) never, and their rows have `status_code` and `crawled_at` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
+# Review round 16 (the data engineer, the owner): a blank row is also a page never reached. 0.1.3 writes a node when a
+# link is found (AddNodeFact, `crawled_at: None`) and fills it only from the parser, so a link left in the queue at
+# Ctrl-C, or behind a disallowed one (H0), is the same blank. Probe blank_rows (in the robots_stall run): every page
+# the server never saw is a row with `crawled_at` null (the five links after the disallowed one and the disallowed
+# page, 6 of 12), and `grep -c '"crawled_at":null'` counts exactly the blank rows. It is skipped when the https run
+# could not go or every page was reached; the code alone then holds the wording. "never retried" gave way to the 25-word cap;
+# the code block's count of blank rows (release gate blank_rows) is where the reader acts on it.
+text = "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too."
+audit = "Probe `non200_status` (crawled with `--timeout 3`): on the fixture site, busy.html (429, `Retry-After: 2`), gone.html (404), err (500), feed (200, `application/json`) and hang.html (held 8 s) were each asked for once in 12 s, beyond.html (linked only from busy.html) never, and their rows have `status_code` and `crawled_at` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200. Pages never reached: a node is written when its link is found (`AddNodeFact`, `crawled_at: None` in `src/state.rs`); probe `blank_rows` (the robots_stall run): the pages never asked for (p6-p10 and the disallowed secret.html) are rows with `status_code` and `crawled_at` null, 6 of 12, and `grep -c '\"crawled_at\":null'` counts 6"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
            {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},
            {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "is_html_content_type(ct)"},
            {path = "src/bfs_crawler.rs", fn = "handle_crawl_error", text = "false // Don't block host for transient errors"},
            {path = "src/bfs_crawler.rs", text = "status_code: job.status_code"},
            {path = "src/bfs_crawler.rs", absent = "Retry-After"}, {path = "src/frontier.rs", absent = "Retry-After"},
-           {path = "src/bfs_crawler.rs", absent = "429"}]
+           {path = "src/bfs_crawler.rs", absent = "429"},
+           {path = "src/state.rs", text = "AddNodeFact(SitemapNode)"}, {path = "src/state.rs", text = "crawled_at: None,"}]
+runs = ["non200_status", "redirect_kept", "blank_rows"]
+[[route.rustmapper.entry.instead]]
+# the https probes could not run: "never reached" on the code alone (a node is written blank when its link is found)
+text = "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too."
+release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
+           {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},
+           {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "is_html_content_type(ct)"},
+           {path = "src/bfs_crawler.rs", fn = "handle_crawl_error", text = "false // Don't block host for transient errors"},
+           {path = "src/bfs_crawler.rs", text = "status_code: job.status_code"},
+           {path = "src/bfs_crawler.rs", absent = "Retry-After"}, {path = "src/frontier.rs", absent = "Retry-After"},
+           {path = "src/bfs_crawler.rs", absent = "429"},
+           {path = "src/state.rs", text = "AddNodeFact(SitemapNode)"}, {path = "src/state.rs", text = "crawled_at: None,"}]
 runs = ["non200_status", "redirect_kept"]
+skipped = ["blank_rows"]
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/bfs_crawler.rs"}]
@@ -1310,8 +1364,24 @@ from_head = true
 # so a URL that redirects (X3) and a noindex page are listed. Probe sitemap_keeps_noindex (the redirect fixture):
 # /old and canon.html (noindex, canonical to /new.html) are in the one file. Main skips canonicalized pages
 # (orchestration/export.rs), so this is release scope, under "Before you run 0.1.3:".
+# Review round 16 (the data engineer): and the pages robots.txt disallows that it fetched (L4: before the rules are in).
+# Google's Sitemaps report counts "Sitemap contains urls which are blocked by robots.txt" as an error, and the likely
+# user is mapping his own site. run_export_sitemap_command reads no robots rules (`absent = "robots"`); probe
+# sitemap_keeps_disallowed: export-sitemap on the robots_late run's data lists all ten disallowed pages.
+text = "Its `sitemap.xml` is every row with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex`, canonicalized and disallowed pages."
+audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at. 200 is the status `run_export_sitemap_command` keeps (`node.status_code == Some(200)`); probe `sitemap_keeps_noindex` listed the redirecting `/old` and the noindex, canonicalized `canon.html`; `run_export_sitemap_command` reads no robots rules, and probe `sitemap_keeps_disallowed` (export-sitemap on the robots_late run's data) listed 21 URLs, all 10 disallowed pages that run fetched among them"
+head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
+release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "canonical"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "robots"},
+           {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
+runs = ["sitemap_keeps_noindex", "sitemap_keeps_disallowed"]
+[[route.rustmapper.entry.instead]]
+# the https probes could not run (sitemap_keeps_disallowed reads the robots_late run's data): the round 12 wording
+from_head = true
 text = "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex` and canonicalized pages."
-audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at. 200 is the status `run_export_sitemap_command` keeps (`node.status_code == Some(200)`); probe `sitemap_keeps_noindex` listed the redirecting `/old` and the noindex, canonicalized `canon.html`"
 head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
 release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
            {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
@@ -1319,6 +1389,19 @@ release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "Sit
            {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
            {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
 runs = ["sitemap_keeps_noindex"]
+skipped = ["sitemap_keeps_disallowed"]
+[[route.rustmapper.entry.instead]]
+# a release whose export leaves out disallowed pages (the probe fails, or the export reads robots rules)
+from_head = true
+text = "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex` and canonicalized pages."
+head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
+release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "canonical"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
+           {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
+runs = ["sitemap_keeps_noindex"]
+fails = ["sitemap_keeps_disallowed"]
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]

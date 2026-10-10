@@ -45,6 +45,11 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
     robots_late         (review round 15) the same over https, robots.txt answered LATE_HOLD s late, the home page
                         linking ten disallowed pages and ten allowed: the behaviour happened when one disallowed page
                         was fetched
+    blank_rows          (review round 16) in the robots_stall run, every row whose page the server never saw has
+                        status_code and crawled_at null, and `grep -c '"crawled_at":null'` counts exactly the rows
+                        with crawled_at null (the README's count of blank rows); skipped with robots_stall
+    sitemap_keeps_disallowed  (review round 16) export-sitemap on the robots_late run's data lists every disallowed
+                        page that run fetched; skipped with robots_late
     quiet_slow_page     (review round 9) the quiet mark has a number: on a site whose second page is held SLOW_HOLD
                         s, two `Received work item` lines are at least SLOW_HOLD s apart (silence shorter than the
                         bound is not the end), and after QUIET_BOUND s with no such line, one SIGINT writes every page
@@ -750,15 +755,20 @@ def late_verdict(paths: list[tuple[float, str]]) -> tuple[bool, bool, str]:
 
 
 def _probe_https(steps: list, exe: str, name: str, work: Path, sid: str, cmd: str, site: Path, hold: dict,
-                 secs: float, verdict) -> None:
+                 secs: float, verdict) -> tuple[list, Path] | None:
+    """Crawl `site` over https and record step `sid`: (the server's request log, the data dir), or None when the
+    probe was skipped (review round 16: the stall and late runs read their files again, for blank_rows and
+    sitemap_keeps_disallowed)."""
     cert, key, why = make_cert(work)
     if cert is None:
-        return _skip(steps, sid, cmd, why)
+        _skip(steps, sid, cmd, why)
+        return None
     trusted = trust_cert(cert)
     httpd, paths, why = serve_https(site, cert, key, hold)
     if httpd is None:
         untrust_cert(cert)
-        return _skip(steps, sid, cmd, why)
+        _skip(steps, sid, cmd, why)
+        return None
     try:
         d = work / f"d-{sid}"
         log = open(work / f"{sid}.log", "w")
@@ -775,16 +785,51 @@ def _probe_https(steps: list, exe: str, name: str, work: Path, sid: str, cmd: st
     ok, skipped, detail = verdict(list(paths))
     detail = detail + (f"; certificate {trusted}" if trusted else "") + f"; {exited}"
     if skipped:
-        return _skip(steps, sid, cmd, detail)
+        _skip(steps, sid, cmd, detail)
+        return None
     _step(steps, sid, cmd, ok, detail, took, gate=False)
+    return list(paths), d
+
+
+BLANK_LITERAL = '"crawled_at":null'     # what one blank row holds in 0.1.3's compact serde_json line
+
+
+def blank_verdict(paths: list[tuple[float, str]], path: Path) -> tuple[bool, bool, str]:
+    """blank_rows (review round 16): (holds, skipped, detail). Every row of sitemap.jsonl whose page the server never
+    saw has `crawled_at` null, and `grep -c '"crawled_at":null'` (the README's count of blank rows) counts exactly the
+    rows whose `crawled_at` is null. Skipped when the file is missing or every page was reached (nothing to show)."""
+    try:
+        raw = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False, True, "no sitemap.jsonl"
+    recs = jsonl_records(path)
+    asked = {p for _, p in paths}
+    never = sorted(k for k in recs if ("/" if k == "index.html" else "/" + k) not in asked)
+    if not never:
+        return False, True, f"{len(recs)} rows, every page asked for"
+    blank_never = [k for k in never if recs[k].get("crawled_at") is None and recs[k].get("status_code") is None]
+    nulls = sum(1 for r in recs.values() if r.get("crawled_at") is None)
+    grep = sum(1 for ln in raw.splitlines() if BLANK_LITERAL in ln)
+    ok = len(blank_never) == len(never) and grep == nulls
+    return ok, False, (f"{len(recs)} rows; {len(never)} never asked for ({', '.join(never)}), {len(blank_never)} of "
+                       f"them with status_code and crawled_at null; {nulls} rows with crawled_at null, and grep -c "
+                       f"'{BLANK_LITERAL}' counts {grep}")
 
 
 def probe_stall(steps: list, exe: str, name: str, work: Path) -> None:
     """robots_stall: crawl the stall fixture over https (robots.txt answered at once, the home page held STALL_HOLD
     s), one SIGINT after STALL_SECONDS, read the server's log."""
-    _probe_https(steps, exe, name, work, "robots_stall", f"{name} crawl of an https site: after a link robots.txt "
-                 "disallows, the links queued behind it are not asked for", STALL_SITE,
-                 {"/": STALL_HOLD}, STALL_SECONDS, stall_verdict)
+    got = _probe_https(steps, exe, name, work, "robots_stall", f"{name} crawl of an https site: after a link "
+                       "robots.txt disallows, the links queued behind it are not asked for", STALL_SITE,
+                       {"/": STALL_HOLD}, STALL_SECONDS, stall_verdict)
+    cmd = (f"{name} crawl: every page never asked for is a row with status_code and crawled_at null, and grep -c "
+           f"'{BLANK_LITERAL}' counts the blank rows")
+    if got is None:
+        return _skip(steps, "blank_rows", cmd, "robots_stall was skipped")
+    ok, skipped, detail = blank_verdict(got[0], got[1] / "sitemap.jsonl")
+    if skipped:
+        return _skip(steps, "blank_rows", cmd, detail)
+    _step(steps, "blank_rows", cmd, ok, detail, gate=False)
 
 
 def probe_resume(steps: list, exe: str, name: str, work: Path) -> None:
@@ -797,9 +842,29 @@ def probe_resume(steps: list, exe: str, name: str, work: Path) -> None:
 def probe_late(steps: list, exe: str, name: str, work: Path) -> None:
     """robots_late: crawl the late fixture over https (robots.txt answered LATE_HOLD s late), one SIGINT after
     LATE_SECONDS, read the server's log."""
-    _probe_https(steps, exe, name, work, "robots_late", f"{name} crawl of an https site whose robots.txt comes "
-                 f"{LATE_HOLD} s late fetches pages it disallows", LATE_SITE, {"/robots.txt": LATE_HOLD},
-                 LATE_SECONDS, late_verdict)
+    got = _probe_https(steps, exe, name, work, "robots_late", f"{name} crawl of an https site whose robots.txt comes "
+                       f"{LATE_HOLD} s late fetches pages it disallows", LATE_SITE, {"/robots.txt": LATE_HOLD},
+                       LATE_SECONDS, late_verdict)
+    cmd = f"{name} export-sitemap: the pages robots.txt disallows that the crawl fetched are in sitemap.xml"
+    if got is None:
+        return _skip(steps, "sitemap_keeps_disallowed", cmd, "robots_late was skipped")
+    paths, d = got
+    fetched = [p for p in LATE_SECRET if p in {q for _, q in paths}]
+    if not fetched:
+        return _skip(steps, "sitemap_keeps_disallowed", cmd, "no disallowed page was fetched, so none could be listed")
+    xml = work / "late.xml"
+    e, secs = _timed([exe, "export-sitemap", "--data-dir", str(d), "--output", str(xml)], 120, cwd=work)
+    ok, detail = disallowed_verdict(sitemap_locs(xml) if e.returncode == 0 else [], fetched)
+    _step(steps, "sitemap_keeps_disallowed", cmd, ok, detail, secs, gate=False)
+
+
+def disallowed_verdict(locs: list[str], fetched: list[str]) -> tuple[bool, str]:
+    """sitemap_keeps_disallowed (review round 16): every disallowed page the crawl fetched (with its 200) is a <loc>
+    of the exported sitemap.xml: 0.1.3's export keeps every status_code 200 row and reads no robots rules."""
+    listed = [p for p in fetched if p.lstrip("/") in locs]
+    ok = bool(fetched) and len(listed) == len(fetched)
+    return ok, (f"{len(locs)} <loc> in one file; {len(listed)} of the {len(fetched)} disallowed pages fetched are "
+                f"listed ({', '.join(p.lstrip('/') for p in listed[:3])}{', …' if len(listed) > 3 else ''})")
 
 
 PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second,

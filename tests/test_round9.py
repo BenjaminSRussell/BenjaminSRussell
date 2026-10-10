@@ -57,6 +57,10 @@ def install(text):
     return text.split("<!-- install:Rust-sitemap:start -->", 1)[1].split("<!-- install:Rust-sitemap:end -->", 1)[0]
 
 
+
+# review round 16: X2 also rests on a node being written blank when its link is found
+STATE_RS = "AddNodeFact(SitemapNode),\nlet n = SitemapNode { crawled_at: None, };"
+
 class Cautions(unittest.TestCase):
     """r09-1 #1, r09-3 #3: one prose paragraph after the code block (the wheel note), then one short list."""
 
@@ -133,10 +137,10 @@ class ScrapyOrder(unittest.TestCase):
         self.assertEqual(readme_check.cd_agrees(text), [])
         i = text.index("<!-- facts:Scrapy:end -->")
         self.assertLess(i, text.index("- Raw pages land in Delta Lake"))
-        self.assertLess(text.index("- Prometheus alerts on its own metrics"), text.index("Run these from the folder you cloned"))   # review round 14
-        self.assertLess(text.index("Run these from the folder you cloned"), text.index("cd Scrapy/Scraping_project"))
+        self.assertLess(text.index("- Prometheus alerts on its own metrics"), text.index("Run the commands below from the folder you cloned"))   # review round 14
+        self.assertLess(text.index("Run the commands below from the folder you cloned"), text.index("cd Scrapy/Scraping_project"))
         # review round 10: the cd says where to stand; the sentence says what start.py does
-        self.assertIn("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts", text)
+        self.assertIn("Run the commands below from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts", text)
 
     def test_the_check_bites(self):
         old = ("Run these from a clone of [Scrapy](https://x), in `Scraping_project` (`start.py` runs only there).\n\n"
@@ -184,7 +188,7 @@ class StatusCode(unittest.TestCase):
         x2 = {e["id"]: e for e in R.resolve(route, rc)}["X2"]
         self.assertTrue(x2["verified"] and not x2["retired"], x2)
         self.assertEqual(x2["text"], "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, "
-                                     "timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.")
+                                     "timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.")
         self.assertIn("- Only HTML pages that answer 200, redirected or not, get a `status_code`.", read(README))
         self.assertIn("err 1, feed 1, hang.html 1", next(s for s in rc["steps"] if s["id"] == "non200_status")["detail"])
         # a release that records statuses or asks again: the probe fails and the item retires
@@ -199,7 +203,7 @@ class StatusCode(unittest.TestCase):
                 "if url_utils::is_html_content_type(ct) {} } "
                 "Ok(_) => { return CrawlResult { result: Ok(Vec::new()) }; } } }\nlet n = SitemapNode { status_code: job.status_code };"
                 "\nfn handle_crawl_error(&self) { let b = false // Don't block host for transient errors\n; }")
-        files = {"src/bfs_crawler.rs": body, "src/frontier.rs": ""}
+        files = {"src/bfs_crawler.rs": body, "src/frontier.rs": "", "src/state.rs": STATE_RS}
         self.assertTrue(R.verify_route(spec, None, tree(files), None, "0.1.3")["entries"][0]["verified_release"])
         files = dict(files, **{"src/frontier.rs": 'let wait = headers.get("Retry-After");'})
         self.assertFalse(R.verify_route(spec, None, tree(files), None, "0.1.3")["entries"][0]["verified_release"])
@@ -220,7 +224,7 @@ class QuietNumber(unittest.TestCase):
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         route = stats["routes"]["rustmapper"]
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
-        self.assertEqual(h1["text"], "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
+        self.assertEqual(h1["text"], "{release} never exits by itself; quit when `Received work item` lines stop for 60 s")
         next(s for s in rc["steps"] if s["id"] == "quiet_slow_page")["quiet_secs"] = 30   # the round 9 probe
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
         self.assertEqual(h1["text"], "{release} never exits by itself, even after the last page")

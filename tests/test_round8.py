@@ -295,7 +295,7 @@ class SecondCtrlC(unittest.TestCase):
 
     def test_caution(self):
         self.assertEqual(self.resolve(SHUTDOWN.format(a=EXIT, b=EXPORT)),
-                         "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file")
+                         "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file")
 
     def test_fallbacks(self):
         old = "press Ctrl-C once to write `data/sitemap.jsonl`"

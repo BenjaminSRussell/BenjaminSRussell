@@ -10,7 +10,7 @@
 <source media="(max-width: 851px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
 <source media="(min-width: 1200px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
 <source media="(min-width: 1200px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
 </a>
 <!-- picture:hero:end -->
@@ -23,7 +23,7 @@
 <!-- contact:end -->
 </p>
 
-**Ben Russell builds** web crawlers, discovery pipelines, raw-first storage, and the dashboards that watch them.<br>
+**Ben Russell builds** web crawlers, discovery pipelines, raw-first storage and the dashboards that watch them.<br>
 **Languages** <!-- n:languages -->Python, Rust; Swift, JavaScript, TypeScript, C, Go<!-- /n -->.<br>
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
@@ -46,7 +46,7 @@ Before you run 0.1.3:
 - It sends requests with no pause between them, up to 256 at a time across all hosts.<br>`--workers 1` sends one at a time.
 - It names itself `RustSitemapCrawler/1.0`, with no way to reach you.<br>`--user-agent <your-bot>` sends your name instead.
 - Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https.
-- On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.
+- On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`.
 - By default it asks crt.sh and Common Crawl about your domain.<br>`--seeding-strategy none` asks no one.
 - From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
 
@@ -55,8 +55,8 @@ Before you run 0.1.3:
 
 - It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
 - After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.
-- Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.
-- Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.
+- Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.
+- Its `sitemap.xml` is every row with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex`, canonicalized and disallowed pages.
 
 </details>
 
@@ -67,6 +67,10 @@ rust_sitemap crawl \
 # 0.1.3 runs until stopped: when
 # "Received work item" stops
 # for 60 s, then Ctrl-C once
+
+# count the blank rows
+grep -c '"crawled_at":null' \
+  data/sitemap.jsonl
 
 # sitemap.xml, even after a kill
 rust_sitemap export-sitemap
@@ -83,14 +87,14 @@ rust_sitemap export-sitemap
 <!-- facts:Scrapy:end -->
 
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards. A kill switch stops new downloads within 5 s, with a runbook. Docker Compose and a Helm chart for Kubernetes.
+- Repeat URLs are dropped by their hash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
+- Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards show them. A kill switch stops new downloads within 5 s, with a runbook. Docker Compose and a Helm chart for Kubernetes.
 
-Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds: the last command gives the spider your site.
+Run the commands below from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Prometheus, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds: the last command gives the spider your site.
 
 Before you run it:
 
-- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`).
+- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without the `USER_AGENT` line, `UConn-Discovery-Crawler/1.0`).
 - The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`.
 
 ```sh
@@ -103,7 +107,7 @@ docker-compose run --rm \
   -a start_urls=<url>
 ```
 
-Grafana opens on `localhost:3000`. What it writes lands in Delta tables under `data/delta/`; [DATA_USAGE.md](https://github.com/BenjaminSRussell/Scrapy/blob/main/Scraping_project/docs/guides/DATA_USAGE.md) lists them and shows how to read or export them.
+Grafana opens on `localhost:3000`. The crawl's output lands in Delta tables under `data/delta/`; [DATA_USAGE.md](https://github.com/BenjaminSRussell/Scrapy/blob/main/Scraping_project/docs/guides/DATA_USAGE.md) lists them and shows how to read or export them.
 
 <a name="also"></a>
 **Also**

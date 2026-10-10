@@ -250,9 +250,9 @@ class Stall(unittest.TestCase):
     def test_committed(self):
         cfg, stats = load()
         d = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
-        self.assertEqual(d["H0"]["text"], "on https, a disallowed link stalls its host")
+        self.assertEqual(d["H0"]["text"], "on https, pages behind a disallowed link wait")
         self.assertEqual(d["H0"]["runs"], ["robots_stall", "robots_resume"])
-        self.assertTrue(d["L6"]["text"].startswith("On an https site, each link `robots.txt` disallows stalls"))
+        self.assertTrue(d["L6"]["text"].startswith("On https, pages queued behind a link that `robots.txt` disallows wait"))
         self.assertLessEqual(len(d["L6"]["text"].split()), rr.LIST_MAX_WORDS)
         order = [e["id"] for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])
                  if e["kind"] in ("stop", "trap", "step")]
@@ -260,7 +260,7 @@ class Stall(unittest.TestCase):
         self.assertTrue(d["H0"]["loop"])
         items = [ln for ln in read(README).split("Before you run 0.1.3:", 1)[1].split("<details>", 1)[0].splitlines()
                  if ln.startswith("- ")]
-        self.assertTrue(items[3].startswith("- On an https site"), items)       # right after L4
+        self.assertTrue(items[3].startswith("- On https, pages queued behind"), items)       # right after L4
         self.assertIn("H0", sheet.PURPOSE)
 
     def test_probes_decide(self):

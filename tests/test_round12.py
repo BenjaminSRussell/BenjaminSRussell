@@ -154,10 +154,10 @@ class ScrapyBlock(unittest.TestCase):
     def test_committed(self):
         text = read(README)
         self.assertNotIn("Spiders run by name", text)
-        self.assertIn("Grafana opens on `localhost:3000`. What it writes lands in Delta tables under `data/delta/`; "
+        self.assertIn("Grafana opens on `localhost:3000`. The crawl's output lands in Delta tables under `data/delta/`; "
                       "[DATA_USAGE.md](https://github.com/BenjaminSRussell/Scrapy/blob/main/Scraping_project/docs/"
                       "guides/DATA_USAGE.md) lists them and shows how to read or export them.", text)
-        self.assertIn("Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's "
+        self.assertIn("Repeat URLs are dropped by their hash. In stage 3 a page's "
                       "summary is its first five sentences;", text)
         self.assertNotIn("extractive summary", text)
 
@@ -208,7 +208,7 @@ class Wording(unittest.TestCase):
     def test_c1_has_no_colon_mid_sentence(self):
         cfg, stats = load()
         c1 = drawn(stats)["C1"]["text"]
-        self.assertEqual(c1, "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file")
+        self.assertEqual(c1, "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file")
         self.assertNotIn("Saved to:", c1)
         # the anchors still test the tool's own line, colon and all
         self.assertTrue(any('println!("Saved to: ' in str(a.get("before")) for a in entry(cfg, "C1")["release"]))
@@ -219,7 +219,7 @@ class Wording(unittest.TestCase):
         steps = [e for e in rows.values() if e["kind"] in ("stop", "step", "note", "trap", "end")]
         with_once = [e["id"] for e in steps if re.search(r"\bonce\b", e["text"])]
         self.assertEqual(with_once, ["C1"])
-        self.assertIn("done when `Received work item` lines stop for 60 s", rows["H1"]["text"])
+        self.assertIn("quit when `Received work item` lines stop for 60 s", rows["H1"]["text"])
 
     def test_fold_label_names_the_largest_group(self):
         groups = {"scrapers and data tools": ["FashionDB", "Data-visualizer", "Elusive_trades_data",
@@ -254,7 +254,7 @@ class Redirects(unittest.TestCase):
         self.assertEqual(rows["X3"]["text"], "After a redirect it keeps the old address and reads the page's links "
                          "from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.")
         self.assertIn("redirected or not", rows["X2"]["text"])
-        self.assertIn("It keeps `noindex` and canonicalized pages.", rows["X1"]["text"])
+        self.assertIn("It keeps `noindex`, canonicalized and disallowed pages.", rows["X1"]["text"])
         steps = {s["id"]: s for s in stats["runcheck"]["rustmapper"]["steps"]}
         self.assertTrue(steps["redirect_kept"]["ok"] and steps["sitemap_keeps_noindex"]["ok"])
         items = rr.text_paragraphs(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"], stats["edition"],

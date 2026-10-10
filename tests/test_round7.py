@@ -83,7 +83,7 @@ class CodeColumns(unittest.TestCase):
     def test_no_this_repository(self):
         text = read(README)
         self.assertNotRegex(visible(text), re.compile("this repository", re.I))
-        found = readme_check.check(type("C", (), {"readme": text.replace("Run these from", "In this repository, run"),
+        found = readme_check.check(type("C", (), {"readme": text.replace("Run the commands below from", "In this repository, run"),
                                                   "stats": {}, "root": ROOT})())
         self.assertIn("THIS-REPO", [f.code for f in found])
 
@@ -385,7 +385,7 @@ class Wording(unittest.TestCase):
         cfg, _ = load()
         h1 = entry(cfg, "H1")
         # review round 9: the clearing mark with its number
-        self.assertEqual(h1["text"], "{release} never exits by itself; done when `Received work item` lines stop for {quiet} s")
+        self.assertEqual(h1["text"], "{release} never exits by itself; quit when `Received work item` lines stop for {quiet} s")
         self.assertEqual(h1["instead"][0]["text"], "{release} never exits by itself, even after the last page")
 
     def test_one_spelling(self):

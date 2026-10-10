@@ -63,6 +63,10 @@ def ctx(cfg, stats, readme=""):
     return type("C", (), {"cfg": cfg, "stats": stats, "readme": readme})()
 
 
+
+# review round 16: X2 also rests on a node being written blank when its link is found
+STATE_RS = "AddNodeFact(SitemapNode),\nlet n = SitemapNode { crawled_at: None, };"
+
 class RuleFourCut(unittest.TestCase):
     """r11-1 #1: three rules; "Parse, don't pattern-match." is gone from the page and from chart.toml."""
 
@@ -180,7 +184,9 @@ class InstallOrder(unittest.TestCase):
         code = rr.install_block(stats, "Rust-sitemap", cfg).split("```")[1].splitlines()
         at = code.index("# sitemap.xml, even after a kill")
         self.assertEqual((code[at - 2], code[at - 1], code[at + 1]),
-                         ("# for 60 s, then Ctrl-C once", "", "rust_sitemap export-sitemap"))
+                         ("  data/sitemap.jsonl", "", "rust_sitemap export-sitemap"))    # review round 16
+        at = code.index("# count the blank rows")
+        self.assertEqual((code[at - 2], code[at - 1]), ("# for 60 s, then Ctrl-C once", ""))
         # no stop lines (a release that exits by itself): no blank line opens the comments
         self.assertEqual(rr.stop_lines({"steps": [{"id": "kill_writes_file", "ok": False},
                                                   {"id": "export_after_kill", "ok": True}]},
@@ -198,10 +204,10 @@ class BlankRows(unittest.TestCase):
                 "if url_utils::is_html_content_type(ct) {} } "
                 "Ok(_) => { return CrawlResult { result: Ok(Vec::new()) }; } } }\nlet n = SitemapNode { status_code: job.status_code };"
                 "\nfn handle_crawl_error(&self) { let b = false // Don't block host for transient errors\n; }")
-        ok = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body, "src/frontier.rs": ""}), None, "0.1.3")
+        ok = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body, "src/frontier.rs": "", "src/state.rs": STATE_RS}), None, "0.1.3")
         self.assertTrue(ok["entries"][0]["verified_release"])
         gone = body.replace("// Don't block host for transient errors", "// requeue")
-        bad = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": gone, "src/frontier.rs": ""}), None, "0.1.3")
+        bad = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": gone, "src/frontier.rs": "", "src/state.rs": STATE_RS}), None, "0.1.3")
         self.assertFalse(bad["entries"][0]["verified_release"], "a release that requeues transient errors")
 
     def test_fixture(self):

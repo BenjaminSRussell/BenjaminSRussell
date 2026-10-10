@@ -267,7 +267,7 @@ class WriteRow(unittest.TestCase):
     def test_design_opening_follows(self):
         # review round 15: W1 is not drawn, so DESIGN.md's opening names the catches instead
         self.assertNotIn("“saved as it goes”", read(DESIGN))
-        self.assertIn("The dotted line marks the catches: “on https, a disallowed link stalls its host”", read(DESIGN))
+        self.assertIn("The dotted line marks the catches: “on https, pages behind a disallowed link wait”", read(DESIGN))
         self.assertNotIn("saved to redb", read(DESIGN))
 
 
@@ -324,7 +324,7 @@ class UserAgent(unittest.TestCase):
         # review round 14: the sentence also says what stage 2 sends (test_round14)
         # review round 15: the name is in the spider's item of "Before you run it:"
         self.assertIn("- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without "
-                      "that line, `UConn-Discovery-Crawler/1.0`).", text)
+                      "the `USER_AGENT` line, `UConn-Discovery-Crawler/1.0`).", text)
         block = text.split("python start.py\n", 1)[1].split("```", 1)[0]
         self.assertIn("  scraper scrapy crawl scout \\\n  -s USER_AGENT=<your-bot> \\\n  -a allowed_domains=", block)
         self.assertTrue(all(len(ln) <= readme_check.CODE_COLUMNS for ln in block.splitlines()))

@@ -1097,3 +1097,87 @@ merging is on the owner's list.
 - `check.py --tier fast,render`: fast 0 fail, 4 warnings (log.shards, POSITION-EMPTY, LICENSE-FLAGSHIP, ROUTE-WAITING
   S2), 0 errors, exit 2. The render tier ran: 0 fail. README-STALE, DESIGN-FRESH, AUDIT-STALE, AUDIT-COVER, FIGURES,
   STRINGS-TWICE, README-CAUTIONS, FLAG-WRAP, CONTRAST-DANGER and HERO-FALLBACK are clean.
+
+## Round 16
+
+Reviews: `review-r16-1.md` (the owner) **8 / 10**, `review-r16-2.md` (the data engineer) **7 / 10**,
+`review-r16-3.md` (the copy editor) **8 / 10**. None meets the goal yet. Every figure held. What was wrong was what
+the words led a reader to believe. The image drew the robots.txt stall, then said "done when `Received work item`
+lines stop for 60 s" one row below it, and a stalled crawl stops those lines too. "Stalls its host" read, to a site
+owner, as harm to the server. A blank row in `sitemap.jsonl` could also be a page never fetched, and the page did not
+say so. 0.1.3's `sitemap.xml` lists the disallowed pages it fetched. Scrapy's "near-duplicate pages by MinHash" does
+not hold across the worker's passes. Some sentences had to be read twice.
+
+Renders: `scratchpad/r6/build/round-16/` (the standard set; desk also at 846, mid at 746, phone at 308, the phone page
+at 360, first screens at 900, 1,180, 1,280, 1,366 and 1,920). `stats.json` was re-read with `scratchpad/r6/reroute16.py`
+(the route at the same HEADs and in the 0.1.3 sdist; the figure rows). The run check's `robots_stall` and
+`robots_late` were run again today against the same installed 0.1.3 (`scratchpad/r6/rc16/steps.json`), and each now
+has a follow-on step.
+
+### What was measured first
+
+- **Blank rows (review 2).** `runcheck.py --probe robots_stall` with the new `blank_rows` step: 12 rows; the 6 pages
+  the server never saw (p6 to p10 and the disallowed `secret.html`) are rows with `status_code` and `crawled_at` null;
+  `grep -c '"crawled_at":null'` on the file gives 6, the number of rows with `crawled_at` null. The crawl's output has
+  `Shard 3: URL https://localhost/secret.html blocked by robots.txt` (line 5 of the log).
+- **The sitemap (review 2).** `sitemap_keeps_disallowed`: `export-sitemap` on the `robots_late` run's data wrote 21
+  `<loc>`, all 10 disallowed pages that run fetched among them. `run_export_sitemap_command` reads no robots rules.
+- **Scrapy's dedup (review 2).** At `96e7a1a` the URL dedup that runs is the spider's `RFPDupeFilter` (settings.py; no
+  `scrapy:` section in config.yml to change it), `_canonical_queue_row` on every queue row, and stage 2's upsert by
+  `url_hash`. `REDIS_KEY_SEEN_URLS` is defined in constants.py but not read anywhere, so it is not an anchor.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: H1's "done" | H1: "0.1.3 never exits by itself; quit when `Received work item` lines stop for 60 s". Same 9 characters, so no edition's line breaks moved. The H0 comment in `chart.toml` says why. Tests that pinned the text are updated; `test_round16.QuitNotDone` checks that H1 never says "done" while H0 is drawn. |
+| r1-2: the stall's sign and cost | L6 ends "The sign: `blocked by robots.txt`." (the literal the anchors hold; the branch's `eprintln!`). X2 (the fold): "Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too." It rests on new anchors (`AddNodeFact(SitemapNode)`, `crawled_at: None,` in state.rs) and the new probe `blank_rows`, with a code-only wording while that probe is skipped. AUDIT-COVER and STRINGS-TWICE are clean (tests too). |
+| r1-3 + r2-4: H0's words | H0: "on https, pages behind a disallowed link wait" (45 characters), both wordings. One phone line in all six editions (round 15's test passes). PURPOSE and DESIGN.md follow. |
+| r1-4: padding inside the dotted line | `DANGER_PAD_X = {desk: 11, phone: 12, mid: 11}`, `DANGER_PAD_Y = 6`. The phone box is now x 76 to 570 (the loop bracket ends at x 56). New render-tier check BOX-PAD (`scripts/checks/boxpad.py`): the words' box (advance widths) to the inner edge of the dots, at least `BOX_PAD_MIN` = 8 units sideways, in every edition. Measured: phone 10.3 day, 10.0 night; desk and mid 9.3 day, 9.0 night. Heights unchanged: desk and mid 707, phone 1,121. |
+| r2-1: the blank rows and their count | X2 as above. The code block gains, after the stop rule: `# count the blank rows`, `grep -c '"crawled_at":null' \`, `  data/sitemap.jsonl` (each under 32 columns). `render_readme.blank_lines` prints it while the new release gate `blank_rows` holds (`pub crawled_at: Option<`, `serde_json::to_string(&node)` in `export_to_jsonl`, `join("sitemap.jsonl")`, the crawl's `--data-dir` default `./data`) and the `blank_rows` probe did not fail. |
+| r2-2: disallowed pages in sitemap.xml | X1: "Its `sitemap.xml` is every row with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex`, canonicalized and disallowed pages." (25 words.) New anchor `absent = "robots"` in `run_export_sitemap_command`; new probe `sitemap_keeps_disallowed`. Two fallbacks print the round 12 wording: while the probe is skipped, and once it fails. Both needed `from_head = true` for the 50,000, which a test caught. |
+| r2-3: Scrapy's dedup | Bullet 2: "Repeat URLs are dropped by their hash. In stage 3 …". The `deduplicated` pick row now rests on settings.py's `DUPEFILTER_CLASS … RFPDupeFilter`, `def _canonical_queue_row` and its use on the stage 2 queue, and stage 2's `# #311: upsert by url_hash`, with no `scrapy:` section in config.yml. |
+| r2-5: BREAKS | "(fetch, at most 20 at once from one host, the robots.txt stall, and the crawl that never exits)". The module docstring no longer says "under the log". |
+| r3-2: C1's garden path | C1: "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file". Same anchors, same line counts. |
+| r3-3: L6's reduced relative | L6: "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`." (23 words.) |
+| r3-4: the Scrapy block | (a) "… and Grafana dashboards show them." (b) "The crawl's output lands in Delta tables under `data/delta/`". (c) "Run the commands below from …". (d) "(without the `USER_AGENT` line, …)". (e) "PostgreSQL, Redis, Prometheus, Grafana and a worker …", with `"\n  prometheus:"` in that figure row's `also`. Every `[[figures]]` substring still matches. |
+| r3-5: serial comma | "raw-first storage and the dashboards"; the alt text "what it does with each page and how to stop it". |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r3-1: "end it when" for H1 | The reviews conflict and the owner's review wins: "quit when". It is the same length, so no line moves, and it is an instruction like the code block's "then Ctrl-C once". Review 3's point that C1 says "quits" two rows down holds: the right move and the wrong one share a verb. C1's new order puts the instruction ("press Ctrl-C once and wait for `Saved to`") before the warning, which separates them. |
+| r2-4: "stalls its queue" | The owner's review wins: "pages behind a disallowed link wait" names what the visitor loses and uses L6's verb. |
+| r1-2 + r3-3: L6 as "… stalls that host's crawl: pages queued behind it wait …" plus the sign sentence | That is 35 words, and the list's cap is 25 (README-CAUTIONS). The kept wording puts "pages" first, as H0 does, and is 23 words. "stalls that host's crawl" is the clause that went. |
+| r1-2 + r2-1: X2's "never retried" | Both reviews' wordings together come to 29 words. "Pages never reached" (review 1's test) went in, and "never retried" came out to meet the cap. The count in the code block is where the reader acts on a blank row. |
+| r2-1: the comment "# rows never fetched or failed" | A non-HTML 200 is fetched and did not fail, but it is still a blank row, so the comment would be false for it. The comment is "# count the blank rows", and the fold defines a blank row just above the block. AUDIT-COVER also failed "# blank rows (no HTML 200)": a 200 with no register row. |
+| r2-1: the grep line gated on HEAD's state.rs too | The code block runs the release pip installs. A HEAD anchor would drop the line when main changes, while 0.1.3 behaves the same. The gate reads the release only. |
+| r2-1: the check on `robots_stall` itself | It is a separate step, `blank_rows`, in the same run. Tying X2 to `robots_stall` passing would make X2 unverified the day a release fixes the stall. Instead, `blank_rows` checks that every page the server never saw is a blank row, and that the grep counts exactly the blank rows. It is skipped when the https run cannot go or when every page was reached. |
+| r2-3: the anchor `REDIS_KEY_SEEN_URLS = "seen:urls"` | That constant is defined and never read at `96e7a1a`, so it would be the same kind of presence anchor the review faulted. The row uses the dupe filter, the canonical queue row and the stage 2 upsert, which run. |
+| r1-4: desk and mid at 10 | At 10, the night editions' 4.08-unit stroke left 7.96 units, under BOX-PAD's 8. Desk and mid take 11. |
+| r3-4e: "about +1 line at 390" | Measured: the phone page is 5,645 CSS px at 390 (was 5,525). The grep lines, L6's sign and the Scrapy repairs account for it. |
+
+### Owner, outside this repository
+
+- **Scrapy:** make the near-duplicate filter global, either by persisting the MinHash index (datasketch
+  `storage_config` on the Redis the stack already runs, with a fixed `basename`) or by recording a skipped page's hash
+  in `stage3_summaries`. Add a test that runs `Stage3Worker.run()` twice and expects one summary. The clause can come
+  back once it is anchored on that test.
+- **0.1.4 (Rust-sitemap):** carried from round 15. A release cut from main retires H0, L6 and L4's first clause. Also:
+  leave robots-disallowed and `noindex` pages out of `export-sitemap`, which retires X1's new clause through the
+  fallbacks.
+- **Still open:** the iOS app check, the `workflow_dispatch` dry run, Scrapy stage 2's robots check, delay and name,
+  `[position]` and `[contact]`, a real iPad.
+
+### Measured state of this build
+
+- Desk sheet 1,000 x 707; mid 820 x 707; phone 600 x 1,121 (899 px tall at the 851 px window, under HERO-COLUMN-PX's
+  900). H0 is one line in every edition. The danger box on the phone runs from x 76 to 570.
+- Page: desk 3,317 px at 1,280 (was 3,245); phone 5,645 CSS px at 390 (was 5,525) and 6,045 at 360 (was 5,949).
+- `python3 -m unittest`: 539 tests, all pass (26 new in `tests/test_round16.py`; older tests that pinned H1's "done",
+  the old C1, H0, L6, X2 and X1, the Scrapy sentences and the code block now pin the new state).
+- `check.py --tier fast,render`: 0 fail, 4 warnings (log.shards, POSITION-EMPTY, LICENSE-FLAGSHIP, ROUTE-WAITING S2),
+  0 errors, exit 2. The render tier ran with BOX-PAD (new), HERO-COLUMN-PX, HERO-FALLBACK, DESK-PX and FLAG-WRAP, and
+  none failed. README-STALE, DESIGN-FRESH, AUDIT-STALE, AUDIT-COVER, FIGURES, STRINGS-TWICE, README-CAUTIONS and
+  CONTRAST-DANGER are clean.

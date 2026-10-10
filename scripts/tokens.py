@@ -170,14 +170,14 @@ def idea(stats: dict, cfg: dict) -> str:
     if stops:
         out.append("Its rings are the tool's steps: " + "; ".join(f"“{_first_clause(e['text'])}”" for e in stops) + ".")
     if any(e.get("loop") for e in p["steps"]):
-        out.append("The line up the left side marks the rows that repeat for every page.")
+        out.append("The line up the left marks the rows that repeat for every page.")
     if len(traps) == 1:
         out.append(f"The dotted line marks the catch: “{_first_clause(traps[0]['text'])}”.")
     elif traps:     # review round 15: the robots.txt stall and the crawl that never exits
         out.append("The dotted line marks the catches: " + "; ".join(f"“{_first_clause(e['text'])}”" for e in traps)
                    + ".")
     if step:
-        out.append(f"Then your step: “{_first_clause(step['text'])}”.")
+        out.append(f"Your step: “{_first_clause(step['text'])}”.")
     end = p.get("end")
     if end:
         out.append(f"It ends at `{end['file']}`" + (f", “{sheet.handoff_words(p['handoff'], stats)}”."

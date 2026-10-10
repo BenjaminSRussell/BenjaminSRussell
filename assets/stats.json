@@ -7569,7 +7569,7 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "on https, a disallowed link stalls its host",
+     "text": "on https, pages behind a disallowed link wait",
      "file": "frontier.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7588,7 +7588,7 @@
      },
      "instead": [
       {
-       "text": "on https, a disallowed link stalls its host",
+       "text": "on https, pages behind a disallowed link wait",
        "file": "frontier.rs",
        "verified_head": true,
        "verified_release": true,
@@ -7684,7 +7684,7 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "{release} never exits by itself; done when `Received work item` lines stop for 60 s",
+     "text": "{release} never exits by itself; quit when `Received work item` lines stop for 60 s",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7752,7 +7752,7 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file",
+     "text": "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -8046,7 +8046,7 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.",
+     "text": "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -8068,7 +8068,7 @@
      "short": "robots.txt stall",
      "instead": [
       {
-       "text": "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.",
+       "text": "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`.",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -8257,21 +8257,23 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.",
+     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
       "non200_status",
-      "redirect_kept"
+      "redirect_kept",
+      "blank_rows"
      ],
      "fails": [],
      "paths": {
       "head": [],
       "release": [
        "src/bfs_crawler.rs",
-       "src/frontier.rs"
+       "src/frontier.rs",
+       "src/state.rs"
       ]
      },
      "item": true,
@@ -8279,6 +8281,29 @@
      "short": "status codes",
      "fold": true,
      "instead": [
+      {
+       "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "non200_status",
+        "redirect_kept"
+       ],
+       "fails": [],
+       "skipped": [
+        "blank_rows"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs",
+         "src/frontier.rs",
+         "src/state.rs"
+        ]
+       }
+      },
       {
        "text": "",
        "file": null,
@@ -8303,13 +8328,14 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+     "text": "Its `sitemap.xml` is every row with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex`, canonicalized and disallowed pages.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "sitemap_keeps_noindex"
+      "sitemap_keeps_noindex",
+      "sitemap_keeps_disallowed"
      ],
      "fails": [],
      "paths": {
@@ -8326,6 +8352,51 @@
      "short": "sitemap.xml",
      "fold": true,
      "instead": [
+      {
+       "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "sitemap_keeps_noindex"
+       ],
+       "fails": [],
+       "skipped": [
+        "sitemap_keeps_disallowed"
+       ],
+       "paths": {
+        "head": [
+         "src/sitemap_writer.rs"
+        ],
+        "release": [
+         "src/main.rs",
+         "src/sitemap_writer.rs"
+        ]
+       }
+      },
+      {
+       "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "sitemap_keeps_noindex"
+       ],
+       "fails": [
+        "sitemap_keeps_disallowed"
+       ],
+       "paths": {
+        "head": [
+         "src/sitemap_writer.rs"
+        ],
+        "release": [
+         "src/main.rs",
+         "src/sitemap_writer.rs"
+        ]
+       }
+      },
       {
        "text": "",
        "file": null,
@@ -8441,6 +8512,14 @@
      "scope": "release",
      "values": {
       "arg:output": "./sitemap.xml"
+     }
+    },
+    "blank_rows": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:data_dir": "./data"
      }
     }
    },
@@ -8792,8 +8871,8 @@
   {
    "text": "deduplicated",
    "repo": "Scrapy",
-   "path": "Scraping_project/src/stage3/stage3_worker.py",
-   "literal": "MinHashLSH",
+   "path": "Scraping_project/src/settings.py",
+   "literal": "DUPEFILTER_CLASS = _scrapy_config.get(\"dupefilter_class\", \"scrapy.dupefilters.RFPDupeFilter\")",
    "glob": null,
    "count": null,
    "measured": null,
@@ -9156,6 +9235,14 @@
      "detail": "7 requests; robots.txt asked for; the 5 links before the disallowed one: 5 fetched; /secret.html not fetched; the 5 after it: 0 fetched; exit 0 2.0 s after one SIGINT"
     },
     {
+     "id": "blank_rows",
+     "cmd": "rust_sitemap crawl: every page never asked for is a row with status_code and crawled_at null, and grep -c '\"crawled_at\":null' counts the blank rows",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "12 rows; 6 never asked for (p10.html, p6.html, p7.html, p8.html, p9.html, secret.html), 6 of them with status_code and crawled_at null; 6 rows with crawled_at null, and grep -c '\"crawled_at\":null' counts 6"
+    },
+    {
      "id": "robots_resume",
      "cmd": "rust_sitemap crawl of an https site: the host stalled by a disallowed link goes on when a page brings a new link",
      "ok": true,
@@ -9170,6 +9257,14 @@
      "gate": false,
      "secs": 17.0,
      "detail": "22 requests; robots.txt answered 0.5 s late; 10 of 10 disallowed pages fetched, 10 allowed; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "sitemap_keeps_disallowed",
+     "cmd": "rust_sitemap export-sitemap: the pages robots.txt disallows that the crawl fetched are in sitemap.xml",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "21 <loc> in one file; 10 of the 10 disallowed pages fetched are listed (secret1.html, secret2.html, secret3.html, …)"
     },
     {
      "id": "workers_cap",

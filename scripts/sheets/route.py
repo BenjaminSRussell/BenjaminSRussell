@@ -4,7 +4,7 @@ The image answers one sentence: how you start rustmapper, what it does with each
 and how to get out, and where the output goes next. Vertical position is the order of a run: what you type, what
 happens to each URL, how you stop it, what you get. The rows that repeat for every page are closed by one line back
 up the left side: the crawl is a loop, and its catches sit on that loop (review round 15: the robots.txt stall under
-the fetch stop, the crawl that never exits under the log), with the way out on the next row.
+the fetch stop, then the crawl that never exits), with the way out on the next row.
 Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a dotted line, a
 line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
 chart.toml [copy] / [identity].
@@ -56,7 +56,15 @@ KIND = "chart"
 SIZES = {"desk": (1000, 900), "phone": (600, 1250), "mid": (820, 900)}
 EDITIONS = ("day", "night", "mid-day", "mid-night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
-DANGER_PAD = 6           # the danger line round the trap's words: padding, corner radius, dot pitch (desk, phone)
+# the danger line round the trap's words: padding, corner radius, dot pitch. Review round 16 (the owner): the padding
+# is split. Sideways it is DANGER_PAD_X, so the words clear the dots by at least BOX_PAD_MIN units of paper
+# (checks/boxpad.py BOX-PAD): at 6 the phone's 3.4-unit dotted stroke left 4.3 units, 2.8 px at 390, and "60 s" touched
+# the right edge. Desk and mid take 11, not 10: the night editions' stroke is 4.08, and 10 left 7.96. Up and down it
+# stays DANGER_PAD_Y: the phone sheet has 1 unit of height to spare (1,121 of 1,122,
+# checks/column.py), and the loop bracket (x 58 on the phone) is clear of the box's left edge at x 76.
+DANGER_PAD_X = {"desk": 11, "phone": 12, "mid": 11}
+DANGER_PAD_Y = 6
+BOX_PAD_MIN = 8
 DANGER_RX = 6
 DANGER_PITCH = {"desk": 6, "phone": 8, "mid": 6}
 CODE_TOKENS = ("_", "--", ".rs", ".jsonl", "export-sitemap")   # TYPE-CODE: these are code and take the code face
@@ -85,10 +93,11 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "never slows", "Q1",
            "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 state.rs max_inflight, frontier.rs "
            "current_inflight; main.rs governor_task MIN_PERMITS)"),
-    "H0": ("the catch a stranger meets first on a real site (review round 15): over https a link robots.txt disallows "
-           "stalls the rest of that host's queue, so a crawl can go quiet with pages left; drawn under the fetch stop, "
-           "where it happens, inside the same dotted line as H1 (the two catches are consecutive rows), so H1's "
-           "quiet minute is read as done or stalled",
+    "H0": ("the catch a stranger meets first on a real site (review round 15): over https the pages queued behind a "
+           "link robots.txt disallows wait (review round 16: in the visitor's words, what waits, not \"stalls its "
+           "host\", which read as harm to the server), so a crawl can go quiet with pages left; drawn under the fetch "
+           "stop, where it happens, inside the same dotted line as H1 (the two catches are consecutive rows), so H1 "
+           "says when to quit, not that the crawl is done",
            "Q5", "stats.json routes.rustmapper H0 (frontier.rs get_next_url, the blocked branch's `continue;` with no "
            "push_ready_host; add_url_to_local_queue_unchecked); runcheck robots_stall, robots_resume"),
     "W1": ("what saving as it goes buys the reader (review round 13): after a kill, export-sitemap still has the "
@@ -98,7 +107,7 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; drain_batch recv_deadline, "
            "try_recv; redb; main.rs run_export_sitemap_command); runcheck export_after_kill, kill_writes_file"),
     "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
-           "says it is done, with how long it must stay quiet (review round 9: a clearing mark is only as good as its "
+           "says when to quit (review round 16: not \"done\", which a stall one row up makes false), with how long it must stay quiet (review round 9: a clearing mark is only as good as its "
            "number), counted once those lines have started and stop (review round 10: every seeder runs first, in "
            "silence); the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else "
            "arm, 'Received work item'; main.rs initialize before the shards; {quiet} from the permit wait (review round 11), the --timeout default and the backoff, route.quiet_secs); runcheck "
@@ -125,7 +134,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "side-by-side desk's 88 was (review round 14)"),
     ("Order is position; the loop is a line",
      "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
-     "page (fetch, at most 20 at once from one host, the robots.txt stall, and the log), closed by one line back up "
+     "page (fetch, at most 20 at once from one host, the robots.txt stall, and the crawl that never exits), closed by "
+     "one line back up "
      "the left side; the catches sit on that line and the way out on the next row",
      "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
      "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
@@ -515,18 +525,18 @@ def _build(ctx) -> str:
 
     def _danger(run):
         """Review round 3: a dotted danger line round the trap's words, in the accent, with no fill (INT 1, K1): a
-        rounded rectangle DANGER_PAD outside the text block (the font's ascent over the first baseline to its descent
+        rounded rectangle DANGER_PAD_X / DANGER_PAD_Y outside the text block (the font's ascent over the first baseline to its descent
         under the last, the widest line across), its dots spaced evenly round the perimeter near DANGER_PITCH. Its
         four edges are exclusions, so no text may cross the line. Its size follows the trap's words only.
         Review round 15: traps on consecutive rows (the robots.txt stall, then the crawl that never exits) share one
         line round both: at the row pitch two boxes would touch (phone) or overlap, and the phone sheet has no units
         left to part them (checks/column.py, 900 px at 851). The line is drawn in the last trap's group."""
         asc, desc = k.extent("label", edition=ed, scale=sc)
-        pad, rx = DANGER_PAD, DANGER_RX
+        pad_x, pad_y, rx = DANGER_PAD_X[sc], DANGER_PAD_Y, DANGER_RX
         row = dict(run[-1], x=min(r_["x"] for r_ in run), w=max(r_["x"] + r_["w"] for r_ in run) - min(r_["x"] for r_ in run),
                    y=run[0]["y"])
-        x0, x1 = row["x"] - pad, row["x"] + row["w"] + pad
-        y0, y1 = row["y"] - asc - pad, row["last"] + desc + pad
+        x0, x1 = row["x"] - pad_x, row["x"] + row["w"] + pad_x
+        y0, y1 = row["y"] - asc - pad_y, row["last"] + desc + pad_y
         w_, h_ = x1 - x0, y1 - y0
         per = 2 * (w_ + h_) - 8 * rx + 2 * 3.141592653589793 * rx
         gap = per / max(1, round(per / DANGER_PITCH[sc]))
@@ -768,9 +778,9 @@ def alt(data, cfg) -> str:
     try:
         p = plan(data, cfg)
     except Exception:
-        return "How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it."
+        return "How to install Ben Russell's crawler rustmapper, what it does with each page and how to stop it."
     end = (p["end"] or {}).get("file")
-    first = f"How to install Ben Russell's crawler {p['project']}, what it does with each page, and how to stop it."
+    first = f"How to install Ben Russell's crawler {p['project']}, what it does with each page and how to stop it."
     if not end:
         return first
     loops = any(e.get("loop") for e in p["steps"])

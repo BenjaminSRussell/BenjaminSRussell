@@ -3,7 +3,7 @@ assets/stats.json; edit those, not this file. check.py fails (DESIGN-FRESH) when
 
 # How the picture is drawn
 
-The picture shows how to run rustmapper 0.1.3, top to bottom, along the magenta line from `pip install rustmapper`. Its rings are the tool's steps: “`rust_sitemap crawl` starts from your URL”; “fetches up to 20 pages at a time from each host”. The line up the left side marks the rows that repeat for every page. The dotted line marks the catches: “on https, a disallowed link stalls its host”; “0.1.3 never exits by itself”. Then your step: “press Ctrl-C once”. It ends at `data/sitemap.jsonl`, “sorted 21 ways by ideal-url-organizer”. A row is drawn only when its anchors hold at `32c2651` and in the 0.1.3 sdist; the install and stop rows only when the run check passed.
+The picture shows how to run rustmapper 0.1.3, top to bottom, along the magenta line from `pip install rustmapper`. Its rings are the tool's steps: “`rust_sitemap crawl` starts from your URL”; “fetches up to 20 pages at a time from each host”. The line up the left marks the rows that repeat for every page. The dotted line marks the catches: “on https, pages behind a disallowed link wait”; “0.1.3 never exits by itself”. Your step: “press Ctrl-C once and wait for `Saved to`”. It ends at `data/sitemap.jsonl`, “sorted 21 ways by ideal-url-organizer”. A row is drawn only when its anchors hold at `32c2651` and in the 0.1.3 sdist; the install and stop rows only when the run check passed.
 
 The run check (`scripts/runcheck.py`) installs the release, crawls a local three-page site with `--seeding-strategy
 none`, presses Ctrl-C once and exports the sitemap; its robots.txt probes crawl local sites over http and over https

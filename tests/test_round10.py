@@ -60,12 +60,12 @@ def install(text):
 class ScrapyRun(unittest.TestCase):
     """r10-1 #1: the run sentence says what `python start.py` does at 96e7a1a."""
 
-    SENTENCE = ("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. "
-                "`python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs "
+    SENTENCE = ("Run the commands below from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. "
+                "`python start.py` starts PostgreSQL, Redis, Prometheus, Grafana and a worker for each of the four stages. It needs "
                 "Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). "
                 "It loads no seeds: the last command gives the spider your site.\n\nBefore you run it:\n\n"
-                "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that "
-                "line, `UConn-Discovery-Crawler/1.0`).\n"
+                "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without the "
+                "`USER_AGENT` line, `UConn-Discovery-Crawler/1.0`).\n"
                 "- The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per "
                 "host, as `Python/3.11 aiohttp/3.13.1`.")   # review round 15: the same form as rustmapper's list
 
@@ -193,7 +193,7 @@ class Clock(unittest.TestCase):
     def test_words(self):
         cfg, stats = load()
         self.assertEqual(entry(cfg, "H1")["text"],
-                         "{release} never exits by itself; done when `Received work item` lines stop for {quiet} s")
+                         "{release} never exits by itself; quit when `Received work item` lines stop for {quiet} s")
         drawn = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
         self.assertEqual(drawn["H1"]["quiet"], 60)     # review round 11: 30 (permit) + 20 + 4 + 1 -> 60
 
