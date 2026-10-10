@@ -33,6 +33,13 @@ entry with `ci = "<job prefix>"` prints only while CI passed at the sha the rout
 (`ci_ok`). The sheet draws verified entries only; check.py
 fails on any other.
 
+Review round 6: a string in a file shows a setter exists, not that anything calls it with a value (0.1.3 has
+`host_state.crawl_delay_secs = delay`, and its only producer always passes None). A wording that makes a condition
+(`unless`, `when`, `only`, `if`: CONDITIONAL) is verified only when it names a run-check probe (`runs` / `fails`) or
+carries an anchor marked `producer = true` that is not an assignment to a field (SETTER): the code that decides,
+not the code that stores. A `text` entry may also name a `gate` (a HEAD gate in `gates`); the README prints it only
+while that gate holds (render_readme.text_entries).
+
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
 """
 from __future__ import annotations
@@ -43,6 +50,8 @@ import re
 import subprocess
 
 KINDS = ("stop", "step", "note", "trap", "end", "export", "text")   # text: a README sentence, checked, never drawn
+CONDITIONAL = re.compile(r"\b(unless|when|only|if)\b", re.I)    # review round 6: words that state a condition
+SETTER = re.compile(r"\b\w+(?:\.\w+)+\s*=(?!=)")                 # `host_state.crawl_delay_secs = delay`
 STATES = ("runs", "fields differ", "no reader")
 
 
@@ -197,6 +206,12 @@ def label_for(file: str | None, head: list[dict] | None, release: list[dict] | N
     return file
 
 
+def producers(e: dict) -> list[dict]:
+    """The anchors marked `producer = true` that are not field assignments (review round 6)."""
+    return [a for a in (e.get("head") or []) + (e.get("release") or [])
+            if a.get("producer") and not SETTER.search(str(a.get("text") or ""))]
+
+
 def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: str, file: str | None = None,
                kind: str = "stop") -> dict:
     """One candidate wording of an entry, with its anchors checked on both sides. `{const:NAME}` in the text is the
@@ -224,6 +239,10 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
             continue
         text = text.replace(f"{{{ref}}}", _num(vr))
     # an end's `file` is what the run writes (data/sitemap.jsonl), not a source file: it is not a label
+    # review round 6: a condition needs a probe or the code that decides it, never a setter alone
+    cond = CONDITIONAL.search(text)
+    if cond and not (e.get("runs") or e.get("fails")) and not producers(e):
+        mr = mr + [f"{cond.group(1)!r} states a condition, and no probe and no producer anchor stands behind it"]
     label = (e.get("file") or file) if kind in ("end", "export") else \
         label_for(e.get("file") or file, e.get("head"), e.get("release"), scope)
     return {"text": text, "file": label, "verified_head": not mh, "verified_release": not mr,
@@ -258,6 +277,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
         rec = {"id": eid, "kind": kind, "scope": scope, "loop": bool(e.get("loop")), **first}
         if e.get("ci"):          # review round 5: a README sentence that also rests on CI at HEAD (`ci_ok`)
             rec["ci"] = str(e["ci"])
+        if e.get("gate"):        # review round 6: a README sentence that also rests on a HEAD gate (`gates`)
+            rec["gate"] = str(e["gate"])
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -351,6 +372,8 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
         base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
         if e.get("ci"):
             base["ci"] = e["ci"]
+        if e.get("gate"):
+            base["gate"] = e["gate"]
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified

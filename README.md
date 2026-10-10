@@ -4,8 +4,8 @@
 <!-- picture:hero:start -->
 <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
 <picture>
-<source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
-<source media="(max-width: 767px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
+<source media="(max-width: 1199px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
+<source media="(max-width: 1199px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to start Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
@@ -29,7 +29,7 @@
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust. `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released.
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)**: `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released.
 <!-- about:Rust-sitemap:end -->
 
 <!-- facts:Rust-sitemap:start -->
@@ -48,7 +48,7 @@ rust_sitemap export-sitemap
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
-It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file. On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `32c2651`. That fix is not on PyPI yet.
+It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -80,14 +80,14 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
 - Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus metrics on Grafana dashboards. Circuit breakers wrap the HTTP, Delta Lake and Redis services; per-host throttles are separate. Docker Compose and a Helm chart for Kubernetes.
+- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
 
 <a name="also"></a>
 **Also**
 
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25 ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content.
 - [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands. It adds headless-Chrome rendering, SQLite storage with full-text search, and browser TLS-fingerprint impersonation, all off by default.
-- [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. A stream-tee forwards tokens to the client while parsing them for metrics, so logging costs the caller nothing.
+- [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. Each chunk is parsed for token counts and passed straight on, and the call is logged only after the client has its last byte.
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code, from stylometry down to git-history patterns.
 
 <details>
@@ -116,14 +116,14 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: a circuit breaker in the error handler.*
 2. **Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables.*
 3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
-4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025; Claude's commit used it first.*
+4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
+<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

@@ -5656,7 +5656,7 @@
    "url": "",
    "source": "hand",
    "body": "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not.",
-   "cite": "ideal-url-organizer, {month:urlparse}; Claude's commit used it first.",
+   "cite": "ideal-url-organizer, {month:urlparse}: URLs split with `urllib.parse`.",
    "n": 4
   },
   {
@@ -7334,7 +7334,7 @@
    "repo": "Rust-sitemap",
    "head_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
    "release": "0.1.3",
-   "header": "Crawls a site and writes one line for every page it reaches.",
+   "header": "Crawls a site and writes one line for every URL it finds.",
    "header_verified": true,
    "header_missing": [],
    "header_runs": [
@@ -7346,7 +7346,7 @@
      "kind": "stop",
      "scope": "release",
      "loop": false,
-     "text": "your URL, plus by default sitemaps, certificate logs, Common Crawl",
+     "text": "your URL, plus by default URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl",
      "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7354,7 +7354,9 @@
      "runs": [],
      "fails": [],
      "paths": {
-      "head": [],
+      "head": [
+       "src/ct_log_seeder.rs"
+      ],
       "release": [
        "src/cli.rs",
        "src/common_crawl_seeder.rs",
@@ -7365,7 +7367,7 @@
      },
      "instead": [
       {
-       "text": "your URL, plus sitemaps, certificate logs, Common Crawl if asked",
+       "text": "your URL, plus, if asked, URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl",
        "file": "seeder.rs",
        "verified_head": true,
        "verified_release": false,
@@ -7375,7 +7377,9 @@
        "runs": [],
        "fails": [],
        "paths": {
-        "head": [],
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
         "release": [
          "src/cli.rs",
          "src/common_crawl_seeder.rs",
@@ -7418,7 +7422,7 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "fetches a page; queues links on your URL's domain, above or below it",
+     "text": "fetches a page; queues links to your site, its subdomains and its parent domain",
      "file": "bfs_crawler.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7595,20 +7599,66 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`.",
+     "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [],
-     "fails": [],
+     "fails": [
+      "robots_read"
+     ],
      "paths": {
       "head": [],
       "release": [
        "src/cli.rs",
+       "src/robots.rs",
        "src/state.rs"
       ]
-     }
+     },
+     "instead": [
+      {
+       "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. {release} ignores `Crawl-delay`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "robots_read"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/cli.rs",
+         "src/robots.rs",
+         "src/state.rs"
+        ]
+       }
+      },
+      {
+       "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/robots.rs: no 'fn parse_crawl_delay'"
+       ],
+       "runs": [
+        "robots_read",
+        "crawl_delay_obeyed"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/cli.rs",
+         "src/robots.rs",
+         "src/state.rs"
+        ]
+       }
+      }
+     ]
     },
     {
      "id": "X1",
@@ -7658,9 +7708,11 @@
      "loop": false,
      "text": "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `{head}`. That fix is not on PyPI yet.",
      "file": null,
-     "verified_head": true,
+     "verified_head": false,
      "verified_release": true,
-     "missing": [],
+     "missing": [
+      "head tests/crawl_exits_when_idle.rs: contains '--ignore-robots'"
+     ],
      "runs": [],
      "fails": [
       "ends_by_itself"
@@ -7675,6 +7727,7 @@
       ]
      },
      "ci": "Test",
+     "gate": "cargo",
      "instead": [
       {
        "text": "",
@@ -7685,6 +7738,23 @@
        "runs": [
         "ends_by_itself"
        ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "tests/crawl_exits_when_idle.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
        "fails": [],
        "paths": {
         "head": [
@@ -7906,7 +7976,8 @@
    "author": "Benjamin Russell",
    "first_sha": "6e8087f",
    "first_author": "Claude",
-   "first_is_his": false
+   "first_is_his": false,
+   "scope": "self"
   }
  ],
  "figures": [
@@ -7989,6 +8060,28 @@
    "holds": true,
    "why": "",
    "use": "pick"
+  },
+  {
+   "text": "5 URLs",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_BREAKER_FAILURES = 5",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "60 s",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_BREAKER_RECOVERY = 60",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
   },
   {
    "text": "localhost:3000",
@@ -8092,6 +8185,14 @@
      "gate": false,
      "secs": null,
      "detail": "3 work-item lines for 3 URLs, the last 150 s before the SIGINT; 3 lines in sitemap.jsonl after it"
+    },
+    {
+     "id": "robots_read",
+     "cmd": "rust_sitemap crawl of an http site whose robots.txt disallows /secret.html reads it",
+     "ok": false,
+     "gate": false,
+     "secs": 17.0,
+     "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 1 ms apart; exit 0 2.0 s after one SIGINT"
     },
     {
      "id": "kill_writes_file",

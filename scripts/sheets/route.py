@@ -43,7 +43,9 @@ from data import route as R
 
 NAME = "hero"            # the file names and README markers stay hero-*.svg
 KIND = "chart"
-SIZES = {"desk": (1280, 620), "phone": (720, 1170)}   # nominal: the height is the last baseline + 36 (phone 30)
+# nominal: the height is the last baseline + 36 (phone 22). Review round 6: the phone sheet is 600 wide, since GitHub
+# shows it at the viewport less 82 px (308 px on a 390 px phone), where 26 units are 13.3 px
+SIZES = {"desk": (1280, 620), "phone": (600, 1250)}
 EDITIONS = ("day", "night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
 DANGER_PAD = 6           # the danger line round the trap's words: padding, corner radius, dot pitch (desk, phone)
@@ -81,8 +83,9 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "Q5", "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
-    "R15": ("his projects are one body of work: this output is sorted by another, and that join is tested", "Q2",
-            "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]"),
+    "R15": ("his projects are one body of work: this output is sorted 25 ways by another (drawn only while the join's "
+            "fields match and its test exists)", "Q2",
+            "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]; figures['25 ways']"),
 }
 
 BREAKS: list[tuple[str, str, str]] = [
@@ -129,7 +132,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "at 196 its text box meets the descent of the name set at 132 (the bounds check measures the font's boxes)"),
     ("Phone drops file names",
      "on the phone the stops carry their rules only",
-     "720 px leaves 600 px for text at the 26 px floor"),
+     "600 units leave 480 for text at the 26-unit floor (review round 6: the phone sheet is 600 wide, so 26 units "
+     "are 13.3 px in the 308 px image GitHub shows on a 390 px phone)"),
     ("Desk file names left of the track, only clear of the title",
      "on the desk every row's words start at x 484, as on the phone; a stop's source file may stand right-aligned to "
      "x 424 on its first baseline only if every label keeps clear of the title block's boxes and its cap top is a "
@@ -149,6 +153,12 @@ BREAKS: list[tuple[str, str, str]] = [
      "inside a row's code spans the words are set in the code face and the spaces in the label face",
      "a mono space is 2.8 times the label's, and `Received work item` read as three loose words (review round 5); "
      "the README's code block keeps real spacing for pasting"),
+    ("Phone sheet 600 wide, title gap 50, foot 22",
+     "the phone sheet is 600 units wide (it was 720); the gap from the role line to the project's name is 50 (60) and "
+     "the sheet ends 22 under its last baseline (30)",
+     "GitHub's mobile profile shows the README image at the viewport less 82 px, measured on the live page on 10 Oct "
+     "2026: 308 px on a 390 px phone, where 720 units made 26-unit text 11.1 px (review round 6); the narrower measure "
+     "wraps more, and the two gaps give back 18 units so the edition with S2 drawn stays inside 640 px at 308"),
     ("No motion, no still editions",
      "the four editions are day, night, phone-day and phone-night; nothing moves",
      "nothing in the subject moves on a period"),
@@ -166,13 +176,13 @@ L = {
              "ring_r": 6, "ring_dy": 6, "loop_out": 14,
              "loop_dy": 13, "loop_arrow": (8, 10), "gap": 16, "stub": 10, "after_end": 26, "tip": 8, "label_gap": 14,
              "arrow_w": 10, "rule_after_file": 20, "foot": 36},
-    "phone": {"title_x": 40, "title_w": 640, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
+    "phone": {"title_x": 40, "title_w": 520, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
               "role_pitch": 34, "fine_gap": 46, "fine_pitch": 34, "track_x": 56, "text_x": 88, "file_right": None,
-              "right": 688, "head_y": None, "head_after_title": 60, "sent_gap": 40, "line": 34, "bar_gap": 28,
+              "right": 568, "head_y": None, "head_after_title": 50, "sent_gap": 40, "line": 34, "bar_gap": 28,
               "bar_w": 24, "bar_h": 4, "r2_gap": 38, "entry_gap": 46, "pitch": 43, "end_gap": 24, "r13_gap": 38,
               "ring_r": 8, "ring_dy": 9, "loop_out": 18,
               "loop_dy": 15, "loop_arrow": (10, 12), "gap": 18, "stub": 12, "after_end": 24, "tip": 8, "label_gap": 14,
-              "arrow_w": 12, "rule_after_file": None, "foot": 30},
+              "arrow_w": 12, "rule_after_file": None, "foot": 22},
 }
 TRACK = {"desk": 1.6, "phone": 1.0}
 FILE_CLEAR = 4           # review round 4: a desk file label keeps this far from the title block's boxes
@@ -228,6 +238,22 @@ def handoff(data: dict, repo: str = "Rust-sitemap", file: str = "data/sitemap.js
         if h.get("from") == repo and h.get("file") == file and h.get("state") == "runs":
             return h
     return None
+
+
+WAYS = re.compile(r"\d[\d,]* ways")
+
+
+def handoff_words(ho: dict, data: dict) -> str:
+    """Review round 6: the hand-off label says what the next project does with the file: "sorted 25 ways by
+    ideal-url-organizer", the count from the [[figures]] row of that repository that holds at its HEAD ("25 ways",
+    25 method files); without one, "sorted by ideal-url-organizer"; without `does`, "read by …"."""
+    to = ho.get("to") or ""
+    verb = ho.get("does") or "read by"      # review round 4: what the next project does with the file
+    ways = next((str(f["text"]) for f in data.get("figures") or [] if isinstance(f, dict) and f.get("repo") == to
+                 and f.get("holds") and WAYS.fullmatch(str(f.get("text") or ""))), None)
+    if ways and verb.endswith(" by"):
+        return f"{verb[:-3]} {ways} by {to}"
+    return f"{verb} {to}"
 
 
 def plan(data: dict, cfg: dict, project: str = PROJECT) -> dict:
@@ -649,17 +675,9 @@ def _build(ctx) -> str:
         mark("line", "R15", (X - aw / 2, end_top + bh, X + aw / 2, tip))
         ly = tip + (6 if not phone else G["label_gap"])
         to = ho.get("to") or ""
-        verb = ho.get("does") or "read by"      # review round 4: what the next project does with the file
-        if phone:
-            lbl(f"{verb} {to}, with a test", TX, ly, "R15", "handoffs:" + ho["id"], fill=theme.ink2)
-        else:
-            x = TX
-            first = f"{verb} {to}: "
-            lbl(first, x, ly, "R15", "handoffs:" + ho["id"], fill=theme.ink2)
-            x += width(first)
-            lbl(ho.get("reader") or "", x, ly, "R15", "handoffs:" + ho["id"], role="machine", fill=theme.ink2)
-            x += width(ho.get("reader") or "", "machine")
-            lbl(", with a test", x, ly, "R15", "handoffs:" + ho["id"], fill=theme.ink2)
+        # review round 6: what you get, in one line on both editions; the test stays the gate (state `runs`) and is not
+        # printed, nor is the reader's path (a lookup nobody reading a profile needs)
+        lbl(handoff_words(ho, data), TX, ly, "R15", "handoffs:" + ho["id"], fill=theme.ink2)
         last = ly
 
     # ================================================================ assemble: one <g id> per element

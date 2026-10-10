@@ -6,7 +6,7 @@
 login = "BenjaminSRussell"
 release = "v9"
 seed = 27
-breakpoint_px = 767
+breakpoint_px = 1199   # review round 6: GitHub's README column is under 766 px below a 1200 px viewport (DESIGN.md)
 base_url = "https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/"
 branch = "chart"
 out_dir = "assets/v9"
@@ -143,10 +143,11 @@ source = "toml"
 n = 4
 title = "Parse, don't pattern-match."
 body = "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not."
-# its first commits (9 Nov 2025) are Claude's; his own first use of urllib.parse is 13 Nov 2025, and the cite says so
-cite = "ideal-url-organizer, {month:urlparse}; Claude's commit used it first."
-anchors = [{key = "urlparse", repo = "ideal-url-organizer", text = "urllib.parse"}]
-names_agent = true
+# review round 6: the cite is his own commit. The repository's first commits with urllib.parse (9 Nov 2025) are
+# Claude's; `author = "self"` scopes the anchor to his first one, 2be623e (13 Nov 2025, `from urllib.parse import
+# urlparse` in src/analyzers/semantic_analyzer.py), and NOTICE-AUTHOR checks that commit, not the repository's first
+cite = "ideal-url-organizer, {month:urlparse}: URLs split with `urllib.parse`."
+anchors = [{key = "urlparse", repo = "ideal-url-organizer", text = "urllib.parse", author = "self"}]
 repo = "ideal-url-organizer"
 date = "2025-11"
 source = "toml"
@@ -209,6 +210,20 @@ use = "pick"
 repo = "Scrapy"
 path = "Scraping_project/start.py"
 literal = '"local": ("docker", "docker-compose")'
+
+# review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
+# utils/retry.py have no caller. The two figures are the defaults the worker reads.
+[[figures]]
+text = "5 URLs"
+repo = "Scrapy"
+path = "Scraping_project/src/stage2/stage2_worker.py"
+literal = "DEFAULT_STAGE2_BREAKER_FAILURES = 5"
+
+[[figures]]
+text = "60 s"
+repo = "Scrapy"
+path = "Scraping_project/src/stage2/stage2_worker.py"
+literal = "DEFAULT_STAGE2_BREAKER_RECOVERY = 60"
 
 [[figures]]
 text = "localhost:3000"
@@ -346,7 +361,8 @@ built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]
 [route.rustmapper]
 repo = "Rust-sitemap"
 project = "rustmapper"
-header = "Crawls a site and writes one line for every page it reaches."
+# review round 6: "URL it finds", not "page it reaches": a link to a missing page gets a line too (status_code null)
+header = "Crawls a site and writes one line for every URL it finds."
 # the sentence rests on the code that writes the file, at HEAD and in the release, and on the run check's crawl
 header_head = [{path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
 header_release = [{path = "src/main.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
@@ -387,13 +403,20 @@ kind = "stop"
 scope = "release"          # the default is the release's: 0.1.3 seeds from all three, HEAD from none
 file = "seeder.rs"
 # review round 3: the tool's rows in the third person, the reader's one step (C1) in the imperative
-text = "your URL, plus by default sitemaps, certificate logs, Common Crawl"
+# review round 6: what the seeds buy. Each gives URLs no link leads to: a sitemap lists pages, the certificate-log
+# seeder yields https://<subdomain>/ for every subdomain crt.sh knows (ct_log_seeder.rs, both trees), Common Crawl
+# every URL it indexed under the domain
+text = "your URL, plus by default URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl"
+head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
+           {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
            {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "all"'}]
 [[route.rustmapper.entry.instead]]
-text = "your URL, plus sitemaps, certificate logs, Common Crawl if asked"
+text = "your URL, plus, if asked, URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl"
+head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
-           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "none"'}]
+           {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
+           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "none"', producer = true}]
 
 [[route.rustmapper.entry]]
 id = "S2"
@@ -406,16 +429,16 @@ head = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robo
         {path = "tests/robots_4xx_allows_crawl.rs"}]
 release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"}]
 
-# Review round 3: the scope fact lives here, where it is a fact about which links are queued, not a cause. "Above or
-# below": url_utils.rs is_same_domain takes the start's subdomains and every domain it ends with (start on
-# blog.x.org and x.org is crawled too); siblings are not. Review round 4: "your URL's", because the check is made
+# Review round 3: the scope fact lives here, where it is a fact about which links are queued, not a cause.
+# url_utils.rs is_same_domain takes the start's subdomains and every domain it ends with (start on blog.x.org and
+# x.org is crawled too); siblings are not. Review round 6: said as a visitor names them, not "above or below". Review round 4: "your URL's", because the check is made
 # against the start URL's host (frontier.rs start_url_domain), not the fetched page's.
 [[route.rustmapper.entry]]
 id = "F1"
 kind = "stop"
 loop = true
 file = "bfs_crawler.rs"
-text = "fetches a page; queues links on your URL's domain, above or below it"
+text = "fetches a page; queues links to your site, its subdomains and its parent domain"
 head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
         {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
         {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
@@ -438,7 +461,7 @@ scope = "release"
 loop = true
 file = "governor.rs"
 text = "fetches fewer pages at once when saves average over {const:THROTTLE_THRESHOLD_MS} ms"
-release = [{path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS"},
+release = [{path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS", producer = true},
            {path = "src/main.rs", text = "add_permits"}]
 
 # The figure is the constant as the code defines it, in both trees. Review round 5: the write path, in its order.
@@ -519,15 +542,34 @@ runs = ["crawl_ctrl_c"]
 
 # Review round 3 (the developer choosing a crawler): two sentences under the install block, checked by the same
 # engine and never drawn (kind "text"). L1, the release pip installs: how hard it hits a site. HostState::new gives
-# each host 20 requests in flight and no delay; --workers defaults to 256 in all (main has since raised it to 512);
-# only robots.txt's Crawl-delay sets a pause.
+# each host 20 requests in flight and no delay; --workers defaults to 256 in all (main has since raised it to 512).
+# Review round 6: 0.1.3 never reads a Crawl-delay (robots.rs has no parser; frontier.rs always stores
+# crawl_delay_secs: None; the setter `host_state.crawl_delay_secs = delay` is never given a value), and it asks for
+# robots.txt at https://<host>/robots.txt only, so on a plain-http site it reads no rules. Probe robots_read (a
+# local http site whose robots.txt disallows /secret.html) failed: no GET /robots.txt, /secret.html fetched.
 [[route.rustmapper.entry]]
 id = "L1"
 kind = "text"
 scope = "release"
-text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`."
+text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
-           {path = "src/state.rs", text = "host_state.crawl_delay_secs = delay"}, {path = "src/cli.rs", arg = "workers"}]
+           {path = "src/robots.rs", absent = "fn parse_crawl_delay"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'},
+           {path = "src/cli.rs", arg = "workers"}]
+fails = ["robots_read"]
+[[route.rustmapper.entry.instead]]
+# a release that reads robots.txt over http (probe robots_read passed) but still has no Crawl-delay parser
+text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them. {release} ignores `Crawl-delay`."
+release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
+           {path = "src/robots.rs", absent = "fn parse_crawl_delay"}, {path = "src/cli.rs", arg = "workers"}]
+runs = ["robots_read"]
+[[route.rustmapper.entry.instead]]
+# a release that parses Crawl-delay: the old sentence, said only once a probe has seen the pause (crawl_delay_obeyed,
+# not written yet, so this wording is never printed on the parser's existence alone)
+text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`."
+release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/robots.rs", text = "fn parse_crawl_delay"},
+           {path = "src/cli.rs", arg = "workers"}]
+runs = ["robots_read", "crawl_delay_obeyed"]
 
 # X1, release only: 0.1.3's export writes every page into one <urlset>; the sitemap format allows 50,000 URLs per
 # file, the figure main's own SitemapIndexWriter splits at (sitemap_writer.rs). Retired once a release splits.
@@ -549,13 +591,19 @@ release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
 # with a job named Test* (`ci`, data/route.py ci_ok, checked by render_readme). It retires with H1: once a release
 # ends by itself (probe ends_by_itself), the empty alternative holds. No idle timing is printed: the test runs with
 # 1 s idle flags, and the defaults are 30 and 60 s.
+# Review round 6: the test runs with --ignore-robots, and on main a site whose robots.txt answers 404 is never fetched
+# (P1), so the test proves main stops only with robots checks off. M1 rests on the `cargo` gate (P1's and P2's tests
+# at HEAD) like the cargo line it would otherwise stand in for, and on the test running without --ignore-robots;
+# while the test has that flag, the last alternative retires M1 (nothing printed, nothing unverified).
 [[route.rustmapper.entry]]
 id = "M1"
 kind = "text"
 ci = "Test"
+gate = "cargo"
 text = "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `{head}`. That fix is not on PyPI yet."
 head = [{path = "tests/crawl_exits_when_idle.rs", text = "fn crawl_exits_after_frontier_drains"},
         {path = "tests/crawl_exits_when_idle.rs", absent = "#[ignore]"},
+        {path = "tests/crawl_exits_when_idle.rs", absent = "--ignore-robots"},
         {path = ".github/workflows/ci.yml", text = "cargo test --all-features"}]
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"}]
@@ -565,6 +613,10 @@ text = ""
 head = [{path = "tests/crawl_exits_when_idle.rs"}]
 release = [{path = "src/bfs_crawler.rs"}]
 runs = ["ends_by_itself"]
+[[route.rustmapper.entry.instead]]
+text = ""
+head = [{path = "tests/crawl_exits_when_idle.rs", text = "--ignore-robots"}]
+release = [{path = "src/bfs_crawler.rs"}]
 
 # ----------------------------------------------------------------- hand-offs (round 6, SPEC §5.4)
 # A join between two of his repositories counts only when code on the receiving side proves it.

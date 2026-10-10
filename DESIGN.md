@@ -26,8 +26,10 @@ A stop or trap is drawn only when its anchors hold in the code at HEAD and in th
 (`scripts/data/route.py`): every rustmapper source file it rests on is in that release, and the reader the line past
 the end points to is read at the commit `stats.json` names (`handoffs[].to_sha`). The install lines are drawn only when
 the weekly run check passed (`scripts/runcheck.py`: install, then a crawl of a local three-page site with
-`--seeding-strategy none`, one Ctrl-C, a kill and an export); the line past the end only when the reader's fields are
-in the writer's struct. `check.py` fails while any entry does not hold.
+`--seeding-strategy none`, one Ctrl-C, a kill and an export; and a crawl of a local http site whose `robots.txt`
+disallows one page, read from the server's own request log); the line past the end only when the reader's fields are
+in the writer's struct. A wording that states a condition (`unless`, `when`, `only`, `if`) rests on a run-check probe
+or on the code that decides it, never on a setter alone. `check.py` fails while any entry does not hold.
 
 ## Honesty conventions
 
@@ -49,9 +51,18 @@ supporting sheets, built on request, keep their six (`day`, `night`, `still-day`
 editions are redrawn at the phone scale, not shrunk, and break lines at the same words as the day edition.
 
 GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). The desk scale carries that factor: the
-floors below (19 semantic · 16 texture · 25 serif on the sheet) are 13 · 11 · 17 px as the page shows them. The phone
-sheet is 720 wide, shown at 390 on an iPhone (×0.54): 26 px on the sheet is 14 px on the screen. The hero's height
-follows its content (desk ≤ 640, phone ≤ 1200). Sheets are published to the orphan `chart` branch under `assets/v9/`.
+floors below (19 semantic · 16 texture · 25 serif on the sheet) are 13 · 11 · 17 px as the page shows them. The hero's
+phone sheet is 600 wide (the supporting sheets' 720). Its height follows its content (desk ≤ 620, phone ≤ 1,246, which
+is 640 px at 308). Sheets are published to the orphan `chart` branch under `assets/v9/`.
+
+**GitHub's README column, measured on the live profile page on 10 Oct 2026** (Playwright Chromium, iOS Safari user
+agent; review round 6): under a 768 px viewport the image is the viewport less 82 px (278 at 360, 308 at 390, 332 at
+414); from 768 to 1011 the viewport less 370; from 1012 to 1279 the viewport less 434; from 1280 on, 846. So the
+README serves the phone sheet up to a 1199 px viewport (`chart.toml` `breakpoint_px`), where the column is 765 px,
+and the desk sheet from 1200 (766 px, its 19-unit text 11.4 px). The phone sheet's 26-unit text is 13.3 px at 308 and
+12.0 px at 278. `checks/column.py` (HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to 11 px with this table,
+and `checks/route.py` (ROUTE-PHONE-PX) the phone sheet to 13 px at 308 and 11 px at 278. Re-measure when GitHub
+changes the profile layout; the table is in `checks/column.py`.
 
 ## Motion
 

@@ -30,7 +30,10 @@ ROUTE-CODE-SPACE (fail, review round 5): a code-face run of a row's words that h
   times the label's space.
 ROUTE-LEFT-EDGE (fail, review round 4): the words of every drawn row of the route (stops, the note, the hazard, the
   step) do not start at one x, right of the track; file labels left of the track are not rows' words.
-ROUTE-PHONE-PX (fail): a phone text run under 14 px on a 390 px screen.
+ROUTE-PHONE-PX (fail): a phone text run under MIN_PX at PHONE_SCREEN, or under MIN_PX_NARROW at NARROW_SCREEN.
+  Review round 6: GitHub's mobile profile shows the README image at the viewport less 82 px (measured on the live
+  page, 10 Oct 2026): 308 px on a 390 px iPhone, 278 px on a 360 px Android; the sheet's own width is read from the
+  build report.
 ROUTE-PURPOSE (fail): a drawn element without a row in the sheet's PURPOSE table.
 """
 from __future__ import annotations
@@ -48,12 +51,16 @@ SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "cop
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
-HEIGHT = {"desk": 592, "phone": 1066}   # review round 5: today 543 / 1017, with S2 drawn 579 / 1060 (LOG round 5)
+# review round 6: S1 takes a second desk line (571; with S2 drawn 607). The phone sheet is 600 wide and must stay
+# inside one screen at 308 px: 640 px on screen is 1,246 units (today 1,169; with S2 drawn 1,246, after the phone's
+# title gap and foot gave back 18 units; LOG round 6)
+HEIGHT = {"desk": 620, "phone": 1246}
 RELEASE_GAP_MAX = 40
 CODE_SPACE_MAX = 1.3
 TWICE_SELF = 4
 SOURCE_FILE = re.compile(r"[\w./-]+\.(rs|py|toml)$")
-PHONE_W, PHONE_SCREEN, MIN_PX = 720, 390, 14.0
+PHONE_SCREEN, MIN_PX = 308, 13.0          # review round 6: the image on a 390 px phone (viewport − 82)
+NARROW_SCREEN, MIN_PX_NARROW = 278, 11.0   # on a 360 px phone
 
 
 def _iso(s):
@@ -259,9 +266,13 @@ def check(ctx) -> list[Finding]:
             if key.split(":", 1)[0] not in SOURCES or t.get("truth") != "measured":
                 out.append(fail("ROUTE-STRINGS", f"{t.get('s')!r} (key {key or 'none'}, truth {t.get('truth')}) "
                                 "does not come from a checked source", name))
-            if phone and float(t.get("size") or 0) * PHONE_SCREEN / PHONE_W < MIN_PX - 1e-6:
-                out.append(fail("ROUTE-PHONE-PX", f"{t.get('s')!r} is {float(t['size']) * PHONE_SCREEN / PHONE_W:.1f} px "
-                                f"on a {PHONE_SCREEN} px screen (< {MIN_PX:g})", name))
+            if phone:
+                sw = float(e.get("w") or 600)
+                for screen, floor in ((PHONE_SCREEN, MIN_PX), (NARROW_SCREEN, MIN_PX_NARROW)):
+                    px = float(t.get("size") or 0) * screen / sw
+                    if px < floor - 1e-6:
+                        out.append(fail("ROUTE-PHONE-PX", f"{t.get('s')!r} is {px:.1f} px in a {screen} px image "
+                                        f"(< {floor:g})", name))
         words = theme_words(" ".join(str(t.get("s", "")) for t in texts) + " " + str(e.get("alt", "")))
         if words:
             out.append(fail("ROUTE-WORDS", f"theme words on the hero or in its alt: {', '.join(words)}", name))

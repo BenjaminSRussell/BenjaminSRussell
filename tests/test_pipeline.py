@@ -223,9 +223,12 @@ class Readme(unittest.TestCase):
         s = dict(self.stats, edition={"version": "0.1.3", "modules": []}, routes=gates)
         self.assertIn("is on main and not yet released", render_readme.about_block(s, "Rust-sitemap"))
         s = dict(s, edition={"version": "0.1.4", "modules": ["rustmapper"]})
-        self.assertIn("a command line and a Python API", render_readme.about_block(s, "Rust-sitemap"))
+        self.assertIn("its command line and a Python API, built with maturin", render_readme.about_block(s, "Rust-sitemap"))
         s = dict(s, edition={"version": "0.1.3"})          # never read: no claim either way
-        self.assertTrue(render_readme.about_block(s, "Rust-sitemap").endswith("written in Rust."))
+        self.assertTrue(render_readme.about_block(s, "Rust-sitemap").endswith("gives you its command line."))
+        # review round 6: one description per screen; the image's header and the pick sentence introduce the tool
+        for ed_ in ({"version": "0.1.3", "modules": []}, {"version": "0.1.4", "modules": ["rustmapper"]}, {}):
+            self.assertNotIn("sitemap crawler written in Rust", render_readme.about_block(dict(s, edition=ed_), "Rust-sitemap"))
         # license: printed only when GitHub detects one; null warns
         base = {"repos": [{"name": "Rust-sitemap", "test_functions": 3, "license": None}]}
         self.assertNotIn("MIT", render_readme.facts_block(base, "Rust-sitemap"))
@@ -257,7 +260,8 @@ class Readme(unittest.TestCase):
         self.assertIn('width="100%"', hero[-2])
         log = render_readme.picture("log", self.cfg, "x").splitlines()
         self.assertEqual(len(log), 8)
-        self.assertTrue(log[1].startswith('<source media="(max-width: 767px) and (prefers-color-scheme: dark)"'))
+        # review round 6: the phone sheet up to a 1199 px viewport, where GitHub's README column is under 766 px
+        self.assertTrue(log[1].startswith('<source media="(max-width: 1199px) and (prefers-color-scheme: dark)"'))
         self.assertTrue(log[-2].startswith('<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/log-day.svg"'))
 
     def test_blocks_and_inline_are_idempotent(self):
@@ -301,8 +305,9 @@ class Readme(unittest.TestCase):
                         block)
         # review round 5: what a visitor needs: which release is drawn and that it was run; no build process, no
         # schedule (a generated-by footer), no flags (DESIGN.md has them)
-        self.assertIn("is rustmapper 0.1.3, the release pip installs; its commands were run against a local 3-page "
-                      "site on 10 Oct 2026 (Linux x86_64).", block)
+        # review round 6: the run's one flag that changes what the printed command does is named, in words
+        self.assertIn("is rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a "
+                      "local 3-page site on 10 Oct 2026 (Linux x86_64).", block)
         for word in ("regenerated", "generated", "weekly", "Tests and CI measured", "public repositories",
                      "--seeding-strategy", "source file", "the reader it points to"):
             self.assertNotIn(word, block, word)
@@ -344,8 +349,22 @@ class Readme(unittest.TestCase):
         # review round 2: the crawl says what it ran against, from the step's own command
         step = {"id": "crawl_ctrl_c", "ok": True, "detail": "exit 0; 3 lines; keys present",
                 "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d"}
-        self.assertEqual(render_readme.crawl_words(step), " against a local 3-page site")
+        # review round 6: a flag the printed block does not have is named (in words when known); where it writes is not
+        self.assertEqual(render_readme.crawl_words(step), ", with seeding off, against a local 3-page site")
         self.assertEqual(render_readme.crawl_words(dict(step, cmd="rust_sitemap crawl --start-url https://x.org/")), "")
+        self.assertEqual(render_readme.crawl_words(dict(step, cmd="rust_sitemap crawl --start-url http://127.0.0.1:1/ "
+                                                        "--data-dir d (one SIGINT)")), " against a local 3-page site")
+        odd = dict(step, cmd="rust_sitemap crawl --start-url http://127.0.0.1:1/ --seeding-strategy none --workers 4")
+        self.assertEqual(render_readme.crawl_words(odd), ", with seeding off and with `--workers 4`, against a local "
+                                                         "3-page site")
+        # every flag the run check's crawl used and the block does not show is named or declared immaterial
+        printed = {f for f, _ in render_readme.BLOCK_CRAWL_FLAGS}
+        for f, v in render_readme.cmd_flags(step["cmd"]):
+            if f not in printed:
+                self.assertTrue((f, v) in render_readme.FLAG_WORDS or f in render_readme.IMMATERIAL, f)
+        block = render_readme.install_block(self.stats, "Rust-sitemap", self.cfg)
+        for f, v in render_readme.BLOCK_CRAWL_FLAGS:
+            self.assertIn(f"{f} {v}", block)
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
         repos = {"repos": [{"name": "Rust-sitemap", "all_hands": 146, "others": [{"name": "Claude", "commits": 45, "bot": True}]},
@@ -462,7 +481,7 @@ class Readme(unittest.TestCase):
         order = ["<!-- picture:hero:end -->", "<!-- position:start", '<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>',
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
                  "<!-- pick:start -->",
-                 "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
+                 "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)**: `pip install` gives you",
                  "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
                  "pip install rustmapper", "Prebuilt for Apple silicon",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",

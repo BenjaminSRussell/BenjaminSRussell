@@ -347,3 +347,77 @@ names). It also drops rule 2's `wal` record from `rules` and takes the notices' 
   it passes (0 fail, 0 warn). ROUTE-PAINT, ROUTE-RELEASE, ROUTE-ARROW, ROUTE-CODE-SPACE, ROUTE-LEFT-EDGE, ROUTE-HEIGHT,
   ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE, FIGURES, README-STALE, README-CODE-WIDTH, NOTICE-DATE and
   AUDIT-STALE are clean.
+
+## Round 6
+
+Reviews: `review-r06-1.md` (the owner's test) **8 / 10**, `review-r06-2.md` (the systems engineer who runs every
+claim) **6 / 10**, `review-r06-3.md` (the student on a phone) **7 / 10**. None meets the goal. Where they conflict,
+review 1 (the owner's lens) wins.
+
+Renders: `scratchpad/r6/build/round-06/` (the standard set; the phone sheets also at 308 px, the width GitHub shows
+them on a 390 px phone; the phone page at 390 and at 360, `page-phone-360-*.png`, with GitHub's 41 px box padding;
+the desk page at a 1280 px viewport, since a 1100 px window now gets the phone sheet; and `once-p1-lands/`, the sheet
+with S2 drawn, from `stats-r6-all.json`). Routes re-read from the local trees with `scratchpad/r6/reroute6.py`
+(Rust-sitemap clone at `32c2651`, the 0.1.3 sdist, ideal-url-organizer at `159968a`, Scrapy at `96e7a1a`; it refuses
+a tree at another commit than `stats.json` names), which also merges the new probe, recomputes the rules on the
+history clones and re-checks every `[[figures]]` row. Render set: `scratchpad/r6/renderset3.py`.
+
+### What was measured first
+
+- **0.1.3 and robots.txt.** The new probe `robots_read` (`scripts/runcheck.py --probe robots_read`, fixture
+  `tests/fixtures/robots-site/`: `Disallow: /secret.html`, `Crawl-delay: 5`) against the 0.1.3 binary, plain http,
+  one SIGINT at 15 s: 4 requests, no `GET /robots.txt`, `/secret.html` fetched, the two closest fetches 1 ms apart.
+  The server's own request log decides. Review 2's finding holds: `robots.rs` builds only
+  `https://{}/robots.txt`, has no Crawl-delay parser, and `frontier.rs:787` always stores `crawl_delay_secs: None`.
+- **Main's idle test.** `tests/crawl_exits_when_idle.rs:67` at `32c2651` passes `--ignore-robots`. Review 2's build of
+  main without it fetched nothing from an http site. M1 rested on that test.
+- **Rule 4.** On the full history clone (`ideal-url-organizer.git`, 47 commits, not shallow), his first commit with
+  `urllib.parse` is `2be623e`, 13 Nov 2025, adding `from urllib.parse import urlparse` to
+  `src/analyzers/semantic_analyzer.py`. The repository's first ones are Claude's, 9 Nov.
+- **Scrapy's breakers.** `stage2_worker.py:218-219` `DEFAULT_STAGE2_BREAKER_FAILURES = 5`,
+  `DEFAULT_STAGE2_BREAKER_RECOVERY = 60`, used per host by `_breaker(domain)` (`:923-934`); Scrapy's README
+  (`:397-400`) says the same. The three service breakers in `utils/retry.py` have no caller.
+- **rust_llm_logger.** `proxy.rs:170-173` calls `parser.feed_chunk(&data).await` and then `client_tx.send`; the record
+  is written after `drop(client_tx)` (`:191-192`).
+- **Widths.** At 600 units the phone sheet is 1,169 tall (600 px at 308), 1,246 with S2 drawn (640 px). The desk sheet
+  is 571 (607 with S2). Smallest text: phone 26 units, 13.3 px at 308 and 12.0 px at 278; desk 19 units, 11.4 px in
+  the 766 px column of a 1200 px window.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1 + r2-2: M1 not printed while the cargo gate fails | M1 carries `gate = "cargo"`; `data/route.py` keeps the key on the record, and `render_readme.text_entries` skips any text entry whose gate record is not `ok` (a gate never computed does not hold). M1's own wording gains the head anchor `absent = "--ignore-robots"` on `tests/crawl_exits_when_idle.rs`, and a last empty alternative holds while the test has that flag, so today M1 is retired (verified, not printed, not a failure). "On main, a crawl stops by itself … not on PyPI yet." is gone from the page. Tests: not printed with `cargo` false; with the gate true and the fixture test holding `--ignore-robots`, the empty alternative is taken; with both holding, it prints; CI at another sha still drops it. |
+| r1-3: the hand-off label | "sorted 25 ways by ideal-url-organizer", `label`, `ink2`, one line, desk and phone; no script path, no ", with a test". `sheets/route.py` `handoff_words()` reads "25 ways" from the `[[figures]]` row of the receiving repository that holds (25 `method_*.py` files at `159968a`); without it, "sorted by ideal-url-organizer". The gate is unchanged: R15 is drawn only while the hand-off's state is `runs`, which needs the test. PURPOSE R15 updated. Tests for the words and the fallbacks. |
+| r1-4: F1 in plain words | "fetches a page; queues links to your site, its subdomains and its parent domain", same `is_same_domain` anchors (both branches, both trees). |
+| r1-5: one description of rustmapper per screen | `about_block`: "**[rustmapper](…)**: `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released." No "concurrent sitemap crawler written in Rust" on any path. |
+| r1-6: rule 4 cites his own commit | The `urlparse` anchor carries `author = "self"`; `proof.rule_records` writes `scope: "self"` on its record; NOTICE-AUTHOR checks that his first commit adding the text exists (and that the record was computed with the scope) instead of asking whether the repository's first one was his. Cite: "*ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*" `names_agent` is gone. The month is his commit's (2be623e, above). Tests: committed record; fails without his commit or without the scope; an unscoped anchor still fails on an agent-first record. |
+| r2-1: L1 says what 0.1.3 does with robots.txt | "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read." Release anchors: `robots.rs` without `fn parse_crawl_delay` (main's `parse_crawl_delay_secs` flips it), `fetch_robots_txt` holding `format!("https://{}/robots.txt"`, `crawl_delay_secs: 0`, `max_inflight`, `--workers`; `fails = ["robots_read"]`. Alternatives: without the https clause once the probe passes; the old "unless … `Crawl-delay`" only once a probe `crawl_delay_obeyed` (not written) has seen the pause. Engine rule (`route.CONDITIONAL`, `producers`): a wording with `unless`, `when`, `only` or `if` is verified only with a run-check probe or an anchor marked `producer = true` that is not a field assignment; G1's comparison and S1's fallback default are marked. Fixture test: the setter exists and the producer passes None, so the entry is unverified; a setter marked producer still is. |
+| r2-3: Scrapy bullet 4 | "Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s." Two `[[figures]]` rows read the literals `DEFAULT_STAGE2_BREAKER_FAILURES = 5` and `DEFAULT_STAGE2_BREAKER_RECOVERY = 60` in `stage2_worker.py` at HEAD; both hold. |
+| r2-4: the data line names the seeding flag | "… its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64)." `crawl_words` names every flag of the run check's crawl command that the printed block lacks: in words from `FLAG_WORDS`, otherwise as itself; `--data-dir` is declared immaterial (where a run writes). The printed block's flags come from one constant, `BLOCK_CRAWL_FLAGS`. Test: every flag that differs is named or declared immaterial. |
+| r2-5: rust_llm_logger | "a non-buffering reverse proxy for LLM servers, in Rust. Each chunk is parsed for token counts and passed straight on, and the call is logged only after the client has its last byte." |
+| r2-6: the header counts URLs | "Crawls a site and writes one line for every URL it finds." Review 1 kept the old sentence as "the best on the page" but made no case against the change; the new one is the same sentence, made true for a file that holds a line for a 404 link (`status_code` null). Desk one line, phone two. |
+| r3-1: the phone sheet below a 1200 px viewport | `chart.toml` `breakpoint_px = 1199`. New HERO-COLUMN-PX (`scripts/checks/column.py`, render tier; a module has one tier, so it is not in `checks/route.py`, which is fast): GitHub's measured column table (vw − 82 under 768, vw − 370 to 1011, vw − 434 to 1279, 846 from 1280); for every viewport from 360 to 1920 it takes the sheet the README's `<source>` list serves and fails a smallest text run under 11 px. With 767 it fails 768–1175 (5.9 px at 768); with 1199 it passes. The measurement date and the table are in DESIGN.md (from `tokens.py`). |
+| r3-2: the phone sheet for a 308 px image | The hero's phone sheet is 600 units wide (it was 720; `title_w` 520, right edge 568), every type token kept: 26 units are 13.3 px at 308, 14.4 at 332 (414 phone), 12.0 at 278 (360 phone). `checks/route.py`: `PHONE_SCREEN = 308`, `MIN_PX = 13`, a second floor of 11 px at 278, the sheet's width read from the report. The extra wraps (S1 three lines, the header two, the release label under its command) took the phone sheet to 1,187, 1,264 with S2 drawn; the gap from the role line to the project's name (60 → 50) and the foot (30 → 22) give back 18, so it is 1,169 today and 1,246 with S2, inside the 1,246 the reviewer set (640 px at 308). ROUTE-HEIGHT desk 620, phone 1,246. Preview: `scratchpad/r6/tools/preview_phone.mjs` sets `.md{padding:16px 41px}`; the render set adds 360 px. BREAKS row added. |
+| r3-3: S1 says what the seeds buy | "your URL, plus by default URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl"; the fallback "your URL, plus, if asked, URLs found without links: …". New anchor in both trees: `src/ct_log_seeder.rs` contains `format!("https://{}/", subdomain)` (sdist :327, HEAD :352, :393); `default_value = "all"` kept. Desk two lines (+28), phone three. |
+| — | `stats_schema.json` admits `gate` on a route entry and `scope` on a rule record. AUDIT.md's routes and rules rows describe the new L1, M1, S1, F1, header and rule 4; §7 regenerated. DESIGN.md's paragraph on how the drawing is checked names the robots probe and the condition rule. |
+
+### Fixes declined, and why
+
+| Must-fix | Why not |
+|---|---|
+| r1-2: fix P1, take `--ignore-robots` out of the idle test, ship 0.1.4; set Rust-sitemap's About text and `README.md:25` | Work in Rust-sitemap and on PyPI under the owner's account, outside this repository and this session's credentials. The image does not go to `main` until then. Text for him, updated by review 2's header fix: About "Crawls a site and writes one line for every URL it finds."; `README.md:25` as round 5 wrote it. When 0.1.4 passes the run check, H1, the gap, the kill comment and X1 retire, and M1 prints once the idle test runs without `--ignore-robots` and the cargo gate holds, with no edit here. |
+| r3-4: the GitHub bio | The owner's profile setting. The text for him: "Crawl and data infrastructure, in Python and Rust." |
+| r3-1, the range 320–359 | HERO-COLUMN-PX starts at 360, the narrowest phone in the reviewer's measurements and in ROUTE-PHONE-PX's second floor. At 320–335 px (first-generation iPhone SE) the 600-unit sheet's 26-unit text is 10.3–10.9 px; holding 11 px there needs a sheet of 562 units or less, which no longer fits one screen. Recorded in `checks/column.py`. |
+| r2 note: H1's "done 20 s after the lines stop"; G1's limits; resume after a kill | Not ranked by review 2, and the image already says when you are done in the tool's own words. |
+| r2 table "hand-off label: keep" | Conflicts with r1-3 (owner lens), applied above. |
+
+### Measured state of this build
+
+- Desk sheet 571 high (607 with S2 drawn; gate 620); phone 600 × 1,169 (1,246 with S2; gate 1,246).
+- `python3 -m unittest`: 310 tests, all pass (24 new in `tests/test_round6.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail, 0 warn), HERO-COLUMN-PX included. ROUTE-PHONE-PX, ROUTE-HEIGHT, ROUTE-RELEASE, ROUTE-PAINT,
+  ROUTE-ARROW, ROUTE-CODE-SPACE, ROUTE-LEFT-EDGE, ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE, FIGURES,
+  NOTICE-DATE, NOTICE-AUTHOR, README-STALE and AUDIT-STALE are clean.

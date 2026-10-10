@@ -449,7 +449,8 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         return ""
     # no line over CODE_COLUMNS characters: a 375 px phone shows about 38 columns of GitHub's code font
     rc = (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper")
-    lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\", "    --start-url <your-site>"]
+    lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\",
+             *(f"    {f} {v}" for f, v in BLOCK_CRAWL_FLAGS)]
     gates = route.get("gates") or {}
     lines += stop_lines(rc, gates)
     if (gates.get("export_defaults") or {}).get("ok"):
@@ -499,7 +500,8 @@ def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dic
     printed only while its anchors hold, through the same engine as the image's rows; a retired one prints nothing,
     an unverified one nothing (ROUTE-UNVERIFIED fails it). Review round 5: an entry with `ci` (what main has fixed)
     prints only while CI passed at the sha the route was read at, with a job named `ci`* (`route.ci_ok`); `{head}`
-    is that sha, short."""
+    is that sha, short. Review round 6: an entry with `gate` prints only while that gate's record holds
+    (`routes.<name>.gates[gate].ok`): M1 waits on `cargo`, as the cargo line does."""
     try:
         from data import route as route_mod
     except ImportError:
@@ -509,6 +511,8 @@ def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dic
     for e in route_mod.drawn(route, rc):
         if e.get("kind") == "text" and str(e.get("text") or "").strip():
             if e.get("ci") and not route_mod.ci_ok(repo, (route or {}).get("head_sha"), str(e["ci"]))[0]:
+                continue
+            if e.get("gate") and not (((route or {}).get("gates") or {}).get(str(e["gate"])) or {}).get("ok"):
                 continue
             text = str(e["text"]).replace("{release}", str((ed or {}).get("version") or "the release"))
             if "{head}" in text:
@@ -567,16 +571,18 @@ def about_block(stats: dict, name: str) -> str:
     if name != "Rust-sitemap":
         return ""
     login = stats.get("login") or "BenjaminSRussell"
-    head = f"**[rustmapper](https://github.com/{login}/{name})** is a concurrent sitemap crawler written in Rust"
+    # review round 6: one description per screen. The image's header and the pick sentence introduce the tool, and
+    # the facts line says Rust, so this sentence says only what pip gives you
+    link = f"**[rustmapper](https://github.com/{login}/{name})**"
     ed = stats.get("edition") or {}
     mods = ed.get("modules")
     route = next((r for r in (stats.get("routes") or {}).values() if isinstance(r, dict) and r.get("repo") == name), {})
     api_on_main = ((route.get("gates") or {}).get("python_api") or {}).get("ok")
     if isinstance(mods, list) and "rustmapper" in mods:
-        return head + ", with a command line and a Python API built with maturin."
+        return link + ": `pip install` gives you its command line and a Python API, built with maturin."
     if isinstance(mods, list) and api_on_main:
-        return head + ". `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released."
-    return head + "."
+        return link + ": `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released."
+    return link + ": `pip install` gives you its command line."
 
 
 def about_repos(text: str) -> list[str]:
@@ -688,16 +694,53 @@ def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | No
             f"authored {listed}")
 
 
+# The crawl command the README's block prints (install_block), as (flag, value) pairs.
+BLOCK_CRAWL_FLAGS = (("--start-url", "<your-site>"),)
+# Review round 6: a flag the run check's crawl used that the printed block does not is named in the data line, in
+# these words; a flag not listed here is named as itself. IMMATERIAL flags change where a run writes, not what it does.
+FLAG_WORDS = {("--seeding-strategy", "none"): "with seeding off"}
+IMMATERIAL = ("--data-dir",)      # each run check run writes its own directory; the block uses the default ./data
+
+
+def cmd_flags(cmd: str) -> list[tuple[str, str]]:
+    """`x crawl --start-url u --seeding-strategy none (note)` -> [("--start-url", "u"), ("--seeding-strategy",
+    "none")]: each `--flag value` pair, the parenthesised note left out."""
+    cmd = re.sub(r"\([^)]*\)", "", str(cmd or ""))
+    toks = cmd.split()
+    out = []
+    for i, t in enumerate(toks):
+        if t.startswith("--"):
+            nxt = toks[i + 1] if i + 1 < len(toks) and not toks[i + 1].startswith("--") else ""
+            out.append((t, nxt))
+    return out
+
+
+def flag_words(cmd: str, printed=BLOCK_CRAWL_FLAGS) -> list[str]:
+    """Review round 6: every flag of the run check's crawl that the printed block does not have, in words ("with
+    seeding off") or as itself ("with `--workers 4`"); the start URL and IMMATERIAL flags are not named."""
+    shown = {f for f, _ in printed}
+    out = []
+    for f, v in cmd_flags(cmd):
+        if f in shown or f in IMMATERIAL:
+            continue
+        out.append(FLAG_WORDS.get((f, v)) or f"with `{(f + ' ' + v).strip()}`")
+    return out
+
+
 def crawl_words(step: dict | None) -> str:
     """What the run check's crawl ran against, from its own command and detail: "against a local 3-page site".
-    Review round 5: the flags it ran with are in DESIGN.md, not in the data line."""
+    Review round 5: the flags it ran with are in DESIGN.md. Review round 6: except a flag that changes what the
+    printed command does, which is named first: ", with seeding off, against a local 3-page site" (the block's
+    default seeding waits on crt.sh and the Common Crawl index before the first fetch)."""
     if not isinstance(step, dict):
         return ""
     cmd, detail = str(step.get("cmd") or ""), str(step.get("detail") or "")
     m = re.search(r"(\d+) lines", detail)
+    words = flag_words(cmd)
+    lead = (", " + " and ".join(words) + ",") if words else ""
     if re.search(r"127\.0\.0\.1|localhost", cmd):
-        return f" against a local {m.group(1)}-page site" if m else " against a local site"
-    return ""
+        return lead + (f" against a local {m.group(1)}-page site" if m else " against a local site")
+    return lead.rstrip(",")
 
 
 def route_clause(stats: dict, figs: dict) -> str:

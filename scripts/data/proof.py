@@ -11,7 +11,10 @@ repository's history clone and keeps two commits: the first one by any author (`
 `[identity]` author (`sha`, `date`, `author`; the date is the author date, which a rebase keeps). The cite's
 `{month:<key>}` prints that commit's month. checks/notices.py fails a printed cite whose anchor was not found
 (NOTICE-DATE) and one whose code an agent wrote first, unless the notice says so (`names_agent = true`,
-NOTICE-AUTHOR).
+NOTICE-AUTHOR). Review round 6: an anchor with `author = "self"` claims only his own commit: its record carries
+`scope: "self"`, and NOTICE-AUTHOR then asks that his first commit adding the text exists, not that the
+repository's first one is his (the cite proves the rule is how he works; who else used the call first is not its
+subject).
 
 A `[[figures]]` row backs one number typed into the README's prose: `{text, repo, path, literal}` holds when the
 file at the repository's HEAD contains the literal; `{text, repo, glob, count}` holds when that many files at HEAD
@@ -62,6 +65,8 @@ def rule_records(notices: list[dict], git_dirs: dict[str, str], identity: dict, 
             rec = {"n": int(nt.get("n") or 0), "key": key, "repo": repo, "path": a.get("path"), "text": text,
                    "found": False, "sha": None, "date": None, "author": None, "first_sha": None,
                    "first_author": None, "first_is_his": None}
+            if str(a.get("author") or "") == "self":
+                rec["scope"] = "self"
             gd = git_dirs.get(repo)
             if not gd:
                 old = cached.get((rec["n"], key))

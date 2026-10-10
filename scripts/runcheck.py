@@ -15,6 +15,13 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
     quiet_after_last_page  (review round 4) in the ends_by_itself run, the crawl's `Received work item` lines name
                         as many URLs as sitemap.jsonl has lines after the SIGINT, and the last of them came at
                         least QUIET_SECONDS before it: a reader can tell the crawl is done from its own output
+    robots_read         (review round 6) a crawl of a local http site whose robots.txt disallows /secret.html (and
+                        sets Crawl-delay: 5) asks for /robots.txt and never for /secret.html; the server's own
+                        request log decides, not the crawler's output
+
+Only the robots probe, against a binary already installed (it needs no install):
+
+    python3 scripts/runcheck.py --probe robots_read --exe <venv>/bin/rust_sitemap --version 0.1.3 --out steps.json
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -51,6 +58,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "tests" / "fixtures" / "route-site"
+ROBOTS_SITE = ROOT / "tests" / "fixtures" / "robots-site"   # robots.txt: Disallow /secret.html, Crawl-delay 5
+ROBOTS_SECONDS = 15     # robots_read: one SIGINT after this long (two pages; Crawl-delay 5 would space them 5 s apart)
 PAGES = ("index.html", "a.html", "b.html")
 KEYS = ("url", "depth", "status_code", "title")
 CRAWL_SECONDS = 45      # the entrance crawl: one SIGINT after this long (three pages take well under a second)
@@ -94,6 +103,54 @@ def serve(site: Path) -> tuple[socketserver.TCPServer, int]:
     httpd.daemon_threads = True
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd, httpd.server_address[1]
+
+
+class _Logged(_Quiet):
+    """The fixture server that keeps every request path it served, in order (review round 6, robots_read)."""
+    paths: list = []
+
+    def log_request(self, code="-", size="-"):
+        type(self).paths.append((time.monotonic(), self.path.split("?")[0]))
+
+
+def serve_logged(site: Path) -> tuple[socketserver.TCPServer, int, list]:
+    """As serve(), and returns the list the server appends (time, path) to for every request."""
+    paths: list = []
+    cls = type("_LoggedSite", (_Logged,), {"paths": paths})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
+    httpd.daemon_threads = True
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, httpd.server_address[1], paths
+
+
+def robots_verdict(paths: list[tuple[float, str]]) -> tuple[bool, str]:
+    """robots_read: /robots.txt was asked for and /secret.html never was. The detail counts the requests and gives
+    the shortest spacing between two page fetches (a Crawl-delay of 5 would keep them 5 s apart)."""
+    got = [p for _, p in paths]
+    asked = "/robots.txt" in got
+    secret = "/secret.html" in got
+    pages = sorted(t for t, p in paths if p != "/robots.txt")
+    gap = min((b - a for a, b in zip(pages, pages[1:])), default=None)
+    spacing = f"; closest two fetches {gap * 1000:.0f} ms apart" if gap is not None else ""
+    return asked and not secret, (f"{len(got)} requests; /robots.txt {'asked for' if asked else 'never asked for'}; "
+                                  f"/secret.html (disallowed) {'fetched' if secret else 'not fetched'}{spacing}")
+
+
+def probe_robots(steps: list, exe: str, name: str, work: Path) -> None:
+    """robots_read: crawl the robots fixture over plain http, one SIGINT after ROBOTS_SECONDS, read the server's log."""
+    httpd, port, paths = serve_logged(ROBOTS_SITE)
+    try:
+        d4 = work / "d4"
+        proc, t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
+                                "--data-dir", str(d4)], work, "robots.log")
+        exited, _secs = _stop(proc, signal.SIGINT, ROBOTS_SECONDS)
+        took = time.monotonic() - t0
+    finally:
+        httpd.shutdown()
+    ok, detail = robots_verdict(paths)
+    _step(steps, "robots_read", f"{name} crawl of an http site whose robots.txt disallows /secret.html reads it",
+          ok, f"{detail}; {exited}", took, gate=False)
 
 
 def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
@@ -340,6 +397,9 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
             # probes: does a crawl end by itself once the pages run out, and does its output say when it is done?
             probe_ends(steps, exe, name, url, port, work)
 
+            # probe: does it read robots.txt on a plain-http site, and keep out of what it disallows?
+            probe_robots(steps, exe, name, work)
+
             # probes: a kill, then export-sitemap and resume on what it left
             d3 = work / "d3"
             proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(d3)],
@@ -382,7 +442,24 @@ def main(argv=None) -> int:
     ap.add_argument("--work", help="work directory (default: a temporary one, removed after)")
     ap.add_argument("--out", default="runcheck.json")
     ap.add_argument("--install-runs", type=int, default=INSTALL_RUNS, help="how many cold installs to time")
+    ap.add_argument("--probe", choices=("robots_read",), help="run only this probe, against --exe (no install)")
+    ap.add_argument("--exe", help="with --probe: the installed executable")
     a = ap.parse_args(argv)
+    if a.probe:
+        if not a.exe or not a.version:
+            print("runcheck: --probe needs --exe and --version", file=sys.stderr)
+            return 2
+        work = Path(a.work) if a.work else Path(tempfile.mkdtemp(prefix="runcheck-probe-"))
+        work.mkdir(parents=True, exist_ok=True)
+        steps: list[dict] = []
+        try:
+            probe_robots(steps, a.exe, Path(a.exe).name, work)
+        finally:
+            if not a.work:
+                shutil.rmtree(work, ignore_errors=True)
+        rec = {"date": dt.datetime.now(dt.timezone.utc).date().isoformat(), "version": a.version, "steps": steps}
+        Path(a.out).write_text(json.dumps(rec, indent=2) + "\n")
+        return 0
     edition = {}
     if a.latest:
         sys.path.insert(0, str(ROOT / "scripts"))
