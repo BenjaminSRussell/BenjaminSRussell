@@ -45,12 +45,15 @@ NAME = "hero"            # the file names and README markers stay hero-*.svg
 KIND = "chart"
 # nominal: the height is the last baseline + 36 (phone 22). Review round 6: the phone sheet is 600 wide, since GitHub
 # shows it at the viewport less 82 px (308 px on a 390 px phone), where 26 units are 13.3 px
-SIZES = {"desk": (1280, 620), "phone": (600, 1250)}
-EDITIONS = ("day", "night", "phone-day", "phone-night")   # nothing moves: no still editions
+# Review round 12 (the owner): a mid edition, 820 wide, for viewports of 852 to 1199 px (an iPad held sideways, a
+# laptop window under 1,200 px), where GitHub's column is 482 to 765 px: the phone's stacked composition (title on top,
+# the route under it) at the desk's type sizes. The phone sheet there was drawn 900 to 1,429 px tall.
+SIZES = {"desk": (1280, 620), "phone": (600, 1250), "mid": (820, 900)}
+EDITIONS = ("day", "night", "mid-day", "mid-night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
 DANGER_PAD = 6           # the danger line round the trap's words: padding, corner radius, dot pitch (desk, phone)
 DANGER_RX = 6
-DANGER_PITCH = {"desk": 6, "phone": 8}
+DANGER_PITCH = {"desk": 6, "phone": 8, "mid": 6}
 CODE_TOKENS = ("_", "--", ".rs", ".jsonl", "export-sitemap")   # TYPE-CODE: these are code and take the code face
 RUNCHECK_MAX_AGE = 14    # days before `taken` a passing run check still counts (SPEC §7, ROUTE-ENTRANCE)
 
@@ -173,8 +176,14 @@ BREAKS: list[tuple[str, str, str]] = [
      "GitHub's mobile profile shows the README image at the viewport less 82 px, measured on the live page on 10 Oct "
      "2026: 308 px on a 390 px phone, where 720 units made 26-unit text 11.1 px (review round 6); the narrower measure "
      "wraps more, and the two gaps give back 18 units so the edition with S2 drawn stays inside 640 px at 308"),
+    ("Mid sheet 820 wide, stacked, at the desk's sizes",
+     "for viewports of 852 to 1199 px the README serves mid-day and mid-night: the title on top and the route under "
+     "it, as on the phone, with the desk's roles and spacing, 820 units wide, the name at 68",
+     "there GitHub's column is 482 to 765 px; the 1280 desk sheet's 19-unit text would be under 11 px, and the 600-unit "
+     "phone sheet was drawn 900 to 1,429 px tall, so the loop, the catch, Ctrl-C and the file fell below the first "
+     "screen of an iPad held sideways (review round 12)"),
     ("No motion, no still editions",
-     "the four editions are day, night, phone-day and phone-night; nothing moves",
+     "the six editions are day, night, mid-day, mid-night, phone-day and phone-night; nothing moves",
      "nothing in the subject moves on a period"),
 ]
 
@@ -197,8 +206,17 @@ L = {
               "ring_r": 8, "ring_dy": 9, "loop_out": 18,
               "loop_dy": 15, "loop_arrow": (10, 12), "gap": 18, "stub": 12, "after_end": 24, "tip": 8, "label_gap": 14,
               "arrow_w": 12, "rule_after_file": None, "foot": 22},
+    # review round 12: the phone's order (name, role, then the route under them, one left edge) at the desk's sizes
+    # and spacing; the name at 68 (desk 88 in a 354-unit column; 68 is 63 px at a 765 px column, 40 px at 482)
+    "mid": {"title_x": 40, "title_w": 740, "name_size": 68, "name_track": -1.0, "name_y": 92, "role_y": 136,
+            "role_pitch": 28, "fine_gap": 52, "fine_pitch": 28, "track_x": 52, "text_x": 80, "file_right": None,
+            "right": 780, "head_y": None, "head_after_title": 62, "sent_gap": 34, "line": 28, "bar_gap": 30,
+            "bar_w": 24, "bar_h": 4, "r2_gap": 30, "entry_gap": 42, "pitch": 36, "end_gap": 30, "r13_gap": 30,
+            "ring_r": 6, "ring_dy": 6, "loop_out": 14,
+            "loop_dy": 13, "loop_arrow": (8, 10), "gap": 16, "stub": 10, "after_end": 26, "tip": 8, "label_gap": 14,
+            "arrow_w": 10, "rule_after_file": 20, "foot": 30},
 }
-TRACK = {"desk": 1.6, "phone": 1.0}
+TRACK = {"desk": 1.6, "phone": 1.0, "mid": 1.6}
 FILE_CLEAR = 4           # review round 4: a desk file label keeps this far from the title block's boxes
 LINES = ("R5", "R6", "R15")   # review round 5: painted first, under the marks
 RELEASE_GAP = 32         # review round 5: the release label starts this far after the end of the install command
@@ -354,7 +372,7 @@ def _build(ctx) -> str:
             return k.text_width(str(text).upper(), role, edition=ed, scale=sc, tracking=track, size=size)
         return k.text_width(str(text), role, edition=ed, scale=sc, size=size, tracking=tracking)
 
-    day_ed = E.EDITIONS["phone-day" if phone else "day"]
+    day_ed = E.EDITIONS[{"phone": "phone-day", "mid": "mid-day"}.get(sc, "day")]
 
     label_size = tokens.ROLES[sc]["label"][1]
 

@@ -172,10 +172,14 @@ class _Safe(dict):
 
 # ------------------------------------------------------------------ pieces
 
-# round 6: the hero does not move, so it ships four editions and no reduced-motion sources
+# round 6: the hero does not move, so it ships no still editions and no reduced-motion sources. Review round 12 (the
+# owner): the mid editions come first, from chart.toml `mid_from_px` to `breakpoint_px` (an iPad held sideways, a
+# laptop window under 1,200 px); the phone's end one pixel before the mid's start; then the desk's night, then the img
 HERO_ROUTE_SOURCES = [
-    ("(max-width: {bp}px) and (prefers-color-scheme: dark)", "phone-night"),
-    ("(max-width: {bp}px)", "phone-day"),
+    ("(min-width: {mid}px) and (max-width: {bp}px) and (prefers-color-scheme: dark)", "mid-night"),
+    ("(min-width: {mid}px) and (max-width: {bp}px)", "mid-day"),
+    ("(max-width: {pmax}px) and (prefers-color-scheme: dark)", "phone-night"),
+    ("(max-width: {pmax}px)", "phone-day"),
     ("(prefers-color-scheme: dark)", "night"),
 ]
 
@@ -190,10 +194,14 @@ def hero_link(cfg: dict) -> str | None:
 def picture(sheet: str, cfg: dict, alt: str, link: str | None = None) -> str:
     base = cfg["chart"]["base_url"].rstrip("/") + "/"
     bp = cfg["chart"].get("breakpoint_px", 767)
+    mid = cfg["chart"].get("mid_from_px")
     srcs = HERO_ROUTE_SOURCES if sheet == "hero" else SOURCES
+    if sheet == "hero" and not mid:     # no mid edition configured: the phone sheet up to the breakpoint, as before
+        srcs = [(m.replace("{pmax}", "{bp}"), e) for m, e in srcs if not e.startswith("mid-")]
     lines = ([f'<a href="{link}">'] if link else []) + ["<picture>"]
     for media, ed in srcs:
-        lines.append(f'<source media="{media.format(bp=bp)}" srcset="{base}{sheet}-{ed}.svg">')
+        lines.append(f'<source media="{media.format(bp=bp, mid=mid, pmax=(mid or bp + 1) - 1)}" '
+                     f'srcset="{base}{sheet}-{ed}.svg">')
     alt_attr = alt.replace("&", "&amp;").replace('"', "&quot;")
     # width="100%" and no height: D8 asked for width and height so the page does not jump, but GitHub's
     # markdown CSS (`img {max-width: 100%}` with no `height: auto`) keeps a pixel height while it narrows
@@ -599,7 +607,7 @@ def _file_name(path: str) -> str:
     return path[2:] if str(path).startswith("./") else str(path)
 
 
-LIST_MAX_ITEMS = 7          # review round 9: one short list (Microsoft's style guide: 2 to 7 items); round 10: L5 is the 7th
+LIST_MAX_ITEMS = 8          # review round 9: one short list (Microsoft's style guide: 2 to 7 items); round 10: L5 is the 7th; review round 12: X3, redirects, is the 8th (a chooser reads this list line by line)
 LIST_MAX_WORDS = 25         # review round 9: each item at most this many words
 
 

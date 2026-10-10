@@ -371,7 +371,7 @@ def _edition(edition, scale: str | None = None) -> tuple[str, str]:
         edition = getattr(theme, "edition", None) or name
     ed = "night" if "night" in edition else "day"
     if scale is None:
-        scale = "phone" if "phone" in edition else "desk"
+        scale = "phone" if "phone" in edition else ("mid" if edition.startswith("mid") else "desk")
     if scale not in tokens.ROLES:
         raise KeyError(f"unknown scale {scale!r}")
     return ed, scale
@@ -925,7 +925,7 @@ def lint_records(records: list[dict], edition="day", scale: str | None = None, s
     `within` box; a second label-caps run (the chart number, key "chart-number"/"folio", is exempt);
     tracking on a space."""
     ed, sc = _edition(edition, scale)
-    allowed = set(tokens.SCALE if sc == "desk" else tokens.SCALE_PHONE)
+    allowed = set(tokens.SCALE if sc in ("desk", "mid") else tokens.SCALE_PHONE)
     floors = tokens.FLOORS[sc]
     errors = []
     caps = 0

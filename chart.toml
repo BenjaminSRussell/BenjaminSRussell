@@ -7,6 +7,10 @@ login = "BenjaminSRussell"
 release = "v9"
 seed = 27
 breakpoint_px = 1199   # review round 6: GitHub's README column is under 766 px below a 1200 px viewport (DESIGN.md)
+# review round 12 (the owner): the mid edition (820 wide, stacked, desk type) from this viewport to breakpoint_px, the
+# phone edition below it. checks/column.py derives it: the phone sheet (1,121 tall) is drawn at most 900 px up to 851
+# (column 481), and at 852 (column 482) the mid sheet's 19-unit text is 11.2 px. HERO-COLUMN-PX holds both.
+mid_from_px = 852
 base_url = "https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/"
 branch = "chart"
 out_dir = "assets/v9"
@@ -149,7 +153,7 @@ n = 3
 # the repository's first commit (rules[].repo_first, git) to that anchor's commit; {days:a..b} the days between two
 # anchors' commits (proof.fill_days). 67446a4 25 Sep 2025 -> d571e6e 1 Oct (prometheus_exporter.py, start_http_server)
 # -> e8cbe15 6 Oct (monitoring/grafana_dashboard.json, one dashboard).
-title = "Measure from the start."
+title = "Measure in week one."
 body = "Metrics were exported {days:prometheus} days after the first commit, and a dashboard was up {days:prometheus..grafana} days after that."
 cite = "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards."
 anchors = [{key = "prometheus", repo = "Scrapy", text = "prometheus_client"},
@@ -179,10 +183,10 @@ source = "toml"
 
 # review round 8: the Also lines' claims about go_go_go and Ai_code_detector, checked at HEAD (no numbers)
 [[figures]]
-text = "resume and export-sitemap commands"
+text = "crawl and export-sitemap commands"
 repo = "go_go_go"
-path = "internal/cli/resume.go"
-literal = 'Use:   "resume"'
+path = "internal/cli/crawl.go"
+literal = 'Use:   "crawl"'
 also = [{path = "internal/cli/export.go", literal = 'Use:   "export-sitemap"'}]
 
 [[figures]]
@@ -250,6 +254,28 @@ literal = "_host_breakers"
 text = "stage 3"
 repo = "Scrapy"
 path = "Scraping_project/src/stage3/stage3_worker.py"
+
+# review round 12 (the copy editor): what stage 3's summary is. `_summarize_document` keeps the first
+# SUMMARY_LIMITS["extractive_max_sentences"] pieces of the text split on "." (5), cut at MAX_SUMMARY_CHARS
+[[figures]]
+text = "first five sentences"
+repo = "Scrapy"
+path = "Scraping_project/src/core/constants.py"
+literal = '"extractive_max_sentences": 5'
+also = [{path = "Scraping_project/src/stage3/stage3_worker.py", literal = 'SUMMARY_LIMITS["extractive_max_sentences"]'},
+        {path = "Scraping_project/src/stage3/stage3_worker.py", literal = 'text.split(".")[:max_sentences]'}]
+
+# review round 12 (the developer choosing): where Scrapy's output lands. Compose sets DELTA_LAKE_PATH=/data/delta in
+# the containers and mounts ./data:/data, so the tables are under Scraping_project/data/delta/ on the host; the
+# guide the sentence links lists them and shows how to read or export them
+[[figures]]
+text = "Delta tables under `data/delta/`"
+repo = "Scrapy"
+path = "Scraping_project/docker-compose.yml"
+literal = "DELTA_LAKE_PATH=/data/delta"
+also = [{path = "Scraping_project/docker-compose.yml", literal = "./data:/data"},
+        {path = "Scraping_project/src/utils/delta.py", literal = "DELTA_LAKE_PATH"},
+        {path = "Scraping_project/docs/guides/DATA_USAGE.md", literal = "python cli.py export"}]
 
 [[figures]]
 text = "50,000 characters"
@@ -712,7 +738,7 @@ loop = true
 # (process_url_streaming: `tokio::time::timeout(Duration::from_secs(30), network_permits.acquire_owned())`, the
 # governor's semaphore, fair, so a late item waits behind every earlier one), and only then fetches. The bound is
 # 30 + 20 + 4 + 1 = 55, rounded up: 60. The permit wait is a value anchor (`wait`), read like the --timeout default.
-text = "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s"
+text = "{release} never exits by itself; done when `Received work item` lines stop for {quiet} s"
 audit = "It sums the wait for a network permit (`src/bfs_crawler.rs` `process_url_streaming`, `timeout(Duration::from_secs(30), network_permits.acquire_owned())`, 30 s; the `Received work item` line is printed before it) + the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 60. Probe `quiet_slow_page` waited that long"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", wait = "network_permits.acquire_owned()"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
@@ -748,7 +774,7 @@ kind = "step"
 # again to force quit"; the handler for that second press is spawned before the export and calls exit(1), so a second
 # press before `Saved to:` leaves no sitemap.jsonl (0.1.3 main.rs:508, :520, :536-539; HEAD shutdown.rs:22, :34,
 # :44-47). Probe second_ctrl_c: SIGINT, another 0.3 s later, exit 1 and no file. The end row names the file.
-text = "press Ctrl-C once; a second press before `Saved to:` quits without writing the file"
+text = "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file"
 head = [{path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "Press Ctrl+C again to force quit"},
         {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "std::process::exit(1)", before = "export_to_jsonl(&path)"},
         {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "export_to_jsonl(&path)", before = 'println!("Saved to: '},
@@ -900,11 +926,20 @@ kind = "text"
 scope = "release"
 item = true
 from_head = true
-text = "It writes one `sitemap.xml` however many pages it found; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
-audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at"
+# Review round 12 (the developer choosing): what goes into the file, too. 0.1.3's export writes every node whose
+# status_code is 200 (`if node.status_code == Some(200)`) and reads neither a canonical link nor a robots meta tag,
+# so a URL that redirects (X3) and a noindex page are listed. Probe sitemap_keeps_noindex (the redirect fixture):
+# /old and canon.html (noindex, canonical to /new.html) are in the one file. Main skips canonicalized pages
+# (orchestration/export.rs), so this is release scope, under "Before you run 0.1.3:".
+text = "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file. It keeps `noindex` and canonicalized pages."
+audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at. 200 is the status `run_export_sitemap_command` keeps (`node.status_code == Some(200)`); probe `sitemap_keeps_noindex` listed the redirecting `/old` and the noindex, canonicalized `canon.html`"
 head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
 release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "node.status_code == Some(200)"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "canonical"},
+           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "noindex"},
            {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]
+runs = ["sitemap_keeps_noindex"]
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
@@ -924,7 +959,10 @@ id = "X2"
 kind = "text"
 scope = "release"
 item = true
-text = "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried."
+# Review round 12 (the developer choosing): reqwest follows redirects (no policy is set on the client, network.rs;
+# the default follows up to 10), so a URL that redirects to an HTML 200 is written as 200 (probe redirect_kept:
+# /old, 301 to /new.html, is status_code 200). "redirected or not" keeps the sentence true on a site that redirects.
+text = "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried."
 audit = "Probe `non200_status` (crawled with `--timeout 3`): on the fixture site, busy.html (429, `Retry-After: 2`), gone.html (404), err (500), feed (200, `application/json`) and hang.html (held 8 s) were each asked for once in 12 s, beyond.html (linked only from busy.html) never, and their rows have `status_code` and `crawled_at` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
            {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},
@@ -933,11 +971,36 @@ release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "O
            {path = "src/bfs_crawler.rs", text = "status_code: job.status_code"},
            {path = "src/bfs_crawler.rs", absent = "Retry-After"}, {path = "src/frontier.rs", absent = "Retry-After"},
            {path = "src/bfs_crawler.rs", absent = "429"}]
-runs = ["non200_status"]
+runs = ["non200_status", "redirect_kept"]
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/bfs_crawler.rs"}]
 fails = ["non200_status"]
+
+# X3, review round 12 (the developer choosing): what it does after a redirect. reqwest follows it, and neither tree
+# reads the response's final URL (`Response::url()`): the node keeps the address it asked for, and the page's
+# relative links are resolved against it (`effective_base = base_href … unwrap_or(&job_url_clone)`, HEAD `&job.url`).
+# A browser resolves them against the final URL (RFC 3986 §5.1.3), so on a site that redirects /docs to /docs/ every
+# relative link under it is fetched one folder up. Probe redirect_kept: /dir (301 to /dir/) links child.html;
+# /child.html is asked for, /dir/child.html never. It retires once a release reads the final URL (the probe fails).
+[[route.rustmapper.entry]]
+id = "X3"
+kind = "text"
+item = true
+text = "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`."
+audit = "Probe `redirect_kept` (crawled with `--timeout 3`): on the redirect fixture, `/old` (301 to `/new.html`) was written as url `/old` with `status_code` 200 and title \"New\"; `/dir` (301 to `/dir/`, as http.server and Apache's `DirectorySlash` answer a folder) links `child.html`, and the server was asked for `/child.html`, never `/dir/child.html`"
+head = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job.url)"},
+        {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
+        {path = "src/network.rs", absent = "redirect::Policy"}]
+release = [{path = "src/bfs_crawler.rs", text = "base_href.as_deref().unwrap_or(&job_url_clone)"},
+           {path = "src/bfs_crawler.rs", absent = ".url()"}, {path = "src/network.rs", absent = ".url()"},
+           {path = "src/network.rs", absent = "redirect::Policy"}]
+runs = ["redirect_kept"]
+[[route.rustmapper.entry.instead]]
+text = ""
+head = [{path = "src/bfs_crawler.rs"}]
+release = [{path = "src/bfs_crawler.rs"}]
+fails = ["redirect_kept"]
 
 # M1, review round 5: what main has fixed, said in text while the release still has the fault (H1). The regression
 # test for #65 is at HEAD, not ignored, run by `cargo test` in CI, and CI passed at the sha the route was read at

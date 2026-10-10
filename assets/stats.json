@@ -7618,7 +7618,7 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "{release} never exits by itself; done once `Received work item` lines stop for 60 s",
+     "text": "{release} never exits by itself; done when `Received work item` lines stop for 60 s",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7686,7 +7686,7 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once; a second press before `Saved to:` quits without writing the file",
+     "text": "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7957,12 +7957,14 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "It writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.",
+     "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
-     "runs": [],
+     "runs": [
+      "sitemap_keeps_noindex"
+     ],
      "fails": [],
      "paths": {
       "head": [
@@ -7999,20 +8001,22 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried.",
+     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "non200_status"
+      "non200_status",
+      "redirect_kept"
      ],
      "fails": [],
      "paths": {
       "head": [],
       "release": [
        "src/bfs_crawler.rs",
-       "src/frontier.rs"
+       "src/frontier.rs",
+       "src/network.rs"
       ]
      },
      "item": true,
@@ -8029,6 +8033,53 @@
        ],
        "paths": {
         "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "X3",
+     "kind": "text",
+     "scope": "both",
+     "loop": false,
+     "text": "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "redirect_kept"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/bfs_crawler.rs",
+       "src/network.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/network.rs"
+      ]
+     },
+     "item": true,
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "redirect_kept"
+       ],
+       "paths": {
+        "head": [
+         "src/bfs_crawler.rs"
+        ],
         "release": [
          "src/bfs_crawler.rs"
         ]
@@ -8324,10 +8375,10 @@
  ],
  "figures": [
   {
-   "text": "resume and export-sitemap commands",
+   "text": "crawl and export-sitemap commands",
    "repo": "go_go_go",
-   "path": "internal/cli/resume.go",
-   "literal": "Use:   \"resume\"",
+   "path": "internal/cli/crawl.go",
+   "literal": "Use:   \"crawl\"",
    "glob": null,
    "count": null,
    "measured": null,
@@ -8429,6 +8480,28 @@
    "repo": "Scrapy",
    "path": "Scraping_project/src/stage3/stage3_worker.py",
    "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "first five sentences",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/core/constants.py",
+   "literal": "\"extractive_max_sentences\": 5",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Delta tables under `data/delta/`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docker-compose.yml",
+   "literal": "DELTA_LAKE_PATH=/data/delta",
    "glob": null,
    "count": null,
    "measured": null,
@@ -8716,6 +8789,22 @@
      "secs": null,
      "detail": "3 work-item lines; longest gap between two 15.0 s (slow.html held 15 s); SIGINT 60 s after the last; 3 of 3 pages in sitemap.jsonl, status 200; exit 0 2.0 s after one SIGINT",
      "quiet_secs": 60
+    },
+    {
+     "id": "redirect_kept",
+     "cmd": "rust_sitemap crawl: after a redirect it keeps the old address, with the target's status and title, and reads the page's links against the old address",
+     "ok": true,
+     "gate": false,
+     "secs": 12.0,
+     "detail": "8 requests; /old (301 to /new.html) written as url /old, status_code 200, title \"New\"; /dir (301 to /dir/) links child.html: /child.html asked for 1 time(s), /dir/child.html 0; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "sitemap_keeps_noindex",
+     "cmd": "rust_sitemap export-sitemap: one file lists every status_code 200 row, a redirecting URL and a noindex, canonicalized page included",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "5 <loc> in one file: index.html, canon.html, dir, new.html, old"
     },
     {
      "id": "kill_writes_file",

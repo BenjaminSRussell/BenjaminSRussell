@@ -109,9 +109,11 @@ jobs:
         id: assets
         run: python3 scripts/build_assets.py --heartbeat
 
-      - name: Render the README's build-written regions
+      - name: Render the README's build-written regions, and DESIGN.md from the drawn route
         id: readme
-        run: python3 scripts/render_readme.py
+        run: |
+          python3 scripts/render_readme.py
+          python3 scripts/tokens.py --md > DESIGN.md
 
       - name: Gate (check.py, fast and render tiers; exit 2 = warnings only, allowed)
         id: gate
@@ -140,7 +142,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # one missing pathspec makes `git add` stage nothing at all (run 5: "main: no change" while the
           # survey had moved), so the files are added one by one and only when they exist
-          for f in assets/stats.json assets/log.json assets/layout.lock.json README.md; do
+          for f in assets/stats.json assets/log.json assets/layout.lock.json README.md DESIGN.md; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if git diff --cached --quiet; then
@@ -185,6 +187,7 @@ jobs:
         run: |
           python3 scripts/build_assets.py --no-sounding --heartbeat
           python3 scripts/render_readme.py
+          python3 scripts/tokens.py --md > DESIGN.md
           set +e
           python3 scripts/check.py --tier fast,render
           rc=$?

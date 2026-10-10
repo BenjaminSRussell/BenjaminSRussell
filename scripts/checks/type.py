@@ -47,7 +47,7 @@ def _get(ctx, key, default=None):
 def _edition_of(name: str) -> tuple[str, str]:
     """'hero-phone-night' -> ('night', 'phone'); 'approaches-still-day' -> ('day', 'desk')."""
     ed = "night" if "night" in name else "day"
-    sc = "phone" if "phone" in name else "desk"
+    sc = "phone" if "phone" in name else ("mid" if "-mid-" in name else "desk")
     return ed, sc
 
 

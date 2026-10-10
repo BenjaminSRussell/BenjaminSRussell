@@ -52,7 +52,7 @@ sys.modules.setdefault("check", sys.modules[__name__])
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 TIERS = ("fast", "render", "perf")
 EDITION_SUFFIXES = ("phone-still-day", "phone-still-night", "still-day", "still-night",
-                    "phone-day", "phone-night", "day", "night")
+                    "phone-day", "phone-night", "mid-day", "mid-night", "day", "night")
 
 
 LEVELS = ("fail", "warn", "error", "info")

@@ -253,9 +253,12 @@ class Readme(unittest.TestCase):
 
     def test_picture_order(self):
         hero = render_readme.picture("hero", self.cfg, 'A "boat" & co').splitlines()
-        self.assertEqual(len(hero), 6)       # round 6: the hero does not move, so no reduced-motion sources
+        self.assertEqual(len(hero), 8)       # round 6: the hero does not move, so no reduced-motion sources
         order = [re.search(r"/hero-([\w-]+)\.svg", l).group(1) for l in hero[1:-1]]
-        self.assertEqual(order, ["phone-night", "phone-day", "night", "day"])
+        # review round 12: the mid editions first, from mid_from_px to the breakpoint; the phone's up to the pixel before
+        self.assertEqual(order, ["mid-night", "mid-day", "phone-night", "phone-day", "night", "day"])
+        self.assertIn('media="(min-width: 852px) and (max-width: 1199px)"', hero[2])
+        self.assertIn('media="(max-width: 851px)"', hero[4])
         self.assertIn('alt="A &quot;boat&quot; &amp; co"', hero[-2])
         # no pixel height: GitHub's markdown CSS keeps it while it narrows the width (letterboxed sheet)
         self.assertNotIn("height=", "".join(hero))
@@ -293,7 +296,7 @@ class Readme(unittest.TestCase):
         rows = [r for r in block.splitlines() if r.strip()]
         self.assertEqual(len(rows), 3, block)       # review r11-1 #1: rule 4 is cut
         self.assertTrue(rows[0].startswith("1. **Boring under load.**"))
-        self.assertTrue(rows[-1].startswith("3. **Measure from the start.**"))
+        self.assertTrue(rows[-1].startswith("3. **Measure in week one.**"))
         self.assertNotIn("pattern-match", block)
         self.assertNotIn("The surface is part of the system", block)
         self.assertNotIn("editions", block)
@@ -499,7 +502,7 @@ class Readme(unittest.TestCase):
                  "Run these from the folder you cloned [Scrapy]", "cd Scrapy/Scraping_project",
                  "\npython start.py", "docker-compose run --rm \\", "scraper scrapy crawl scout", "**Also**",
                  "more repositories:", "**Working rules**",
-                 "<!-- notices:start -->", "3. **Measure from the start.**", "Found a mistake? [Open an issue]",
+                 "<!-- notices:start -->", "3. **Measure in week one.**", "Found a mistake? [Open an issue]",
                  "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) shows rustmapper", "Tests and lines are counted",
                  "<!-- license:start -->", "**This profile** Code MIT"]
         positions = [text.index(m) for m in order]

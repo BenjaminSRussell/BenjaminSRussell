@@ -71,7 +71,7 @@ class Cautions(unittest.TestCase):
         self.assertTrue(paras[0].startswith("Prebuilt for Apple silicon"), paras[0])
         self.assertEqual(paras[1], "Before you run 0.1.3:")      # review round 10: the lead names the release
         items = paras[2].strip().splitlines()
-        self.assertEqual(len(items), 7)                    # review round 10: L5, the scope lever
+        self.assertEqual(len(items), 8)                    # review round 10: L5, the scope lever; round 12: X3
         for it in items:
             self.assertTrue(it.startswith("- "), it)
             self.assertLessEqual(len(it[2:].split()), rr.LIST_MAX_WORDS, it)
@@ -85,7 +85,7 @@ class Cautions(unittest.TestCase):
         end = "\n<!-- install:Rust-sitemap:end -->\n"
         self.assertEqual(readme_check.cautions(head + "Lead:\n\n- one\n- two" + end), [])
         self.assertTrue(readme_check.cautions(head + "A second paragraph of cautions." + end))
-        self.assertTrue(readme_check.cautions(head + "Lead:\n\n" + "\n".join(f"- item {i}" for i in range(8)) + end))
+        self.assertTrue(readme_check.cautions(head + "Lead:\n\n" + "\n".join(f"- item {i}" for i in range(9)) + end))
         self.assertTrue(readme_check.cautions(head + "Lead:\n\n- " + " ".join(["word"] * 26) + end))
 
     def test_retired_items_drop_and_the_lead_goes(self):
@@ -183,9 +183,9 @@ class StatusCode(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         x2 = {e["id"]: e for e in R.resolve(route, rc)}["X2"]
         self.assertTrue(x2["verified"] and not x2["retired"], x2)
-        self.assertEqual(x2["text"], "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a "
-                                     "non-HTML 200 is left blank, `crawled_at` too, and never retried.")
-        self.assertIn("- Only HTML pages that answer 200 get a `status_code`.", read(README))
+        self.assertEqual(x2["text"], "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, "
+                                     "timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.")
+        self.assertIn("- Only HTML pages that answer 200, redirected or not, get a `status_code`.", read(README))
         self.assertIn("err 1, feed 1, hang.html 1", next(s for s in rc["steps"] if s["id"] == "non200_status")["detail"])
         # a release that records statuses or asks again: the probe fails and the item retires
         next(s for s in rc["steps"] if s["id"] == "non200_status")["ok"] = False
@@ -220,7 +220,7 @@ class QuietNumber(unittest.TestCase):
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         route = stats["routes"]["rustmapper"]
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
-        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` lines stop for 60 s")
+        self.assertEqual(h1["text"], "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
         next(s for s in rc["steps"] if s["id"] == "quiet_slow_page")["quiet_secs"] = 30   # the round 9 probe
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
         self.assertEqual(h1["text"], "{release} never exits by itself, even after the last page")

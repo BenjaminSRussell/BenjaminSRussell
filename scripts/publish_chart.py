@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -64,12 +65,30 @@ def collect(root: str = ROOT, report_path: str = REPORT, social_dir: str = SOCIA
     files = [(src, dst) for src, dst in files if not os.path.basename(dst).startswith(RETIRED)]
     if not files:
         raise PublishError("the build report names no sheets")
+    # review round 12: the README's <picture> names six hero editions (desk, mid, phone; day and night). A branch
+    # missing one would show a broken image at those widths, so the set the README names must all ship.
+    gone = unshipped(files, os.path.join(root, "README.md"))
+    if gone:
+        raise PublishError(f"README.md names {', '.join(gone)}, which the build report does not ship")
     files.append((report_path, "build-report.json"))
     if os.path.isdir(social_dir):
         for fn in sorted(os.listdir(social_dir)):
             if fn.lower().endswith(".png"):
                 files.append((os.path.join(social_dir, fn), f"social/{fn}"))
     return files
+
+
+def unshipped(files: list[tuple[str, str]], readme_path: str) -> list[str]:
+    """The SVG file names the README's `<source srcset>` and `<img src>` point at on the branch that are not among
+    `files` (review round 12: the mid editions). No README: nothing to compare."""
+    try:
+        with open(readme_path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError:
+        return []
+    named = re.findall(r'(?:srcset|src)="[^"]*/' + re.escape(BRANCH) + r'/assets/v9/([\w-]+\.svg)"', text)
+    have = {os.path.basename(dst) for _src, dst in files}
+    return sorted({n for n in named if n not in have})
 
 
 def stage(staging: str, files: list[tuple[str, str]]) -> None:

@@ -72,6 +72,7 @@ SCALE = (16, 19, 25, 32, 41, 53, 68, 88, 141, 176)
 SCALE_PHONE = (18, 26, 30, 40, 132)
 FLOORS = {"desk": {"semantic": 19, "texture": 16, "serif": 25},
           "phone": {"semantic": 26, "texture": 18, "serif": 30}}
+FLOORS["mid"] = FLOORS["desk"]   # review round 12: the mid edition keeps the desk's sizes, so the desk's floors
 
 # Roles: role -> (font key, size, tracking px, case, grade)
 #   fonts: serif, serif-italic, cond, cond-italic, cond-light, plex, plex-light, plex-medium
@@ -114,7 +115,10 @@ _PHONE = {
 }
 # Night swaps the sans/mono roles to the Light cuts (T5): applied by the type engine, not duplicated here.
 NIGHT_LIGHT_CUTS = {"cond": "cond-light", "plex": "plex-light"}
-ROLES = {"desk": _DESK, "phone": _PHONE}
+# Review round 12: the hero's mid edition (820 wide, shown at 482 to 765 px) sets the desk's roles at the desk's
+# sizes: 19 units there are 11.2 px at 482 and 17.7 px at 765, against 11.4 to 12.6 px for the desk sheet itself.
+_MID = dict(_DESK)
+ROLES = {"desk": _DESK, "phone": _PHONE, "mid": _MID}
 GRADE = {"day": ("spread", 0.22), "night": ("choke", 0.18)}
 
 # Motion tokens (T4): easings, loop periods, the discrete grid.
@@ -129,118 +133,153 @@ BUDGETS = {"svg_kb": 300, "gz_kb": 100, "elements": 3000, "phone_svg_kb": 120, "
                           "log": (95, 30), "instruments": (50, 18), "footer": (75, 25)}}
 
 
+# ---------------------------------------------------------------- DESIGN.md
+# Review round 12 (the copy editor): DESIGN.md is the page the data line's "drawing" link opens, so it describes the
+# picture on the profile in plain words and lists only what that picture draws with. Its opening paragraph is written
+# from the drawn route (`sheets/route.py` `plan`, which follows `routes.rustmapper` in stats.json), so a reworded row
+# cannot leave it stale; checks/design.py (DESIGN-FRESH) fails when the committed file differs from this output.
+
+HERO_TOKENS = {"paper": "the sheet",
+               "ink": "the words and the rings",
+               "ink2": "the line that names the project reading the file",
+               "muted": "the release and its date",
+               "flare": "the track to follow, the loop, the start and end bars, the arrow",
+               "accent": "the dotted line round the 0.1.3 catch"}
+HERO_WEIGHTS = {"PEN": "the rings", "LINE": "the loop and the arrow", "BRUSH": "the track and the dotted line"}
+HERO_ROLES = {"display": "his name", "label": "every row's words, and the role line in capitals",
+              "project": "the project's name", "machine": "commands, file names and field names"}
+IDEA_MAX_WORDS = 120
+
+
+def _first_clause(text: str) -> str:
+    return str(text).split(";")[0].strip()
+
+
+def idea(stats: dict, cfg: dict) -> str:
+    """The opening paragraph, from the drawn route: what each row is, and what decides that it is drawn."""
+    from sheets import route as sheet
+    p = sheet.plan(stats, cfg)
+    ed = stats.get("edition") or {}
+    v = str(ed.get("version") or "the release")
+    head = str(((stats.get("routes") or {}).get(sheet.PROJECT) or {}).get("head_sha") or "")[:7]
+    stops = [e for e in p["steps"] if e["kind"] == "stop"]
+    trap = next((e for e in p["steps"] if e["kind"] == "trap"), None)
+    step = next((e for e in p["steps"] if e["kind"] == "step"), None)
+    lead = f"The picture shows how to run {p['project']} {v}, top to bottom"
+    out = [lead + (f", along the magenta line from `{p['install']}`." if p["install"] else ".")]
+    if stops:
+        out.append("Its rings are the tool's steps: " + "; ".join(f"“{_first_clause(e['text'])}”" for e in stops) + ".")
+    if any(e.get("loop") for e in p["steps"]):
+        out.append("The line up the left side marks the rows that repeat for every page.")
+    if trap:
+        out.append(f"The dotted line marks the catch: “{_first_clause(trap['text'])}”.")
+    if step:
+        out.append(f"Then your step: “{_first_clause(step['text'])}”.")
+    end = p.get("end")
+    if end:
+        out.append(f"It ends at `{end['file']}`" + (f", “{sheet.handoff_words(p['handoff'], stats)}”."
+                                                   if p.get("handoff") else "."))
+    out.append(f"A row is drawn only when its anchors hold at `{head}` and in the {v} sdist; the install "
+               "and stop rows only when the run check passed.")
+    return " ".join(out)
+
+
 def markdown_tables() -> str:
-    """The palette / line / type tables for DESIGN.md, generated so docs cannot drift."""
-    out = ["| Token | Day | Night | Use |", "|---|---|---|---|"]
-    uses = {"paper": "the sheet", "paper_log": "the ship's log paper", "land": "islands, coast",
-            "ink": "type, primary strokes", "ink2": "secondary type, lines", "muted": "captions",
-            "shallow_a": "water under 10", "shallow_b": "water under 5", "accent": "red lateral marks",
-            "ok": "green lateral marks", "flare": "light flares and halos (chart magenta)",
-            "light_core": "the flashing core of a light", "hair": "hairlines, sheet edge",
-            "unsurveyed": "hatch ink for the unsurveyed band"}
+    """The hero's tokens, weights and roles, with what each draws; generated so the page cannot drift."""
+    from sheets import route as sheet
+    out = ["Only what the picture on the profile draws with. Other tokens in `scripts/tokens.py` serve sheets not on "
+           "the profile.", "", "| Token | Day | Night | Use |", "|---|---|---|---|"]
     d, n = asdict(THEMES["day"]), asdict(THEMES["night"])
-    for key, use in uses.items():
+    for key, use in HERO_TOKENS.items():
         out.append(f"| {key} | `{d[key]}` | `{n[key]}` | {use} |")
-    out += ["", "| Weight | day px | night px |", "|---|---|---|"] + [f"| {k} | {v} | {W_NIGHT[k]} |" for k, v in W.items()]
-    out += ["", "| Role | Font | Size | Tracking | Case |", "|---|---|---|---|---|"]
-    for r, (f, s, t, c, _g) in _DESK.items():
-        out.append(f"| {r} | {f} | {s} | {t:+.1f} | {c} |")
-    out += ["", f"Scale: {' · '.join(str(s) for s in SCALE)} (phone: {' · '.join(str(s) for s in SCALE_PHONE)}). "
-            f"Floors: desk {FLOORS['desk']}, phone {FLOORS['phone']}."]
+    out += ["", "| Weight | Day px | Night px | Use |", "|---|---|---|---|"]
+    out += [f"| {k} | {W[k]} | {W_NIGHT[k]} | {use} |" for k, use in HERO_WEIGHTS.items()]
+    out += ["", f"The dotted line is `DANGER` (`{DASH['DANGER']}`), its gap chosen so the dots space evenly round it.",
+            "", "| Role | Font | Desk | Mid | Phone | Use |", "|---|---|---|---|---|---|"]
+    for r, use in HERO_ROLES.items():
+        sizes = []
+        for sc in ("desk", "mid", "phone"):
+            sizes.append(sheet.L[sc]["name_size"] if r == "display" else ROLES[sc][r][1])
+        out.append(f"| {r} | {_DESK[r][0]} | {sizes[0]} | {sizes[1]} | {sizes[2]} | {use} |")
+    out += ["", f"Floors (sheet units): desk and mid {FLOORS['desk']['semantic']}, phone {FLOORS['phone']['semantic']}."]
     return "\n".join(out)
 
 
-DESIGN_HEAD = """# DESIGN — how the chart is drawn
+DESIGN_HEAD = """<!-- Generated by `python3 scripts/tokens.py --md > DESIGN.md` from scripts/tokens.py, chart.toml and
+assets/stats.json; edit those, not this file. check.py fails (DESIGN-FRESH) when this file and that output differ. -->
 
-Generated by `python3 scripts/tokens.py --md > DESIGN.md`; edit `scripts/tokens.py`, not this file.
-The authoritative plan is `docs/crit/tech/MASTERPLAN.md`; this page is the short form a reader needs
-to understand what the sheets mean and what the build will refuse.
+# How the picture is drawn
 
-## The idea
+{idea}
 
-Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 5): the hero is the way into rustmapper. It answers one sentence: how
-you start it, what it does with each page, where a stranger goes wrong and how to get out, and where the output goes
-next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date
-set right after the command, the stops on the magenta track (what happens there, every row's words at one left edge;
-the track is painted first, so each ring sits on it), the governor as a clause of the fetch stop's words, next to
-the verb it qualifies, with its 500 ms threshold, the write path (the write-ahead log, fsynced, then redb, in batches), the rows that repeat for every page closed
-by one line back up the left side, the one hazard on that loop, which names its release, with its words (and the line
-of output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C once) on
-the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin line on to ideal-url-organizer,
-which sorts that file and tests the join. While the release never stops by itself the track breaks under the loop and
-starts again just above Ctrl-C, so the shape alone says the only way on is the reader's. Code inside a row's words is
-set in the code face, its spaces at the text's word space. What to do after a kill is a comment in the README's code
-block, where the reader types. The title block on the left is his name and what he builds. Nothing has a size that
-depends on data. Each drawn element is a `<g id>` with a row in `scripts/sheets/route.py` `PURPOSE` (what a stranger
-learns, which visitor question, the source).
-
-A stop or trap is drawn only when its anchors hold in the code at HEAD and in the released sdist
-(`scripts/data/route.py`): every rustmapper source file it rests on is in that release, and the reader the line past
-the end points to is read at the commit `stats.json` names (`handoffs[].to_sha`). The install lines are drawn only when
-the weekly run check passed (`scripts/runcheck.py`: install, then a crawl of a local three-page site with
-`--seeding-strategy none`, one Ctrl-C, a kill and an export; and a crawl of a local http site whose `robots.txt`
-disallows one page, read from the server's own request log); the line past the end only when the reader's fields are
-in the writer's struct. A wording that states a condition (`unless`, `when`, `only`, `if`) rests on a run-check probe
-or on the code that decides it, never on a setter alone. `check.py` fails while any entry does not hold.
-
-## Honesty conventions
-
-- **Upright numerals are measured** from the survey (`stats.json`). **Italic numerals are illustrative**
-  or computed (the ship's log until a real run is recorded). An **underlined** figure is above datum.
-- Doubt marks follow chart practice: `ED` existence doubtful, `Rep` reported, `SD` sounding doubtful,
-  `PA` position approximate. The disputed worker count is never set upright.
-- Two commit instruments are shown wherever one is: commits by the author (identity-filtered) and
-  all hands. Hours are commit-days in the author's local time, not UTC.
-- Nothing proposed is drawn as built: the rustmapper → Scrapy channel is pecked and unlit.
-- No placeholder, disclaimer or borrowed phrase ships in artwork (`scripts/checks/strings.py`).
+The run check (`scripts/runcheck.py`) installs the release, crawls a local three-page site with `--seeding-strategy
+none`, presses Ctrl-C once and exports the sitemap; its probes check each caution the README prints. What each
+element is for is in `scripts/sheets/route.py` (`PURPOSE`); `check.py` fails while any row does not hold.
 
 ## Editions
 
-The hero ships four: `day`, `night`, `phone-day`, `phone-night`; nothing on it moves, so it has no still editions and
-the README's `<picture>` carries no reduced-motion sources (phone + dark, phone, dark, then the day `<img>`). The
-supporting sheets, built on request, keep their six (`day`, `night`, `still-day`, `still-night`, `phone-day`,
-`phone-night`). Night is designed, not inverted, at +20 % stroke weight with the Light cuts of the sans and mono. Phone
-editions are redrawn at the phone scale, not shrunk, and break lines at the same words as the day edition.
+The picture ships six editions: `day` and `night` for a laptop, `mid-day` and `mid-night` for an iPad held sideways
+or a laptop window under 1,200 px, `phone-day` and `phone-night`. Nothing on it moves, so there are no still
+editions. Night is redrawn, not inverted: strokes 20 % heavier and the thinner cuts of the sans and the mono. The mid
+and phone editions are redrawn at their own width, not shrunk: the title on top, the route under it, the same rows in
+the same order.
 
-GitHub shows a 1280 px sheet at about 870 px in the README column (×0.68). The desk scale carries that factor: the
-floors below (19 semantic · 16 texture · 25 serif on the sheet) are 13 · 11 · 17 px as the page shows them. The hero's
-phone sheet is 600 wide (the supporting sheets' 720). Its height follows its content (desk ≤ 620, phone ≤ 1,246, which
-is 640 px at 308). Sheets are published to the orphan `chart` branch under `assets/v9/`.
-
-**GitHub's README column, measured on the live profile page on 10 Oct 2026** (Playwright Chromium, iOS Safari user
-agent; review round 6): under a 768 px viewport the image is the viewport less 82 px (278 at 360, 308 at 390, 332 at
-414); from 768 to 1011 the viewport less 370; from 1012 to 1279 the viewport less 434; from 1280 on, 846. So the
-README serves the phone sheet up to a 1199 px viewport (`chart.toml` `breakpoint_px`), where the column is 765 px,
-and the desk sheet from 1200 (766 px, its 19-unit text 11.4 px). The phone sheet's 26-unit text is 13.3 px at 308 and
-12.0 px at 278. `checks/column.py` (HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to 11 px with this table,
-and `checks/route.py` (ROUTE-PHONE-PX) the phone sheet to 13 px at 308 and 11 px at 278. Re-measure when GitHub
-changes the profile layout; the table is in `checks/column.py`.
-
-## Motion
-
-The hero does not move. The supporting sheets keep the page-wide 96 s timeline, SMIL only: only `opacity` and
-`transform` animate, every discrete instant on a 0.5 s grid, loop periods from {1, 4, 10, 15, 30, 96} s; the footer is
-the only ambient sheet.
+GitHub's README column, measured on the live profile page on 10 Oct 2026 (Playwright Chromium, iOS Safari user agent):
+under a 768 px viewport it is the viewport less 82 px (278 at 360, 308 at 390); from 768 to 1011 the viewport less
+370; from 1012 to 1279 the viewport less 434; from 1280 on, 846. The README serves the phone sheet (600 wide) up to
+{pmax} px, the mid sheet (820 wide) from {mid} to {bp} px (`chart.toml` `mid_from_px`, `breakpoint_px`) and the desk
+sheet (1280 wide) from {desk}. Above {pmax} px the phone sheet would be drawn over {tall} px tall; at {mid} the mid
+sheet's 19-unit text is {mid_px} px, and at {desk} the desk sheet's is {desk_px} px. `checks/column.py`
+(HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to 11 px text and, from 768, to a picture at most {tall} px
+tall; `checks/route.py` holds the phone sheet's text to 13 px at 308 and 11 px at 278, and the heights to desk
+{h_desk}, mid {h_mid} and phone {h_phone} units. Re-measure when GitHub changes the profile layout; the table is in
+`checks/column.py`. The sheets are published to the `chart` branch under `assets/v9/`.
 
 ## Actions playbook
 
 | Workflow | File | Purpose |
 |---|---|---|
-| chart | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: the run check on macos-14 (`runcheck.py`) → survey (`build_stats.py --runcheck`) → build → render → `check.py --tier fast,render` → commit figures and README → publish the `chart` branch |
-| perf | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
+| `chart` | `.github/workflows/profile.yml` | weekly (Sunday 06:20 UTC) and on push to `main`: the run check on macos-14 (`runcheck.py`), the data step (`build_stats.py --runcheck`), build, render, `check.py --tier fast,render`, commit the figures, README.md and DESIGN.md, publish the `chart` branch |
+| `perf` | `.github/workflows/perf.yml` | repaint budgets on `scripts/**` pushes and Sundays |
 | README links | `.github/workflows/links.yml` | lychee over README.md weekly and on pull requests |
 
-When a sheet is stale or missing: open **Actions → chart → Run workflow**. A red run never publishes; the
-previous `chart` branch stays up and the README keeps rendering it. If the survey fails (GraphQL quota, a
-clone timing out), the run falls back to the cached figures and draws the pencil-note edition; it does not
-invent numbers. Do not hammer re-runs: the survey clones every public repository.
+When a sheet is stale or missing: open **Actions**, then `chart`, then **Run workflow**. A red run never publishes;
+the previous `chart` branch stays up and the README keeps showing it. If the data step fails (GraphQL quota, a clone
+timing out), the run falls back to the cached figures and publishes the edition drawn from them; it does not invent
+numbers. Do not hammer re-runs: the data step clones every public repository.
 
 ## Tokens
 """
 
 
-def design_md() -> str:
-    return DESIGN_HEAD + "\n" + markdown_tables()
+def _load(stats: dict | None, cfg: dict | None) -> tuple[dict, dict]:
+    import json
+    import os
+    import tomllib
+    root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    if stats is None:
+        with open(os.path.join(root, "assets", "stats.json"), encoding="utf-8") as fh:
+            stats = json.load(fh)
+    if cfg is None:
+        with open(os.path.join(root, "chart.toml"), "rb") as fh:
+            cfg = tomllib.load(fh)
+    return stats, cfg
+
+
+def design_md(stats: dict | None = None, cfg: dict | None = None) -> str:
+    """DESIGN.md, from the committed stats.json and chart.toml unless given."""
+    stats, cfg = _load(stats, cfg)
+    from checks import route as route_check
+    from checks import column
+    ch = cfg.get("chart") or {}
+    bp = int(ch.get("breakpoint_px", 1199))
+    mid = int(ch.get("mid_from_px") or bp + 1)
+    head = DESIGN_HEAD.format(
+        idea=idea(stats, cfg), pmax=mid - 1, mid=mid, bp=bp, desk=bp + 1, tall=f"{column.TALL_PX:g}",
+        mid_px=f"{FLOORS['mid']['semantic'] * column.column_px(mid) / 820:.1f}",
+        desk_px=f"{FLOORS['desk']['semantic'] * column.column_px(bp + 1) / 1280:.1f}",
+        h_desk=route_check.HEIGHT["desk"], h_mid=route_check.HEIGHT["mid"], h_phone=f"{route_check.HEIGHT['phone']:,}")
+    return head + "\n" + markdown_tables()
 
 
 if __name__ == "__main__":

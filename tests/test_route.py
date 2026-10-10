@@ -34,7 +34,12 @@ STATS = os.path.join(ROOT, "assets", "stats.json")
 CFG = os.path.join(ROOT, "chart.toml")
 LIVE = os.environ.get("HERO_LIVE_STATS",
                       "/tmp/claude-0/-home-user-BenjaminSRussell/707a62e9-865e-57a2-81be-b65fd4820b14/scratchpad/v92/live-stats.json")
-EDITIONS = ("day", "night", "phone-day", "phone-night")
+EDITIONS = ("day", "night", "mid-day", "mid-night", "phone-day", "phone-night")
+
+
+def scale_of(e: str) -> str:
+    """Review round 12: "phone-day" -> phone, "mid-night" -> mid, "day" -> desk."""
+    return "phone" if "phone" in e else ("mid" if e.startswith("mid") else "desk")
 SHAPES = re.compile(r"<(rect|circle|path|line|polygon)\b([^>]*)/?>")
 
 
@@ -122,7 +127,8 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X1", "X2", "M1"])
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X1", "X2", "X3",
+                      "M1"])
         # r7: G1 in F1; r8: L2, L3; r9: L4 (the robots clause, its own item), X2 (what the file cannot say)
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
@@ -146,11 +152,11 @@ class Anchors(unittest.TestCase):
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
         # review round 9: the clearing mark with its number (computed, quiet_secs; probe quiet_slow_page)
-        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` lines stop for 60 s")
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
         self.assertEqual(drawn["C1"]["text"],
-                         "press Ctrl-C once; a second press before `Saved to:` quits without writing the file")
+                         "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file")
         # review round 6: the scope in a visitor's words, not the code's ("above or below")
         # review round 8: F1 says the per-host cap; 0.1.3's governor stops at 32 idle permits and never slows a site
         self.assertEqual(drawn["F1"]["text"], "fetches up to 20 pages at a time from each host; queues their "
@@ -267,7 +273,7 @@ class Quiet(unittest.TestCase):
         # review round 9: the clearing mark with its number, on both quiet probes
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True,
                                quiet_slow_page=True)["text"],
-                         "{release} never exits by itself; done once `Received work item` lines stop for 60 s")
+                         "{release} never exits by itself; done when `Received work item` lines stop for 60 s")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
                          "{release} never exits by itself, even after the last page", "no slow-page probe: no number")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False,
@@ -577,9 +583,11 @@ class RoundThree(unittest.TestCase):
     def test_x1_retires_when_the_release_splits(self):
         spec = {"repo": "x", "entry": [e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "X1"]}
         head = tree({"src/sitemap_writer.rs": "pub const DEFAULT_MAX_URLS_PER_SITEMAP: usize = 50_000;"})
-        one = tree({"src/main.rs": "fn run_export_sitemap_command(output: String) { SitemapWriter::new(&output); }",
+        one = tree({"src/main.rs": "fn run_export_sitemap_command(output: String) { SitemapWriter::new(&output); "
+                                   "if node.status_code == Some(200) {} }",
                     "src/sitemap_writer.rs": "pub struct SitemapWriter {}"})
-        e = R.drawn(R.verify_route(spec, head, one, "abc", "0.1.3"))[0]
+        rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "sitemap_keeps_noindex", "ok": True, "gate": False}]}
+        e = R.drawn(R.verify_route(spec, head, one, "abc", "0.1.3"), rc)[0]
         self.assertIn("allows 50,000 URLs per file", e["text"])
         split = tree({"src/main.rs": "SitemapIndexWriter", "src/sitemap_writer.rs": "pub struct SitemapIndexWriter {}"})
         r = R.verify_route(spec, head, split, "abc", "0.1.4")
@@ -743,8 +751,8 @@ class RouteSheet(unittest.TestCase):
     def test_heights(self):
         for e in EDITIONS:
             ent = self.freport["sheets"][f"hero-{e}"]
-            self.assertLessEqual(ent["h"], route_check.HEIGHT["phone" if "phone" in e else "desk"], e)
-            self.assertEqual(ent["h"], int(round(ent["route"]["last_baseline"] + sheet.L["phone" if "phone" in e else "desk"]["foot"])))
+            self.assertLessEqual(ent["h"], route_check.HEIGHT[scale_of(e)], e)
+            self.assertEqual(ent["h"], int(round(ent["route"]["last_baseline"] + sheet.L[scale_of(e)]["foot"])))
 
     def test_unverified_entry_is_not_drawn(self):
         unv = [e["id"] for e in R.unverified(self.stats["routes"]["rustmapper"], self.stats["runcheck"]["rustmapper"])]
@@ -893,8 +901,7 @@ class RouteSheet(unittest.TestCase):
     def test_wrap_keeps_lines_long_and_notes_in_the_label_column(self):   # review round 3
         for e in EDITIONS:
             ent = self.report["sheets"][f"hero-{e}"]
-            phone = "phone" in e
-            G = sheet.L["phone" if phone else "desk"]
+            G = sheet.L[scale_of(e)]
             for gid in ("S1", "F1", "C1", "H1"):
                 runs = [t for t in ent["text"] if t["key"] == f"routes:{gid}" and t["x0"] >= G["text_x"] - 1]
                 lines: dict[float, list] = {}
@@ -929,7 +936,7 @@ class RouteSheet(unittest.TestCase):
         for e in EDITIONS:
             ent = self.report["sheets"][f"hero-{e}"]
             self.assertEqual(route_check.left_edge(ent, e), [], e)
-            G = sheet.L["phone" if "phone" in e else "desk"]
+            G = sheet.L[scale_of(e)]
             xs = {st["x"] for st in ent["route"]["steps"]}
             self.assertEqual(xs, {G["text_x"]}, e)
             files = [t for t in ent["text"] if t["key"].startswith("routes:") and t["x1"] <= G["track_x"]]
@@ -1031,7 +1038,7 @@ class RouteSheet(unittest.TestCase):
             mono = [t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:C1"]
             # review round 8: C1 names the line that says it is done, `Saved to:` (its space at the label's word space);
             # the file is named once, by the end row
-            self.assertEqual(mono, ["Saved", "to:"], e)
+            self.assertEqual(mono, ["Saved", "to"], e)
             self.assertEqual([t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:R13"][:1],
                              ["data/sitemap.jsonl"], e)
             ho = [t["s"] for t in texts if t["key"].startswith("handoffs:")]

@@ -48,6 +48,30 @@ def visible(text: str) -> str:
     return re.sub(r"\]\([^)]*\)", "]", t)
 
 
+# Review round 12 (the owner): a rustmapper subcommand the page names next to "rustmapper" must not be one the run
+# check saw fail. The go_go_go line said it had rustmapper's "crawl, resume and export-sitemap commands", and 0.1.3's
+# `resume` after a kill quits on the stale redb lock ("Database already open. Cannot acquire lock.", probe
+# resume_after_kill). When a release passes the probe the word may come back.
+SUBCOMMAND_PROBES = {"resume": "resume_after_kill", "export-sitemap": "export", "crawl": "crawl_ctrl_c"}
+
+
+def failed_subcommands(text: str, stats: dict, project: str = "rustmapper") -> list[str]:
+    """README-SUBCOMMAND: each sentence of the visible prose (code blocks out) that names `project` and a subcommand
+    whose run-check probe recorded `ok: false`."""
+    steps = {s.get("id"): s for s in ((stats.get("runcheck") or {}).get(project) or {}).get("steps") or []
+             if isinstance(s, dict)}
+    prose = re.sub(r"```.*?```", " ", visible(text), flags=re.S)
+    out = []
+    for sentence in re.split(r"(?<=[.!?])\s+|\n", prose):
+        if project not in sentence:
+            continue
+        for cmd, probe in SUBCOMMAND_PROBES.items():
+            st = steps.get(probe)
+            if st is not None and not st.get("ok") and re.search(rf"(?<![\w-]){re.escape(cmd)}(?![\w-])", sentence):
+                out.append(f"{cmd!r} next to {project} (probe {probe} failed): “{sentence.strip()[:120]}”")
+    return out
+
+
 def page_sheets(text: str) -> list[str]:
     found = re.findall(r"<!--\s*picture:([\w-]+):(?:start|end)\b", text)
     return list(REQUIRED) + [s for s in dict.fromkeys(found) if s not in REQUIRED]
@@ -85,7 +109,7 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 _FENCE = re.compile(r"^```[^\n]*\n(.*?)^```\s*$", re.S | re.M)
 
 
-def cautions(text: str, max_items: int = 7, max_words: int = 25) -> list[str]:
+def cautions(text: str, max_items: int = 8, max_words: int = 25) -> list[str]:
     """README-CAUTIONS (review round 9): in each install block, outside its code (review round 11: before it), at
     most one prose paragraph (the wheel note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
     colon right before the list is its lead-in, not prose."""
@@ -225,6 +249,8 @@ def check(ctx) -> list[Finding]:
         lim = (7, 25)
     for msg in cautions(text, *lim) + cautions_scope(text, ctx.stats or {}):
         out.append(fail("README-CAUTIONS", msg, "README.md"))
+    for msg in failed_subcommands(text, ctx.stats or {}):
+        out.append(fail("README-SUBCOMMAND", msg, "README.md"))
     for msg in cd_agrees(text):
         out.append(fail("README-CD", msg, "README.md"))
     for msg in not_released(text):

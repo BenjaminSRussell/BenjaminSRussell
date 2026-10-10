@@ -125,7 +125,7 @@ class ReleaseLead(unittest.TestCase):
         text = read(README)
         _, stats = load()
         self.assertTrue(readme_check.cautions_scope(text.replace("Before you run 0.1.3:", "Before you run it:"), stats))
-        self.assertTrue(readme_check.cautions_scope(text.replace("- It writes one", "- 0.1.3 writes one"), stats))
+        self.assertTrue(readme_check.cautions_scope(text.replace("- Its `sitemap.xml`", "- 0.1.3's `sitemap.xml`"), stats))
 
 
 class StopLines(unittest.TestCase):
@@ -191,7 +191,7 @@ class Clock(unittest.TestCase):
     def test_words(self):
         cfg, stats = load()
         self.assertEqual(entry(cfg, "H1")["text"],
-                         "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s")
+                         "{release} never exits by itself; done when `Received work item` lines stop for {quiet} s")
         drawn = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
         self.assertEqual(drawn["H1"]["quiet"], 60)     # review round 11: 30 (permit) + 20 + 4 + 1 -> 60
 
@@ -236,10 +236,10 @@ class ScopeLever(unittest.TestCase):
 
     def test_committed(self):
         items = install(read(README)).split("Before you run 0.1.3:", 1)[1].split("```", 1)[0].strip().splitlines()
-        self.assertEqual(len(items), 7)
+        self.assertEqual(len(items), 8)
         self.assertEqual(items[3], "- " + self.WORDS)
         self.assertLessEqual(len(self.WORDS.split()), rr.LIST_MAX_WORDS)
-        self.assertEqual(rr.LIST_MAX_ITEMS, 7)
+        self.assertEqual(rr.LIST_MAX_ITEMS, 8)
 
     def test_anchors(self):
         e = self.resolve(self.files())

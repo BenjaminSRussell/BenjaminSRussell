@@ -21,18 +21,21 @@ class EditionTable(unittest.TestCase):
     def test_six_plus_two(self):
         self.assertEqual(E.EDITION_NAMES, ("day", "night", "still-day", "still-night", "phone-day", "phone-night"))
         self.assertEqual(E.HERO_EXTRA, ("phone-still-day", "phone-still-night"))
-        self.assertEqual(set(E.EDITIONS), set(E.EDITION_NAMES) | set(E.HERO_EXTRA))
+        # review round 12: the hero's two mid editions
+        self.assertEqual(set(E.EDITIONS), set(E.EDITION_NAMES) | set(E.HERO_EXTRA) | {"mid-day", "mid-night"})
 
     def test_flags(self):
         for name, ed in E.EDITIONS.items():
             self.assertEqual(ed.name, name)
             self.assertEqual(ed.motion, "still" not in name, name)
-            self.assertEqual(ed.scale, "phone" if name.startswith("phone") else "desk", name)
-            self.assertEqual(ed.width, 720 if ed.phone else 1280, name)
+            self.assertEqual(ed.scale, "phone" if name.startswith("phone") else
+                             ("mid" if name.startswith("mid") else "desk"), name)
+            self.assertEqual(ed.width, 720 if ed.phone else (820 if ed.mid else 1280), name)
             self.assertIs(ed.theme, tokens.THEMES["night" if name.endswith("night") else "day"], name)
         self.assertEqual(E.EDITIONS["day"].form, "desk")
         self.assertEqual(E.EDITIONS["still-day"].form, "still")
         self.assertEqual(E.EDITIONS["phone-night"].form, "phone")
+        self.assertEqual(E.EDITIONS["mid-night"].form, "mid")
         self.assertFalse(E.EDITIONS["day"].as_still().motion)
 
     def test_file_names(self):

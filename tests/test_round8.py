@@ -146,7 +146,7 @@ class AlsoLines(unittest.TestCase):
         self.assertIn("plus optional headless-Chrome rendering and SQLite storage with full-text search", line)
         cfg, stats = load()
         rows = {f["text"]: f for f in stats["figures"] if f["repo"] == "go_go_go"}
-        self.assertEqual(set(rows), {"resume and export-sitemap commands", "optional headless-Chrome rendering",
+        self.assertEqual(set(rows), {"crawl and export-sitemap commands", "optional headless-Chrome rendering",
                                      "SQLite storage with full-text search"})
         self.assertTrue(all(r["holds"] for r in rows.values()), rows)
         self.assertNotIn("tls-fingerprint", read(CFG))
@@ -162,7 +162,7 @@ class AlsoLines(unittest.TestCase):
 
 
 class RuleDays(unittest.TestCase):
-    """r08-1 #4: "Measure from the start.", the days computed from git."""
+    """r08-1 #4: "Measure in week one.", the days computed from git."""
 
     RULES = [{"n": 3, "key": "prometheus", "found": True, "date": "2025-10-01", "repo_first": "2025-09-25"},
              {"n": 3, "key": "grafana", "found": True, "date": "2025-10-06", "repo_first": "2025-09-25"}]
@@ -193,7 +193,7 @@ class RuleDays(unittest.TestCase):
     def test_committed(self):
         cfg, stats = load()
         block = rr.notices_block(cfg, stats).replace("\u00a0", " ")
-        self.assertIn("3. **Measure from the start.** Metrics were exported 6 days after the first commit, and a "
+        self.assertIn("3. **Measure in week one.** Metrics were exported 6 days after the first commit, and a "
                       "dashboard was up 5 days after that.", block)
         self.assertNotIn("before speed", block)
         bodies = {n["n"]: n for n in cfg["notices"]}
@@ -294,7 +294,7 @@ class SecondCtrlC(unittest.TestCase):
 
     def test_caution(self):
         self.assertEqual(self.resolve(SHUTDOWN.format(a=EXIT, b=EXPORT)),
-                         "press Ctrl-C once; a second press before `Saved to:` quits without writing the file")
+                         "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file")
 
     def test_fallbacks(self):
         old = "press Ctrl-C once to write `data/sitemap.jsonl`"
@@ -358,7 +358,7 @@ class WhatItSees(unittest.TestCase):
         text = read(README)
         # review round 9: items of the cautions list
         self.assertRegex(text, r"\n- It reads links from the HTML a server sends, and no JavaScript runs\. go_go_go can "
-                               r"render pages in headless Chrome\.\n- It writes one `sitemap\.xml`")
+                               r"render pages in headless Chrome\.\n- Its `sitemap\.xml` is every page")
 
 
 class Compose(unittest.TestCase):

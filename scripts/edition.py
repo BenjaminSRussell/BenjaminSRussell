@@ -33,6 +33,7 @@ STATS_SHA_PLACEHOLDER = "@STATS_SHA@"
 
 DESK_W = 1280
 PHONE_W = 720
+MID_W = 820       # review round 12: the hero's mid edition (852 to 1199 px viewports), stacked like the phone
 
 
 @dataclass(frozen=True)
@@ -40,8 +41,8 @@ class Edition:
     name: str                         # "day" | "night" | "still-day" | ... | "phone-still-night"
     theme: Theme
     motion: bool                      # False → every helper returns its end state
-    scale: Literal["desk", "phone"]
-    width: int                        # 1280 desk, 720 phone
+    scale: Literal["desk", "phone", "mid"]
+    width: int                        # 1280 desk, 720 phone, 820 mid
 
     @property
     def dark(self) -> bool:
@@ -56,10 +57,18 @@ class Edition:
         return self.scale == "phone"
 
     @property
+    def mid(self) -> bool:
+        """Review round 12: the hero's mid edition, for a README column of 482 to 765 px (an iPad held sideways, a
+        laptop window under 1,200 px): the phone's stacked composition at the desk's type sizes."""
+        return self.scale == "mid"
+
+    @property
     def form(self) -> str:
-        """The build-report `form` field: desk | phone | still."""
+        """The build-report `form` field: desk | phone | mid | still."""
         if self.phone:
             return "phone"
+        if self.mid:
+            return "mid"
         return "still" if self.still else "desk"
 
     def as_still(self) -> "Edition":
@@ -68,7 +77,7 @@ class Edition:
 
 def _ed(name: str, theme: str, motion: bool, scale: str) -> Edition:
     return Edition(name=name, theme=tokens.THEMES[theme], motion=motion, scale=scale,
-                   width=PHONE_W if scale == "phone" else DESK_W)
+                   width={"phone": PHONE_W, "mid": MID_W}.get(scale, DESK_W))
 
 
 # The six every sheet ships (MASTERPLAN decision 9) ...
@@ -85,6 +94,9 @@ EDITIONS: dict[str, Edition] = {
     "phone-night": _ed("phone-night", "night", True, "phone"),
     "phone-still-day": _ed("phone-still-day", "day", False, "phone"),
     "phone-still-night": _ed("phone-still-night", "night", False, "phone"),
+    # review round 12: the hero's mid editions (nothing on the hero moves, so no stills)
+    "mid-day": _ed("mid-day", "day", True, "mid"),
+    "mid-night": _ed("mid-night", "night", True, "mid"),
 }
 
 

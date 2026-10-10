@@ -4,8 +4,10 @@
 <!-- picture:hero:start -->
 <a href="https://github.com/BenjaminSRussell/Rust-sitemap">
 <picture>
-<source media="(max-width: 1199px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
-<source media="(max-width: 1199px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
+<source media="(min-width: 852px) and (max-width: 1199px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-mid-night.svg">
+<source media="(min-width: 852px) and (max-width: 1199px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-mid-day.svg">
+<source media="(max-width: 851px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
+<source media="(max-width: 851px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
 <img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
@@ -45,8 +47,9 @@ Before you run 0.1.3:
 - By default it asks crt.sh and Common Crawl about your domain.<br>`--seeding-strategy none` asks no one.
 - From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
 - It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
-- It writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.
-- Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried.
+- Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.
+- Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried.
+- After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.
 
 ```sh
 pip install rustmapper
@@ -71,7 +74,7 @@ rust_sitemap export-sitemap
 <!-- facts:Scrapy:end -->
 
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
+- Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.
 
 Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site.
@@ -85,18 +88,18 @@ docker-compose run --rm \
   -a start_urls=<url>
 ```
 
-Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file name.
+Grafana opens on `localhost:3000`. What it writes lands in Delta tables under `data/delta/`; [DATA_USAGE.md](https://github.com/BenjaminSRussell/Scrapy/blob/main/Scraping_project/docs/guides/DATA_USAGE.md) lists them and shows how to read or export them.
 
 <a name="also"></a>
 **Also**
 
 - [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 21 ways to sort a pile of URLs from their crawl records (domain, crawl depth, subdomain, …).
-- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands, plus optional headless-Chrome rendering and SQLite storage with full-text search.
+- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl and export-sitemap commands, plus optional headless-Chrome rendering and SQLite storage with full-text search.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. Each chunk is parsed for token counts and passed straight on, and the call is logged only after the client has its last byte.
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — `aicd scan` scores each file of a repository for signs of AI authorship, from its comments, naming, structure and git history, and says why it flagged it.
 
 <details>
-<summary><!-- n:more_count -->15<!-- /n --> more repositories: Swift widgets, a C game engine, games, tooling</summary>
+<summary><!-- n:more_count -->15<!-- /n --> more repositories: scrapers and data tools, Swift apps, games, a C game engine</summary>
 <br>
 
 - [**3d-swift-globe-widget**](https://github.com/BenjaminSRussell/3d-swift-globe-widget) — Titan: a native macOS 3D globe in MapKit and SwiftUI, permanent night mode, packets arcing from NYC to LA.
@@ -119,7 +122,7 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 <!-- notices:start -->
 1. **Boring under load.** When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
 2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*
-3. **Measure from the start.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
+3. **Measure in week one.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).

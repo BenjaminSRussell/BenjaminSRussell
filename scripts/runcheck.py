@@ -28,6 +28,11 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
                         only it links to is never asked for: a refusal looks like any other missing page. Review
                         round 11: also a 500, a 200 that is JSON and a page held past --timeout STATUS_TIMEOUT, each
                         asked for once, with status_code and crawled_at null
+    redirect_kept       (review round 12) a URL that answers 301 is written under the address asked for, with the
+                        target's status and title, and the links on a page reached by a redirect are resolved against
+                        the old address (/dir -> /dir/ links child.html, fetched as /child.html); in the same run,
+                        sitemap_keeps_noindex: export-sitemap lists the redirecting URL and a noindex, canonicalized
+                        page, in one file
     quiet_slow_page     (review round 9) the quiet mark has a number: on a site whose second page is held SLOW_HOLD
                         s, two `Received work item` lines are at least SLOW_HOLD s apart (silence shorter than the
                         bound is not the end), and after QUIET_BOUND s with no such line, one SIGINT writes every page
@@ -37,6 +42,7 @@ Only the robots probe, against a binary already installed (it needs no install):
     python3 scripts/runcheck.py --probe robots_read --exe <venv>/bin/rust_sitemap --version 0.1.3 --out steps.json
     python3 scripts/runcheck.py --probe workers_cap,second_ctrl_c --exe … --version 0.1.3 --out steps.json
     python3 scripts/runcheck.py --probe non200_status,quiet_slow_page --exe … --version 0.1.3 --out steps.json
+    python3 scripts/runcheck.py --probe redirect_kept --exe … --version 0.1.3 --out steps.json
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -446,8 +452,93 @@ def probe_slow(steps: list, exe: str, name: str, work: Path) -> None:
     steps[-1]["quiet_secs"] = QUIET_BOUND
 
 
+REDIRECT_SITE = ROOT / "tests" / "fixtures" / "redirect-site"   # /old answers 301 to /new.html; /dir 301 to /dir/
+REDIRECT_SECONDS = 10    # redirect_kept: one SIGINT after this long (six pages, no held answer)
+
+
+class _Redirect(_Logged):
+    """The redirect fixture (review round 12): /old answers 301 to /new.html; /dir is a folder, so http.server
+    answers 301 to /dir/ (Apache's DirectorySlash does the same); /dir/ links child.html; canon.html is noindex with
+    a canonical link to /new.html. Every request path is kept, in order."""
+
+    def send_head(self):  # noqa: D401 - http.server's hook
+        if self.path.split("?")[0] == "/old":
+            self.send_response(301)
+            self.send_header("Location", "/new.html")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        return super().send_head()
+
+
+def serve_redirect(site: Path) -> tuple[socketserver.TCPServer, int, list]:
+    paths: list = []
+    cls = type("_RedirectSite", (_Redirect,), {"paths": paths})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
+    httpd.daemon_threads = True
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, httpd.server_address[1], paths
+
+
+def sitemap_locs(path: Path) -> list[str]:
+    """The <loc> values of a sitemap.xml, as page names ("index.html" for the root), in order."""
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    out = []
+    for loc in re.findall(r"<loc>\s*([^<]+?)\s*</loc>", text):
+        tail = loc.split("://", 1)[-1].split("/", 1)
+        out.append((tail[1] if len(tail) > 1 else "") or "index.html")
+    return out
+
+
+def redirect_verdict(paths: list[tuple[float, str]], recs: dict[str, dict]) -> tuple[bool, str]:
+    """redirect_kept: a URL that redirects is written under the address it asked for, with the target's status and
+    title (/old: status_code 200, title "New"), and links on a page reached by a redirect are read against the old
+    address (/dir -> /dir/ links child.html: /child.html is asked for, /dir/child.html never is)."""
+    got = [p for _, p in paths]
+    old = recs.get("old") or {}
+    kept = old.get("status_code") == 200 and old.get("title") == "New"
+    wrong, right = got.count("/child.html"), got.count("/dir/child.html")
+    ok = kept and wrong >= 1 and right == 0
+    return ok, (f"{len(got)} requests; /old (301 to /new.html) written as url /old, status_code "
+                f"{json.dumps(old.get('status_code'))}, title {json.dumps(old.get('title'))}; /dir (301 to /dir/) "
+                f"links child.html: /child.html asked for {wrong} time(s), /dir/child.html {right}")
+
+
+def keeps_verdict(locs: list[str]) -> tuple[bool, str]:
+    """sitemap_keeps_noindex: export-sitemap lists the redirecting /old and canon.html (noindex, canonical to
+    /new.html) beside the pages they point to, all in one file."""
+    ok = "old" in locs and "canon.html" in locs and "new.html" in locs
+    return ok, f"{len(locs)} <loc> in one file: " + ", ".join(locs)
+
+
+def probe_redirect(steps: list, exe: str, name: str, work: Path) -> None:
+    """redirect_kept and sitemap_keeps_noindex (review round 12): crawl the redirect fixture, one SIGINT after
+    REDIRECT_SECONDS, read the server's log and the file, then export-sitemap."""
+    httpd, port, paths = serve_redirect(REDIRECT_SITE)
+    try:
+        d = work / "d8"
+        proc, t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
+                                "--timeout", str(STATUS_TIMEOUT), "--data-dir", str(d)], work, "redirect.log")
+        exited, _secs = _stop(proc, signal.SIGINT, REDIRECT_SECONDS)
+        took = time.monotonic() - t0
+    finally:
+        httpd.shutdown()
+    ok, detail = redirect_verdict(list(paths), jsonl_records(d / "sitemap.jsonl"))
+    _step(steps, "redirect_kept", f"{name} crawl: after a redirect it keeps the old address, with the target's status "
+          "and title, and reads the page's links against the old address", ok, f"{detail}; {exited}", took, gate=False)
+    xml = work / "r.xml"
+    e, secs = _timed([exe, "export-sitemap", "--data-dir", str(d), "--output", str(xml)], 120, cwd=work)
+    ok, detail = keeps_verdict(sitemap_locs(xml) if e.returncode == 0 else [])
+    _step(steps, "sitemap_keeps_noindex", f"{name} export-sitemap: one file lists every status_code 200 row, a "
+          "redirecting URL and a noindex, canonicalized page included", ok, detail, secs, gate=False)
+
+
 PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second,
-          "non200_status": probe_status, "quiet_slow_page": probe_slow}
+          "non200_status": probe_status, "quiet_slow_page": probe_slow, "redirect_kept": probe_redirect}
 
 
 def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
@@ -704,6 +795,9 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
             # review round 9: what the file says about a page that refused, and how long the quiet mark is
             probe_status(steps, exe, name, work)
             probe_slow(steps, exe, name, work)
+
+            # review round 12: what it does with a redirect, and what export-sitemap keeps
+            probe_redirect(steps, exe, name, work)
 
             # probes: a kill, then export-sitemap and resume on what it left
             d3 = work / "d3"

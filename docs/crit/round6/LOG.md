@@ -762,3 +762,77 @@ the two changed probes were re-run on the installed 0.1.3 binary (`scratchpad/r6
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
   it passes (0 fail, 0 warn). README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER, README-STALE and AUDIT-STALE
   are clean.
+
+## Round 12
+
+Reviews: `review-r12-1.md` (the owner) **9 / 10**, `review-r12-2.md` (the copy editor) **8 / 10**,
+`review-r12-3.md` (a developer choosing between rustmapper and Scrapy) **8 / 10**. None meets the goal yet. All three
+say the image is the right picture and should not change. What is left: on an iPad held sideways or a laptop window
+under 1,200 px the picture was a two-screen poster (review 1); the one page that explains the drawing still talked in
+the theme's words and described marks that are not drawn (review 2); and the page said nothing about redirects, where
+0.1.3 gets its list wrong and one caution was false (review 3). One conflict: review 3 kept the spider-name sentence
+that review 1 cut. The owner's review wins; review 3's arrival sentence is added without it.
+
+Renders: `scratchpad/r6/build/round-12/` (the standard set, plus `sheet-mid-day-746.png` and
+`sheet-mid-night-746.png`, the mid sheets as an iPad Air shows them, and `page-1180-1.png` and `page-900-1.png`, the
+first screen of the README at a 1,180 px and a 900 px viewport: `scratchpad/r6/tools/preview_mid.mjs`, the column
+from `checks/column.py`). `stats.json` was re-read from the local trees with `scratchpad/r6/reroute12.py`, and the new
+probe was run on the installed 0.1.3 binary (`scratchpad/r6/rc12/steps.json`) and merged.
+
+### What was measured first
+
+- **The drawn height (review 1).** From `checks/column.py`'s table and the built sheets: the phone sheet (600 x
+  1,121) is drawn 900 px tall at a 482 px column, so 851 is the last viewport it may serve; at 852 an 820-unit sheet's
+  19-unit text is 11.2 px (the widest that holds 11 px there is 832 units). The old serving fails HERO-COLUMN-PX's new
+  height rule at 852 to 1,199 (348 viewports, up to 1,429 px).
+- **Redirects (review 3).** `runcheck.py --probe redirect_kept` on the new fixture `tests/fixtures/redirect-site/`
+  (`/old` 301 to `/new.html`; `/dir` 301 to `/dir/`, which links `child.html`; `canon.html` noindex with a canonical
+  link): 8 requests; `/old` written as url `/old`, `status_code` 200, title "New"; `/child.html` asked for once,
+  `/dir/child.html` never. `export-sitemap` then wrote one file of 5 `<loc>`, `/old` and `canon.html` among them.
+  The sdist agrees: `effective_base = base_href.as_deref().unwrap_or(&job_url_clone)`, no `.url()` in
+  `bfs_crawler.rs` or `network.rs`, no redirect policy, and the export keeps `node.status_code == Some(200)` with no
+  canonical or noindex test. HEAD has the same base (`&job.url`) and skips canonicalized pages.
+- **Where Scrapy's output lands (review 3).** `docker-compose.yml` sets `DELTA_LAKE_PATH=/data/delta` and mounts
+  `./data:/data`; `docs/guides/DATA_USAGE.md` lists the tables. There are several tables per stage, not one, so the
+  sentence says "Delta tables under `data/delta/`".
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: a mid edition | `edition.py` editions `mid-day`, `mid-night` (scale `mid`, 820 wide); `tokens.py` `_MID` (the desk roles at desk sizes) and `FLOORS["mid"]`; `sheets/route.py` `SIZES["mid"]`, `EDITIONS`, `L["mid"]` (the phone's stacked order at the desk's spacing, name at 68), and a BREAKS row. The sheet is 820 x 707: 416 px tall at 852, 643 px at an iPad Air's 1,180, 660 px at 1,199 (was 1,394 and 1,429). `render_readme.py` serves `(min-width: 852px) and (max-width: 1199px)` with and without `prefers-color-scheme: dark` ahead of the phone sources, now `(max-width: 851px)`; `chart.toml` `mid_from_px = 852`. HERO-COLUMN-PX reads which sheet each viewport is served from the sources' own min and max widths, and also fails any viewport from 768 to 1,919 where that sheet is drawn over 900 px; `column.derive()` gives 851 and 832 from the table and the built sheets, and the tests hold `mid_from_px` and 820 to them. ROUTE-HEIGHT has a mid limit (964 units, 900 px at 1,199), and ROUTE-HEAD-GAP runs on the mid sheets. `publish_chart.py` refuses a set that lacks a file the README's `<picture>` names. Every sheet test (T-NOSIZE, T-SAME, T-PURPOSE, words, bounds, contrast) runs on the mid editions. |
+| r1-2: no "resume" | go_go_go line: "with the same crawl and export-sitemap commands"; the `[[figures]]` row checks `crawl.go` `Use: "crawl"` and `export.go`. New README-SUBCOMMAND: a sentence that names rustmapper and a subcommand whose run-check probe failed (`resume` and `resume_after_kill`) fails. |
+| r1-3: the spider-name sentence | Cut. |
+| r2-1: DESIGN.md | Regenerated from `tokens.py --md` and rewritten there: the maintainer note in an HTML comment, "# How the picture is drawn", a 118-word opening written from the drawn route (`tokens.idea`: the rows' own first clauses through `sheets/route.py` `plan`, so a reworded row rewrites it; the old generator put back the retired 500 ms governor), the run check in one sentence, Editions with the mid sheet and the serving numbers read from `chart.toml` and the checks, the Actions playbook with "data step" and "the edition drawn from them". "Honesty conventions" and "Motion" are gone. The tables list only what the hero draws with (paper, ink, ink2, muted, flare, accent; PEN, LINE, BRUSH; DANGER; display, label, project, machine at desk, mid and phone sizes), each with its use. New fast check DESIGN-FRESH (`checks/design.py`): DESIGN.md must equal `tokens.py --md`, and its prose outside code and comments may hold no T-WORDS word and none of ship's, islands, lateral, soundings, unsurveyed, pecked, datum, survey. The old file fails it on ten words. The weekly workflow regenerates DESIGN.md after the README and commits it. |
+| r2-2: C1's colon | "press Ctrl-C once; a second press before the `Saved to` line quits without writing the file". The anchors still test `println!("Saved to: `. Desk one line; phone still two (1,121 units). |
+| r2-3: "when", not "once" | H1: "… done when `Received work item` lines stop for 60 s". Test: "once" is C1's alone among the drawn rows. STRINGS-TWICE clean. |
+| r2-4: Scrapy bullet 2 | "Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; …". `[[figures]]` row "first five sentences" on `constants.py` `"extractive_max_sentences": 5` and the two `stage3_worker.py` lines that use it. |
+| r2-5: the fold label | "15 more repositories: scrapers and data tools, Swift apps, games, a C game engine". Test: the fold's 15 links match a group table, and the label leads with the largest group (6). |
+| r2-6: rule 3's title | "Measure in week one."; body unchanged. |
+| r3-1: redirects | X1: "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages." (release scope; anchors `node.status_code == Some(200)`, no `canonical`, no `noindex` in `run_export_sitemap_command`; probe `sitemap_keeps_noindex`). X2: "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts and non-HTML 200s are left blank, `crawled_at` too, never retried." (adds probe `redirect_kept`). New X3 (both trees): "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`." (anchors the `effective_base` line in each tree, no `.url()` in `bfs_crawler.rs` and `network.rs`, no `redirect::Policy`; retires when the probe fails). `runcheck.py` probe `redirect_kept` (two steps), fixture, verdict functions and tests; `LIST_MAX_ITEMS` 8; AUDIT §2 and §7 rows. |
+| r3-2: Scrapy's arrival | "Grafana opens on `localhost:3000`. What it writes lands in Delta tables under `data/delta/`; [DATA_USAGE.md](…/Scraping_project/docs/guides/DATA_USAGE.md) lists them and shows how to read or export them." `[[figures]]` row on `DELTA_LAKE_PATH=/data/delta`, `./data:/data`, `delta.py` and the guide's `python cli.py export`. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r3-2: keep "Spiders run by name (`scout`), not by file name" | Conflicts with r1-3; the owner's review wins. The only spider command on the page is already right, and Scrapy's README warns where you would go wrong. |
+| r3-2: "one Delta table per stage" | Not true: DATA_USAGE.md lists several tables per stage (stage 1 alone writes five). The sentence says "Delta tables under `data/delta/`". |
+| r1-1: the build derives 852 and 820 | `checks/column.py` derives them from the column table and the built sheets, and the tests fail if `chart.toml` `mid_from_px` or the mid width disagree; the README is still rendered from `chart.toml`, so its `<picture>` does not depend on a build report being present. The name is set at 68, not the desk's 88: at a 765 px column 88 units would be 82 px, larger than review 1 wanted, and 68 is on the desk scale. |
+| r3-1: X2 without "never retried" | Kept, by review 3's own fallback: "Errors, timeouts and non-HTML 200s" in place of "An error, a timeout or a non-HTML 200" keeps it within 25 words (24). |
+| r3-1: X1 "50,000 per file", "canonicalised" | "50,000 URLs per file" (the unit stays), and the page's American spelling. |
+| r2-1: `hair` in the token table | The hero draws no hairline; the table lists what it draws with. |
+| Owner, outside this repository | Carried from round 11 (0.1.4 with P1, the LICENSE and `[project.scripts]`; statuses and back-off on 429/503; Scrapy's UConn defaults into a profile; `start.py` accepting `docker compose`; registrable-domain seeding; `cargo audit` and `clippy -Dwarnings` blocking; the organizer's raw-`netloc` comparison; the GitHub bio; the iOS and Android apps). New: fix Scrapy's quick start, which says "Sample URLs loaded" after `python start.py` (review 1); make `resume` after a kill open the redb file despite the stale lock (review 1); record `response.url()` as the node's URL and resolve links against it, and leave 3xx and `noindex` out of `export-sitemap`, which retires X3 and half of X1 (review 3); open the profile once on an iPad held sideways (review 1). |
+
+### Measured state of this build
+
+- Desk sheet 1,280 x 571 (gate 620); mid 820 x 707 (gate 964); phone 600 x 1,121 (gate 1,246).
+- Page: desk 2,830 px at 1,280 (was 2,710); phone 5,213 CSS px at 390 (was 4,997: X3 and the two longer cautions,
+  the arrival sentence, less the spider sentence and the go_go_go word). At 1,180 the whole route, the file and the
+  hand-off are on the first 820 px screen.
+- `python3 -m unittest`: 445 tests, all pass (16 new in `tests/test_round12.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
+  it passes (0 fail, 0 warn); HERO-COLUMN-PX: every viewport 360 to 1,920 px gets 11 px text, and from 768 a picture
+  at most 900 px tall. DESIGN-FRESH, README-SUBCOMMAND, README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER,
+  README-STALE and AUDIT-STALE are clean.

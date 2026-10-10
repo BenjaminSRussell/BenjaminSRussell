@@ -286,7 +286,11 @@ class Columns(unittest.TestCase):
     def test_committed_readme_and_chart(self):
         cfg, _ = load()
         self.assertEqual(cfg["chart"]["breakpoint_px"], 1199)
-        self.assertEqual(column.phone_max(read(README)), 1199)
+        # review round 12: the phone sheet up to 851, the mid sheet from 852 to 1199
+        self.assertEqual(column.phone_max(read(README)), 851)
+        self.assertEqual(column.served(read(README), 852), "hero-mid-day")
+        self.assertEqual(column.served(read(README), 1199), "hero-mid-day")
+        self.assertEqual(column.served(read(README), 1200), "hero-day")
 
 
 class Wording(unittest.TestCase):
