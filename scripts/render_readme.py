@@ -7,7 +7,7 @@
 
 Block markers (MASTERPLAN decision 3): `<!-- name:start -->…<!-- name:end -->` with names
 `picture:<sheet>`, `position`, `contact`, `notices`, `survey`, `license` (v10), `facts:<repo>` (v11, D4),
-`install:<repo>` and `handoffs` (round 6); `figures`,
+`install:<repo>` and `handoffs` (round 6), `pick` and `about:<repo>` (round 6, review 3); `figures`,
 `instruments` and `log_lede` are still filled, empty, when a README carries them. A block the README
 does not carry is skipped: since v10 (round 4, D1) the page is the hero and written text, and a
 picture block is written only for a sheet whose markers are present. Inline figures:
@@ -136,11 +136,18 @@ HERO_ROUTE_SOURCES = [
 ]
 
 
-def picture(sheet: str, cfg: dict, alt: str) -> str:
+def hero_link(cfg: dict) -> str | None:
+    """Review round 3: a tap on the hero opens the project it draws, not the raw SVG."""
+    login = (cfg.get("chart") or {}).get("login")
+    repo = next((r.get("repo") for r in ((cfg.get("route") or {}).values()) if isinstance(r, dict) and r.get("repo")), None)
+    return f"https://github.com/{login}/{repo}" if login and repo else None
+
+
+def picture(sheet: str, cfg: dict, alt: str, link: str | None = None) -> str:
     base = cfg["chart"]["base_url"].rstrip("/") + "/"
     bp = cfg["chart"].get("breakpoint_px", 767)
     srcs = HERO_ROUTE_SOURCES if sheet == "hero" else SOURCES
-    lines = ["<picture>"]
+    lines = ([f'<a href="{link}">'] if link else []) + ["<picture>"]
     for media, ed in srcs:
         lines.append(f'<source media="{media.format(bp=bp)}" srcset="{base}{sheet}-{ed}.svg">')
     alt_attr = alt.replace("&", "&amp;").replace('"', "&quot;")
@@ -150,6 +157,8 @@ def picture(sheet: str, cfg: dict, alt: str) -> str:
     # without a style attribute, which GitHub strips.
     lines.append(f'<img src="{base}{sheet}-day.svg" width="100%" alt="{alt_attr}">')
     lines.append("</picture>")
+    if link:
+        lines.append("</a>")
     return "\n".join(lines)
 
 
@@ -242,10 +251,12 @@ def _instruments_block_retired(cfg: dict, fittings: list[dict] | None = None) ->
     return "<sub>" + " &nbsp;&nbsp; ".join(cols) + "</sub>"
 
 
-LICENSE_LINE = ("<sub>**License** Code MIT; images and text CC BY 4.0; fonts under their own licenses in "
-                "[`scripts/fonts/`](scripts/fonts/). To make your own, fork the repository, fill in `chart.toml` "
-                "and run the workflow; the images are regenerated from your repositories · how it's built → "
-                "[DESIGN.md](DESIGN.md)</sub>")
+# review round 3: whose license this is (not rustmapper's), and what the build does, without promising a fork a
+# picture of its own repositories (the PyPI project and the run check are rustmapper's)
+LICENSE_LINE = ("<sub>**This profile** Code MIT; images and text CC BY 4.0; fonts under their own licenses in "
+                "[`scripts/fonts/`](scripts/fonts/). The image is rustmapper's route in `chart.toml` "
+                "(`[route.rustmapper]`, each line with the code it rests on); the build draws only the lines that "
+                "code and its run check prove · how it's built → [DESIGN.md](DESIGN.md)</sub>")
 
 
 # ------------------------------------------------------------------ D4: the facts line under a flagship
@@ -351,6 +362,9 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         wf = _count(r.get("workflows"))
         if wf:
             parts.append(_plural(wf, "CI workflow"))
+    lic = r.get("license")
+    if isinstance(lic, str) and lic and lic != "NOASSERTION":     # review round 3: only a license GitHub detects
+        parts.append(f"{lic} license")
     lines = r.get("lines")
     if isinstance(lines, dict) and isinstance(lines.get("by_language"), dict):
         lines = lines["by_language"]
@@ -442,8 +456,25 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         lines += ["", "# newer than the release:", "cargo install --git \\",
                   f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
-    note = _wheel_sentence(ed.get("wheels"), (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper"))
-    return "\n".join(lines) + (f"\n\n{note}" if note else "")
+    rc = (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper")
+    # the wheel note, then (review round 3) what the release does to a site and to a big one, as its own paragraph
+    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), " ".join(text_entries(route, rc, ed))) if x]
+    return "\n".join(lines) + "".join(f"\n\n{x}" for x in paras)
+
+
+def text_entries(route: dict | None, rc: dict | None, ed: dict | None) -> list[str]:
+    """Review round 3: the route's `text` entries (how hard it hits a site; the release's single sitemap file), each
+    printed only while its anchors hold, through the same engine as the image's rows; a retired one prints nothing,
+    an unverified one nothing (ROUTE-UNVERIFIED fails it)."""
+    try:
+        from data import route as route_mod
+    except ImportError:
+        return []
+    out = []
+    for e in route_mod.drawn(route, rc):
+        if e.get("kind") == "text" and str(e.get("text") or "").strip():
+            out.append(str(e["text"]).replace("{release}", str((ed or {}).get("version") or "the release")))
+    return out
 
 
 def install_repos(text: str) -> list[str]:
@@ -465,6 +496,46 @@ def handoffs_block(stats: dict, cfg: dict) -> str:
         out.append(tmpl.format_map(_Safe({"to": h.get("to") or "", "url": spec.get("url") or "", "reader": reader,
                                           "file": h.get("file") or ""})))
     return " ".join(out)
+
+
+def pick_block(stats: dict, cfg: dict) -> str:
+    """Review round 3: one sentence on which tool is for which job (chart.toml [copy] pick). Printed only while
+    rustmapper's route header holds at HEAD and in the release (it writes one line per page: SitemapNode) and every
+    [[figures]] row tagged `use = "pick"` holds at Scrapy's HEAD; otherwise nothing."""
+    text = str((cfg.get("copy") or {}).get("pick") or "").strip()
+    if not text:
+        return ""
+    route = (stats.get("routes") or {}).get("rustmapper") or {}
+    if not route.get("header_verified"):
+        return ""
+    rows = [r for r in stats.get("figures") or [] if r.get("use") == "pick"]
+    want = [f for f in cfg.get("figures") or [] if f.get("use") == "pick"]
+    if len(rows) != len(want) or not all(r.get("holds") for r in rows):
+        return ""
+    return text
+
+
+def about_block(stats: dict, name: str) -> str:
+    """Review round 3: what rustmapper is, and what `pip install` gives you. The 0.1.3 wheel holds only the
+    `rust_sitemap` binary (edition.modules is empty), so the Python API is called main's, and only while main has it
+    (gate `python_api`). With a module in the wheel, it is a CLI and a Python API."""
+    if name != "Rust-sitemap":
+        return ""
+    login = stats.get("login") or "BenjaminSRussell"
+    head = f"**[rustmapper](https://github.com/{login}/{name})** is a concurrent sitemap crawler written in Rust"
+    ed = stats.get("edition") or {}
+    mods = ed.get("modules")
+    route = next((r for r in (stats.get("routes") or {}).values() if isinstance(r, dict) and r.get("repo") == name), {})
+    api_on_main = ((route.get("gates") or {}).get("python_api") or {}).get("ok")
+    if isinstance(mods, list) and "rustmapper" in mods:
+        return head + ", with a command line and a Python API built with maturin."
+    if isinstance(mods, list) and api_on_main:
+        return head + ". `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released."
+    return head + "."
+
+
+def about_repos(text: str) -> list[str]:
+    return list(dict.fromkeys(re.findall(r"<!--\s*about:([\w.-]+):start\b", text)))
 
 
 # ------------------------------------------------------------------ D5: the provenance line
@@ -533,19 +604,20 @@ def _share_pct(v) -> str | None:
 
 
 NBSP = "\u00a0"
+WHOSE = "Ben's"          # review round 3: the page speaks of him in the third person throughout
 
 
 def agent_clause(stats: dict) -> str:
-    """F3.4: `3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules)
-    and are not counted as mine`. Each half prints only when its key is present: `coauthored_total.agent_share`
+    """F3.4: `3 % of Ben's commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules)
+    and are not counted as his`. Each half prints only when its key is present: `coauthored_total.agent_share`
     and `agent_authored` {total, names}."""
     cot = stats.get("coauthored_total") if isinstance(stats.get("coauthored_total"), dict) else {}
     pct = _share_pct(cot.get("agent_share"))
     first = ""
     if pct == "0":
-        first = "none of my commits carry an AI co-author trailer"
+        first = f"none of {WHOSE} commits carry an AI co-author trailer"
     elif pct:
-        first = f"{pct}{NBSP}% of my commits carry an AI co-author trailer"
+        first = f"{pct}{NBSP}% of {WHOSE} commits carry an AI co-author trailer"
     aa = stats.get("agent_authored") if isinstance(stats.get("agent_authored"), dict) else {}
     total = aa.get("total")
     second = ""
@@ -557,9 +629,9 @@ def agent_clause(stats: dict) -> str:
         who = f" ({', '.join(names)})" if names else ""
         n = fmt_n(total)
         if total == 1:
-            second = f"{'1 more was' if first else '1 commit was'} written by a coding agent{who} and is not counted as mine"
+            second = f"{'1 more was' if first else '1 commit was'} written by a coding agent{who} and is not counted as his"
         else:
-            second = f"{n} {'more' if first else 'commits'} were written by coding agents{who} and are not counted as mine"
+            second = f"{n} {'more' if first else 'commits'} were written by coding agents{who} and are not counted as his"
     return "; ".join(p for p in (first, second) if p)
 
 
@@ -595,15 +667,32 @@ def route_clause(stats: dict, figs: dict) -> str:
     if not route or not ed.get("version"):
         return ""
     v = ed["version"]
-    out = f"The drawing is {ed.get('project') or 'rustmapper'} {v} from PyPI: every file it names is in that release"
+    project = ed.get("project") or "rustmapper"
+    # review round 3: the drawing names three kinds of path; only rustmapper's own source files are in the release
+    out = f"The drawing is {project} {v} from PyPI: every {project} source file it names is in that release"
+    ho = drawn_handoff(stats, route.get("repo") or "Rust-sitemap")
+    if ho and ho.get("to_sha"):
+        out += f"; the reader it points to is {ho.get('to')}'s, at `{str(ho['to_sha'])[:7]}`"
+    out += "."
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
     if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
         steps = {s.get("id"): s for s in rc.get("steps") or []}
         words = [w + (crawl_words(steps.get(sid)) if w == "crawl" else "") for sid, w in RUN_WORDS if sid in steps]
         if words:
             listed = ", ".join(words[:-1]) + (" and " if len(words) > 1 else "") + words[-1]
-            out += f", and its {listed} lines ran on {fmt_date(rc['date'])} ({rc.get('runner')})"
-    return out + "."
+            out += f" Its {listed} lines were run on {fmt_date(rc['date'])} ({rc.get('runner')})."
+    return out
+
+
+def drawn_handoff(stats: dict, repo: str) -> dict | None:
+    """The hand-off the hero draws past its end (sheets/route.py `handoff`): from `repo`, writing the end's file,
+    state `runs`."""
+    route = (stats.get("routes") or {}).get("rustmapper") or {}
+    end = next((e for e in route.get("entries") or [] if e.get("kind") == "end"), {})
+    for h in stats.get("handoffs") or []:
+        if h.get("from") == repo and h.get("file") == end.get("file") and h.get("state") == "runs":
+            return h
+    return None
 
 
 def survey_block(stats: dict, figs: dict | None = None) -> str:
@@ -695,9 +784,15 @@ _PICTURE_RE = re.compile(r"^<picture>.*?</picture>", re.S | re.M)    # element a
 
 
 def migrate_pictures(text: str, sheets: list[str] = SHEETS) -> str:
-    """Wrap bare <picture> elements that name a sheet in `picture:<sheet>` markers (once)."""
+    """Wrap bare <picture> elements that name a sheet in `picture:<sheet>` markers (once). A <picture> already inside
+    a picture block (review round 3: inside the hero's link) is left alone."""
+    inside = [(m.start(), m.end()) for m in re.finditer(r"<!--\s*picture:[\w-]+:start\b.*?<!--\s*picture:[\w-]+:end\s*-->",
+                                                        text, re.S)]
+
     def sub(m: re.Match) -> str:
         block = m.group(0)
+        if any(a <= m.start() < b for a, b in inside):
+            return block
         for sheet in sheets:
             if re.search(rf"/{re.escape(sheet)}-(?:day|night|light|dark)[\w-]*\.svg", block):
                 before = text[max(0, m.start() - 80):m.start()]
@@ -727,7 +822,7 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
             warnings.append(f"alt for {sheet} is {len(alt.split())} words (> {ALT_MAX_WORDS})")
         if alt and alt.split()[0].lower() == "the":
             warnings.append(f"alt for {sheet} starts with 'The'")
-        text, _ = fill_block(text, f"picture:{sheet}", picture(sheet, cfg, alt))
+        text, _ = fill_block(text, f"picture:{sheet}", picture(sheet, cfg, alt, hero_link(cfg) if sheet == "hero" else None))
     text, _ = fill_block(text, "position", position_block(cfg))
     text, _ = fill_block(text, "contact", contact_block(cfg))
     text, _ = fill_block(text, "figures", figures_block(figs))
@@ -739,6 +834,9 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     for name in install_repos(text):
         text, _ = fill_block(text, f"install:{name}", install_block(stats, name, cfg))
     text, _ = fill_block(text, "handoffs", handoffs_block(stats, cfg))
+    text, _ = fill_block(text, "pick", pick_block(stats, cfg))
+    for name in about_repos(text):
+        text, _ = fill_block(text, f"about:{name}", about_block(stats, name))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
     more = more_count(text, stats)

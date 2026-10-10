@@ -21,7 +21,11 @@ Round 6, review 1: a string in a file shows the code exists, not that it works. 
 probes (scripts/runcheck.py step ids): `runs` must have passed, `fails` must have failed, in the run check of the
 released version. An entry may list alternatives under `instead`, each with its own text, anchors and probes; the
 first candidate (the entry itself, then each alternative in order) whose anchors and probes all hold is the one
-drawn. `{secs:<step>}` in a text is that step's measured wall time. The sheet draws verified entries only; check.py
+drawn. `{secs:<step>}` in a text is that step's measured wall time. An alternative whose text is "" retires the
+entry once it holds (round 6, review 3): the fault is gone, so nothing is drawn and nothing fails. Value anchors
+`{path, field}` (a struct literal's `field: 20`) and `{path, arg}` (a clap argument's `default_value`) print as
+`{field:NAME}` and `{arg:NAME}`, as `{const:NAME}` does; `equals` pins the value. Entries of kind `text` are README
+sentences, checked the same way and never drawn. The sheet draws verified entries only; check.py
 fails on any other.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
@@ -33,13 +37,15 @@ import fnmatch
 import re
 import subprocess
 
-KINDS = ("stop", "step", "note", "trap", "end", "export")
+KINDS = ("stop", "step", "note", "trap", "end", "export", "text")   # text: a README sentence, checked, never drawn
 STATES = ("runs", "fields differ", "no reader")
 
 
 # ---------------------------------------------------------------- anchors
 
 _CONST = r"\bconst\s+{name}\s*:\s*[\w:<>]+\s*=\s*([0-9][0-9_]*(?:\.[0-9]+)?)\s*;"
+_FIELD_INIT = r"\b{name}\s*:\s*([0-9][0-9_]*)\b"            # a struct literal's field: `max_inflight: 20,`
+_ARG_DEFAULT = r'default_value\s*=\s*"([0-9][0-9_]*)"(?:(?!#\[arg)[\s\S])*?\b{name}\s*:'   # clap: the arg's default
 
 
 def fn_body(src: str, name: str) -> str | None:
@@ -63,6 +69,21 @@ def const_value(src: str | None, name: str) -> str | None:
     return m.group(1).replace("_", "") if m else None
 
 
+def field_value(src: str | None, name: str) -> str | None:
+    """`max_inflight: 20,` -> "20": the first numeric literal given to that field; None when there is none."""
+    m = re.search(_FIELD_INIT.format(name=re.escape(name)), src or "")
+    return m.group(1).replace("_", "") if m else None
+
+
+def arg_value(src: str | None, name: str) -> str | None:
+    """`#[arg(short, long, default_value = "256", …)] workers: usize` -> "256": the first clap default of that arg."""
+    m = re.search(_ARG_DEFAULT.format(name=re.escape(name)), src or "")
+    return m.group(1).replace("_", "") if m else None
+
+
+VALUE_KINDS = {"const": const_value, "field": field_value, "arg": arg_value}
+
+
 def check_anchor(read, anchor: dict) -> str | None:
     """None when the anchor holds, else a short reason naming the file and the string.
 
@@ -84,8 +105,13 @@ def check_anchor(read, anchor: dict) -> str | None:
         return f"{where}: no {anchor['text']!r}"
     if "absent" in anchor and str(anchor["absent"]) in src:
         return f"{where}: contains {anchor['absent']!r}"
-    if anchor.get("const") and const_value(src, str(anchor["const"])) is None:
-        return f"{where}: no const {anchor['const']}"
+    for kind, fn in VALUE_KINDS.items():
+        if anchor.get(kind):
+            v = fn(src, str(anchor[kind]))
+            if v is None:
+                return f"{where}: no {kind} {anchor[kind]}"
+            if "equals" in anchor and v != str(anchor["equals"]):
+                return f"{where}: {kind} {anchor[kind]} is {v}, not {anchor['equals']}"
     return None
 
 
@@ -94,15 +120,24 @@ def check_anchors(read, anchors: list[dict] | None, where: str) -> list[str]:
 
 
 def anchor_consts(read, anchors: list[dict] | None) -> dict[str, str]:
-    """{name: value} for every `const` anchor that holds."""
+    """{"const:NAME" | "field:NAME" | "arg:NAME": value} for every value anchor that holds (`fn` narrows the read)."""
     out = {}
     for a in anchors or []:
-        if a.get("const") and check_anchor(read, a) is None:
-            out[str(a["const"])] = const_value(read(str(a["path"])), str(a["const"]))
+        for kind, fn in VALUE_KINDS.items():
+            if a.get(kind) and check_anchor(read, a) is None:
+                src = read(str(a["path"]))
+                if a.get("fn"):
+                    src = fn_body(src, str(a["fn"]))
+                out[f"{kind}:{a[kind]}"] = fn(src, str(a[kind]))
     return out
 
 
-_CONST_REF = re.compile(r"\{const:(\w+)\}")
+_CONST_REF = re.compile(r"\{((?:const|field|arg):\w+)\}")
+
+
+def _num(v: str) -> str:
+    """50000 -> "50,000" (a figure a reader reads); 256 and 50 stay as they are."""
+    return f"{int(v):,}" if v.isdigit() and len(v) > 4 else v
 
 
 def label_for(file: str | None, head: list[dict] | None, release: list[dict] | None, scope: str) -> str | None:
@@ -136,15 +171,18 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
     text = str(e["text"])
     consts_h = anchor_consts(rh, e.get("head")) if not no_head else {}
     consts_r = anchor_consts(rr, e.get("release")) if not no_rel else {}
-    for name in _CONST_REF.findall(text):
-        vr, vh = consts_r.get(name), consts_h.get(name)
+    for ref in _CONST_REF.findall(text):
+        vr, vh = consts_r.get(ref), consts_h.get(ref)
+        name = ref.split(":", 1)[1]
+        if vr is None and scope == "release" and vh is not None and e.get("from_head"):
+            vr = vh          # a figure the release lacks but main states (the sitemap format's 50,000 URLs)
         if vr is None:
-            mr = mr + [f"release: no const anchor for {{const:{name}}}"]
+            mr = mr + [f"release: no {ref.split(':')[0]} anchor for {{{ref}}}"]
             continue
         if scope != "release" and vh is not None and vh != vr:
             mh = mh + [f"head {name} = {vh}, release {name} = {vr}: the figure differs"]
             continue
-        text = text.replace(f"{{const:{name}}}", vr)
+        text = text.replace(f"{{{ref}}}", _num(vr))
     # an end's `file` is what the run writes (data/sitemap.jsonl), not a source file: it is not a label
     label = (e.get("file") or file) if kind in ("end", "export") else \
         label_for(e.get("file") or file, e.get("head"), e.get("release"), scope)
@@ -264,8 +302,11 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             reasons += [f"[{i}] {m}" if len(cands) > 1 else m for m in miss]
         base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
         if chosen is not None:
+            # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
+            # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
             out.append({**base, "text": chosen["text"], "file": chosen.get("file") if "file" in chosen else e.get("file"),
-                        "verified": True, "missing": []})
+                        "verified": True, "missing": [], "retired": not str(chosen["text"]).strip(),
+                        "fails": list(chosen.get("fails") or [])})
         else:
             out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})
     return out
@@ -283,7 +324,7 @@ def header_ok(route: dict | None, runcheck: dict | None = None) -> tuple[bool, l
 def drawn(route: dict | None, runcheck: dict | None = None) -> list[dict]:
     """The entries the image may draw: anchors hold (at HEAD and in the release, or in the release for a release-only
     entry) and the run-check probes they name came out as stated."""
-    return [e for e in resolve(route, runcheck) if e["verified"]]
+    return [e for e in resolve(route, runcheck) if e["verified"] and not e.get("retired")]
 
 
 def unverified(route: dict | None, runcheck: dict | None = None) -> list[dict]:

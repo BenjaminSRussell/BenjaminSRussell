@@ -119,7 +119,8 @@ class Anchors(unittest.TestCase):
             stats = json.load(fh)
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
-        self.assertEqual([e["id"] for e in route["entries"]], ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13"])
+        self.assertEqual([e["id"] for e in route["entries"]],
+                         ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13", "L1", "X1"])
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
@@ -128,8 +129,11 @@ class Anchors(unittest.TestCase):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
         self.assertIn("by default", drawn["S1"]["text"])
-        self.assertTrue(drawn["H1"]["text"].startswith("never ends by itself"))
-        self.assertIn("or a kill", drawn["C1"]["text"])
+        # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope
+        self.assertEqual(drawn["H1"]["text"], "never stops by itself, even after the last page")
+        self.assertIn("after a kill, run `export-sitemap`", drawn["C1"]["text"])
+        self.assertIn("above or below it", drawn["F1"]["text"])
+        self.assertNotIn("kill", drawn["W1"]["text"])
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
 
 
@@ -330,6 +334,93 @@ class Handoffs(unittest.TestCase):
         self.assertIsNone(sheet.plan(stats, cfg)["handoff"])
 
 
+class RoundThree(unittest.TestCase):
+    """Review round 3: H1's cause, retirement, value anchors, the hand-off reader's label, code in the code face."""
+
+    @staticmethod
+    def h1_spec():
+        spec = load_cfg()["route"]["rustmapper"]
+        return {"repo": spec["repo"], "entry": [e for e in spec["entry"] if e["id"] == "H1"]}
+
+    SELECT = ("pub async fn start_crawling(&self) -> R {\n    loop {\n        tokio::select! {\n"
+              "            Some(r) = in_flight.join_next() => {}\n"
+              "            else => {\n                if self.frontier.is_empty() {\n"
+              "                    eprintln!(\"Crawl complete: frontier empty and no tasks in flight\");\n"
+              "                    break;\n                }\n            }\n        }\n    }\n}\n")
+    TIMER = SELECT.replace("else => {", "_ = idle.tick() => {")
+
+    @staticmethod
+    def rc(**probes):
+        return {"version": "0.1.3", "ok": True,
+                "steps": [{"id": k, "ok": v, "gate": False, "secs": 150} for k, v in probes.items()]}
+
+    def test_h1_rests_on_the_select_else_arm(self):              # T-ANCHOR, review round 3
+        rel = tree({"src/bfs_crawler.rs": self.SELECT})
+        r = R.verify_route(self.h1_spec(), None, rel, None, "0.1.3")
+        res = R.resolve(r, self.rc(ends_by_itself=False, crawl_ctrl_c=True))
+        self.assertTrue(res[0]["verified"])
+        self.assertEqual(res[0]["text"], "never stops by itself, even after the last page")
+        self.assertNotRegex(res[0]["text"], r"limit|depth|same-site|parent")    # no scope given as the cause
+        # the completion check moved to a timer (d751cf0) while the probe still fails: H1 does not hold
+        r = R.verify_route(self.h1_spec(), None, tree({"src/bfs_crawler.rs": self.TIMER}), None, "0.1.3")
+        self.assertEqual([e["id"] for e in R.unverified(r, self.rc(ends_by_itself=False, crawl_ctrl_c=True))], ["H1"])
+
+    def test_a_crawl_that_ends_retires_h1(self):
+        r = R.verify_route(self.h1_spec(), None, tree({"src/bfs_crawler.rs": self.TIMER}), None, "0.1.3")
+        rc = self.rc(ends_by_itself=True, crawl_ctrl_c=True)
+        self.assertEqual(R.drawn(r, rc), [])
+        self.assertEqual(R.unverified(r, rc), [])
+        self.assertTrue(R.resolve(r, rc)[0]["retired"])
+
+    def test_field_and_arg_anchors(self):                        # T-ANCHOR, field / arg
+        spec = {"repo": "x", "entry": [{"id": "L1", "kind": "text", "scope": "release",
+                                        "text": "{field:max_inflight} per host, {arg:workers} in all",
+                                        "release": [{"path": "s.rs", "field": "max_inflight"},
+                                                    {"path": "s.rs", "field": "crawl_delay_secs", "equals": "0"},
+                                                    {"path": "c.rs", "arg": "workers"}]}]}
+        cli = ('#[arg(short, long, default_value = "256", help = "n")]\n        workers: usize,\n'
+               '#[arg(long, default_value = "20")]\n        timeout: u64,')
+        st = "pub max_inflight: usize,\n HostState { crawl_delay_secs: 0, max_inflight: 20, }"
+        e = R.verify_route(spec, None, tree({"s.rs": st, "c.rs": cli}), None, "0.1.3")["entries"][0]
+        self.assertEqual(e["text"], "20 per host, 256 in all")
+        self.assertTrue(e["verified_release"])
+        e = R.verify_route(spec, None, tree({"s.rs": st.replace("crawl_delay_secs: 0", "crawl_delay_secs: 1"),
+                                             "c.rs": cli}), None, "0.1.3")["entries"][0]
+        self.assertFalse(e["verified_release"])
+        self.assertIn("release s.rs: field crawl_delay_secs is 1, not 0", e["missing"])
+        self.assertEqual(R.arg_value(cli, "timeout"), "20")
+
+    def test_x1_retires_when_the_release_splits(self):
+        spec = {"repo": "x", "entry": [e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "X1"]}
+        head = tree({"src/sitemap_writer.rs": "pub const DEFAULT_MAX_URLS_PER_SITEMAP: usize = 50_000;"})
+        one = tree({"src/main.rs": "fn run_export_sitemap_command(output: String) { SitemapWriter::new(&output); }",
+                    "src/sitemap_writer.rs": "pub struct SitemapWriter {}"})
+        e = R.drawn(R.verify_route(spec, head, one, "abc", "0.1.3"))[0]
+        self.assertIn("allows 50,000 URLs per file", e["text"])
+        split = tree({"src/main.rs": "SitemapIndexWriter", "src/sitemap_writer.rs": "pub struct SitemapIndexWriter {}"})
+        r = R.verify_route(spec, head, split, "abc", "0.1.4")
+        self.assertEqual((R.drawn(r), R.unverified(r)), ([], []))
+
+    def test_handoff_reader_label(self):                          # ROUTE-LABEL, the hand-off's reader
+        route = {"entries": []}
+        texts = [{"s": "scripts/import_rust_sitemapper.py", "role": "machine", "key": "handoffs:j"}]
+        ok = [{"id": "j", "reader": "scripts/import_rust_sitemapper.py", "state": "runs", "to_sha": "1" * 40}]
+        self.assertEqual(route_check.labels(route, texts, "hero-day", ok), [])
+        for bad in ([dict(ok[0], state="fields differ")], [dict(ok[0], to_sha=None)], [dict(ok[0], reader="x.py")], []):
+            self.assertEqual([f.code for f in route_check.labels(route, texts, "hero-day", bad)], ["ROUTE-LABEL"])
+        # output and field names are code but not source files: no label rule applies
+        texts = [{"s": "data/sitemap.jsonl", "role": "machine", "key": "routes:C1"}]
+        self.assertEqual(route_check.labels(route, texts, "hero-day", []), [])
+
+    def test_code_face_and_self_twice(self):                      # TYPE-CODE, HERO-SELF-TWICE
+        texts = [{"s": "run export-sitemap", "role": "label", "key": "routes:C1"},
+                 {"s": "status_code", "role": "machine", "key": "routes:R13"}]
+        self.assertEqual([f.code for f in route_check.code_face(texts, "hero-day")], ["TYPE-CODE"])
+        texts = [{"s": "one line per page", "role": "label", "key": "routes:R0"},
+                 {"s": "one line per page: url", "role": "label", "key": "routes:R13"}]
+        self.assertEqual([f.code for f in route_check.self_twice(texts, "hero-day")], ["HERO-SELF-TWICE"])
+
+
 # ================================================================ the sheet half
 
 class RouteSheet(unittest.TestCase):
@@ -465,21 +556,80 @@ class RouteSheet(unittest.TestCase):
                 if phone:
                     self.assertGreaterEqual(t["size"] * 390 / 720, 14 - 1e-6)
 
-    def test_trap_text_is_ink_and_the_hatch_accent(self):
+    def test_trap_is_ringed_by_a_dotted_line(self):               # CONTRAST-DANGER, review round 3
         from checks.contrast import wcag
         for e in EDITIONS:
             svg = self.svg(self.fout, e)
             th = tokens.THEMES["night" if "night" in e else "day"]
-            for gid in ("H1",):
-                g = re.search(rf'<g id="hero-{gid}">(.*?)</g>(?=<g id="hero-)', svg, re.S).group(1)
-                self.assertIn(f'stroke="{th.accent}"', g)
-                self.assertNotIn(f'fill="{th.accent}"', g)
-                band = sheet.over(th.paper, th.accent, sheet.HAZARD_TINT)
-                self.assertTrue(g.startswith("<rect"), "the band goes first, under the words")
-                self.assertIn(f'fill="{band}"', g)
-                self.assertGreaterEqual(wcag(th.ink, band), 7.0)
-        self.assertEqual(sheet.over("#F4EEE1", "#D73626", 0.14), "#F0D4C7")
-        self.assertEqual(sheet.over("#0F1A2B", "#FF6853", 0.14), "#312531")
+            g = re.search(r'<g id="hero-H1">(.*?)</g>(?=<g id="hero-)', svg, re.S).group(1)
+            rect = re.search(rf'<rect[^>]*rx="{sheet.DANGER_RX}"[^>]*/>', g).group(0)
+            for want in ('fill="none"', f'stroke="{th.accent}"', 'stroke-linecap="round"'):
+                self.assertIn(want, rect)
+            self.assertRegex(rect, r'stroke-dasharray="0\.1 [0-9.]+"')
+            self.assertNotRegex(g, r'<rect[^>]*fill="(?!none)', "no band under the words")
+            self.assertNotIn("clipPath", g, "no hatch")
+            self.assertGreaterEqual(wcag(th.accent, th.paper), 3.0)
+            mk = [m for m in self.freport["sheets"][f"hero-{e}"]["route"]["marks"] if m["kind"] == "danger"]
+            self.assertEqual(len(mk), 1)
+            words = [t for t in self.freport["sheets"][f"hero-{e}"]["text"] if t["key"] == "routes:H1"]
+            x0, y0, x1, y1 = mk[0]["box"]
+            for t in words:      # the words sit inside the line, at least the padding away
+                self.assertGreaterEqual(t["x0"] - x0, sheet.DANGER_PAD - 0.5)
+                self.assertGreaterEqual(x1 - t["x1"], sheet.DANGER_PAD - 0.5)
+
+    def test_the_gap_shows_without_colour(self):                  # review round 3: the shape alone says it
+        for e in EDITIONS:
+            svg = self.svg(self.out, e)
+            grey = re.sub(r'(fill|stroke)="#[0-9A-Fa-f]{6}"', r'\1="#000000"', svg)
+            d = re.search(r'<g id="hero-R5"><path d="([^"]+)"', grey).group(1)
+            segs = [tuple(map(float, m)) for m in re.findall(r"M[0-9.]+ ([0-9.]+)V([0-9.]+)", d)]
+            self.assertEqual(len(segs), 2, f"{e}: the track breaks once, under the loop")
+            gap = segs[1][0] - segs[0][1]
+            self.assertGreaterEqual(gap, 14, e)
+            rep = self.report["sheets"][f"hero-{e}"]["route"]
+            self.assertTrue(rep["gap"])
+            loop = next(m for m in rep["marks"] if m["kind"] == "line" and m["id"] == "R6")
+            self.assertAlmostEqual(segs[0][1], loop["box"][3] - 1.5, places=1)   # it stops at the loop's foot
+        # a release that ends by itself: H1 retired, the track whole
+        s = copy.deepcopy(self.stats)
+        for st in s["runcheck"]["rustmapper"]["steps"]:
+            if st["id"] == "ends_by_itself":
+                st["ok"] = True
+        p = sheet.plan(s, self.cfg)
+        self.assertFalse(p["gap"])
+        self.assertNotIn("H1", [x["id"] for x in p["steps"]])
+        self.assertEqual(p["unverified"], [x["id"] for x in R.unverified(s["routes"]["rustmapper"],
+                                                                       s["runcheck"]["rustmapper"])])
+        self.assertNotIn("H1", p["unverified"])
+
+    def test_wrap_keeps_lines_long_and_notes_in_the_label_column(self):   # review round 3
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            phone = "phone" in e
+            G = sheet.L["phone" if phone else "desk"]
+            for gid in ("S1", "F1", "C1", "H1"):
+                runs = [t for t in ent["text"] if t["key"] == f"routes:{gid}" and t["role"] != "machine" or
+                        (t["key"] == f"routes:{gid}" and t["x0"] >= (G["rule_x"] or 0) - 1)]
+                lines: dict[float, list] = {}
+                for t in runs:
+                    lines.setdefault(round(t["y"], 1), []).append(t)
+                if len(lines) < 2:
+                    continue
+                measure = G["right"] - min(t["x0"] for t in runs)
+                for y, ts in lines.items():
+                    w = max(t["x1"] for t in ts) - min(t["x0"] for t in ts)
+                    self.assertGreaterEqual(w, 0.45 * measure, f"{e} {gid}: a line of {w:.0f} at {y}")
+            if not phone:
+                g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
+                self.assertEqual(round(min(t["x0"] for t in g1)), G["text_x"], "the note starts in the label column")
+
+    def test_code_is_in_the_code_face(self):                      # TYPE-CODE on the build
+        for e in EDITIONS:
+            texts = self.report["sheets"][f"hero-{e}"]["text"]
+            self.assertEqual(route_check.code_face(texts, e), [])
+            self.assertEqual(route_check.self_twice(texts, e), [])
+            mono = [t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:C1"]
+            self.assertEqual(mono, ["data/sitemap.jsonl", "export-sitemap"], e)
 
     def test_title_block_is_name_and_role(self):
         for e in EDITIONS:

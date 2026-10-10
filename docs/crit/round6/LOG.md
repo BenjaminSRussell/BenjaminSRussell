@@ -135,3 +135,84 @@ Renders: `scratchpad/r6/build/round-02/` (the standard set, plus `once-p1-lands/
 - `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 2 warnings (log.shards,
   POSITION-EMPTY), 0 errors; the render tier is skipped while fast fails, and run alone it passes (0 fail). STRINGS-TWICE,
   FIGURES, REPO-SET, NOTICE-*, ROUTE-LABEL, CONTRAST-BAND, AUDIT-STALE and README-STALE are clean.
+
+## Round 3
+
+Reviews: `review-r03-1.md` (the owner's test) **6 / 10**, `review-r03-2.md` (the copy editor) **6 / 10**,
+`review-r03-3.md` (the developer choosing a crawler) **6 / 10**. None meets the goal. Where they conflict, review 1
+(the owner's lens) wins.
+
+Renders: `scratchpad/r6/build/round-03/` (the standard set, plus `once-p1-lands/` from `stats-once-p1-lands.json`).
+
+### What was measured again first
+
+- **The stats, rebuilt.** `build_stats.py --mode cache` (clones live, PyPI live, REST partial), so the new keys come
+  from the instruments, not from a hand edit: `repos[].license` (Scrapy `MIT`, Rust-sitemap `null`: REST
+  `repos/BenjaminSRussell/Rust-sitemap` answers `"license": null`), `edition.modules` (`[]`: the 0.1.3 wheel holds
+  `METADATA`, `WHEEL`, `RECORD` and `rustmapper-0.1.3.data/scripts/rust_sitemap`), the `pick` rows, the
+  `python_api` gate (holds at 32c2651) and the two README sentences. Everything else came out as on 10 Oct (22
+  repositories, 2,037 commits, the rules' months, CI).
+- **H1's cause, in the code.** The release's `start_crawling` (`src/bfs_crawler.rs:550`) keeps its "Crawl complete:
+  frontier empty and no tasks in flight" check in the `else =>` arm of `tokio::select!`, which runs only when every
+  branch is disabled. Rust-sitemap #65, fixed on main in `d751cf0`. The run check's three-page crawl wrote all three
+  pages and was still running at 150 s.
+- **The scope fact.** `url_utils.rs` `is_same_domain` (both trees) takes the start's subdomains and every domain the
+  start ends with, at a dot boundary; siblings are not taken.
+- **The load.** In the release `HostState::new` sets `max_inflight: 20` and `crawl_delay_secs: 0`; `--workers`
+  defaults to 256 (main has since raised it to 512); a robots.txt `Crawl-delay` is applied at `state.rs:560`.
+- **The Scrapy block, in Docker.** `docker compose build scraper` on Scrapy `96e7a1a` (the `base` stage; the
+  `production` stage is base plus copies of the same files and ran this disk out of space) builds, and
+  `docker compose run --rm --no-deps scraper scrapy list` prints `base`, `deep_dive`, `depth`, `javascript`, `scout`:
+  inside the image `scrapy` is on the path and `scrapy.cfg` is found in `/app`. A crawl in the image without Redis
+  stops at "Failed to connect to Redis", as it should: the compose service gets Redis from `depends_on` and
+  `REDIS_HOST=redis`. The full `docker-compose run --rm scraper scrapy crawl scout …` with Redis was **not** run:
+  Docker Hub answered 429 to the `redis:7-alpine` pull. The one sandbox change was the session's CA file for pip.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1, r2-1: H1's cause | H1 "never stops by itself, even after the last page", release anchors `fn start_crawling` containing `else =>` and "Crawl complete: frontier empty", probe `ends_by_itself` failing. The `--max-urls` and `{secs}` wordings are gone; an alternative with empty text retires H1 once the probe passes (`resolve`: `retired`, neither drawn nor unverified). T-ANCHOR fixtures: the else arm replaced by a timer leaves H1 unverified; a crawl that ends retires it; H1's words carry no scope term. |
+| r1-1: the scope fact | F1 "fetches a page; queues links on its domain, above or below it", with the two `is_same_domain` branches as anchors in both trees. r1's own wording (76 characters) and its fallback (74) both broke onto a second desk line next to `bfs_crawler.rs`, which would take the S2 edition past the gate; this is the same fact in 61. |
+| r1-2, r2-2: the fault as a shape | The band and both hatch blocks are cut. While a drawn trap on the loop names a failed probe, the track stops at the loop's foot and starts again 10 (desk) / 12 (phone) above C1's ring. With the old pitch those numbers left a 1-unit gap on the desk and none on the phone, so the next row moves down until the gap is 16 / 18 units (the only probe-driven geometry; T-NOSIZE holds). H1's words are ringed by a dotted danger line: a rounded rectangle, padding 6, `rx` 6, BRUSH dots (r 1.7, the nearest token weight to r 1.4 / 1.8) evened round the perimeter at about 6 / 8, accent, no fill; its four edges are exclusions, so the bounds check fails any text crossing it. CONTRAST-BAND became CONTRAST-DANGER (accent ≥ 3:1 on paper, 4.1 day and 6.1 night; nothing filled under the trap). New test: with every fill and stroke set to black, the track still breaks once, at the loop's foot, by ≥ 14 units. |
+| r1-3: one instruction for stopping | W1 "saved every 50 ms" (const anchor kept, no probe). C1 "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, run `export-sitemap`", on `crawl_ctrl_c` and `export_after_kill` passing and `kill_writes_file` failing, with the export anchors (opens `CrawlerState`, never `WalReader`) moved from W1. Its alternative, once a kill writes the file: "press Ctrl-C once to write `data/sitemap.jsonl`". |
+| r1-4, r2-6: the data line | "The drawing is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release; the reader it points to is ideal-url-organizer's, at `159968a`. Its install, crawl (…), Ctrl‑C, kill and export lines were run on 10 Oct 2026 (Linux x86_64)." ROUTE-LABEL now covers every drawn source file (`.rs`, `.py`, `.toml`): one keyed to a route entry must be among its anchors; one keyed to a hand-off must be that hand-off's `reader`, with state `runs` and a `to_sha`. |
+| r1-5: phone wrap | A separator break is taken only when every line is ≥ 45 % of the measure; word breaks are balanced (the narrowest measure that keeps the line count). Test on every edition for S1, F1, C1, H1. S1 also takes r2's wording (below), which has no semicolon. |
+| r1-6: the governor row | A note with no file label sets its words at the label column (x 484) in `ink2`; the tick stays. Test. |
+| r1-7: the image links to the project | The hero's `<picture>` is wrapped in `<a href="https://github.com/BenjaminSRussell/Rust-sitemap">` (`hero_link` from chart.toml). The rendered page is checked after the push with the repository-scoped README HTML endpoint (below). |
+| r2-3 (part): one home per fact in the image | R13 "fields: `url, depth, status_code, title, …`". New HERO-SELF-TWICE: no run of 4 words drawn twice in one edition (alt left out). |
+| r2-4: the user's step and the tool's | S1 "your URL, plus by default sitemaps, certificate logs, Common Crawl" (its alternative "… Common Crawl if asked"), F1 in the third person, C1 the one imperative. |
+| r2-5: one face for code | Backticked spans in a row's words are set in `machine` at the label size, measured in that face when lines are broken, and re-opened across a line break. New TYPE-CODE (fast): a hero run outside `machine` holding `_`, `--`, `.rs`, `.jsonl` or `export-sitemap` fails. |
+| r2-6: third person | "3 % of Ben's commits … are not counted as his." New test: no I, my, mine or me in the README's visible prose. |
+| r2-7: rules and Also | Rule 2 "Raw before clean."; rule 4's cite "ideal-url-organizer, Nov 2025; Claude's commit used it first." (`names_agent` still holds); "Home of the "no regex" rule." cut. |
+| r2-8 (part), r3-1 (part): the license line | "**This profile** Code MIT; …. The image is rustmapper's route in `chart.toml` (`[route.rustmapper]`, each line with the code it rests on); the build draws only the lines that code and its run check prove". README-LICENSE looks for "Code MIT". |
+| r2-9: the rustmapper sentence | New `about:Rust-sitemap` block: "… written in Rust. `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released." while `edition.modules` lacks `rustmapper` and the `python_api` gate holds; "… with a command line and a Python API built with maturin." once a wheel ships the module; a bare sentence when never measured. |
+| r2-10, r3-4: the Scrapy block | "# the whole pipeline (needs docker / # and docker-compose); it crawls a / # university's sample site" above `python start.py`; "# or only discovery, on your own site:" above `docker-compose run --rm scraper \ scrapy crawl scout …`; the sample-URLs sentence under the block is cut. All lines ≤ 38 columns. |
+| r2-11: the builds line | "Ben Russell builds web crawlers, discovery pipelines, raw-first storage, and the dashboards that watch them." |
+| r3-1: licenses, measured | `repos[].license` from REST `license.spdx_id` (GraphQL `licenseInfo.spdxId` in live mode), `null` when GitHub detects none or says `NOASSERTION`, absent when the API did not answer (the cache's value is carried). Schema and AUDIT rows. The facts line prints "· MIT license" after the CI clause only when set (Scrapy today). LICENSE-FLAGSHIP warns for Rust-sitemap. |
+| r3-2: which tool for which job | New `pick` block: "For the list of a site's URLs from one command, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**." Printed only while the route header holds and the three `[[figures]]` rows tagged `use = "pick"` hold at Scrapy's HEAD (`MinHashLSH` and "extractive summary" in `stage3_worker.py`, `"local": ("docker", "docker-compose")` in `start.py`). |
+| r3-3: load and the 50,000 cap | Two route entries of the new kind `text` (checked by the route engine, never drawn), printed as their own paragraph under the wheel note: L1 "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`." (release scope; new value anchors `{field:max_inflight}`, `{arg:workers}`, and `equals` to pin `crawl_delay_secs: 0`); X1 "0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file." while the sdist has no `SitemapIndexWriter`, the 50,000 read from main's `DEFAULT_MAX_URLS_PER_SITEMAP` (`from_head`); it retires once a release splits. Tests for both. |
+| — | ROUTE-HEIGHT is desk ≤ 600, phone ≤ 1040: the gap adds 15 / 19 units, and the S2 edition (once P1 lands, with the gap) is 587 / 1035. DESIGN.md's paragraph (generated from `tokens.py`) describes the route as drawn now. |
+
+### Fixes declined, and why
+
+| Must-fix | Why not |
+|---|---|
+| r2-1: H1 "never ends by itself, even after its last page: a 3-page site ran past {secs} s", and keep the `--max-urls` alternative | Conflicts with r1-1 (owner lens): the short cause, no figure, and no scope wording when a release has `--max-urls`; a release that ends by itself retires the row. r2's T-ANCHOR case is kept in spirit: the test asserts H1's words name no limit, depth or domain. |
+| r2-2: keep the 14 % fill under the dotted outline | Conflicts with r1-2 (owner lens): no fill. |
+| r2-3 (part): C1 "write the file below", and HERO-SELF-TWICE on code tokens | Conflicts with r1-3 (owner lens), whose C1 names the file the press writes. HERO-SELF-TWICE checks runs of 4 words only; with a code-token rule it would fail the owner's wording on `data/sitemap.jsonl`. |
+| r2-4 (part): W1 "saves every 50 ms, so after a kill export-sitemap still works" | Conflicts with r1-3: the kill clause lives on C1, once. |
+| r2-8 (part): "fork the repository and write your project's route …" | Not true of the build: the PyPI project, the run check and the sheet's project are rustmapper's, so a fork would get rustmapper's route or a failing gate. The line says the image is rustmapper's route instead (r2's own second option). |
+| r3-3: "both go through FIGURES" | FIGURES covers numbers typed by hand outside the build-written blocks. These are build-written and stronger than a literal row: 20, 256 and 50,000 are read from the code by the value anchors, and the sentence is not printed when they do not hold. |
+| r3-4: `docker-compose exec scraper …` | `exec` needs the running stack, which `python start.py` brings up with the sample pipeline; `run --rm` starts Redis (`depends_on`) and runs only the given command, so "or only discovery" is true. The full run with Redis is not confirmed (Docker Hub 429, above); the image half is. |
+| r3-5: Rust-sitemap's About text, pins, DESC-DRIFT | Owner actions in Rust-sitemap and on the profile. DESC-DRIFT is not added: `stats.json` does not carry the API description, and a check on a figure the pipeline does not gather would be the first one of its kind. |
+| r1 owner action, r3-1 owner action: land P1, a `[project.scripts]` command, 0.1.4; commit Rust-sitemap's MIT `LICENSE` | Outside this repository. ROUTE-UNVERIFIED still fails on S2 and LICENSE-FLAGSHIP warns, as they should. Once 0.1.4 ends by itself, H1 is retired and the gap closes with no edit here. |
+
+### Measured state of this build
+
+- Desk sheet 551 high (587 with S2 drawn; gate 600); phone 992 (1035; gate 1040).
+- `python3 -m unittest`: 263 tests, all pass.
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail). TYPE-CODE, HERO-SELF-TWICE, ROUTE-LABEL, CONTRAST-DANGER, STRINGS-TWICE, FIGURES, README-STALE,
+  README-CODE-WIDTH and AUDIT-STALE are clean.

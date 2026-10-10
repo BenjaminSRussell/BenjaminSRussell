@@ -4,16 +4,15 @@ The image answers one sentence: how you start rustmapper, what it does with each
 and how to get out, and where the output goes next. Vertical position is the order of a run: what you type, what
 happens to each URL, how you stop it, what you get. The rows that repeat for every page are closed by one line back
 up the left side: the crawl is a loop, and the one hazard sits on that loop, with its way out on the next row.
-Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a tick, a hatch
-block, a band, a line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
+Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a tick, a dotted
+line, a line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
 chart.toml [copy] / [identity].
 
 Left column, the title block: the name and the role line, nothing else (review round 2: the project's name is the
 route's header, and the counts and CI live in the text). Right, the route: the project's name and one sentence, the
 start bar, the install line with the release, the image's one command, then the stops (a ring on the magenta
-track), the side note (a tick, no ring: it acts on the fetches from outside), the hazard (a hatched block on the
-loop's way back, on a band of the accent at 14 % over paper, so it is the row seen first) and the way out, the end
-bar, the file you get and its real field names, and a thin line on to the one other project of his that reads that
+track), the side note (a tick, no ring: it acts on the fetches from outside), the hazard (its words ringed by a
+dotted danger line in the accent, review round 3) and the way out, the end bar, the file you get and its real field names, and a thin line on to the one other project of his that reads that
 file and tests the join. Everything a reader copies or looks up (the crawl command, the install time, the CI) is in
 the README, once.
 
@@ -21,6 +20,12 @@ A route entry is drawn only when routes.<name> says its anchors hold and the run
 stated (scripts/data/route.py `resolve`); a desk file label only when that file is among the entry's anchors in the
 code it describes; the install line only when the run check passed (SPEC §6); the line past the end only when the
 hand-off's state is `runs`. Nothing else is drawn: no border, no axis, no motion, no legend.
+
+Review round 3: while the release never stops by itself (a drawn trap on the loop whose `fails` probe failed), the
+track stops at the foot of the loop and starts again just above the next row's ring: the shape says, without words,
+that the only way on from the loop is the reader's Ctrl-C. Once a release ends by itself the trap is retired and the
+gap closes. Geometry follows that probe, never a count. Code inside a row's words (`backticked` in chart.toml) is set
+in the code face at the row's size.
 
 Every glyph goes through typeset (ctx.k); every stroke width through chartlib.stroke.
 """
@@ -38,7 +43,10 @@ KIND = "chart"
 SIZES = {"desk": (1280, 620), "phone": (720, 1170)}   # nominal: the height is the last baseline + 36 (phone 30)
 EDITIONS = ("day", "night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
-HAZARD_TINT = 0.14       # the hazard band: accent at 14 % over paper (day #F0D4C7, night #312531); ink on it ~10:1
+DANGER_PAD = 6           # the danger line round the trap's words: padding, corner radius, dot pitch (desk, phone)
+DANGER_RX = 6
+DANGER_PITCH = {"desk": 6, "phone": 8}
+CODE_TOKENS = ("_", "--", ".rs", ".jsonl", "export-sitemap")   # TYPE-CODE: these are code and take the code face
 RUNCHECK_MAX_AGE = 14    # days before `taken` a passing run check still counts (SPEC §7, ROUTE-ENTRANCE)
 
 # id -> (what a stranger learns, the visitor question, where it comes from). SPEC §2.2; T-PURPOSE holds the sheet to it.
@@ -49,20 +57,22 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "R1": ("where you begin", "Q4", "R1-I5 (the entrance is a fixed point)"),
     "R2": ("the line that gets it, and how old the release is: the image's one command", "Q4",
            "stats.json edition.version, edition.date; runcheck.rustmapper"),
-    "R5": ("one way through, in the order of a run", "Q4", "R1-F3 (the line you follow)"),
+    "R5": ("one way through, in the order of a run; while the release never stops by itself the line breaks under the "
+           "loop, so the only way on is the reader's Ctrl-C", "Q4", "R1-F3 (the line you follow); runcheck ends_by_itself"),
     "R6": ("the crawl is a loop: the rows it spans repeat for every page", "Q1",
            "Rust-sitemap src/bfs_crawler.rs frontier.add_links; Mercator (SRC-173 §3)"),
     "S1": ("where URLs come from, and what the release contacts by default", "Q5", "stats.json routes.rustmapper S1"),
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
-    "F1": ("each page is fetched and its same-site links are queued again", "Q1", "stats.json routes.rustmapper F1"),
+    "F1": ("each page is fetched and its links are queued again, the start's parent domains and subdomains included",
+           "Q1", "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain)"),
     "G1": ("the crawl slows when it cannot save what it found, not when the network is slow", "Q1",
            "stats.json routes.rustmapper G1"),
-    "W1": ("a kill does not lose the pages: the writer saves every 50 ms, and the command that gets them back", "Q5",
-           "stats.json routes.rustmapper W1 (writer_thread.rs BATCH_TIMEOUT_MS); runcheck export_after_kill"),
-    "H1": ("pointed at a real site, it does not stop, and it goes wider than the start host; the band makes it the "
-           "row seen first", "Q5", "stats.json routes.rustmapper H1; runcheck ends_by_itself"),
-    "C1": ("how to stop it so the file is written, and what loses it", "Q5",
-           "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c, kill_writes_file"),
+    "W1": ("what it has found is saved as it goes, every 50 ms", "Q5",
+           "stats.json routes.rustmapper W1 (writer_thread.rs BATCH_TIMEOUT_MS)"),
+    "H1": ("the one catch: the release does not stop by itself, even once it has run out of pages; the dotted line "
+           "marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm); runcheck ends_by_itself"),
+    "C1": ("the reader's one step: Ctrl-C once writes the file; after a kill, the command that gets the pages back", "Q5",
+           "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c, kill_writes_file, export_after_kill"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
     "R15": ("his projects are one body of work: this output feeds another, and that join is tested", "Q2",
@@ -93,10 +103,19 @@ BREAKS: list[tuple[str, str, str]] = [
      "an entry is drawn only when its anchors hold in the code at HEAD and in the released sdist; the install lines "
      "only when the run check passed; the line past the end only when the reader's fields are in the writer's struct",
      "the image claims only what the tool does (SPEC §5, §6)"),
-    ("Trap text in ink, on a band",
-     "the trap's words are set in ink on a band of the accent at 14 % over paper; its hatch block is in the accent",
-     "accent on day paper is 4.1:1, under the 4.5:1 text needs; ink on the band is 10.3:1 by day and 8.4:1 by night, "
-     "and the one catch has to be the row a stranger sees first (owner test 1)"),
+    ("Trap text in ink, ringed by dots",
+     "the trap's words are set in ink inside a dotted line of the accent with no fill (review round 3: the band and "
+     "the hatch are cut)",
+     "accent on day paper is 4.1:1, under the 4.5:1 text needs, and over 3:1 as a line in both themes; a dotted line "
+     "round a danger marks it without a fill (INT 1, K1), and a filled band read as an editor's highlight"),
+    ("A gap in the track under the loop",
+     "while the release never stops by itself, the track ends at the loop's foot and starts again just above the "
+     "next row's ring, and that row moves down by the gap",
+     "the run check's crawl of a three-page site was still running at 150 s (ends_by_itself); a line that ran on "
+     "would say the run ends on its own"),
+    ("Code in the code face",
+     "file names, field names and subcommands inside a row's words are set in the code face at the row's size",
+     "the end row's file name was already set that way, and one face for code tells a reader what to type"),
     ("Phone role line at 204",
      "on the phone the role line sits at 204 (SPEC: 196) and everything under it 8 lower",
      "at 196 its text box meets the descent of the name set at 132 (the bounds check measures the font's boxes)"),
@@ -122,15 +141,15 @@ L = {
              "role_pitch": 28, "fine_gap": 52, "fine_pitch": 28, "track_x": 456, "text_x": 484, "rule_x": 640,
              "right": 1224, "head_y": 84, "head_after_title": None, "sent_gap": 34, "line": 28, "bar_gap": 30,
              "bar_w": 24, "bar_h": 4, "r2_gap": 30, "entry_gap": 42, "pitch": 36, "end_gap": 30, "r13_gap": 30,
-             "ring_r": 6, "ring_dy": 6, "hatch": (432, 450, 13, 1), "loop_out": 14, "loop_hatch": (414, 432),
-             "loop_dy": 13, "loop_arrow": (8, 10), "tick": (3, 15), "after_end": 26, "tip": 8, "label_gap": 14,
+             "ring_r": 6, "ring_dy": 6, "loop_out": 14,
+             "loop_dy": 13, "loop_arrow": (8, 10), "tick": (3, 15), "gap": 16, "stub": 10, "after_end": 26, "tip": 8, "label_gap": 14,
              "arrow_w": 10, "rule_after_file": 20, "foot": 36},
     "phone": {"title_x": 40, "title_w": 640, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
               "role_pitch": 34, "fine_gap": 46, "fine_pitch": 34, "track_x": 56, "text_x": 88, "rule_x": None,
               "right": 688, "head_y": None, "head_after_title": 60, "sent_gap": 40, "line": 34, "bar_gap": 28,
               "bar_w": 24, "bar_h": 4, "r2_gap": 38, "entry_gap": 46, "pitch": 43, "end_gap": 24, "r13_gap": 38,
-              "ring_r": 8, "ring_dy": 9, "hatch": (26, 48, 17, 1), "loop_out": 18, "loop_hatch": (8, 30),
-              "loop_dy": 15, "loop_arrow": (10, 12), "tick": (4, 20), "after_end": 24, "tip": 8, "label_gap": 14,
+              "ring_r": 8, "ring_dy": 9, "loop_out": 18,
+              "loop_dy": 15, "loop_arrow": (10, 12), "tick": (4, 20), "gap": 18, "stub": 12, "after_end": 24, "tip": 8, "label_gap": 14,
               "arrow_w": 12, "rule_after_file": None, "foot": 30},
 }
 TRACK = {"desk": 1.6, "phone": 1.0}
@@ -155,7 +174,7 @@ def _repo(data: dict, name: str) -> dict:
 # ---------------------------------------------------------------- data -> what the sheet says
 
 def over(paper: str, ink: str, alpha: float) -> str:
-    """`ink` laid over `paper` at `alpha`, as one opaque colour (the hazard band: accent at 14 % over paper)."""
+    """`ink` laid over `paper` at `alpha`, as one opaque colour."""
     a = [int(paper.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
     b = [int(ink.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
     return "#%02X%02X%02X" % tuple(round(x * (1 - alpha) + y * alpha) for x, y in zip(a, b))
@@ -213,6 +232,9 @@ def plan(data: dict, cfg: dict, project: str = PROJECT) -> dict:
         "handoff": None,
         "unverified": [e["id"] for e in R.unverified(route, rc)],
     }
+    # review round 3: the track breaks under the loop while a trap on it names a probe that failed (the release does
+    # not stop by itself); drawn() only returns that trap while its `fails` probes failed
+    p["gap"] = any(e["kind"] == "trap" and e.get("loop") and e.get("fails") for e in p["steps"])
     end = p["end"]
     if end:
         h = handoff(data, repo_name, end.get("file") or "")
@@ -263,18 +285,62 @@ def _build(ctx) -> str:
 
     day_ed = E.EDITIONS["phone-day" if phone else "day"]
 
+    label_size = tokens.ROLES[sc]["label"][1]
+
+    def segments(text):
+        """`a `code` b` -> [("a ", False), ("code", True), (" b", False)]; an unclosed span runs to the end."""
+        out, code = [], False
+        for i, piece in enumerate(str(text).split("`")):
+            if i:
+                code = not code
+            if piece:
+                out.append((piece, code))
+        return out
+
     def fit(text, role="label"):
         """Width for line breaking, measured in the day cut: night's Light cuts are narrower, so a line that fits
-        by day fits by night, and both editions break at the same words."""
-        return k.text_width(str(text), role, edition=day_ed, scale=sc)
+        by day fits by night, and both editions break at the same words. Code spans measure in the code face."""
+        total = 0.0
+        for piece, code in segments(text):
+            if code and role == "label":
+                total += k.text_width(piece, "machine", edition=day_ed, scale=sc, size=label_size)
+            else:
+                total += k.text_width(piece, role, edition=day_ed, scale=sc)
+        return total
+
+    def balance(lines):
+        """Re-open a code span cut by a line break on the next line, so each line's backticks pair up."""
+        out, open_ = [], False
+        for ln in lines:
+            s_ = ("`" if open_ else "") + ln
+            open_ = open_ ^ (ln.count("`") % 2 == 1)
+            if open_:
+                s_ += "`"
+            out.append(s_.replace("``", ""))
+        return out
 
     def wrap(text, max_w, role="label", seps=("; ", ": ", " · ", ", ")):
         """Lines that fit `max_w`: broken at the strongest separator (a semicolon, a colon, a middle dot, a comma),
-        so a name like "Common Crawl" or "Python 3.13" is not split, unless breaking at words takes fewer lines
-        (a 26 px phone line holds about 48 characters, and every extra line costs the phone sheet 34 units)."""
+        so a name like "Common Crawl" or "Python 3.13" is not split, unless breaking at words takes fewer lines or
+        the separator leaves a line under 45 % of the measure (review round 3: "start URL;" alone read as its own
+        item). Word breaks are balanced: the narrowest measure that keeps the same number of lines."""
         by_sep = _wrap_sep(text, max_w, role, seps)
-        by_word = _wrap_sep(text, max_w, role, ())
-        return by_word if len(by_word) < len(by_sep) else by_sep
+        by_word = _balanced(text, max_w, role)
+        short = len(by_sep) > 1 and any(fit(ln, role) < 0.45 * max_w for ln in by_sep)
+        return balance(by_word if len(by_word) < len(by_sep) or short else by_sep)
+
+    def _balanced(text, max_w, role):
+        lines = _wrap_sep(text, max_w, role, ())
+        if len(lines) < 2:
+            return lines
+        lo, hi = max(fit(wd, role) for wd in str(text).split()), float(max_w)
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            if len(_wrap_sep(text, mid, role, ())) <= len(lines):
+                hi = mid
+            else:
+                lo = mid
+        return _wrap_sep(text, hi, role, ())
 
     def _wrap_sep(text, max_w, role, seps):
         text = str(text)
@@ -312,33 +378,42 @@ def _build(ctx) -> str:
                 lines[-2:] = [head_, f"{moved} {lines[-1]}"]
         return lines
 
+    def say(text, x, y, gid, key, fill=None):
+        """One line of a row's words: plain runs in the label face, code spans in the code face at the same size.
+        Returns the line's drawn width."""
+        x0 = x
+        for piece, code in segments(text):
+            if code:
+                lbl(piece, x, y, gid, key, role="machine", fill=fill, size=label_size)
+                x += width(piece, "machine", size=label_size)
+            else:
+                lbl(piece, x, y, gid, key, fill=fill)
+                x += width(piece)
+        return x - x0
+
     def mark(kind, gid, box):
         k.exclude(f"{kind}:{gid}", box[0], box[1], box[2] - box[0], box[3] - box[1])
         marks.append({"kind": kind, "id": gid, "box": [round(v, 1) for v in box]})
 
-    def _hatch(gid, x0, x1, base):
-        """Three 45° strokes in the accent colour, clipped to a block beside the row's first baseline."""
-        _, _, up, dn = G["hatch"]
-        y0, y1 = base - up, base + dn
-        clip = f"hatch-{gid}"
-        span = (x1 - x0) + (y1 - y0)
-        strokes = [f"M{E.fmt(x0 + span * (q + 1) / 4 - (y1 - y0))} {E.fmt(y1)}L{E.fmt(x0 + span * (q + 1) / 4)} {E.fmt(y0)}"
-                   for q in range(3)]
-        put(gid, f'<clipPath id="{clip}"><rect x="{x0}" y="{E.fmt(y0)}" width="{x1 - x0}" height="{E.fmt(y1 - y0)}"/>'
-                 f'</clipPath><path d="{"".join(strokes)}" fill="none" clip-path="url(#{clip})" '
-                 f'{c.stroke("LINE", theme.accent, caps="butt")}/>')
-        mark("hatch", gid, (x0, y0, x1, y1))
-
-    def _band(row, x0):
-        """The hazard's band (review round 2): accent at HAZARD_TINT over paper, from the hatch's left edge to the
-        text's right limit, as tall as the row's text block (the font's ascent over the first baseline to its descent
-        under the last) plus 6. It goes first in the row's group, so the track, the loop and the words sit on it. Its
-        size follows the number of text lines only, like every other mark."""
+    def _danger(row):
+        """Review round 3: a dotted danger line round the trap's words, in the accent, with no fill (INT 1, K1): a
+        rounded rectangle DANGER_PAD outside the text block (the font's ascent over the first baseline to its descent
+        under the last, the widest line across), its dots spaced evenly round the perimeter near DANGER_PITCH. Its
+        four edges are exclusions, so no text may cross the line. Its size follows the trap's words only."""
         asc, desc = k.extent("label", edition=ed, scale=sc)
-        y0, y1 = row["y"] - asc - 3, row["last"] + desc + 3
-        groups[row["id"]].insert(0, f'<rect x="{E.fmt(x0)}" y="{E.fmt(y0)}" width="{E.fmt(RIGHT - x0)}" '
-                                    f'height="{E.fmt(y1 - y0)}" fill="{over(theme.paper, theme.accent, HAZARD_TINT)}"/>')
-        marks.append({"kind": "band", "id": row["id"], "box": [round(v, 1) for v in (x0, y0, RIGHT, y1)]})
+        pad, rx = DANGER_PAD, DANGER_RX
+        x0, x1 = row["x"] - pad, row["x"] + row["w"] + pad
+        y0, y1 = row["y"] - asc - pad, row["last"] + desc + pad
+        w_, h_ = x1 - x0, y1 - y0
+        per = 2 * (w_ + h_) - 8 * rx + 2 * 3.141592653589793 * rx
+        gap = per / max(1, round(per / DANGER_PITCH[sc]))
+        put(row["id"], f'<rect x="{E.fmt(x0)}" y="{E.fmt(y0)}" width="{E.fmt(w_)}" height="{E.fmt(h_)}" rx="{rx}" '
+                       f'fill="none" {c.stroke("BRUSH", theme.accent, dash_key="DANGER", gap=gap)}/>')
+        t = float(c.width("BRUSH")) / 2 + 0.5
+        for nm, box in (("top", (x0 - t, y0 - t, x1 + t, y0 + t)), ("bottom", (x0 - t, y1 - t, x1 + t, y1 + t)),
+                        ("left", (x0 - t, y0 - t, x0 + t, y1 + t)), ("right", (x1 - t, y0 - t, x1 + t, y1 + t))):
+            k.exclude(f"danger-{nm}:{row['id']}", box[0], box[1], box[2] - box[0], box[3] - box[1])
+        marks.append({"kind": "danger", "id": row["id"], "box": [round(v, 1) for v in (x0, y0, x1, y1)]})
 
     # ================================================================ the title block (T1, T2)
     tx = G["title_x"]
@@ -380,9 +455,13 @@ def _build(ctx) -> str:
     step_report = []
     rows: list[dict] = []
     loop_rows: list[dict] = []
+    gap_rows: list[dict] = []     # the row the track starts again above, when the loop has no way out
+    prev_loop = False
     for e in p["steps"]:
         gid = e["id"]
         kind = e["kind"]
+        if p["gap"] and prev_loop and not e.get("loop"):
+            y += G["gap"] - (G["pitch"] - G["ring_dy"] - G["ring_r"] - G["stub"] - G["loop_dy"])
         r = G["ring_r"]
         cy = y - G["ring_dy"]
         if kind in ("stop", "step"):
@@ -397,22 +476,27 @@ def _build(ctx) -> str:
         if kind in ("stop", "note") and not phone and G["rule_x"]:
             if e.get("file"):
                 lbl(e["file"], TX, y, gid, f"routes:{gid}", role="machine", fill=theme.ink2)
-            rx = max(G["rule_x"], TX + (width(e["file"], "machine") + 20 if e.get("file") else 0))
-            lines = wrap(e["text"], RIGHT - rx)
-            for i, line in enumerate(lines):
-                lbl(line, rx, y + LH * i, gid, f"routes:{gid}", fill=ink)
+            # review round 3: a note with no file label starts in the label column, not after a blank
+            rx = max(G["rule_x"], TX + width(e["file"], "machine") + 20) if e.get("file") else TX
         else:
-            lines = wrap(e["text"], RIGHT - TX)
-            for i, line in enumerate(lines):
-                lbl(line, TX, y + LH * i, gid, f"routes:{gid}", fill=ink)
-        row = {"id": gid, "kind": kind, "y": y, "cy": cy, "last": y + LH * (len(lines) - 1), "loop": e.get("loop")}
+            rx = TX
+        lines = wrap(e["text"], RIGHT - rx)
+        wmax = 0.0
+        for i, ln in enumerate(lines):
+            wmax = max(wmax, say(ln, rx, y + LH * i, gid, f"routes:{gid}", fill=ink))
+        row = {"id": gid, "kind": kind, "y": y, "cy": cy, "last": y + LH * (len(lines) - 1), "loop": e.get("loop"),
+               "x": rx, "w": wmax}
         rows.append(row)
         if e.get("loop"):
             loop_rows.append(row)
+        elif prev_loop and p["gap"]:
+            gap_rows.append(row)
+        prev_loop = bool(e.get("loop"))
         step_report.append({"id": gid, "kind": kind, "y": round(y, 1), "lines": len(lines), "loop": bool(e.get("loop"))})
         last = row["last"]
         y = last + G["pitch"]
     # ---- the loop: one line back up the left side, from under the last repeating row to the first one's ring
+    y_bot = None
     if loop_rows and loop_rows[0]["kind"] in ("stop", "step"):
         gx = X - G["loop_out"]
         y_top = loop_rows[0]["cy"]
@@ -426,21 +510,20 @@ def _build(ctx) -> str:
                     f'fill="{theme.flare}"/>')
         put("R6", loop_svg)
         mark("line", "R6", (gx - aw / 2, y_top - 1.5, X, y_bot + 1.5))
-        # the hazard on the loop: its hatch block sits beside the way back, on its own row
-        for row in loop_rows:
-            if row["kind"] == "trap":
-                hx0, hx1 = G["loop_hatch"]
-                _band(row, hx0)
-                _hatch(row["id"], hx0, hx1, row["y"])
-    for row in step_report:     # a trap off the loop keeps its block left of the track
-        if row["kind"] == "trap" and not row["loop"]:
-            x0, x1, _, _ = G["hatch"]
-            _band(next(r for r in rows if r["id"] == row["id"]), x0)
-            _hatch(row["id"], x0, x1, row["y"])
+    for row in rows:            # the hazard's words, ringed by the danger line
+        if row["kind"] == "trap":
+            _danger(row)
     end_top = last + G["end_gap"]
-    put("R5", f'<path d="M{E.fmt(X)} {E.fmt(track_top)}V{E.fmt(end_top)}" fill="none" '
-              f'{c.stroke("BRUSH", theme.flare, caps="butt")}/>')
-    mark("track", "R5", (X - 2, track_top, X + 2, end_top))
+    # ---- the track: one segment from the start bar to the end bar, or, while the loop has no way out, two: down to
+    # the loop's foot, then again from just above the next row's ring
+    segs = [(track_top, end_top)]
+    if p["gap"] and y_bot is not None and gap_rows:
+        resume = gap_rows[0]["cy"] - G["ring_r"] - G["stub"]
+        segs = [(track_top, y_bot), (resume, end_top)]
+    d = "".join(f"M{E.fmt(X)} {E.fmt(a_)}V{E.fmt(b_)}" for a_, b_ in segs)
+    put("R5", f'<path d="{d}" fill="none" {c.stroke("BRUSH", theme.flare, caps="butt")}/>')
+    for a_, b_ in segs:
+        mark("track", "R5", (X - 2, a_, X + 2, b_))
     put("R12", f'<rect x="{E.fmt(X - bw / 2)}" y="{E.fmt(end_top)}" width="{bw}" height="{bh}" fill="{theme.flare}"/>')
     mark("bar", "R12", (X - bw / 2, end_top, X + bw / 2, end_top + bh))
     y = end_top + G["r13_gap"]
@@ -449,13 +532,13 @@ def _build(ctx) -> str:
     if end:
         if phone:
             lbl(end["file"], TX, y, "R13", "routes:R13", role="machine")
-            for i, line in enumerate(wrap(end["text"], RIGHT - TX)):
+            for i, ln in enumerate(wrap(end["text"], RIGHT - TX)):
                 y += LH
-                lbl(line, TX, y, "R13", "routes:R13")
+                say(ln, TX, y, "R13", "routes:R13")
         else:
             lbl(end["file"], TX, y, "R13", "routes:R13", role="machine")
             rx = TX + width(end["file"], "machine") + G["rule_after_file"]
-            lbl(end["text"], rx, y, "R13", "routes:R13")
+            say(end["text"], rx, y, "R13", "routes:R13")
         last = y
         y += LH
     ho = p["handoff"]
@@ -489,7 +572,8 @@ def _build(ctx) -> str:
     rep = ctx.extra
     rep["route"] = {"drawn": order, "unverified": p["unverified"], "entrance": p["entrance"],
                     "entrance_why": p["entrance_why"], "steps": step_report, "marks": marks,
-                    "last_baseline": round(last, 1), "height": h, "track": [round(track_top, 1), round(end_top, 1)]}
+                    "last_baseline": round(last, 1), "height": h,
+                    "track": [[round(a_, 1), round(b_, 1)] for a_, b_ in segs], "gap": bool(len(segs) > 1)}
     return E.svg(ed, w, h, body, k.glyph_defs(), sheet=NAME)
 
 

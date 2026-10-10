@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "updated_at": "2026-10-10T00:37:53Z",
+ "updated_at": "2026-10-10T01:34:10Z",
  "taken": "2026-10-10",
  "run_id": "local",
  "provenance": {
@@ -16,8 +16,7 @@
   },
   "graphql_at": null,
   "repo_list": [
-   "cache",
-   "readme"
+   "cache"
   ]
  },
  "login": "BenjaminSRussell",
@@ -946,6 +945,7 @@
     "SQL": 232
    },
    "stale_branch_count": 1,
+   "license": "MIT",
    "ci": {
     "workflow": "CI/CD Pipeline",
     "conclusion": "success",
@@ -1259,6 +1259,7 @@
     "Shell": 65
    },
    "stale_branch_count": 0,
+   "license": null,
    "months": {
     "2025-11": 1,
     "2025-12": 3,
@@ -1619,6 +1620,7 @@
     "Python": 848
    },
    "stale_branch_count": 0,
+   "license": null,
    "ci": {
     "workflow": "CI",
     "conclusion": "success",
@@ -5565,6 +5567,7 @@
     "Python": 55
    },
    "stale_branch_count": 3,
+   "license": null,
    "months": {
     "2026-05": 1
    },
@@ -5608,7 +5611,8 @@
   "stale": false,
   "scripts": [
    "rust_sitemap"
-  ]
+  ],
+  "modules": []
  },
  "notices": [
   {
@@ -5626,7 +5630,7 @@
    "repo": "Scrapy",
    "tag": "N2",
    "date": "2025-10",
-   "title": "Keep the log. Raw before clean.",
+   "title": "Raw before clean.",
    "url": "",
    "source": "hand",
    "body": "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten.",
@@ -5652,7 +5656,7 @@
    "url": "",
    "source": "hand",
    "body": "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not.",
-   "cite": "ideal-url-organizer, {month:urlparse}; Claude wrote its first version.",
+   "cite": "ideal-url-organizer, {month:urlparse}; Claude's commit used it first.",
    "n": 4
   },
   {
@@ -7342,7 +7346,7 @@
      "kind": "stop",
      "scope": "release",
      "loop": false,
-     "text": "start URL; by default also sitemaps, certificate logs, Common Crawl",
+     "text": "your URL, plus by default sitemaps, certificate logs, Common Crawl",
      "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7361,7 +7365,7 @@
      },
      "instead": [
       {
-       "text": "start URL; sitemaps, certificate logs, Common Crawl if asked",
+       "text": "your URL, plus sitemaps, certificate logs, Common Crawl if asked",
        "file": "seeder.rs",
        "verified_head": true,
        "verified_release": false,
@@ -7414,7 +7418,7 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "fetch a page; same-site links go back on the queue",
+     "text": "fetches a page; queues links on its domain, above or below it",
      "file": "bfs_crawler.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7425,10 +7429,12 @@
      "fails": [],
      "paths": {
       "head": [
-       "src/bfs_crawler.rs"
+       "src/bfs_crawler.rs",
+       "src/url_utils.rs"
       ],
       "release": [
-       "src/bfs_crawler.rs"
+       "src/bfs_crawler.rs",
+       "src/url_utils.rs"
       ]
      }
     },
@@ -7458,24 +7464,18 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "saved every 50 ms: after a kill, export-sitemap still works",
+     "text": "saved every 50 ms",
      "file": "writer_thread.rs",
      "verified_head": true,
      "verified_release": true,
      "missing": [],
-     "runs": [
-      "export_after_kill"
-     ],
+     "runs": [],
      "fails": [],
      "paths": {
       "head": [
-       "src/cli.rs",
-       "src/orchestration/export.rs",
        "src/writer_thread.rs"
       ],
       "release": [
-       "src/cli.rs",
-       "src/main.rs",
        "src/writer_thread.rs"
       ]
      }
@@ -7485,43 +7485,26 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "never ends by itself: no page or depth limit, and the parent domain counts as same-site",
+     "text": "never stops by itself, even after the last page",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
-     "runs": [],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
      "fails": [
       "ends_by_itself"
      ],
      "paths": {
       "head": [],
       "release": [
-       "src/cli.rs",
-       "src/url_utils.rs"
+       "src/bfs_crawler.rs"
       ]
      },
      "instead": [
       {
-       "text": "no depth limit, and the parent domain counts as same-site: stop it with --max-urls N",
-       "file": null,
-       "verified_head": true,
-       "verified_release": false,
-       "missing": [
-        "release src/cli.rs: no 'max_urls'"
-       ],
-       "runs": [],
-       "fails": [],
-       "paths": {
-        "head": [],
-        "release": [
-         "src/cli.rs",
-         "src/url_utils.rs"
-        ]
-       }
-      },
-      {
-       "text": "no page or depth limit, and the parent domain counts as same-site; a 3-page crawl ended in {secs:ends_by_itself} s",
+       "text": "",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -7533,8 +7516,7 @@
        "paths": {
         "head": [],
         "release": [
-         "src/cli.rs",
-         "src/url_utils.rs"
+         "src/bfs_crawler.rs"
         ]
        }
       }
@@ -7545,34 +7527,39 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once: that writes data/sitemap.jsonl; a second press or a kill skips it",
+     "text": "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, run `export-sitemap`",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "crawl_ctrl_c"
+      "crawl_ctrl_c",
+      "export_after_kill"
      ],
      "fails": [
       "kill_writes_file"
      ],
      "paths": {
       "head": [
+       "src/cli.rs",
+       "src/orchestration/export.rs",
        "src/orchestration/shutdown.rs"
       ],
       "release": [
+       "src/cli.rs",
        "src/main.rs"
       ]
      },
      "instead": [
       {
-       "text": "press Ctrl-C once: that writes data/sitemap.jsonl; a second press skips it",
+       "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
        "file": null,
        "verified_head": true,
        "verified_release": true,
        "missing": [],
        "runs": [
-        "crawl_ctrl_c"
+        "crawl_ctrl_c",
+        "kill_writes_file"
        ],
        "fails": [],
        "paths": {
@@ -7591,7 +7578,7 @@
      "kind": "end",
      "scope": "both",
      "loop": false,
-     "text": "one line per page: url, depth, status_code, title, …",
+     "text": "fields: `url, depth, status_code, title, …`",
      "file": "data/sitemap.jsonl",
      "verified_head": true,
      "verified_release": true,
@@ -7608,6 +7595,67 @@
        "src/state.rs"
       ]
      }
+    },
+    {
+     "id": "L1",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/cli.rs",
+       "src/state.rs"
+      ]
+     }
+    },
+    {
+     "id": "X1",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "{release} writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/sitemap_writer.rs"
+      ],
+      "release": [
+       "src/main.rs",
+       "src/sitemap_writer.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/sitemap_writer.rs: no 'SitemapIndexWriter'"
+       ],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/sitemap_writer.rs"
+        ]
+       }
+      }
+     ]
     }
    ],
    "gates": {
@@ -7617,6 +7665,10 @@
       "head tests/robots_4xx_allows_crawl.rs: file missing",
       "head tests/duration_stops_stalled_crawl.rs: file missing"
      ]
+    },
+    "python_api": {
+     "ok": true,
+     "missing": []
     }
    },
    "sdist": {
@@ -7851,6 +7903,42 @@
    "measured": null,
    "holds": true,
    "why": ""
+  },
+  {
+   "text": "deduplicated",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage3/stage3_worker.py",
+   "literal": "MinHashLSH",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
+  },
+  {
+   "text": "summarised",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage3/stage3_worker.py",
+   "literal": "extractive summary",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
+  },
+  {
+   "text": "needs Docker",
+   "repo": "Scrapy",
+   "path": "Scraping_project/start.py",
+   "literal": "\"local\": (\"docker\", \"docker-compose\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
   },
   {
    "text": "localhost:3000",

@@ -104,6 +104,35 @@ def scripts_in_wheel(data: bytes) -> list[str]:
     return sorted(out)
 
 
+def modules_in_wheel(data: bytes) -> list[str]:
+    """The top-level Python modules a wheel installs (review round 3: is there a Python API to import?): a package
+    directory with an `__init__.py`, or a top-level `.py` / extension module. `.data/` and `.dist-info/` are not
+    modules. Sorted, unique."""
+    out: set[str] = set()
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        for path in z.namelist():
+            top = path.split("/", 1)[0]
+            if top.endswith((".dist-info", ".data")):
+                continue
+            if path.endswith("/__init__.py") and path.count("/") == 1:
+                out.add(top)
+            elif "/" not in path and re.search(r"\.(py|so|pyd)$", path):
+                out.add(re.split(r"[.]", path, 1)[0])
+    return sorted(out)
+
+
+def wheel_modules(urls: list[str], get=_get) -> list[str] | None:
+    """The union over every wheel of the release; None when any download fails (the caller keeps the cache)."""
+    out: set[str] = set()
+    for url in urls:
+        try:
+            out |= set(modules_in_wheel(get(url)))
+        except Exception as exc:  # network, zip
+            print("pypi wheel read failed:", exc)
+            return None
+    return sorted(out)
+
+
 def wheel_scripts(urls: list[str], get=_get) -> list[str] | None:
     """The union over every wheel of the release; None when any download fails (the caller keeps the cache)."""
     out: set[str] = set()

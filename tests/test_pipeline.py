@@ -196,6 +196,47 @@ class Readme(unittest.TestCase):
     def setUp(self):
         self.cfg, self.stats = render_readme.load(CFG, STATS)
 
+    def test_round_three_page(self):
+        """Review round 3: the hero links to the project; the pick, about, license and load sentences follow the data;
+        the page speaks of him in the third person."""
+        pic = render_readme.picture("hero", self.cfg, "x", render_readme.hero_link(self.cfg))
+        self.assertTrue(pic.startswith('<a href="https://github.com/BenjaminSRussell/Rust-sitemap">\n<picture>'))
+        self.assertTrue(pic.endswith("</picture>\n</a>"))
+        # pick: only while its Scrapy rows hold and the route's header holds
+        rows = [{"text": f["text"], "repo": f["repo"], "use": "pick", "holds": True}
+                for f in self.cfg["figures"] if f.get("use") == "pick"]
+        s = dict(self.stats, figures=rows, routes={"rustmapper": {"header_verified": True}})
+        self.assertIn("**rustmapper**", render_readme.pick_block(s, self.cfg))
+        self.assertEqual(render_readme.pick_block(dict(s, figures=[dict(rows[0], holds=False)] + rows[1:]), self.cfg), "")
+        self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": {"header_verified": False}}), self.cfg), "")
+        # about: the 0.1.3 wheel has no module, so the Python API is main's while main has it
+        gates = {"rustmapper": {"repo": "Rust-sitemap", "gates": {"python_api": {"ok": True}}}}
+        s = dict(self.stats, edition={"version": "0.1.3", "modules": []}, routes=gates)
+        self.assertIn("is on main and not yet released", render_readme.about_block(s, "Rust-sitemap"))
+        s = dict(s, edition={"version": "0.1.4", "modules": ["rustmapper"]})
+        self.assertIn("a command line and a Python API", render_readme.about_block(s, "Rust-sitemap"))
+        s = dict(s, edition={"version": "0.1.3"})          # never read: no claim either way
+        self.assertTrue(render_readme.about_block(s, "Rust-sitemap").endswith("written in Rust."))
+        # license: printed only when GitHub detects one; null warns
+        base = {"repos": [{"name": "Rust-sitemap", "test_functions": 3, "license": None}]}
+        self.assertNotIn("MIT", render_readme.facts_block(base, "Rust-sitemap"))
+        base["repos"][0]["license"] = "MIT"
+        self.assertIn(" · MIT license", render_readme.facts_block(base, "Rust-sitemap"))
+        from checks import readme as readme_check
+        text = "<!-- facts:Rust-sitemap:start -->"
+        self.assertEqual([f.code for f in readme_check.license_flagship(text, {"repos": [{"name": "Rust-sitemap",
+                                                                                        "license": None}]})],
+                         ["LICENSE-FLAGSHIP"])
+        self.assertEqual(readme_check.license_flagship(text, base), [])
+
+    def test_no_first_person_on_the_page(self):
+        """Review round 3: the page is about him, in his name: no I, my, mine or me in its visible prose."""
+        from checks.strings import readme_visible
+        with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
+            text = re.sub(r"```.*?```", " ", fh.read(), flags=re.S)
+        prose = readme_visible(text)
+        self.assertEqual(re.findall(r"\b(?:I|my|mine|me|My|Me|Mine)\b", prose), [])
+
     def test_picture_order(self):
         hero = render_readme.picture("hero", self.cfg, 'A "boat" & co').splitlines()
         self.assertEqual(len(hero), 6)       # round 6: the hero does not move, so no reduced-motion sources
@@ -225,7 +266,8 @@ class Readme(unittest.TestCase):
         figs = render_readme.figures(self.stats, self.cfg)    # account_since is null without a dated GraphQL fetch
         self.assertIn(f"<!-- n:account_since -->{figs['account_since']}<!-- /n -->", once)
         self.assertIn(f"<!-- n:repo_count -->{self.stats['repo_count']}<!-- /n -->", once)
-        self.assertIn("<!-- picture:hero:start -->\n<picture>\n<source media=", once, "bare pictures are wrapped")
+        self.assertIn("<!-- picture:hero:start -->\n<a href=\"https://github.com/BenjaminSRussell/Rust-sitemap\">\n"
+                      "<picture>\n<source media=", once, "bare pictures are wrapped, the hero in its project's link")
         self.assertIn("1. **Boring under load.**", once)
         self.assertIn("<!-- instruments:start -->\n<!-- instruments:end -->", once, "v9.1: the sheet shows it, no mirror")
         self.assertIn("/footer-still-day.svg", once, "a picture block the README carries is written")
@@ -250,7 +292,8 @@ class Readme(unittest.TestCase):
         self.assertIn(f"Tests and CI measured {figs['taken']} from {figs['repo_count']} public repositories · "
                       "regenerated weekly.", block)
         head = block[5:block.index(" · regenerated weekly.")]
-        self.assertLessEqual(len(head.split()), 52, "review round 2: two plain sentences")
+        # review round 3: three plain sentences; the second says whose reader the hand-off names and at which commit
+        self.assertLessEqual(len(head.split()), 64, "three plain sentences")
         self.assertIn("(a local 3-page site, `--seeding-strategy none`)", block)
         self.assertIn("Ctrl\u2011C", block)
         for figure in ("commits", "all_hands", "calendar_total"):
@@ -261,7 +304,7 @@ class Readme(unittest.TestCase):
             self.assertNotIn(word, block, word)
         self.assertNotIn("bulk-edit", block)      # round 6: no figure on the page uses commit-days
         cot = self.stats.get("coauthored_total") or {}
-        self.assertEqual("% of my commits carry an AI co-author trailer" in block, "agent_share" in cot)
+        self.assertEqual("% of Ben's commits carry an AI co-author trailer" in block, "agent_share" in cot)
         self.assertEqual("written by coding agents" in block or "written by a coding agent" in block,
                          bool((self.stats.get("agent_authored") or {}).get("total")))
         # F3.4's own example, from a fixture carrying the keys the data builder adds
@@ -272,8 +315,8 @@ class Readme(unittest.TestCase):
                 "agent_authored": {"total": 297, "names": {"google-labs-jules[bot]": 125, "Claude": 172}}}
         self.assertEqual(render_readme.survey_block(full),
                          "<sub>Tests and CI measured 9 Oct 2026 from 21 public repositories · regenerated weekly. "
-                         "3\u00a0% of my commits carry an AI co-author trailer; 297 more were written by "
-                         "coding agents (Claude, jules) and are not counted as mine.</sub>")
+                         "3\u00a0% of Ben's commits carry an AI co-author trailer; 297 more were written by "
+                         "coding agents (Claude, jules) and are not counted as his.</sub>")
         # round 6: with the route, its head and the run check, the line says what the drawing was checked against
         routed = dict(full, edition={"project": "rustmapper", "version": "0.1.3"},
                       routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
@@ -283,9 +326,16 @@ class Readme(unittest.TestCase):
                                                "steps": [{"id": i, "ok": True} for i in
                                                          ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
         self.assertTrue(render_readme.survey_block(routed).startswith(
-            "<sub>The drawing is rustmapper 0.1.3 from PyPI: every file it names is in that release, and its install, "
-            "crawl, Ctrl\u2011C, kill and export lines ran on 9 Oct 2026 (macOS arm64). Tests and CI measured "
-            "9 Oct 2026"))
+            "<sub>The drawing is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release. "
+            "Its install, crawl, Ctrl\u2011C, kill and export lines were run on 9 Oct 2026 (macOS arm64). Tests and CI "
+            "measured 9 Oct 2026"))
+        # review round 3: with the hand-off drawn, the line says the reader is the other project's, at its commit
+        handed = dict(routed, routes={"rustmapper": {"repo": "Rust-sitemap", "entries": [
+            {"id": "R13", "kind": "end", "file": "data/sitemap.jsonl"}]}},
+            handoffs=[{"id": "j", "from": "Rust-sitemap", "to": "ideal-url-organizer", "file": "data/sitemap.jsonl",
+                       "state": "runs", "to_sha": "159968a7d4b82bb116c2068489748ae357882e68"}])
+        self.assertIn("in that release; the reader it points to is ideal-url-organizer's, at `159968a`.",
+                      render_readme.survey_block(handed))
         # review round 2: the crawl says what ran, from the step's own command
         step = {"id": "crawl_ctrl_c", "ok": True, "detail": "exit 0; 3 lines; keys present",
                 "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d"}
@@ -294,16 +344,16 @@ class Readme(unittest.TestCase):
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
         no_share = dict(full, coauthored_total={"count": 502, "agent": 63})
-        self.assertEqual(clause(no_share), "297 commits were written by coding agents (Claude, jules) and are not counted as mine")
+        self.assertEqual(clause(no_share), "297 commits were written by coding agents (Claude, jules) and are not counted as his")
         no_agents = {k: v for k, v in full.items() if k != "agent_authored"}
-        self.assertEqual(clause(no_agents), "3\u00a0% of my commits carry an AI co-author trailer")
+        self.assertEqual(clause(no_agents), "3\u00a0% of Ben's commits carry an AI co-author trailer")
         self.assertEqual(clause({}), "")
         self.assertEqual(clause(dict(full, coauthored_total={"agent_share": 0.004})).split(";")[0],
-                         "under 1\u00a0% of my commits carry an AI co-author trailer")
+                         "under 1\u00a0% of Ben's commits carry an AI co-author trailer")
         self.assertEqual(clause(dict(full, coauthored_total={"agent_share": 0})).split(";")[0],
-                         "none of my commits carry an AI co-author trailer")
+                         "none of Ben's commits carry an AI co-author trailer")
         self.assertEqual(clause(dict(full, agent_authored={"total": 1, "names": ["Claude Sonnet 5"]})).split("; ")[1],
-                         "1 more was written by a coding agent (Claude) and is not counted as mine")
+                         "1 more was written by a coding agent (Claude) and is not counted as his")
         self.assertEqual(clause(dict(no_share, agent_authored={"total": 0, "names": {}})), "", "zero agent commits, no half")
         self.assertEqual([render_readme.agent_short(n) for n in ("google-labs-jules[bot]", "Claude", "Claude Haiku 4.5", "other[bot]")],
                          ["jules", "Claude", "Claude", "other"])
@@ -388,7 +438,7 @@ class Readme(unittest.TestCase):
         cfg = dict(self.cfg, position={"text": "open to work · UTC−5"})
         self.assertEqual(render_readme.position_block(cfg), "<i>open to work · UTC−5</i><br>")
         self.assertEqual(render_readme.position_block(self.cfg), "", "chart.toml's position is empty today")
-        self.assertIn("License", render_readme.license_block())
+        self.assertIn("**This profile** Code MIT", render_readme.license_block())
         self.assertTrue(render_readme.license_block().endswith(" · how it's built → [DESIGN.md](DESIGN.md)</sub>"))
         self.assertTrue(render_readme.license_block().startswith("<sub>"))
 
@@ -401,14 +451,16 @@ class Readme(unittest.TestCase):
             self.assertNotIn(f"/{sheet}-day.svg", text, sheet)
         order = ["<!-- picture:hero:end -->", "<!-- position:start", '<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>',
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
+                 "<!-- pick:start -->",
                  "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
                  "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
                  "pip install rustmapper", "Prebuilt for Apple silicon",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "# run start.py from inside this dir", "cd Scraping_project", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
+                 "<!-- facts:Scrapy:start -->", "# run start.py from inside this dir", "cd Scraping_project", "python start.py",
+                 "# or only discovery, on your own site:", "docker-compose run --rm scraper", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
                  "<!-- survey:start -->", "<sub>The drawing is rustmapper", " · regenerated weekly.",
-                 "<!-- license:start -->", "**License**", "[DESIGN.md](DESIGN.md)"]
+                 "<!-- license:start -->", "**This profile** Code MIT", "[DESIGN.md](DESIGN.md)"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
         for gone in ("## Soundings", "## Approaches", "## Ship's log", "## Instruments", "<summary><b>Colophon</b>",

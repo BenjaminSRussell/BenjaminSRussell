@@ -120,6 +120,8 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
         rec = {"text": str(f.get("text")), "repo": str(f.get("repo")), "path": f.get("path"),
                "literal": f.get("literal"), "glob": f.get("glob"), "count": f.get("count"), "measured": None,
                "holds": False, "why": ""}
+        if f.get("use"):        # review round 3: a row that a build-written sentence rests on (`pick`)
+            rec["use"] = str(f["use"])
         gd = git_dirs.get(rec["repo"])
         if not gd:
             old = cached.get((rec["text"], rec["repo"]))

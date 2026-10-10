@@ -4,7 +4,7 @@ The hero's picture block is required; any other sheet's block is checked only wh
 it (round 4, D1: the page is the hero and written text; the supporting sheets are off the page). Each
 block has exactly one start and one end marker and a <picture> that opens and closes inside it; no
 picture block inside <details>; <details> balanced; the license block present when LICENSE and
-LICENSE-ASSETS.md exist; render_readme --check clean (the committed README is what the renderer
+LICENSE-ASSETS.md exist; LICENSE-FLAGSHIP warns for a flagship GitHub detects no license for; render_readme --check clean (the committed README is what the renderer
 would write). Round 6, review 1: no line of a fenced code block is over CODE_COLUMNS characters (a 375 px phone
 shows about 38 columns of GitHub's code font; a longer line hides its end, which is where the warnings were), except a
 line that is one unbreakable URL."""
@@ -36,6 +36,22 @@ def code_too_wide(text: str, limit: int = CODE_COLUMNS) -> list[tuple[int, str]]
 def page_sheets(text: str) -> list[str]:
     found = re.findall(r"<!--\s*picture:([\w-]+):(?:start|end)\b", text)
     return list(REQUIRED) + [s for s in dict.fromkeys(found) if s not in REQUIRED]
+
+
+def license_flagship(text: str, stats: dict) -> list[Finding]:
+    """LICENSE-FLAGSHIP (warn, review round 3): a repository with a facts line whose GitHub license is null: without
+    a license nobody may use it, and the page prints none. Not measured (no key): a note, not a warning."""
+    out = []
+    for name in re.findall(r"<!--\s*facts:([\w.-]+):start\b", text):
+        r = next((x for x in stats.get("repos") or [] if x.get("name") == name), None)
+        if r is None:
+            continue
+        if "license" not in r:
+            out.append(warn("LICENSE-FLAGSHIP", f"{name}: license not measured (no REST answer this run)", "stats.json"))
+        elif not r.get("license"):
+            out.append(warn("LICENSE-FLAGSHIP", f"{name}: GitHub detects no license (commit a LICENSE file; the page "
+                            "prints none)", "stats.json"))
+    return out
 
 
 def check(ctx) -> list[Finding]:
@@ -72,8 +88,9 @@ def check(ctx) -> list[Finding]:
     root = getattr(ctx, "root", ".")
     if all(os.path.exists(os.path.join(root, f)) for f in ("LICENSE", "LICENSE-ASSETS.md")):
         m = re.search(r"<!--\s*license:start\b[^>]*-->(.*?)<!--\s*license:end\s*-->", text, re.S)
-        if not m or "License" not in m.group(1):
+        if not m or "Code MIT" not in m.group(1):
             out.append(fail("README-LICENSE", "LICENSE files exist but the License bullet is not rendered", "README.md"))
+    out += license_flagship(text, ctx.stats or {})
     try:
         import render_readme as rr
         cfg, stats = rr.load()

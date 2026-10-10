@@ -132,6 +132,14 @@ def edition_scripts(ed: dict | None, cache: dict) -> dict | None:
             ed["scripts"] = got
     if "scripts" not in ed and old.get("scripts") and old.get("version") == ed.get("version"):
         ed["scripts"] = list(old["scripts"])
+    # review round 3: the Python modules the wheels install ([] when they ship only the command line); carried while
+    # the version is unchanged, absent when never read (the README then claims no Python API either way)
+    if old.get("version") == ed.get("version") and isinstance(old.get("modules"), list):
+        ed["modules"] = list(old["modules"])
+    elif urls:
+        got = pypi.wheel_modules(urls)
+        if got is not None:
+            ed["modules"] = got
     return ed
 
 
@@ -432,6 +440,10 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
             rec["archived"] = bool(m.get("archived", rec.get("archived", False)))
             rec["stars"] = m.get("stars", rec.get("stars"))
             rec["language"] = m.get("language", rec.get("language"))
+            if "license" in m:      # review round 3: the SPDX id GitHub detects, None when it detects none
+                rec["license"] = m["license"]
+            elif name in cached_v2 and "license" in cached_v2[name]:
+                rec["license"] = cached_v2[name]["license"]
             if name in flagships:   # D4: the project's own CI on its default branch, where the API answers
                 ci = github.rest_runs(owner, name, token, m.get("default_branch") or "main")
                 if ci is not None:

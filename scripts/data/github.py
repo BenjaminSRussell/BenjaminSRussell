@@ -1,7 +1,7 @@
 """github — the second instrument: GraphQL metadata, contribution calendar, followers.
 
     fetch(token, login, window) -> dict   GraphQL metadata + the contribution window; raises on failure
-    rest_repo(owner, repo, token=None) -> dict | None       repo-scoped REST fallback (token optional)
+    rest_repo(owner, repo, token=None) -> dict | None       repo-scoped REST fallback (token optional), with license
     rest_languages(owner, repo, token=None) -> dict | None  {language: bytes}
     rest_releases(owner, repo, token=None) -> list | None
     rest_runs(owner, repo, token=None, branch) -> dict | None  the latest completed push run on the default branch
@@ -47,6 +47,7 @@ query($login: String!) {
         createdAt
         defaultBranchRef { name }
         primaryLanguage { name }
+        licenseInfo { spdxId }
         languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name } } }
       }
     }
@@ -123,6 +124,7 @@ def fetch(token: str, login: str = LOGIN, window: tuple[dt.date, dt.date] | None
             "created": (repo.get("createdAt") or "")[:10] or None,
             "language": (repo["primaryLanguage"] or {}).get("name"),
             "languages": {e["node"]["name"]: e["size"] for e in repo["languages"]["edges"]},
+            "license": _spdx((repo.get("licenseInfo") or {}).get("spdxId")),
         }
     lo, hi = window or (now.date() - dt.timedelta(days=365), now.date())
     frm, to = f"{lo.isoformat()}T00:00:00Z", f"{hi.isoformat()}T23:59:59Z"
@@ -205,7 +207,14 @@ def rest_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
         "fork": bool(d.get("fork")),
         "private": bool(d.get("private")),
         "default_branch": d.get("default_branch") or "main",
+        # review round 3: the license GitHub detects from the LICENSE file (its SPDX id); None when it finds none or
+        # cannot name it (NOASSERTION), so the page never states a license GitHub does not
+        "license": _spdx((d.get("license") or {}).get("spdx_id")),
     }
+
+
+def _spdx(v) -> str | None:
+    return str(v) if v and str(v) != "NOASSERTION" else None
 
 
 def rest_languages(owner: str, repo: str, token: str | None = None) -> dict | None:
