@@ -266,7 +266,9 @@ def notices_block(cfg: dict, stats: dict, limit: int = NOTICES_ON_PAGE) -> str:
     rows = []
     hand = sorted(cfg.get("notices", []), key=lambda x: x.get("n", 0))[:limit]
     for i, nt in enumerate(hand, 1):
-        body = f" {nt['body']}" if nt.get("body") else ""
+        # review round 8: a body's `{days:…}` from the rule records (proof.fill_days); "?" fails NOTICE-DATE
+        body = f" {keep_together(proof.fill_days(nt['body'], int(nt.get('n', i)), stats.get('rules') or [])[0])}" \
+            if nt.get("body") else ""
         text, _missing = proof.fill_cite(nt.get("cite") or "", int(nt.get("n", i)), stats.get("rules") or [])
         cite = f" *{keep_together(text)}*" if text else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
@@ -516,7 +518,8 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
                   f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
     # the wheel note, then (review round 3) what the release does to a site and to a big one, as its own paragraph
-    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), " ".join(text_entries(route, rc, ed, _repo(stats, repo))))
+    # review round 8: an entry marked `para` starts a paragraph (what it does to a site; what it sees and writes)
+    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), *text_paragraphs(route, rc, ed, _repo(stats, repo)))
              if x]
     return "\n".join(lines) + "".join(f"\n\n{keep_together(x)}" for x in paras)
 
@@ -547,7 +550,18 @@ def _file_name(path: str) -> str:
     return path[2:] if str(path).startswith("./") else str(path)
 
 
-def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None) -> list[str]:
+def text_paragraphs(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None) -> list[str]:
+    """The text entries joined into paragraphs: a new one at each entry marked `para` (review round 8)."""
+    out: list[list[str]] = [[]]
+    for text, para in text_entries(route, rc, ed, repo, with_para=True):
+        if para and out[-1]:
+            out.append([])
+        out[-1].append(text)
+    return [" ".join(p) for p in out if p]
+
+
+def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,
+                 with_para: bool = False) -> list:
     """Review round 3: the route's `text` entries (how hard it hits a site; the release's single sitemap file), each
     printed only while its anchors hold, through the same engine as the image's rows; a retired one prints nothing,
     an unverified one nothing (ROUTE-UNVERIFIED fails it). Review round 5: an entry with `ci` (what main has fixed)
@@ -571,7 +585,7 @@ def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dic
                 if not head:
                     continue
                 text = text.replace("{head}", head)
-            out.append(text)
+            out.append((text, bool(e.get("para"))) if with_para else text)
     return out
 
 

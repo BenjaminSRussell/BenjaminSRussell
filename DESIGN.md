@@ -10,11 +10,12 @@ Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 5): the hero is the way into rus
 you start it, what it does with each page, where a stranger goes wrong and how to get out, and where the output goes
 next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date
 set right after the command, the stops on the magenta track (what happens there, every row's words at one left edge;
-the track is painted first, so each ring sits on it), the governor as a clause of the fetch stop's words, next to
-the verb it qualifies, with its 500 ms threshold, the write path (the write-ahead log, fsynced, then redb, in batches), the rows that repeat for every page closed
+the track is painted first, so each ring sits on it), the per-host cap as a clause of the fetch stop's words, next to
+its verb (up to 20 pages at a time from each host; 0.1.3's governor stops at 32 idle permits and never slows a one-site
+crawl, so its "fewer at once" wording waits for a release without that floor), the write path (the write-ahead log, fsynced, then redb, in batches), the rows that repeat for every page closed
 by one line back up the left side, the one hazard on that loop, which names its release, with its words (and the line
-of output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C once) on
-the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin line on to ideal-url-organizer,
+of output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C once; a second press before `Saved to:`,
+which the tool itself invites, quits before the file is written) on the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin line on to ideal-url-organizer,
 which sorts that file and tests the join. While the release never stops by itself the track breaks under the loop and
 starts again just above Ctrl-C, so the shape alone says the only way on is the reader's. Code inside a row's words is
 set in the code face, its spaces at the text's word space. What to do after a kill is a comment in the README's code

@@ -18,10 +18,16 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
     robots_read         (review round 6) a crawl of a local http site whose robots.txt disallows /secret.html (and
                         sets Crawl-delay: 5) asks for /robots.txt and never for /secret.html; the server's own
                         request log decides, not the crawler's output
+    workers_cap         (review round 8) `--workers 1` holds a crawl to one request at a time: the fixture site,
+                        each answer held WORKERS_DELAY s, crawled twice; with the default workers the server sees two
+                        requests open at once (the index's two links), with `--workers 1` never more than one
+    second_ctrl_c       (review round 8) a second SIGINT SECOND_AFTER s after the first quits before the export:
+                        exit 1 and no sitemap.jsonl (0.1.3's "Press Ctrl+C again to force quit")
 
 Only the robots probe, against a binary already installed (it needs no install):
 
     python3 scripts/runcheck.py --probe robots_read --exe <venv>/bin/rust_sitemap --version 0.1.3 --out steps.json
+    python3 scripts/runcheck.py --probe workers_cap,second_ctrl_c --exe … --version 0.1.3 --out steps.json
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -68,6 +74,9 @@ ENDS_SECONDS = 150      # ends_by_itself: how long a crawl with no signal is giv
 KILL_SECONDS = 5        # kill_writes_file: SIGTERM after this long
 RESUME_SECONDS = 20     # resume_after_kill: one SIGINT after this long, if it is still running
 QUIET_SECONDS = 100     # quiet_after_last_page: the last work-item line at least this long before the SIGINT
+WORKERS_DELAY = 1.0     # workers_cap: each answer is held this long, so two requests in flight overlap on the server
+WORKERS_SECONDS = 15    # workers_cap: one SIGINT after this long (three pages, one at a time, take about 3 s)
+SECOND_AFTER = 0.3      # second_ctrl_c: the second SIGINT this long after the first (0.1.3 waits 2 s before saving)
 WORK_ITEM = re.compile(r"Received work item: (\S+)")   # the line 0.1.3 prints for every URL it starts (stderr)
 
 
@@ -151,6 +160,110 @@ def probe_robots(steps: list, exe: str, name: str, work: Path) -> None:
     ok, detail = robots_verdict(paths)
     _step(steps, "robots_read", f"{name} crawl of an http site whose robots.txt disallows /secret.html reads it",
           ok, f"{detail}; {exited}", took, gate=False)
+
+
+class _Slow(_Quiet):
+    """The fixture server that holds each answer WORKERS_DELAY s and keeps (start, end) of every page request
+    (review round 8, workers_cap)."""
+    spans: list = []
+
+    def do_GET(self):  # noqa: N802 - http.server's name
+        t0 = time.monotonic()
+        time.sleep(WORKERS_DELAY)
+        try:
+            super().do_GET()
+        finally:
+            type(self).spans.append((t0, time.monotonic(), self.path.split("?")[0]))
+
+
+def serve_slow(site: Path) -> tuple[socketserver.TCPServer, int, list]:
+    spans: list = []
+    cls = type("_SlowSite", (_Slow,), {"spans": spans})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
+    httpd.daemon_threads = True
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, httpd.server_address[1], spans
+
+
+def max_open(spans: list[tuple[float, float, str]]) -> int:
+    """The most requests the server had open at one moment (an end and a start at the same instant do not overlap)."""
+    events = sorted([(a, 1) for a, _b, _p in spans] + [(b, -1) for _a, b, _p in spans], key=lambda e: (e[0], e[1]))
+    cur = best = 0
+    for _t, d in events:
+        cur += d
+        best = max(best, cur)
+    return best
+
+
+def workers_verdict(default_spans: list, capped_spans: list) -> tuple[bool, str]:
+    """workers_cap: with the default the server saw two requests open at once (so the site can show an overlap), and
+    with `--workers 1` never more than one, over at least two pages."""
+    d, c = max_open(default_spans), max_open(capped_spans)
+    ok = d >= 2 and c == 1 and len(capped_spans) >= 2
+    return ok, (f"default workers: {len(default_spans)} requests, at most {d} open at once; --workers 1: "
+                f"{len(capped_spans)} requests, at most {c} open at once")
+
+
+def probe_workers(steps: list, exe: str, name: str, work: Path) -> None:
+    """workers_cap: the fixture site, slowed, crawled with the default workers and with `--workers 1`."""
+    runs = {}
+    for tag, extra in (("default", []), ("capped", ["--workers", "1"])):
+        httpd, port, spans = serve_slow(SITE)
+        try:
+            d = work / f"dw-{tag}"
+            proc, _t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
+                                     *extra, "--data-dir", str(d)], work, f"workers-{tag}.log")
+            exited, _secs = _stop(proc, signal.SIGINT, WORKERS_SECONDS)
+        finally:
+            httpd.shutdown()
+        runs[tag] = (list(spans), exited)
+    ok, detail = workers_verdict(runs["default"][0], runs["capped"][0])
+    _step(steps, "workers_cap", f"{name} crawl --workers 1 keeps one request open at a time", ok,
+          f"{detail}; {runs['capped'][1]}", gate=False)
+
+
+def second_verdict(code: int | None, wrote: bool, saved_line: bool) -> tuple[bool, str]:
+    """second_ctrl_c: the second SIGINT ended the run with exit 1 before the export, so no sitemap.jsonl."""
+    ok = code == 1 and not wrote
+    return ok, (f"exit {code}; sitemap.jsonl {'written' if wrote else 'not written'}; "
+                f"`Saved to:` {'printed' if saved_line else 'not printed'}")
+
+
+def probe_second(steps: list, exe: str, name: str, work: Path) -> None:
+    """second_ctrl_c: crawl the fixture, SIGINT after WORKERS_SECONDS, a second one SECOND_AFTER s later."""
+    httpd, port = serve(SITE)
+    try:
+        d = work / "d5"
+        proc, _t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
+                                 "--data-dir", str(d)], work, "second.log")
+        code = None
+        try:
+            proc.wait(WORKERS_SECONDS)
+            code = proc.returncode
+        except subprocess.TimeoutExpired:
+            proc.send_signal(signal.SIGINT)
+            time.sleep(SECOND_AFTER)
+            if proc.poll() is None:
+                proc.send_signal(signal.SIGINT)
+            try:
+                code = proc.wait(EXIT_SECONDS)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+        proc._log.close()  # type: ignore[attr-defined]
+    finally:
+        httpd.shutdown()
+    try:
+        log = (work / "second.log").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        log = ""
+    ok, detail = second_verdict(code, (d / "sitemap.jsonl").is_file(), "Saved to:" in log)
+    _step(steps, "second_ctrl_c", f"{name} crawl: a second SIGINT {SECOND_AFTER} s after the first quits before "
+          "writing sitemap.jsonl", ok, detail, gate=False)
+
+
+PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second}
 
 
 def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
@@ -400,6 +513,10 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
             # probe: does it read robots.txt on a plain-http site, and keep out of what it disallows?
             probe_robots(steps, exe, name, work)
 
+            # review round 8: does --workers hold it to that many requests, and what does a second Ctrl-C do?
+            probe_workers(steps, exe, name, work)
+            probe_second(steps, exe, name, work)
+
             # probes: a kill, then export-sitemap and resume on what it left
             d3 = work / "d3"
             proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(d3)],
@@ -442,7 +559,8 @@ def main(argv=None) -> int:
     ap.add_argument("--work", help="work directory (default: a temporary one, removed after)")
     ap.add_argument("--out", default="runcheck.json")
     ap.add_argument("--install-runs", type=int, default=INSTALL_RUNS, help="how many cold installs to time")
-    ap.add_argument("--probe", choices=("robots_read",), help="run only this probe, against --exe (no install)")
+    ap.add_argument("--probe", help="comma-separated probes to run alone, against --exe (no install): "
+                    + ", ".join(PROBES))
     ap.add_argument("--exe", help="with --probe: the installed executable")
     a = ap.parse_args(argv)
     if a.probe:
@@ -452,8 +570,13 @@ def main(argv=None) -> int:
         work = Path(a.work) if a.work else Path(tempfile.mkdtemp(prefix="runcheck-probe-"))
         work.mkdir(parents=True, exist_ok=True)
         steps: list[dict] = []
+        names = [x for x in a.probe.split(",") if x]
+        if any(x not in PROBES for x in names):
+            print(f"runcheck: --probe takes {', '.join(PROBES)}", file=sys.stderr)
+            return 2
         try:
-            probe_robots(steps, a.exe, Path(a.exe).name, work)
+            for x in names:
+                PROBES[x](steps, a.exe, Path(a.exe).name, work)
         finally:
             if not a.work:
                 shutil.rmtree(work, ignore_errors=True)

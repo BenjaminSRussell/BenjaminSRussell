@@ -86,7 +86,7 @@ class Rules(unittest.TestCase):
         block = rr.notices_block(cfg, stats).replace("\u00a0", " ")
         # review round 7: rule 1 cites the per-host breakers that run (his 099dd6c), not the uncalled class
         self.assertIn("*Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*", block)
-        self.assertIn("*Scrapy, Oct 2025, the Delta Lake tables.*", block)
+        self.assertIn("*Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*", block)
         self.assertNotIn("write-ahead", block)
         self.assertNotIn("?", block.replace("don't", ""))
 

@@ -7,7 +7,11 @@ banned as a hand-typed figure, not as a date).
 
 STRINGS-TWICE (round 6, review 1: one home per fact): no run of more than TWICE_WORDS words, and (review 2) no
 run of SHORT_WORDS words that names code or a date, appears both in the hero's text and in README.md's visible text (the alt text, which repeats the image for screen readers by design, and
-HTML comments are left out). The image keeps what a list cannot show; the text keeps what you copy or look up."""
+HTML comments are left out). The image keeps what a list cannot show; the text keeps what you copy or look up.
+
+STRINGS-COUNT (review round 8: one count for one thing across the page): a hero run that says "<n> ways" and names a
+repository needs the numeral n in that repository's README line (the list item that links to it), so the image's
+"sorted 21 ways by ideal-url-organizer" and the Also line cannot give two unexplained counts."""
 from __future__ import annotations
 
 import os
@@ -109,6 +113,34 @@ def twice(hero_text: list[str], readme: str, n: int = TWICE_WORDS + 1, short: in
     return hits
 
 
+_WAYS = re.compile(r"\b(\d[\d,]*) ways\b")
+
+
+def readme_line_for(readme: str, repo: str) -> str | None:
+    """The README line that links to github.com/<owner>/<repo> as a list item (the Also list), or None."""
+    for line in (readme or "").splitlines():
+        if line.lstrip().startswith("- ") and re.search(r"github\.com/[\w.-]+/" + re.escape(repo) + r"\)", line):
+            return line
+    return None
+
+
+def count_mismatch(hero_runs: list[str], readme: str, repos: list[str]) -> list[str]:
+    """STRINGS-COUNT: each "<n> ways … <repo>" in the hero, where the repository's README line lacks n."""
+    out = []
+    for run in hero_runs:
+        for m in _WAYS.finditer(run):
+            for repo in repos:
+                if not re.search(r"(?<![\w-])" + re.escape(repo) + r"(?![\w-])", run):
+                    continue
+                line = readme_line_for(readme, repo)
+                n = m.group(1)
+                if line is None:
+                    out.append(f"{run!r}: {repo} has no README line to agree with")
+                elif not re.search(r"(?<![\d,])" + re.escape(n) + r"(?![\d,])", line.replace("\u00a0", " ")):
+                    out.append(f"{run!r}: {repo}'s README line does not say {n}")
+    return out
+
+
 def scan(text: str, where: str, code: str = "STRINGS-BANNED") -> list[Finding]:
     out = []
     text = str(text or "").replace("\u00a0", " ")     # review round 7: the README joins dates with U+00A0
@@ -136,6 +168,9 @@ def check(ctx) -> list[Finding]:
             runs = [str(t.get("s", "")) for t in e.get("text", []) if isinstance(t, dict)]
             for hit in twice(runs + [" ".join(runs)], ctx.readme):
                 out.append(fail("STRINGS-TWICE", f"{hit!r} is in the image and in the README: say it once", name))
+            repos = [str(r.get("name")) for r in (ctx.stats or {}).get("repos") or [] if r.get("name")]
+            for hit in count_mismatch(runs, ctx.readme, repos):
+                out.append(fail("STRINGS-COUNT", f"{hit}: one count for one thing", name))
     if ctx.readme:
         readme = _N_SPAN.sub("", ctx.readme)
         readme = _MARKER.sub("", readme)

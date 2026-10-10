@@ -35,6 +35,9 @@ ROUTE-PHONE-PX (fail): a phone text run under MIN_PX at PHONE_SCREEN, or under M
   page, 10 Oct 2026): 308 px on a 390 px iPhone, 278 px on a 360 px Android; the sheet's own width is read from the
   build report.
 ROUTE-PURPOSE (fail): a drawn element without a row in the sheet's PURPOSE table.
+ROUTE-HEAD-GAP (fail, review round 8): on a phone edition the project's name sits less than HEAD_GAP_PITCHES times
+  the role line's own pitch under the role's last baseline: closer, "PYTHON AND RUST / rustmapper" reads as one
+  block of three lines, not as a role and then the drawing's heading.
 """
 from __future__ import annotations
 
@@ -55,6 +58,8 @@ WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
 # inside one screen at 308 px: 640 px on screen is 1,246 units (today 1,169; with S2 drawn 1,246, after the phone's
 # title gap and foot gave back 18 units; LOG round 6)
 HEIGHT = {"desk": 620, "phone": 1246}
+# review round 8: today desk 571, phone 1,121 (the title gap is 70, F1 three phone lines); with S2 drawn about 1,198
+HEAD_GAP_PITCHES = 2
 RELEASE_GAP_MAX = 40
 CODE_SPACE_MAX = 1.3
 TWICE_SELF = 4
@@ -221,6 +226,20 @@ def code_spaces(texts: list[dict], where: str, label_space: float) -> list[Findi
     return out
 
 
+def head_gap(texts: list[dict], where: str, pitches: float = HEAD_GAP_PITCHES) -> list[Finding]:
+    """ROUTE-HEAD-GAP: the gap from the role line's last baseline to the project name's, against the role's pitch."""
+    role = sorted(float(t["y"]) for t in texts if t.get("key") == "copy:role_line" and t.get("y") is not None)
+    proj = [float(t["y"]) for t in texts if t.get("key") == "routes:project" and t.get("y") is not None]
+    if len(role) < 2 or not proj:
+        return []
+    pitch = role[1] - role[0]
+    gap = min(proj) - role[-1]
+    if gap < pitches * pitch - 1e-6:
+        return [fail("ROUTE-HEAD-GAP", f"the project's name is {gap:g} under the role line, under {pitches:g} x its "
+                     f"pitch ({pitch:g})", where)]
+    return []
+
+
 def check(ctx) -> list[Finding]:
     out: list[Finding] = []
     stats = ctx.stats or {}
@@ -276,6 +295,8 @@ def check(ctx) -> list[Finding]:
         words = theme_words(" ".join(str(t.get("s", "")) for t in texts) + " " + str(e.get("alt", "")))
         if words:
             out.append(fail("ROUTE-WORDS", f"theme words on the hero or in its alt: {', '.join(words)}", name))
+        if phone:
+            out += head_gap(texts, name)
         out += labels(route, texts, name, stats.get("handoffs"))
         out += left_edge(e, name)
         out += code_face(texts, name)

@@ -125,7 +125,9 @@ class Governor(unittest.TestCase):
         self.assertIn("{const:THROTTLE_THRESHOLD_MS}", f1["text"])
         self.assertTrue(any(a.get("producer") for a in f1["release"]))
         drawn = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
-        self.assertTrue(drawn["F1"]["text"].startswith("fetches pages, fewer at once when saves average over 500 ms; "))
+        # review round 8: the governor wording is first and does not hold for 0.1.3 (its floor of 32 idle permits)
+        self.assertTrue(f1["text"].startswith("fetches pages, fewer at once when saves average over"))
+        self.assertTrue(drawn["F1"]["text"].startswith("fetches up to 20 pages at a time from each host; "))
         self.assertNotIn("G1", sheet.PURPOSE)
 
 
@@ -159,7 +161,7 @@ class RuleOne(unittest.TestCase):
         for b in bodies:
             self.assertNotRegex(b, r"you cannot .* you cannot")
         self.assertEqual(bodies[0], "One failing host is set aside for a minute; the rest of the crawl goes on.")
-        self.assertEqual(bodies[2], "Dashboards go in version one.")
+        self.assertTrue(bodies[2].startswith("Metrics were exported {days:prometheus} days"), bodies[2])
 
 
 WRITER = """

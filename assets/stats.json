@@ -5679,7 +5679,7 @@
    "url": "",
    "source": "hand",
    "body": "Next month's question can't be known today, so the raw layer is appended to and never overwritten.",
-   "cite": "Scrapy, {month:delta}, the Delta Lake tables.",
+   "cite": "Scrapy, {month:delta}: raw pages written to Delta Lake with `write_deltalake`.",
    "n": 2
   },
   {
@@ -7470,8 +7470,10 @@
      "text": "fetches pages, fewer at once when saves average over 500 ms; queues their links to your site, its subdomains and its parent domain",
      "file": "bfs_crawler.rs",
      "verified_head": true,
-     "verified_release": true,
-     "missing": [],
+     "verified_release": false,
+     "missing": [
+      "release src/main.rs fn governor_task: contains 'current_permits > MIN_PERMITS'"
+     ],
      "runs": [
       "crawl_ctrl_c"
      ],
@@ -7486,7 +7488,32 @@
        "src/main.rs",
        "src/url_utils.rs"
       ]
-     }
+     },
+     "instead": [
+      {
+       "text": "fetches up to 20 pages at a time from each host; queues their links to your site, its subdomains and its parent domain",
+       "file": "bfs_crawler.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/bfs_crawler.rs",
+         "src/url_utils.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs",
+         "src/frontier.rs",
+         "src/state.rs",
+         "src/url_utils.rs"
+        ]
+       }
+      }
+     ]
     },
     {
      "id": "W1",
@@ -7606,13 +7633,14 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
+     "text": "press Ctrl-C once; a second press before `Saved to:` quits without writing the file",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "crawl_ctrl_c"
+      "crawl_ctrl_c",
+      "second_ctrl_c"
      ],
      "fails": [],
      "paths": {
@@ -7622,7 +7650,28 @@
       "release": [
        "src/main.rs"
       ]
-     }
+     },
+     "instead": [
+      {
+       "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/orchestration/shutdown.rs"
+        ],
+        "release": [
+         "src/main.rs"
+        ]
+       }
+      }
+     ]
     },
     {
      "id": "R13",
@@ -7652,7 +7701,7 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+     "text": "It sends its requests with no pause between them, at most 256 at a time across all hosts. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7671,7 +7720,7 @@
      },
      "instead": [
       {
-       "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. {release} ignores `Crawl-delay`.",
+       "text": "It sends its requests with no pause between them, at most 256 at a time across all hosts. {release} ignores `Crawl-delay`.",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -7690,7 +7739,7 @@
        }
       },
       {
-       "text": "It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`.",
+       "text": "It sends its requests with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`, at most 256 at a time across all hosts.",
        "file": null,
        "verified_head": true,
        "verified_release": false,
@@ -7712,6 +7761,49 @@
        }
       }
      ]
+    },
+    {
+     "id": "L2",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "`--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "workers_cap"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/cli.rs",
+       "src/main.rs"
+      ]
+     }
+    },
+    {
+     "id": "L3",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "Cargo.toml"
+      ]
+     },
+     "para": true
     },
     {
      "id": "X1",
@@ -8018,7 +8110,8 @@
     "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/alerting_rules.yml",
     "Scraping_project/k8s/helm/scraping-pipeline/values.yaml",
     "Scraping_project/monitoring/alerting_rules.yml"
-   ]
+   ],
+   "repo_first": "2025-09-25"
   },
   {
    "n": 3,
@@ -8038,7 +8131,8 @@
     "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/scraping_pipeline_health.json",
     "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/unified_dashboard.json",
     "Scraping_project/monitoring/dashboards/scraping_pipeline_health.json"
-   ]
+   ],
+   "repo_first": "2025-09-25"
   },
   {
    "n": 4,
@@ -8071,6 +8165,100 @@
    "glob": "src/organizers/method_*.py",
    "count": 25,
    "measured": 25,
+   "holds": true,
+   "why": "",
+   "parts": [
+    "21 from",
+    "4 more"
+   ]
+  },
+  {
+   "text": "21 from",
+   "repo": "ideal-url-organizer",
+   "path": "src/main.py",
+   "literal": null,
+   "glob": null,
+   "count": 21,
+   "measured": 21,
+   "holds": true,
+   "why": "",
+   "keys": "self.methods"
+  },
+  {
+   "text": "4 more",
+   "repo": "ideal-url-organizer",
+   "path": null,
+   "literal": null,
+   "glob": "src/organizers/method_*.py",
+   "count": 4,
+   "measured": 4,
+   "holds": true,
+   "why": "",
+   "contains": "List[PageContent]"
+  },
+  {
+   "text": "resume and export-sitemap commands",
+   "repo": "go_go_go",
+   "path": "internal/cli/resume.go",
+   "literal": "Use:   \"resume\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "optional headless-Chrome rendering",
+   "repo": "go_go_go",
+   "path": "internal/cli/crawl.go",
+   "literal": "\"enable-js-rendering\", false, \"Enable JavaScript rendering with headless Chrome\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "SQLite storage with full-text search",
+   "repo": "go_go_go",
+   "path": "internal/cli/crawl.go",
+   "literal": "\"enable-sqlite\", false",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "`aicd scan`",
+   "repo": "Ai_code_detector",
+   "path": "setup.py",
+   "literal": "\"aicd=ai_code_detector.aicd:main\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "comments, naming, structure and git history",
+   "repo": "Ai_code_detector",
+   "path": "src/ai_code_detector/detector_enhanced.py",
+   "literal": "StylometryAnalyzer(",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "says why it flagged it",
+   "repo": "Ai_code_detector",
+   "path": "src/ai_code_detector/detector_enhanced.py",
+   "literal": "use_explanations: bool = True",
+   "glob": null,
+   "count": null,
+   "measured": null,
    "holds": true,
    "why": ""
   },
@@ -8177,6 +8365,17 @@
    "holds": true,
    "why": "",
    "use": "pick"
+  },
+  {
+   "text": "the `docker-compose` command",
+   "repo": "Scrapy",
+   "path": "Scraping_project/start.py",
+   "literal": "\"local\": (\"docker\", \"docker-compose\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
   },
   {
    "text": "5 URLs",
@@ -8310,6 +8509,22 @@
      "gate": false,
      "secs": 17.0,
      "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 1 ms apart; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "workers_cap",
+     "cmd": "rust_sitemap crawl --workers 1 keeps one request open at a time",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "default workers: 3 requests, at most 2 open at once; --workers 1: 3 requests, at most 1 open at once; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "second_ctrl_c",
+     "cmd": "rust_sitemap crawl: a second SIGINT 0.3 s after the first quits before writing sitemap.jsonl",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "exit 1; sitemap.jsonl not written; `Saved to:` not printed"
     },
     {
      "id": "kill_writes_file",

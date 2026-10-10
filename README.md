@@ -48,7 +48,9 @@ rust_sitemap export-sitemap
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
-It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
+It sends its requests with no pause between them, at most 256 at a time across all hosts. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read. `--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain.
+
+It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -60,7 +62,7 @@ It sends up to 20 requests at a time to one host, 256 in all, with no pause betw
 *On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests (CI selects all but 41) · CI passed 8 Oct 2026 · MIT license · 69k lines of Python*
 <!-- facts:Scrapy:end -->
 
-Run these from a clone of [Scrapy](https://github.com/BenjaminSRussell/Scrapy), in `Scraping_project` (`start.py` runs only there). `python start.py` runs all four stages; it needs docker and docker-compose and crawls a university's sample site. The last command runs only discovery, on your site.
+Run these from a clone of [Scrapy](https://github.com/BenjaminSRussell/Scrapy), in `Scraping_project` (`start.py` runs only there). `python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command: Docker Desktop has it; on Linux, where Docker's Compose plugin answers only to `docker compose`, install Compose standalone as well. The last command runs only discovery, on your site.
 
 ```sh
 cd Scrapy/Scraping_project
@@ -80,10 +82,10 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 <a name="also"></a>
 **Also**
 
-- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25 ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content.
-- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands. It adds headless-Chrome rendering, SQLite storage with full-text search, and browser TLS-fingerprint impersonation, all off by default.
+- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25 ways to sort a pile of URLs: 21 from the URLs and their crawl records (domain, crawl depth, subdomain, …), 4 more from the fetched pages.
+- [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands, plus optional headless-Chrome rendering and SQLite storage with full-text search.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. Each chunk is parsed for token counts and passed straight on, and the call is logged only after the client has its last byte.
-- [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code, from stylometry down to git-history patterns.
+- [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — `aicd scan` scores each file of a repository for signs of AI authorship, from its comments, naming, structure and git history, and says why it flagged it.
 
 <details>
 <summary><!-- n:more_count -->15<!-- /n --> more repositories: Swift widgets, a C game engine, games, tooling</summary>
@@ -109,8 +111,8 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 
 <!-- notices:start -->
 1. **Boring under load.** One failing host is set aside for a minute; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
-2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables.*
-3. **Dashboards before speed.** Dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
+2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*
+3. **Measure from the start.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
 4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*
 <!-- notices:end -->
 

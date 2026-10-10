@@ -38,7 +38,7 @@ Review round 6: a string in a file shows a setter exists, not that anything call
 (`unless`, `when`, `only`, `if`: CONDITIONAL) is verified only when it names a run-check probe (`runs` / `fails`) or
 carries an anchor marked `producer = true` that is not an assignment to a field (SETTER): the code that decides,
 not the code that stores. A `text` entry may also name a `gate` (a HEAD gate in `gates`); the README prints it only
-while that gate holds (render_readme.text_entries).
+while that gate holds (render_readme.text_entries). Review round 8: `para = true` starts a new paragraph with it.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
 """
@@ -279,6 +279,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
             rec["ci"] = str(e["ci"])
         if e.get("gate"):        # review round 6: a README sentence that also rests on a HEAD gate (`gates`)
             rec["gate"] = str(e["gate"])
+        if e.get("para"):        # review round 8: a README sentence that starts a new paragraph
+            rec["para"] = True
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -374,6 +376,8 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             base["ci"] = e["ci"]
         if e.get("gate"):
             base["gate"] = e["gate"]
+        if e.get("para"):
+            base["para"] = True
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified

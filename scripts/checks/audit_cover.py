@@ -64,6 +64,9 @@ def readme_spans(readme: str, recs: list[dict], stats: dict, cfg: dict) -> list[
             filled, missing = proof.fill_cite(nt.get("cite") or "", int(nt.get("n") or 0), stats.get("rules") or [])
             if not missing:
                 literal(filled)
+            body, no_days = proof.fill_days(nt.get("body") or "", int(nt.get("n") or 0), stats.get("rules") or [])
+            if not no_days and "{days:" in str(nt.get("body") or ""):
+                literal(body)        # review round 8: the rule's day counts, with their rows
     return spans
 
 

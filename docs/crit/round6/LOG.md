@@ -495,3 +495,75 @@ another commit than `stats.json` names).
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
   it passes (0 fail, 0 warn). AUDIT-COVER, NOTICE-LIVE, THIS-REPO, README-CODE-WIDTH (32), FIGURES, STRINGS-TWICE,
   NOTICE-DATE, NOTICE-AUTHOR, README-STALE and AUDIT-STALE are clean.
+
+## Round 8
+
+Reviews: `review-r08-1.md` (the owner's test) **8 / 10**, `review-r08-2.md` (the developer choosing a crawler)
+**7 / 10**, `review-r08-3.md` (the historian of charts and sailing directions) **8 / 10**. None meets the goal. Where
+they conflict, review 1 (the owner's lens) wins; review 3 agrees with review 1 on every shared item.
+
+Renders: `scratchpad/r6/build/round-08/` (the standard set; the phone sheets also at 308 px; the phone page at 390 and
+at 360, `page-phone-360-*.png`). `stats.json` re-read from the local trees with `scratchpad/r6/reroute8.py` (as
+reroute7, plus `go_go_go` and `Ai_code_detector` for the new [[figures]] rows, `repo_first` for rule 3, and the two
+new probes merged from `scratchpad/r6/rc8/steps.json`).
+
+### What was measured first
+
+- **The governor (review 2's finding 1 holds).** 0.1.3 `main.rs:84-150`: `current_permits = permits.available_permits()`
+  (idle permits only), and a permit is taken with `try_acquire_owned()` only `if current_permits > MIN_PERMITS`
+  (32). A running fetch keeps its permit; one host is capped at `max_inflight: 20` (`state.rs:285`, checked at
+  `frontier.rs:655`). From 256 permits the governor can shrink the pool to about 52, never under the 20 a one-site
+  crawl uses, so "fewer at once when saves average over 500 ms" is false for the crawl the header describes.
+- **Two new probes, on the 0.1.3 binary the run check installed** (`rc2/work/v`). `workers_cap`: the fixture site,
+  each answer held 1 s: default workers, 3 requests, at most 2 open at once; `--workers 1`, 3 requests, at most 1.
+  `second_ctrl_c`: SIGINT after 15 s, a second 0.3 s later: exit 1, no `sitemap.jsonl`, no `Saved to:`; the log ends
+  "Force quit requested, exiting immediately...".
+- **ideal-url-organizer at `159968a`.** `self.methods` has 21 keys (methods 1-21); `List[PageContent]` is in exactly
+  `method_22` to `method_25` (HTTP status, schema.org type, page authority, semantic similarity). Methods 12, 14 and
+  15 read the crawl record (`content_type`, `discovered_at`, `is_crawled()`), so "from the URLs alone" is not exact.
+- **Rule 3.** Scrapy's first commit `67446a4`, 25 Sep 2025 (his); `d571e6e`, 1 Oct, adds
+  `src/common/prometheus_exporter.py` with `start_http_server`; `e8cbe15`, 6 Oct, adds
+  `monitoring/grafana_dashboard.json` (one dashboard). 6 days, then 5.
+- **Scrapy's Compose.** `start.py:25` `"local": ("docker", "docker-compose")`, checked with `shutil.which` (`:242`),
+  which a shell alias does not satisfy.
+- **What rustmapper sees.** 0.1.3 `Cargo.toml` has `scraper` and `html5ever` and no browser or JavaScript engine.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1 + r2-2 + r3-1: one count for ideal-url-organizer | Also line: "25 ways to sort a pile of URLs: 21 from the URLs and their crawl records (domain, crawl depth, subdomain, …), 4 more from the fetched pages." New [[figures]] rows "21 from" (`self.methods`, 21 keys, the count the image's hand-off reads) and "4 more" (new kind: `glob` + `contains = "List[PageContent]"`, 4); the "25 ways" row carries `parts = ["21 from", "4 more"]` and holds only while they add up (`proof.figure_records`). New STRINGS-COUNT (fast): a hero run "<n> ways … <repo>" needs n in that repository's README list line. The image keeps "sorted 21 ways". |
+| r1-2 + r3-3: phone heading gap | `sheets/route.py` phone `head_after_title` 50 → 70. New ROUTE-HEAD-GAP (route check, read from the build report): on a phone edition the project's name must sit at least 2 × the role line's pitch (34) under its last baseline. Desk unchanged. Phone sheet 1,121 (F1 lost a line, below). |
+| r1-3 + r3-4: go_go_go | "rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands, plus optional headless-Chrome rendering and SQLite storage with full-text search." No impersonation clause. Rows at go_go_go HEAD: `Use:   "resume"` and `"export-sitemap"`, `"enable-js-rendering", false, …headless Chrome`, `"enable-sqlite", false` with `USING fts5(`. |
+| r1-4 + r3-5: rule 3 | "**Measure from the start.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that." Cite unchanged. `{days:key}` (from `rules[].repo_first`, the earliest commit on HEAD by anyone, git) and `{days:a..b}` (between two anchors) in `proof.fill_days`; a count not computed prints "?" and fails NOTICE-DATE; two AUDIT §7 rows; AUDIT-COVER covers the filled body. |
+| r1-5 + r3-6: rule 2's cite | "*Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*" New NOTICE-CITE (fast): every printed cite is "<repo>, <Mon YYYY>: <what>."; a comma form fails. |
+| r1-6 + r3-6: Ai_code_detector | "`aicd scan` scores each file of a repository for signs of AI authorship, from its comments, naming, structure and git history, and says why it flagged it." Rows at `aa7368b`: `setup.py` `aicd=ai_code_detector.aicd:main` with `aicd.py` `name="scan"`; `detector_enhanced.py` `StylometryAnalyzer(` and "Analyzing git history"; `use_explanations: bool = True`. |
+| r2-1: F1 says the per-host cap | The governor wording stays first, now also on `{path = "src/main.rs", fn = "governor_task", absent = "current_permits > MIN_PERMITS"}`; the alternative that draws is "fetches up to {field:max_inflight} pages at a time from each host; queues their links to your site, its subdomains and its parent domain" (`state.rs` field, `frontier.rs` `current_inflight >= host_state.max_inflight`, the four scope anchors). Desk two lines, phone three (was four). L1 keeps the total: "It sends its requests with no pause between them, at most 256 at a time across all hosts. …" PURPOSE, BREAKS ("The per-host cap is a clause of fetch"), DESIGN.md and the AUDIT routes row say so. Fixture tests both ways. |
+| r2-3: the two levers | New text entry L2, release scope, after L1: "`--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain." Anchors: `cli.rs` workers default 256 and seeding default all, `main.rs` `max_workers: u32::try_from(workers)`, `bfs_crawler.rs` `let max_concurrent = self.config.max_workers`, `in_flight_tasks.len() < max_concurrent` and the four `strategies.contains` lines; `runs = ["workers_cap"]`. AUDIT §7 row for the "1" (`route_rows` now takes a text entry with an `audit` note and no `{…}` figure). |
+| r2-4: which Compose | Scrapy run sentence: "`python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command: Docker Desktop has it; on Linux, where Docker's Compose plugin answers only to `docker compose`, install Compose standalone as well." [[figures]] row "the `docker-compose` command" on `start.py`'s `REQUIRED_TOOLS` and `shutil.which(`. |
+| r2-5: what it cannot see | New text entry L3, release scope, starting its own paragraph (`para = true`, new in `data/route.py` and `render_readme.text_paragraphs`): "It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome." Anchors: `Cargo.toml` has `scraper = "` and none of chromiumoxide, headless_chrome, fantoccini, deno_core, rusty_v8. X1 follows in the same paragraph. |
+| r3-2: C1's caution | "press Ctrl-C once; a second press before `Saved to:` quits without writing the file" (desk one line, phone two, as before). Head anchors in `shutdown.rs` `setup_shutdown_handler`, release anchors in the sdist's `main`: "Press Ctrl+C again to force quit", order anchors `std::process::exit(1)` before `export_to_jsonl(&path)` and that before `println!("Saved to: `; `runs = ["crawl_ctrl_c", "second_ctrl_c"]`; the old wording is the `instead`. New gate-false probe `second_ctrl_c` and `workers_cap` in `scripts/runcheck.py` (also `--probe workers_cap,second_ctrl_c`). PURPOSE C1 updated. The file is named once, by the end row. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r1-1: "21 from the URLs alone", "4 more from the page content" | Methods 12, 14 and 15 read the crawl record (content type, discovery time, crawl status), not the URL, and method 22 sorts by HTTP status, which is not page content. Printed "from the URLs and their crawl records" and "from the fetched pages". |
+| r2-2: a separate HANDOFF-AGREES check | Folded into review 1's STRINGS-COUNT, which tests the same thing (one count across the image and the page). The 21 in the Also line reads its own [[figures]] row with the same `self.methods` count; a test asserts the two rows agree. |
+| r1-4: "Scrapy exported Prometheus metrics … had Grafana dashboards" | The body would repeat the cite word for word ("Prometheus metrics, then Grafana dashboards"), and e8cbe15 adds one dashboard. Printed "Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that." Review 1's test "a body that repeats its title's key noun with no figure fails" would fail rule 2 ("Raw before clean." / "the raw layer"), which no reviewer flagged; the test asks instead that no body opens on its title's first word unless it carries a figure. |
+| r2-1: L1 "It sends them with no pause, 256 at most in all." | "Them" has no antecedent in the README, where L1 follows the wheel note. Printed "It sends its requests with no pause between them, at most 256 at a time across all hosts." |
+| r2-3: "`--workers 2` holds it to two requests at a time" | Printed `--workers 1` and "one request": the probe ran with 1 and saw at most one open request, so the printed figure is the one measured (Scrapy's own template is also one per domain). |
+| r2-3: the probe "pass if no two requests overlap" | The probe also crawls with the default workers and passes only if the server saw two requests open at once there: a site that never overlaps cannot show a cap. |
+| r2-4: "add a `docker-compose` alias first" | `start.py` finds the tool with `shutil.which` and runs `docker-compose up -d` as a subprocess; a shell alias satisfies neither. "Install Compose standalone" is Docker's documented way to get the hyphenated binary on Linux. The sentence is hand-typed prose, so its fallback is the FIGURES gate (the row fails once `start.py` stops naming `docker-compose`), not an automatic rewording. |
+| r3-2: "a second before `Saved to:` …" | "A second" reads as one second. Printed "a second press before `Saved to:` …". The probe sends the first SIGINT after 15 s, not 45 s: the three pages take under a second, and the entrance crawl already covers the 45 s case. |
+| tests: `all_verified` | The fixture that draws "what the sheet draws once P1 lands" now verifies the HEAD side only and keeps the release's anchors as read: P1 lands on main, and F1's governor wording waits on a new release. With every first wording forced true the phone would be 1,266 (20 over the gate); if a release ever restores the governor wording while S2 is drawn, ROUTE-HEIGHT will say so then. |
+| Owner, outside this repository (rounds 4 to 8) | Fix P1, take `--ignore-robots` out of the idle test, ship 0.1.4; Rust-sitemap's LICENSE file, About text and `README.md:25`; let `start.py` accept `docker compose`; make the governor able to cut fetches in flight, or say what it does; have the first Ctrl-C say "again to quit without writing sitemap.jsonl" (C1 then falls back by itself); `resume` after a kill fails in 0.1.3 ("Database already open"). The image does not go to `main` until 0.1.4. |
+
+### Measured state of this build
+
+- Desk sheet 571 high (gate 620); phone 600 × 1,121 (gate 1,246). With S2 drawn: desk 607, phone 1,198.
+- `python3 -m unittest`: 364 tests, all pass (27 new in `tests/test_round8.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail, 0 warn). STRINGS-COUNT, ROUTE-HEAD-GAP, NOTICE-CITE, NOTICE-DATE (with the day counts),
+  AUDIT-COVER, FIGURES (22 rows, all hold), STRINGS-TWICE, README-STALE and AUDIT-STALE are clean.

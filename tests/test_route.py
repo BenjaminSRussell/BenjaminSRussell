@@ -49,11 +49,13 @@ def tree(files: dict[str, str]):
 
 
 def all_verified(stats: dict) -> dict:
-    """The committed stats with every route entry's anchors holding (what the sheet draws once P1 lands). The
-    run-check probes stay as measured."""
+    """The committed stats with every route entry's HEAD anchors holding (what the sheet draws once P1 lands). The
+    run-check probes stay as measured. Review round 8: the release's anchors stay as read (the release is what pip
+    installs; P1 lands on main), so a wording that waits on a new release (F1's governor) stays undrawn."""
     s = copy.deepcopy(stats)
     for e in s["routes"]["rustmapper"]["entries"]:
-        e.update(verified_head=True, verified_release=True, missing=[])
+        rel_missing = [m for m in e.get("missing") or [] if not m.startswith("head")]
+        e.update(verified_head=True, verified_release=not rel_missing, missing=rel_missing)
     return s
 
 
@@ -120,12 +122,12 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "X1", "M1"])   # review round 7: G1 is in F1
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L2", "L3", "X1", "M1"])   # r7: G1 in F1; r8: L2, L3
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
         drawn = {e["id"]: e for e in R.drawn(route, rc)}
-        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "X1"):
+        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "L2", "L3", "X1"):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # review round 6: main's idle test runs with --ignore-robots, so M1 is retired (not printed, not unverified)
         m1 = next(e for e in R.resolve(route, rc) if e["id"] == "M1")
@@ -143,10 +145,12 @@ class Anchors(unittest.TestCase):
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
         self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done when it stops printing `Received work item`")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
-        self.assertEqual(drawn["C1"]["text"], "press Ctrl-C once to write `data/sitemap.jsonl`")
+        # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
+        self.assertEqual(drawn["C1"]["text"],
+                         "press Ctrl-C once; a second press before `Saved to:` quits without writing the file")
         # review round 6: the scope in a visitor's words, not the code's ("above or below")
-        # review round 7: the governor is a clause of F1, next to the verb it qualifies
-        self.assertEqual(drawn["F1"]["text"], "fetches pages, fewer at once when saves average over 500 ms; queues their "
+        # review round 8: F1 says the per-host cap; 0.1.3's governor stops at 32 idle permits and never slows a site
+        self.assertEqual(drawn["F1"]["text"], "fetches up to 20 pages at a time from each host; queues their "
                                               "links to your site, its subdomains and its parent domain")
         self.assertEqual(drawn["F1"]["scope"], "release")
         self.assertIn("URLs looked up rather than followed", drawn["S1"]["text"])
@@ -883,8 +887,10 @@ class RouteSheet(unittest.TestCase):
             # no note entry renders as its own line under a stop
             self.assertFalse([st for st in rep["steps"] if st.get("under") or st["kind"] == "note"], e)
             f1 = " ".join(t["s"] for t in ent["text"] if t["key"] == "routes:F1")
-            self.assertIn("fewer at once when saves average over 500 ms;", f1, e)
-            self.assertLess(f1.index("500 ms"), f1.index("queues"), e)
+            # review round 8: 0.1.3's governor cannot cut the fetches in flight, so the clause is the per-host cap
+            self.assertIn("fetches up to 20 pages at a time from each host;", f1, e)
+            self.assertNotIn("500 ms", f1, e)
+            self.assertLess(f1.index("each host"), f1.index("queues"), e)
             th = tokens.THEMES["night" if "night" in e else "day"]
             svg = self.svg(self.out, e)
             f1_fill = set(re.findall(r'fill="(#[0-9A-F]{6})"', re.search(r'<g id="hero-F1">(.*?)</g>', svg, re.S).group(1))) - {th.paper}
@@ -994,8 +1000,11 @@ class RouteSheet(unittest.TestCase):
             self.assertEqual(route_check.code_face(texts, e), [])
             self.assertEqual(route_check.self_twice(texts, e), [])
             mono = [t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:C1"]
-            # review round 5: C1 names the file one Ctrl-C writes; the export after a kill is in the README's block
-            self.assertEqual(mono, ["data/sitemap.jsonl"], e)
+            # review round 8: C1 names the line that says it is done, `Saved to:` (its space at the label's word space);
+            # the file is named once, by the end row
+            self.assertEqual(mono, ["Saved", "to:"], e)
+            self.assertEqual([t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:R13"][:1],
+                             ["data/sitemap.jsonl"], e)
             ho = [t["s"] for t in texts if t["key"].startswith("handoffs:")]
             # review round 6: what you get, one run on both editions, the count from figures[] "25 ways"; no script
             # path and no ", with a test" (the test is the gate, not the words)

@@ -69,11 +69,12 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "S1": ("where URLs come from, and what the release contacts by default", "Q5", "stats.json routes.rustmapper S1"),
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
     "F1": ("each page is fetched and its links are queued again, on the domain of the URL you gave, its parent "
-           "domains and subdomains included; and (review round 7, the governor folded in next to its verb) fewer "
-           "pages are fetched at once when saving falls behind, past a stated threshold, not when the network is "
-           "slow: backpressure from the store to the fetchers", "Q1",
-           "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 main.rs THROTTLE_THRESHOLD_MS, "
-           "commit EWMA)"),
+           "domains and subdomains included; and (review round 8) how many it fetches at once from one host, the cap "
+           "a site feels. The governor's wording (fewer at once when saves lag) is drawn only for a release whose "
+           "governor can cut the fetches in flight: 0.1.3's stops while 32 permits are idle, so a one-site crawl "
+           "never slows", "Q1",
+           "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 state.rs max_inflight, frontier.rs "
+           "current_inflight; main.rs governor_task MIN_PERMITS)"),
     "W1": ("what it has found is written to a log on disk, fsynced, then committed to redb in batches (as events "
            "arrive, up to 5,000 at a time; no period), so an export after a kill has something to read", "Q5",
            "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; drain_batch recv_deadline, "
@@ -81,8 +82,10 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
            "says it is done; the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
            "'Received work item'); runcheck ends_by_itself, quiet_after_last_page"),
-    "C1": ("the reader's one step: Ctrl-C once writes the file (after a kill, the README's block says what to run)",
-           "Q5", "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c"),
+    "C1": ("the reader's one step, the line that says it is done (`Saved to:`), and what a second Ctrl-C costs: the "
+           "tool itself asks for one, and it quits before the file is written (review round 8; after a kill, the "
+           "README's block says what to run)",
+           "Q5", "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c, second_ctrl_c"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
     "R15": ("his projects are one body of work: this output is sorted 21 ways by another (drawn only while the join's "
@@ -100,17 +103,18 @@ BREAKS: list[tuple[str, str, str]] = [
      "the title column is 56 to 410 px, and the name at 141 would be over 500 px wide"),
     ("Order is position; the loop is a line",
      "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
-     "page (fetch, slowed by the governor, and the log), closed by one line back up the left side; the hazard sits on "
+     "page (fetch, at most 20 at once from one host, and the log), closed by one line back up the left side; the hazard sits on "
      "that line and its way out on the next row",
      "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
      "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
-    ("The governor is a clause of fetch",
-     "the governor's words are a clause of the fetch stop's own sentence, next to the verb they qualify (\"fetches "
-     "pages, fewer at once when saves average over 500 ms; queues their links …\"), in ink with its threshold, with "
-     "no mark on the track",
-     "it changes how many fetches run at once (governor THROTTLE_THRESHOLD_MS, add_permits), so it qualifies that "
-     "stop; on a metro map a short tick is a station, which it is not (review round 4); as its own line under the "
-     "stop's last words it read as their subject (\"…its parent domain / fetches fewer pages…\", review round 7)"),
+    ("The per-host cap is a clause of fetch",
+     "how many pages are fetched at once is a clause of the fetch stop's own sentence, next to its verb (\"fetches "
+     "up to 20 pages at a time from each host; queues their links …\"), in ink, with no mark on the track; the "
+     "governor's \"fewer at once when saves average over 500 ms\" is the first wording and is drawn only while "
+     "0.1.3's floor (`current_permits > MIN_PERMITS`) is gone",
+     "the per-host cap is what a site feels and what governs a one-site crawl (state.rs max_inflight, frontier.rs); "
+     "0.1.3's governor takes back idle permits only and stops at 32 idle, so it never cuts the fetches in flight "
+     "(review round 8); as its own line under the stop's last words it read as their subject (review round 7)"),
     ("Fixed marks, no sizes",
      "every bar, ring, dotted line and line has a fixed size; only the number of lines of text moves anything",
      "the owner could not tell what the old islands' sizes meant (9 Oct 2026); here nothing has a size to read"),
@@ -157,9 +161,10 @@ BREAKS: list[tuple[str, str, str]] = [
      "inside a row's code spans the words are set in the code face and the spaces in the label face",
      "a mono space is 2.8 times the label's, and `Received work item` read as three loose words (review round 5); "
      "the README's code block keeps real spacing for pasting"),
-    ("Phone sheet 600 wide, title gap 50, foot 22",
-     "the phone sheet is 600 units wide (it was 720); the gap from the role line to the project's name is 50 (60) and "
-     "the sheet ends 22 under its last baseline (30)",
+    ("Phone sheet 600 wide, title gap 70, foot 22",
+     "the phone sheet is 600 units wide (it was 720); the gap from the role line to the project's name is 70 (review "
+     "round 8, was 50: at least twice the role line's pitch of 34, so the name reads as the drawing's heading and not "
+     "as a third line of the role) and the sheet ends 22 under its last baseline (30)",
      "GitHub's mobile profile shows the README image at the viewport less 82 px, measured on the live page on 10 Oct "
      "2026: 308 px on a 390 px phone, where 720 units made 26-unit text 11.1 px (review round 6); the narrower measure "
      "wraps more, and the two gaps give back 18 units so the edition with S2 drawn stays inside 640 px at 308"),
@@ -182,7 +187,7 @@ L = {
              "arrow_w": 10, "rule_after_file": 20, "foot": 36},
     "phone": {"title_x": 40, "title_w": 520, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
               "role_pitch": 34, "fine_gap": 46, "fine_pitch": 34, "track_x": 56, "text_x": 88, "file_right": None,
-              "right": 568, "head_y": None, "head_after_title": 50, "sent_gap": 40, "line": 34, "bar_gap": 28,
+              "right": 568, "head_y": None, "head_after_title": 70, "sent_gap": 40, "line": 34, "bar_gap": 28,
               "bar_w": 24, "bar_h": 4, "r2_gap": 38, "entry_gap": 46, "pitch": 43, "end_gap": 24, "r13_gap": 38,
               "ring_r": 8, "ring_dy": 9, "loop_out": 18,
               "loop_dy": 15, "loop_arrow": (10, 12), "gap": 18, "stub": 12, "after_end": 24, "tip": 8, "label_gap": 14,

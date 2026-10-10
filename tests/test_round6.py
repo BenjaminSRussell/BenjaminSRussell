@@ -100,7 +100,8 @@ class LoadSentence(unittest.TestCase):
         cfg, stats = load()
         text = " ".join(rr.text_entries(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"], stats["edition"],
                                         rr._repo(stats, "Rust-sitemap")))
-        self.assertIn("It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. 0.1.3 "
+        # review round 8: the per-host 20 is said by F1 in the image; L1 keeps the total and the pace
+        self.assertIn("It sends its requests with no pause between them, at most 256 at a time across all hosts. 0.1.3 "
                       "ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules "
                       "are not read.", text)
         self.assertNotIn("unless", text)

@@ -133,7 +133,8 @@ title = "Raw before clean."
 body = "Next month's question can't be known today, so the raw layer is appended to and never overwritten."
 # review round 5: rustmapper's write-ahead log is not cited here: it is truncated after each checkpoint
 # (src/wal.rs checkpoint(), every 64 commits or 64 MiB by default), a durability buffer, not a raw layer
-cite = "Scrapy, {month:delta}, the Delta Lake tables."
+# review round 8: the cite in the form of the other three, "<repo>, <Mon YYYY>: <what>." (test_round8 CiteForm)
+cite = "Scrapy, {month:delta}: raw pages written to Delta Lake with `write_deltalake`."
 anchors = [{key = "delta", repo = "Scrapy", text = "write_deltalake"}]
 repo = "Scrapy"
 date = "2025-10"
@@ -141,8 +142,13 @@ source = "toml"
 
 [[notices]]
 n = 3
-title = "Dashboards before speed."
-body = "Dashboards go in version one."
+# review round 8: the measured fact, not the title again. "Before speed" is not what the history shows (the
+# performance redesign, 52dcbd8, 4 Oct 2025, came two days before the first dashboard). {days:key} is the days from
+# the repository's first commit (rules[].repo_first, git) to that anchor's commit; {days:a..b} the days between two
+# anchors' commits (proof.fill_days). 67446a4 25 Sep 2025 -> d571e6e 1 Oct (prometheus_exporter.py, start_http_server)
+# -> e8cbe15 6 Oct (monitoring/grafana_dashboard.json, one dashboard).
+title = "Measure from the start."
+body = "Metrics were exported {days:prometheus} days after the first commit, and a dashboard was up {days:prometheus..grafana} days after that."
 cite = "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards."
 anchors = [{key = "prometheus", repo = "Scrapy", text = "prometheus_client"},
            {key = "grafana", repo = "Scrapy", text = '"panels"'}]
@@ -182,6 +188,65 @@ text = "25 ways"
 repo = "ideal-url-organizer"
 glob = "src/organizers/method_*.py"
 count = 25
+# review round 8: one count across the page. The Also line says how the 25 split, and the parts must add up to it
+parts = ["21 from", "4 more"]
+
+# review round 8: the 21 the image's hand-off prints (the same count as the handoff row below), in the Also line
+[[figures]]
+text = "21 from"
+repo = "ideal-url-organizer"
+path = "src/main.py"
+keys = "self.methods"
+count = 21
+
+# review round 8: the four methods that sort the fetched pages (PageContent, from the organizer's own crawler)
+[[figures]]
+text = "4 more"
+repo = "ideal-url-organizer"
+glob = "src/organizers/method_*.py"
+contains = "List[PageContent]"
+count = 4
+
+# review round 8: the Also lines' claims about go_go_go and Ai_code_detector, checked at HEAD (no numbers)
+[[figures]]
+text = "resume and export-sitemap commands"
+repo = "go_go_go"
+path = "internal/cli/resume.go"
+literal = 'Use:   "resume"'
+also = [{path = "internal/cli/export.go", literal = 'Use:   "export-sitemap"'}]
+
+[[figures]]
+text = "optional headless-Chrome rendering"
+repo = "go_go_go"
+path = "internal/cli/crawl.go"
+literal = '"enable-js-rendering", false, "Enable JavaScript rendering with headless Chrome"'
+
+[[figures]]
+text = "SQLite storage with full-text search"
+repo = "go_go_go"
+path = "internal/cli/crawl.go"
+literal = '"enable-sqlite", false'
+also = [{path = "internal/storage/sqlite.go", literal = "USING fts5("}]
+
+[[figures]]
+text = "`aicd scan`"
+repo = "Ai_code_detector"
+path = "setup.py"
+literal = '"aicd=ai_code_detector.aicd:main"'
+also = [{path = "src/ai_code_detector/aicd.py", literal = 'name="scan"'}]
+
+[[figures]]
+text = "comments, naming, structure and git history"
+repo = "Ai_code_detector"
+path = "src/ai_code_detector/detector_enhanced.py"
+literal = "StylometryAnalyzer("
+also = [{path = "src/ai_code_detector/detector_enhanced.py", literal = "Analyzing git history"}]
+
+[[figures]]
+text = "says why it flagged it"
+repo = "Ai_code_detector"
+path = "src/ai_code_detector/detector_enhanced.py"
+literal = "use_explanations: bool = True"
 
 # Review round 7: what the hand-off does with rustmapper's file. The importer converts it to URLRecords and runs
 # `./run.sh --all`, which runs `src/main.py --full`, which runs the methods in `self.methods` (21 today; methods
@@ -249,6 +314,16 @@ use = "pick"
 repo = "Scrapy"
 path = "Scraping_project/start.py"
 literal = '"local": ("docker", "docker-compose")'
+
+# review round 8: the Scrapy run sentence names the hyphenated command start.py looks for (shutil.which) and runs
+# (`docker-compose up -d`); once start.py accepts `docker compose` this row fails and the sentence goes back to
+# "it needs Docker and Docker Compose"
+[[figures]]
+text = "the `docker-compose` command"
+repo = "Scrapy"
+path = "Scraping_project/start.py"
+literal = '"local": ("docker", "docker-compose")'
+also = [{path = "Scraping_project/start.py", literal = 'shutil.which('}]
 
 # review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
 # utils/retry.py have no caller. The two figures are the defaults the worker reads.
@@ -497,7 +572,27 @@ release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_l
            {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"},
            {path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"},
            {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS", producer = true},
-           {path = "src/main.rs", text = "add_permits"}]
+           {path = "src/main.rs", text = "add_permits"},
+           {path = "src/main.rs", fn = "governor_task", absent = "current_permits > MIN_PERMITS"}]
+runs = ["crawl_ctrl_c"]
+# Review round 8: the governor wording above is false for the crawl the header describes. In 0.1.3 the governor takes
+# only idle permits (`available_permits`, `try_acquire_owned`) and stops while MIN_PERMITS (32) are still idle
+# (main.rs:92, :108, :114-115); a running fetch keeps its permit, and one host never holds more than max_inflight (20)
+# at once (state.rs:285, frontier.rs:655). So on a one-site crawl the fetches in flight never fall, however slow redb
+# gets. The governor wording comes back by itself on a release whose governor has no such floor (the `absent` anchor);
+# until then the stop says the cap that does govern a site crawl.
+[[route.rustmapper.entry.instead]]
+text = "fetches up to {field:max_inflight} pages at a time from each host; queues their links to your site, its subdomains and its parent domain"
+head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
+        {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
+        {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
+        {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"}]
+release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
+           {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
+           {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
+           {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"},
+           {path = "src/state.rs", field = "max_inflight"},
+           {path = "src/frontier.rs", text = "current_inflight >= host_state.max_inflight"}]
 runs = ["crawl_ctrl_c"]
 
 # The write path, in its order (review round 5). writer_loop appends each batch to the write-ahead log and fsyncs it
@@ -575,6 +670,21 @@ runs = ["ends_by_itself"]
 [[route.rustmapper.entry]]
 id = "C1"
 kind = "step"
+# Review round 8: the step with its caution and the line that says it is done. The first Ctrl-C prints "Press Ctrl+C
+# again to force quit"; the handler for that second press is spawned before the export and calls exit(1), so a second
+# press before `Saved to:` leaves no sitemap.jsonl (0.1.3 main.rs:508, :520, :536-539; HEAD shutdown.rs:22, :34,
+# :44-47). Probe second_ctrl_c: SIGINT, another 0.3 s later, exit 1 and no file. The end row names the file.
+text = "press Ctrl-C once; a second press before `Saved to:` quits without writing the file"
+head = [{path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "Press Ctrl+C again to force quit"},
+        {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "std::process::exit(1)", before = "export_to_jsonl(&path)"},
+        {path = "src/orchestration/shutdown.rs", fn = "setup_shutdown_handler", text = "export_to_jsonl(&path)", before = 'println!("Saved to: '},
+        {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
+release = [{path = "src/main.rs", fn = "main", text = "Press Ctrl+C again to force quit"},
+           {path = "src/main.rs", fn = "main", text = "std::process::exit(1)", before = "export_to_jsonl(&path)"},
+           {path = "src/main.rs", fn = "main", text = "export_to_jsonl(&path)", before = 'println!("Saved to: '},
+           {path = "src/main.rs", text = 'join("sitemap.jsonl")'}]
+runs = ["crawl_ctrl_c", "second_ctrl_c"]
+[[route.rustmapper.entry.instead]]
 text = "press Ctrl-C once to write `data/sitemap.jsonl`"
 head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
         {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
@@ -604,7 +714,8 @@ runs = ["crawl_ctrl_c"]
 id = "L1"
 kind = "text"
 scope = "release"
-text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
+# Review round 8: the per-host 20 is said once, by F1 in the image; this sentence keeps the total and the pace
+text = "It sends its requests with no pause between them, at most {arg:workers} at a time across all hosts. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
 audit = "\"No pause\": `crawl_delay_secs: 0` in the struct literal, no Crawl-delay parser in `src/robots.rs`, and probe `robots_read` (a local http site; the closest two fetches 1 ms apart, no `GET /robots.txt`)"
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
            {path = "src/robots.rs", absent = "fn parse_crawl_delay"},
@@ -613,17 +724,52 @@ release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.r
 fails = ["robots_read"]
 [[route.rustmapper.entry.instead]]
 # a release that reads robots.txt over http (probe robots_read passed) but still has no Crawl-delay parser
-text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them. {release} ignores `Crawl-delay`."
+text = "It sends its requests with no pause between them, at most {arg:workers} at a time across all hosts. {release} ignores `Crawl-delay`."
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
            {path = "src/robots.rs", absent = "fn parse_crawl_delay"}, {path = "src/cli.rs", arg = "workers"}]
 runs = ["robots_read"]
 [[route.rustmapper.entry.instead]]
 # a release that parses Crawl-delay: the old sentence, said only once a probe has seen the pause (crawl_delay_obeyed,
 # not written yet, so this wording is never printed on the parser's existence alone)
-text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`."
+text = "It sends its requests with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`, at most {arg:workers} at a time across all hosts."
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/robots.rs", text = "fn parse_crawl_delay"},
            {path = "src/cli.rs", arg = "workers"}]
 runs = ["robots_read", "crawl_delay_obeyed"]
+
+# Review round 8 (the developer choosing a crawler): the two levers for the two warnings above, the release's own
+# flags. --workers becomes max_workers, and the crawl loop takes new work only while fewer tasks than that are in
+# flight (bfs_crawler.rs:283, :430); --seeding-strategy none turns every seeder off (bfs_crawler.rs:189-192). Probe
+# workers_cap: the fixture site, each answer held 1 s, has two requests open at once by default and one with
+# `--workers 1`. The printed 1 is the probe's own argument.
+[[route.rustmapper.entry]]
+id = "L2"
+kind = "text"
+scope = "release"
+text = "`--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain."
+audit = "`--workers 1` is the argument probe `workers_cap` crawled with (at most one request open at once on the fixture server, two with the default); the flag sets `max_workers`, and the crawl loop takes new work only while fewer tasks than that are in flight"
+release = [{path = "src/cli.rs", arg = "workers", equals = "256"},
+           {path = "src/main.rs", text = "max_workers: u32::try_from(workers)"},
+           {path = "src/bfs_crawler.rs", text = "let max_concurrent = self.config.max_workers"},
+           {path = "src/bfs_crawler.rs", text = "in_flight_tasks.len() < max_concurrent"},
+           {path = "src/cli.rs", arg = "seeding_strategy", equals = "all"},
+           {path = "src/bfs_crawler.rs", text = 'let enable_all = strategies.contains(&"all");'},
+           {path = "src/bfs_crawler.rs", text = 'let enable_sitemap = enable_all || strategies.contains(&"sitemap");'},
+           {path = "src/bfs_crawler.rs", text = 'let enable_ct = enable_all || strategies.contains(&"ct");'},
+           {path = "src/bfs_crawler.rs", text = 'let enable_commoncrawl = enable_all || strategies.contains(&"commoncrawl");'}]
+runs = ["workers_cap"]
+
+# Review round 8: what it cannot see. 0.1.3 parses the HTML it is sent (scraper, html5ever) and has no browser or
+# JavaScript engine among its dependencies, so a page built by JavaScript yields only the links in its HTML. go_go_go's
+# --enable-js-rendering is the [[figures]] row "optional headless-Chrome rendering".
+[[route.rustmapper.entry]]
+id = "L3"
+kind = "text"
+scope = "release"
+para = true
+text = "It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome."
+release = [{path = "Cargo.toml", text = 'scraper = "'}, {path = "Cargo.toml", absent = "chromiumoxide"},
+           {path = "Cargo.toml", absent = "headless_chrome"}, {path = "Cargo.toml", absent = "fantoccini"},
+           {path = "Cargo.toml", absent = "deno_core"}, {path = "Cargo.toml", absent = "rusty_v8"}]
 
 # X1, release only: 0.1.3's export writes every page into one <urlset>; the sitemap format allows 50,000 URLs per
 # file, the figure main's own SitemapIndexWriter splits at (sitemap_writer.rs). Retired once a release splits.

@@ -111,8 +111,8 @@ def route_rows(cfg: dict) -> list[dict]:
             for c in cands:
                 for m in _REF.finditer(str(c.get("text") or "")):
                     refs.setdefault(m.group(1), (m.group(2) or m.group(1), m.group(3) or ""))
-            if not refs:
-                continue
+            if not refs and not (e.get("audit") and str(e.get("kind")) == "text"):
+                continue      # review round 8: a README sentence whose figure is a flag's argument has its own note
             scope = str(e.get("scope") or "both")
             defs = []
             for ref, (kind, var) in refs.items():
@@ -136,9 +136,10 @@ def route_rows(cfg: dict) -> list[dict]:
                 defs.append(f"`{{{ref}}}` is {what} in {' and '.join(where)}{tail}")
             kind = str(e.get("kind") or "stop")
             out.append({"where": ("README " if kind == "text" else "image ") + str(e["id"]),
-                        "printed": ", ".join(f"`{{{r}}}`" for r in refs),
+                        "printed": ", ".join(f"`{{{r}}}`" for r in refs) or "the flag's argument",
                         "key": f"`routes.{name}` {e['id']}",
-                        "definition": "; ".join(defs) + (f". {e['audit']}" if e.get("audit") else ""),
+                        "definition": ("; ".join(defs) + (f". {e['audit']}" if e.get("audit") else "")) if defs
+                                      else str(e.get("audit") or ""),
                         "check": "ROUTE-UNVERIFIED (value anchors; head and release agree)",
                         "entry": str(e["id"]), "route": name, "hero_keys": (f"routes:{e['id']}",)})
     return out
@@ -184,6 +185,16 @@ def records(cfg: dict) -> list[dict]:
                         "definition": f"the author month of his first commit adding `{a['text']}` (git log --reverse "
                                       "-S); the text is still in the code at HEAD (`at_head`)",
                         "check": "NOTICE-DATE, NOTICE-AUTHOR, NOTICE-LIVE", "rule": int(nt.get("n") or 0)})
+        from data import proof
+        for m in proof._DAYS.finditer(str(nt.get("body") or "")):
+            a, b = m.group(1), m.group(2)
+            what = (f"the days from his first commit adding the `{a}` anchor's text to his first commit adding the "
+                    f"`{b}` anchor's text (their author dates)" if b else
+                    f"the days from the repository's first commit (any author, `rules[].repo_first`, git log) to his "
+                    f"first commit adding the `{a}` anchor's text (author dates)")
+            out.append({"where": f"README rule {nt.get('n')}", "printed": f"`{m.group(0)}`",
+                        "key": f"`rules` ({nt.get('repo')})", "definition": f"review round 8: {what}",
+                        "check": "NOTICE-DATE; test_round8 RuleDays", "rule": int(nt.get("n") or 0)})
     for f in cfg.get("figures") or []:
         if f.get("handoff"):
             continue
