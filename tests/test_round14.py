@@ -101,17 +101,19 @@ def files(**over):
 class StageTwo(unittest.TestCase):
     """r14-1 #1, r14-2 #1, r14-3 #2: the run sentence says what each stage does to a site."""
 
-    SENT = ("It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without that "
-            "line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The stage 2 "
-            "worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as "
-            "`Python/3.11 aiohttp/3.13.1`.")
+    # review round 15 (the owner): the same form as rustmapper's list
+    SENT = ("It loads no seeds: the last command gives the spider your site.\n\nBefore you run it:\n\n"
+            "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that line, "
+            "`UConn-Discovery-Crawler/1.0`).\n"
+            "- The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per "
+            "host, as `Python/3.11 aiohttp/3.13.1`.")
 
     def test_committed(self):
         cfg, stats = load()
         text = read(README)
         self.assertIn(self.SENT, text)
         got = {r["text"]: r for r in stats["figures"]}
-        for t in ("The spider obeys `robots.txt` and its `Crawl-delay`.", "disallowed ones too",
+        for t in ("The spider obeys `robots.txt` and its `Crawl-delay`", "disallowed ones too",
                   "4 at a time per host", "`Python/3.11 aiohttp/3.13.1`"):
             self.assertTrue(got[t]["holds"], got[t])
             self.assertIn(t, text)

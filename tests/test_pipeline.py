@@ -253,10 +253,12 @@ class Readme(unittest.TestCase):
 
     def test_picture_order(self):
         hero = render_readme.picture("hero", self.cfg, 'A "boat" & co').splitlines()
-        self.assertEqual(len(hero), 8)       # round 6: the hero does not move, so no reduced-motion sources
+        self.assertEqual(len(hero), 9)       # round 6: the hero does not move, so no reduced-motion sources
         order = [re.search(r"/hero-([\w-]+)\.svg", l).group(1) for l in hero[1:-1]]
         # review round 12: the mid editions first, from mid_from_px to the breakpoint; the phone's up to the pixel before
-        self.assertEqual(order, ["mid-night", "mid-day", "phone-night", "phone-day", "night", "day"])
+        # review round 15: the desk's own two sources from the breakpoint, and the <img> is the phone's day edition
+        self.assertEqual(order, ["mid-night", "mid-day", "phone-night", "phone-day", "night", "day", "phone-day"])
+        self.assertIn('media="(min-width: 1200px)"', hero[6])
         self.assertIn('media="(min-width: 852px) and (max-width: 1199px)"', hero[2])
         self.assertIn('media="(max-width: 851px)"', hero[4])
         self.assertIn('alt="A &quot;boat&quot; &amp; co"', hero[-2])
@@ -312,8 +314,9 @@ class Readme(unittest.TestCase):
         # review round 5: what a visitor needs: which release is drawn and that it was run; no build process, no
         # schedule (a generated-by footer), no flags (DESIGN.md has them)
         # review round 6: the run's one flag that changes what the printed command does is named, in words
-        self.assertIn("shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a "
-                      "local 3-page site on 10 Oct 2026 (Linux x86_64).", block)
+        # review round 15: the https probes ran, so the sites are named by scheme
+        self.assertIn("shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against "
+                      "local test sites over http and https on 10 Oct 2026 (Linux x86_64).", block)
         for word in ("regenerated", "generated", "weekly", "Tests and CI measured", "public repositories",
                      "--seeding-strategy", "source file", "the reader it points to"):
             self.assertNotIn(word, block, word)

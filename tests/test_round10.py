@@ -63,10 +63,11 @@ class ScrapyRun(unittest.TestCase):
     SENTENCE = ("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. "
                 "`python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs "
                 "Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). "
-                "It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without "
-                "that line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The "
-                "stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, "
-                "as `Python/3.11 aiohttp/3.13.1`.")   # review round 14: both stages; the --reset-delta sentence cut
+                "It loads no seeds: the last command gives the spider your site.\n\nBefore you run it:\n\n"
+                "- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that "
+                "line, `UConn-Discovery-Crawler/1.0`).\n"
+                "- The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per "
+                "host, as `Python/3.11 aiohttp/3.13.1`.")   # review round 15: the same form as rustmapper's list
 
     def test_committed(self):
         text = read(README)
@@ -238,8 +239,8 @@ class ScopeLever(unittest.TestCase):
     def test_committed(self):
         # review round 13: the open list is the four cautions you act on before you run; the rest are in a fold
         items = install(read(README)).split("Before you run 0.1.3:", 1)[1].split("<details>", 1)[0].strip().splitlines()
-        self.assertEqual(len(items), 4)
-        self.assertEqual(items[3], "- " + self.WORDS)
+        self.assertEqual(len(items), 6)      # review round 15: L7 (its name) and L6 (the robots.txt stall)
+        self.assertEqual(items[5], "- " + self.WORDS)
         self.assertLessEqual(len(self.WORDS.split()), rr.LIST_MAX_WORDS)
         self.assertEqual(rr.LIST_MAX_ITEMS, 7)
 
@@ -294,7 +295,8 @@ class Levers(unittest.TestCase):
         """Render tier, in Chromium: the committed items split no flag at 320 to 430 px; the round-9 joins did."""
         blocks = [b for b in wrap_check.blocks_html(read(README)) if "<code>-" in b[1]]
         # review round 14: the Scrapy run sentence lost its one flag (--reset-delta) with the sentence
-        self.assertEqual([t for t, _ in blocks], ["li", "li"], "the two levers")
+        # review round 15: and rustmapper's --user-agent lever (L7)
+        self.assertEqual([t for t, _ in blocks], ["li", "li", "li"], "the three levers")
         rows = wrap_check.measure(ROOT, blocks)
         if rows is None:
             self.skipTest("render.mjs wrap could not start Chromium")

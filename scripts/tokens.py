@@ -144,7 +144,7 @@ HERO_TOKENS = {"paper": "the sheet",
                "ink2": "the line that names the project reading the file",
                "muted": "the release and its date",
                "flare": "the track to follow, the loop, the start and end bars, the arrow",
-               "accent": "the dotted line round the 0.1.3 catch"}
+               "accent": "the dotted line round the 0.1.3 catches"}
 HERO_WEIGHTS = {"PEN": "the rings", "LINE": "the loop and the arrow", "BRUSH": "the track and the dotted line"}
 HERO_ROLES = {"display": "his name", "label": "every row's words, and the role line in capitals",
               "project": "the project's name", "machine": "commands, file names and field names"}
@@ -163,7 +163,7 @@ def idea(stats: dict, cfg: dict) -> str:
     v = str(ed.get("version") or "the release")
     head = str(((stats.get("routes") or {}).get(sheet.PROJECT) or {}).get("head_sha") or "")[:7]
     stops = [e for e in p["steps"] if e["kind"] == "stop"]
-    trap = next((e for e in p["steps"] if e["kind"] == "trap"), None)
+    traps = [e for e in p["steps"] if e["kind"] == "trap"]
     step = next((e for e in p["steps"] if e["kind"] == "step"), None)
     lead = f"The picture shows how to run {p['project']} {v}, top to bottom"
     out = [lead + (f", along the magenta line from `{p['install']}`." if p["install"] else ".")]
@@ -171,8 +171,11 @@ def idea(stats: dict, cfg: dict) -> str:
         out.append("Its rings are the tool's steps: " + "; ".join(f"“{_first_clause(e['text'])}”" for e in stops) + ".")
     if any(e.get("loop") for e in p["steps"]):
         out.append("The line up the left side marks the rows that repeat for every page.")
-    if trap:
-        out.append(f"The dotted line marks the catch: “{_first_clause(trap['text'])}”.")
+    if len(traps) == 1:
+        out.append(f"The dotted line marks the catch: “{_first_clause(traps[0]['text'])}”.")
+    elif traps:     # review round 15: the robots.txt stall and the crawl that never exits
+        out.append("The dotted line marks the catches: " + "; ".join(f"“{_first_clause(e['text'])}”" for e in traps)
+                   + ".")
     if step:
         out.append(f"Then your step: “{_first_clause(step['text'])}”.")
     end = p.get("end")
@@ -237,7 +240,8 @@ assets/stats.json; edit those, not this file. check.py fails (DESIGN-FRESH) when
 {idea}
 
 The run check (`scripts/runcheck.py`) installs the release, crawls a local three-page site with `--seeding-strategy
-none`, presses Ctrl-C once and exports the sitemap. {probed}. What each
+none`, presses Ctrl-C once and exports the sitemap; its robots.txt probes crawl local sites over http and over https
+(port 443, a certificate made for the run). {probed}. What each
 element is for is in `scripts/sheets/route.py` (`PURPOSE`); `check.py` fails while any row does not hold.
 
 ## Editions

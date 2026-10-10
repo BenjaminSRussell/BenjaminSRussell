@@ -127,14 +127,14 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X3", "X2", "X1",
-                      "M1"])
+                         ["S1", "S2", "F1", "H0", "W1", "H1", "C1", "R13", "L1", "L7", "L4", "L6", "L2", "L5", "L3",
+                          "X3", "X2", "X1", "M1"])
         # r7: G1 in F1; r8: L2, L3; r9: L4 (the robots clause, its own item), X2 (what the file cannot say)
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
         drawn = {e["id"]: e for e in R.drawn(route, rc)}
-        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L3", "X1", "X2"):
+        for gid in ("S1", "F1", "H0", "H1", "C1", "R13", "L1", "L7", "L4", "L6", "L2", "L3", "X1", "X2"):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # review round 6: main's idle test runs with --ignore-robots, so M1 is retired (not printed, not unverified)
         m1 = next(e for e in R.resolve(route, rc) if e["id"] == "M1")
@@ -142,9 +142,10 @@ class Anchors(unittest.TestCase):
         self.assertEqual(m1.get("gate"), "cargo")
         # review round 6: L1 says what 0.1.3 does with robots.txt, on the probe that watched it (robots_read failed)
         # review round 9: that clause is L4, its own item
-        self.assertIn("ignores `Crawl-delay`, and asks for `robots.txt` only over https", drawn["L4"]["text"])
+        # review round 15: and it fetches before robots.txt is back (robots_late, over https)
+        self.assertIn("ignores `Crawl-delay`, and reads `robots.txt` only over https", drawn["L4"]["text"])
         self.assertNotIn("unless", drawn["L1"]["text"])
-        self.assertEqual(drawn["L4"]["fails"], ["robots_read"])
+        self.assertEqual((drawn["L4"]["runs"], drawn["L4"]["fails"]), (["robots_late"], ["robots_read"]))
         # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
         self.assertIn("by default", drawn["S1"]["text"])
         # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope; review round 4:
@@ -166,10 +167,13 @@ class Anchors(unittest.TestCase):
         self.assertTrue(drawn["S1"]["text"].startswith("`{script} crawl` starts from your URL; "))
         # review round 7: the write path in its order, in batches: 50 ms is drain_batch's wait for the first event
         # review round 13: the row says what that buys (export-sitemap after a kill), on the probes that showed it
-        self.assertEqual(drawn["W1"]["text"], "saved as it goes; export works after a kill")
-        self.assertEqual((drawn["W1"]["runs"], drawn["W1"]["fails"]), (["export_after_kill"], ["kill_writes_file"]))
+        # review round 15: W1 is checked and kept for the audit, not drawn (H0, the stall, has its room)
+        w1 = next(e for e in R.resolve(route, rc) if e["id"] == "W1")
+        self.assertNotIn("W1", drawn)
+        self.assertEqual(w1["text"], "saved as it goes; export works after a kill")
+        self.assertEqual((w1["runs"], w1["fails"]), (["export_after_kill"], ["kill_writes_file"]))
         self.assertEqual(m1["ci"], "Test")
-        self.assertNotIn("keeps the crawl", drawn["W1"]["text"], "a kill writes no file and resume fails (r13-3 #3)")
+        self.assertNotIn("keeps the crawl", w1["text"], "a kill writes no file and resume fails (r13-3 #3)")
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
 
 
@@ -805,7 +809,9 @@ class RouteSheet(unittest.TestCase):
             groups = re.findall(r'<g id="hero-([A-Z]\d+)"', svg)
             self.assertEqual(len(groups), len(set(groups)), f"{e}: an element id repeats")
             self.assertTrue(set(groups) <= ids, f"{e}: drawn without a PURPOSE row: {set(groups) - ids}")
-            want = ids
+            # review round 15: S2 waits for a release with a Crawl-delay parser, not for P1 at HEAD, so this fixture
+            # (HEAD's anchors holding) leaves it out; test_round15 draws it from such a release. W1 is never drawn
+            want = ids - {"S2", "W1"}
             self.assertEqual(set(groups), want, f"{e}: PURPOSE rows without an element: {want - set(groups)}")
             # every visible mark sits inside an element group
             body = svg.split("<defs>", 1)[-1].split("</defs>", 1)[-1]
@@ -869,7 +875,8 @@ class RouteSheet(unittest.TestCase):
             self.assertNotIn("clipPath", g, "no hatch")
             self.assertGreaterEqual(wcag(th.accent, th.paper), 3.0)
             mk = [m for m in self.freport["sheets"][f"hero-{e}"]["route"]["marks"] if m["kind"] == "danger"]
-            self.assertEqual(len(mk), 1)
+            self.assertEqual(sorted(m["id"] for m in mk), ["H0", "H1"])      # review round 15: two catches, two rings
+            mk = [m for m in mk if m["id"] == "H1"]
             words = [t for t in self.freport["sheets"][f"hero-{e}"]["text"] if t["key"] == "routes:H1"]
             x0, y0, x1, y1 = mk[0]["box"]
             for t in words:      # the words sit inside the line, at least the padding away
@@ -949,7 +956,7 @@ class RouteSheet(unittest.TestCase):
             self.assertFalse(ent["route"]["file_labels"], e)
         bad = copy.deepcopy(self.report["sheets"]["hero-day"])
         for t in bad["text"]:
-            if t["key"] == "routes:W1" and t["x0"] > sheet.L["desk"]["track_x"]:
+            if t["key"] == "routes:F1" and t["x0"] > sheet.L["desk"]["track_x"]:
                 t["x0"] += 30
         self.assertEqual([f.code for f in route_check.left_edge(bad, "hero-day")], ["ROUTE-LEFT-EDGE"])
 

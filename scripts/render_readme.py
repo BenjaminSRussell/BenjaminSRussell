@@ -175,13 +175,19 @@ class _Safe(dict):
 # round 6: the hero does not move, so it ships no still editions and no reduced-motion sources. Review round 12 (the
 # owner): the mid editions come first, from chart.toml `mid_from_px` to `breakpoint_px` (an iPad held sideways, a
 # laptop window under 1,200 px); the phone's end one pixel before the mid's start; then the desk's night, then the img
+# Review round 15 (the student): the desk has its own two sources from breakpoint_px + 1, so every browser width is
+# served by a <source>, and the <img> is the phone's day edition (HERO_FALLBACK). A client that ignores <source> (the
+# GitHub iOS app is unchecked) then shows the sheet made for the narrowest column; the 1,000-unit desk sheet there set
+# its words at 5.9 px in a 308 px column.
 HERO_ROUTE_SOURCES = [
     ("(min-width: {mid}px) and (max-width: {bp}px) and (prefers-color-scheme: dark)", "mid-night"),
     ("(min-width: {mid}px) and (max-width: {bp}px)", "mid-day"),
     ("(max-width: {pmax}px) and (prefers-color-scheme: dark)", "phone-night"),
     ("(max-width: {pmax}px)", "phone-day"),
-    ("(prefers-color-scheme: dark)", "night"),
+    ("(min-width: {desk}px) and (prefers-color-scheme: dark)", "night"),
+    ("(min-width: {desk}px)", "day"),
 ]
+HERO_FALLBACK = "phone-day"
 
 
 def hero_link(cfg: dict) -> str | None:
@@ -200,14 +206,15 @@ def picture(sheet: str, cfg: dict, alt: str, link: str | None = None) -> str:
         srcs = [(m.replace("{pmax}", "{bp}"), e) for m, e in srcs if not e.startswith("mid-")]
     lines = ([f'<a href="{link}">'] if link else []) + ["<picture>"]
     for media, ed in srcs:
-        lines.append(f'<source media="{media.format(bp=bp, mid=mid, pmax=(mid or bp + 1) - 1)}" '
+        lines.append(f'<source media="{media.format(bp=bp, mid=mid, pmax=(mid or bp + 1) - 1, desk=bp + 1)}" '
                      f'srcset="{base}{sheet}-{ed}.svg">')
     alt_attr = alt.replace("&", "&amp;").replace('"', "&quot;")
     # width="100%" and no height: D8 asked for width and height so the page does not jump, but GitHub's
     # markdown CSS (`img {max-width: 100%}` with no `height: auto`) keeps a pixel height while it narrows
     # the width, and the sheet letterboxes inside a column-wide × 740 px box. A ratio hint is not possible
     # without a style attribute, which GitHub strips.
-    lines.append(f'<img src="{base}{sheet}-day.svg" width="100%" alt="{alt_attr}">')
+    fallback = HERO_FALLBACK if sheet == "hero" else "day"
+    lines.append(f'<img src="{base}{sheet}-{fallback}.svg" width="100%" alt="{alt_attr}">')
     lines.append("</picture>")
     if link:
         lines.append("</a>")
@@ -473,7 +480,7 @@ def facts_repos(text: str) -> list[str]:
 
 # ------------------------------------------------------------------ round 6: how to run it, where its output goes
 
-def install_time(rc: dict | None) -> str | None:
+def install_time(rc: dict | None, with_runner: bool = True) -> str | None:
     """The source build's time, only when the run check measured it cold (an empty CARGO_HOME, so every crate was
     downloaded inside the timed step): "3 min from a cold cache on a 4-core Linux x86_64 machine". None otherwise:
     a warm build says nothing about a stranger's first install."""
@@ -489,12 +496,29 @@ def install_time(rc: dict | None) -> str | None:
     lo, hi = round(min(runs) / 60), round(max(runs) / 60)
     span = f"{lo} min" if lo == hi else f"{lo}–{hi} min"
     cores = f"{st['cpus']}-core " if isinstance(st.get("cpus"), int) else ""
-    return f"{span} from a cold cache on a {cores}{rc['runner']} machine"
+    # review round 15: the runner is named by the sentence itself ("On Linux x86_64, ..."), so not twice
+    return f"{span} from a cold cache on a {cores}{rc['runner'] + ' ' if with_runner else ''}machine"
 
 
-def _wheel_sentence(wheels, rc: dict | None = None) -> str:
+def source_runners(rc) -> list[str]:
+    """Review round 15 (the student): the runners where a run check built the release from its sdist and the install
+    passed, in order (one record, or a list of them)."""
+    recs = rc if isinstance(rc, list) else [rc] if isinstance(rc, dict) else []
+    out = []
+    for r in recs:
+        st = next((x for x in r.get("steps") or [] if isinstance(x, dict) and x.get("id") == "install"), None)
+        if st and st.get("ok") and str(r.get("install") or "").startswith("sdist") and r.get("runner") \
+                and r["runner"] not in out:
+            out.append(str(r["runner"]))
+    return out
+
+
+def _wheel_sentence(wheels, rc=None) -> str:
     """The note under the install block, from the release's wheels, with the measured source-build time when the
-    run check timed it cold (review round 2: the image no longer carries the install time)."""
+    run check timed it cold (review round 2: the image no longer carries the install time). Review round 15 (the
+    student): a source build is said only for the platforms a run check built it on (`runner`); the rest are "not
+    tried", never "elsewhere": on Windows a Rust toolchain also needs Visual Studio's C++ build tools and a Windows
+    SDK, and no one has built 0.1.3 there."""
     try:
         from data import route as route_mod
     except ImportError:
@@ -503,18 +527,25 @@ def _wheel_sentence(wheels, rc: dict | None = None) -> str:
     names = {n for n, _ in plats}
     if "any platform" in names or all(c in names for c in route_mod.COMMON):
         return ""
-    t = install_time(rc)
+    recs = rc if isinstance(rc, list) else [rc] if isinstance(rc, dict) else []
+    built = source_runners(recs)
+    first = next((r for r in recs if str(r.get("runner")) in built[:1]), None)
+    t = install_time(first, with_runner=False) if first else None
     tail = f" ({t})" if t else ""
-    if not plats:
-        return f"No prebuilt wheel: `pip` builds it from source, which needs a Rust toolchain{tail}."
     friendly = {"macOS arm64": "Apple silicon", "macOS x86_64": "Intel Macs"}
     parts = []
     for n, v in plats:
         piece = f"{friendly.get(n, n)} on {v.replace('Python', 'CPython')}"
         if piece not in parts:
             parts.append(piece)
-    return (f"Prebuilt for {' and '.join(parts)}; elsewhere `pip` builds it from source, which needs a Rust "
-            f"toolchain{tail}.")
+    lead = f"Prebuilt for {' and '.join(parts)}." if parts else "No prebuilt wheel."
+    if not built:
+        where = " elsewhere" if parts else ""
+        return f"{lead} `pip` builds it from source{where}, which needs a Rust toolchain; this was not tried."
+    covered = set(built) | names
+    rest = "" if all(c in covered for c in route_mod.COMMON) else "; other platforms were not tried"
+    return (f"{lead} On {' and '.join(built)}, `pip` builds it from source, which needs a Rust toolchain{tail}"
+            f"{rest}.")
 
 
 def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
@@ -582,7 +613,10 @@ def stop_lines(rc: dict | None, gates: dict | None = None, route: dict | None = 
     if route is not None:
         try:
             from data import route as route_mod
-            trap = next((e for e in route_mod.resolve(route, rc) if e.get("kind") == "trap"), None)
+            # review round 15: the stop trap (H1), not the first trap: H0, the robots.txt stall, is drawn above it
+            traps = [e for e in route_mod.resolve(route, rc) if e.get("kind") == "trap"]
+            trap = next((e for e in traps if e.get("quiet") is not None), None) or \
+                next((e for e in traps if "ends_by_itself" in (e.get("runs") or []) + (e.get("fails") or [])), None)
         except ImportError:
             trap = None
     if trap is not None and trap.get("verified") and trap.get("retired"):
@@ -915,7 +949,7 @@ def flag_words(cmd: str, printed=BLOCK_CRAWL_FLAGS) -> list[str]:
     return out
 
 
-def crawl_words(step: dict | None) -> str:
+def crawl_words(step: dict | None, https: bool = False) -> str:
     """What the run check's crawl ran against, from its own command and detail: "against a local 3-page site".
     Review round 5: the flags it ran with are in DESIGN.md. Review round 6: except a flag that changes what the
     printed command does, which is named first: ", with seeding off, against a local 3-page site" (the block's
@@ -927,8 +961,20 @@ def crawl_words(step: dict | None) -> str:
     words = flag_words(cmd)
     lead = (", " + " and ".join(words) + ",") if words else ""
     if re.search(r"127\.0\.0\.1|localhost", cmd):
+        if https:
+            # review round 15 (the systems engineer): once the https probes ran, the robots.txt claims were run, not
+            # only read in the code, and "a local 3-page site" understates the probe set
+            return lead + " against local test sites over http and https"
         return lead + (f" against a local {m.group(1)}-page site" if m else " against a local site")
     return lead.rstrip(",")
+
+
+HTTPS_PROBES = ("robots_stall", "robots_late")
+
+
+def https_ran(steps: dict) -> bool:
+    """Review round 15: both https probes ran (passed or failed, not skipped)."""
+    return all(isinstance(steps.get(k), dict) and not steps[k].get("skipped") for k in HTTPS_PROBES)
 
 
 def route_clause(stats: dict, figs: dict) -> str:
@@ -946,7 +992,8 @@ def route_clause(stats: dict, figs: dict) -> str:
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
     if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
         steps = {s.get("id"): s for s in rc.get("steps") or []}
-        out += (f"; its commands were run{crawl_words(steps.get('crawl_ctrl_c'))} on {fmt_date(rc['date'])}"
+        out += (f"; its commands were run{crawl_words(steps.get('crawl_ctrl_c'), https_ran(steps))} on "
+                f"{fmt_date(rc['date'])}"
                 + (f" ({rc['runner']})" if rc.get("runner") else ""))
     return out + "."
 

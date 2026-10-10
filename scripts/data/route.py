@@ -284,6 +284,9 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
     return {"text": text, "file": label, "verified_head": not mh, "verified_release": not mr, **rec_q,
             "missing": mh + mr, "runs": [str(x) for x in e.get("runs") or []],
             "fails": [str(x) for x in e.get("fails") or []],
+            # review round 15: probes that must have been skipped (they could not run), for a wording that rests on
+            # the code alone only while its probes could not run
+            **({"skipped": [str(x) for x in e["skipped"]]} if e.get("skipped") else {}),
             "paths": {"head": sorted({str(a.get("path")) for a in e.get("head") or []}),
                       "release": sorted({str(a.get("path")) for a in e.get("release") or []})}}
 
@@ -326,6 +329,12 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
                 rec[k] = str(e[k])
         if e.get("fold"):        # review round 13: a caution printed in the fold after the open list
             rec["fold"] = True
+        if e.get("drawn") is False:   # review round 15: checked and kept for the audit, but not drawn on the image
+            rec["drawn"] = False
+        if e.get("waits"):       # review round 15: an entry that waits for a release (checks/route.py ROUTE-WAITING)
+            if str(e["waits"]) != "release":
+                raise ValueError(f"route entry {eid}: waits {e['waits']!r} is not 'release'")
+            rec["waits"] = "release"
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -363,7 +372,8 @@ def steps_of(runcheck: dict | None, release: str | None = None) -> dict[str, dic
 
 def run_missing(cand: dict, steps: dict[str, dict] | None) -> list[str]:
     """Why a candidate's probes do not hold: [] when every `runs` step passed and every `fails` step failed."""
-    need = [(sid, True) for sid in cand.get("runs") or []] + [(sid, False) for sid in cand.get("fails") or []]
+    need = [(sid, True) for sid in cand.get("runs") or []] + [(sid, False) for sid in cand.get("fails") or []] + \
+        [(sid, None) for sid in cand.get("skipped") or []]
     if not need:
         return []
     if steps is None:
@@ -373,6 +383,13 @@ def run_missing(cand: dict, steps: dict[str, dict] | None) -> list[str]:
         st = steps.get(sid)
         if st is None:
             out.append(f"run check: no step {sid}")
+        elif want is None:
+            # review round 15: the wording for a probe that could not run (port 443, the certificate)
+            if not st.get("skipped"):
+                out.append(f"run check: {sid} ran ({'passed' if st.get('ok') else 'failed'}), not skipped")
+        elif st.get("skipped"):
+            # review round 15: a probe that could not run neither passed nor failed
+            out.append(f"run check: {sid} skipped ({str(st.get('detail') or '')[:120]})")
         elif bool(st.get("ok")) != want:
             out.append(f"run check: {sid} {'failed' if want else 'passed'} ({str(st.get('detail') or '')[:120]})")
         elif want and cand.get("quiet") is not None and st.get("quiet_secs") is not None \
@@ -431,9 +448,11 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             base["para"] = True
         if e.get("item"):
             base["item"] = True
-        for k in ("stage", "short", "fold"):
+        for k in ("stage", "short", "fold", "waits"):
             if e.get(k):
                 base[k] = e[k]
+        if e.get("drawn") is False:
+            base["drawn"] = False
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
@@ -445,8 +464,10 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
                         # review round 10: the quiet the drawn wording prints, for the README's stop lines
                         **({"quiet": chosen["quiet"]} if chosen.get("quiet") is not None else {})})
         else:
+            # review round 15: whether the entry's own wording holds in the release and at HEAD (ROUTE-WAITING)
             out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons,
-                        "wording": None})
+                        "wording": None, "verified_release": bool(e.get("verified_release")),
+                        "verified_head": bool(e.get("verified_head"))})
     return out
 
 
@@ -477,11 +498,18 @@ def header_ok(route: dict | None, runcheck: dict | None = None) -> tuple[bool, l
 def drawn(route: dict | None, runcheck: dict | None = None) -> list[dict]:
     """The entries the image may draw: anchors hold (at HEAD and in the release, or in the release for a release-only
     entry) and the run-check probes they name came out as stated."""
-    return [e for e in resolve(route, runcheck) if e["verified"] and not e.get("retired")]
+    return [e for e in resolve(route, runcheck) if e["verified"] and not e.get("retired") and e.get("drawn", True)]
 
 
 def unverified(route: dict | None, runcheck: dict | None = None) -> list[dict]:
     return [e for e in resolve(route, runcheck) if not e["verified"]]
+
+
+def waiting(e: dict) -> bool:
+    """Review round 15 (the owner): an unverified entry that waits for a release (`waits = "release"`) and whose own
+    release anchors do not hold yet: it is not drawn, and the gate warns instead of failing, so the editions that
+    are true still publish. One that holds in the release but not at HEAD is a regression on main: not waiting."""
+    return not e.get("verified") and e.get("waits") == "release" and not e.get("verified_release")
 
 
 # ---------------------------------------------------------------- the hand-offs

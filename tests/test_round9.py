@@ -71,13 +71,13 @@ class Cautions(unittest.TestCase):
         self.assertTrue(paras[0].startswith("Prebuilt for Apple silicon"), paras[0])
         self.assertEqual(paras[1], "Before you run 0.1.3:")      # review round 10: the lead names the release
         items = paras[2].strip().splitlines()
-        self.assertEqual(len(items), 4)                    # review round 13: the four you act on; the rest folded
+        self.assertEqual(len(items), 6)                    # review round 13: the ones you act on; the rest folded
         for it in items:
             self.assertTrue(it.startswith("- "), it)
             self.assertLessEqual(len(it[2:].split()), rr.LIST_MAX_WORDS, it)
         self.assertIn("<br>`--workers 1` sends one at a time.", items[0])
-        self.assertIn("crt.sh and Common Crawl", items[2])
-        self.assertIn("<br>`--seeding-strategy none` asks no one.", items[2])
+        self.assertIn("crt.sh and Common Crawl", items[4])        # review round 15: after L7, L4 and L6
+        self.assertIn("<br>`--seeding-strategy none` asks no one.", items[4])
         self.assertNotIn("20 pages", head, "the per-host 20 is said once, in the image")
 
     def test_the_check_bites(self):

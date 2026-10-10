@@ -33,6 +33,8 @@ def readme_spans(readme: str, recs: list[dict], stats: dict, cfg: dict) -> list[
 
     def literal(s: str) -> None:
         s = str(s or "").replace(" ", " ").replace("*", " ")
+        # review round 15: a placeholder in angle brackets (`<your-bot>`) is a tag to visible(), so it is to the literal
+        s = re.sub(r"<[^>]+>", " ", s)
         if not s.strip():
             return
         # review round 10: any run of white space matches any other (an item's <br> is blanked to four spaces)

@@ -114,10 +114,17 @@ def check(ctx) -> list[Finding]:
         if not name.startswith("hero-"):
             continue
         th = tokens.THEMES["night" if "night" in name else "day"]
-        for m in re.finditer(r'<g id="hero-H\d+">(.*?)</g>(?=<g id="hero-|\s*</svg>)', ctx.svg_text(name), re.S):
-            g = m.group(1)
-            if f'stroke="{th.accent}"' not in g or 'stroke-dasharray' not in g:
-                out.append(fail("CONTRAST-DANGER", "the trap has no dotted line in the accent", name))
+        # review round 15: traps on consecutive rows share one line, drawn in the last one's group; the others are
+        # inside it when the report gives them the same danger box
+        marks = (((ctx.report or {}).get("sheets") or {}).get(name) or {}).get("route", {}).get("marks") or []
+        boxes = {m["id"]: tuple(m["box"]) for m in marks if m.get("kind") == "danger"}
+        groups = {m.group(1): m.group(2) for m in re.finditer(r'<g id="hero-(H\d+)">(.*?)</g>(?=<g id="hero-|\s*</svg>)',
+                                                               ctx.svg_text(name), re.S)}
+        lined = {gid for gid, g in groups.items() if f'stroke="{th.accent}"' in g and 'stroke-dasharray' in g}
+        for gid, g in groups.items():
+            shared = gid in boxes and any(boxes.get(o) == boxes[gid] for o in lined)
+            if gid not in lined and not shared:
+                out.append(fail("CONTRAST-DANGER", f"the trap {gid} has no dotted line in the accent", name))
             if re.search(r'<rect[^>]*fill="(?!none)', g):
                 out.append(fail("CONTRAST-DANGER", "the trap's words sit on a filled shape", name))
     # per-sheet lights[] when present

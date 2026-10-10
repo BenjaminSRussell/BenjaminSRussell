@@ -3,6 +3,12 @@
 ROUTE-UNVERIFIED (fail): an entry of routes.<name> none of whose wordings holds: its anchors at HEAD or in the release,
   or the run-check probes it names (`runs` passed, `fails` failed); it names the entry and every reason. The sheet
   leaves such an entry out, and the gate refuses to ship the gap.
+ROUTE-WAITING (warn, review round 15): an entry with `waits = "release"` whose own release anchors do not hold yet
+  (S2, paced by robots.txt, needs a release with a Crawl-delay parser). It is not drawn, as an unverified entry is
+  not, but the gate does not stop the true editions from publishing. A `waits` entry that holds in the release and
+  not at HEAD still fails ROUTE-UNVERIFIED: that is a regression on main.
+ROUTE-PROBE-SKIPPED (warn, review round 15): a run-check probe that could not run (`skipped`: port 443 not bound, no
+  certificate, no request through); the entries resting on it fall back to their code-only wordings.
 ROUTE-HEADER (fail): the project sentence's anchors or its run-check steps do not hold.
 ROUTE-ENTRANCE (fail): runcheck.rustmapper missing, failed, for another version than edition.version, or dated more
   than 14 days before `taken`.
@@ -252,8 +258,21 @@ def check(ctx) -> list[Finding]:
         return [fail("ROUTE-MISSING", f"stats.json has no routes.{PROJECT}: run build_stats.py")]
     rc = (stats.get("runcheck") or {}).get(PROJECT)
     for e in R.unverified(route, rc):
-        out.append(fail("ROUTE-UNVERIFIED", f"{e.get('id')} {e.get('text')!r} is not drawn: "
-                        + "; ".join(e.get("missing") or ["no reason recorded"]), "stats.json routes"))
+        why = "; ".join(e.get("missing") or ["no reason recorded"])
+        if R.waiting(e):
+            # review round 15 (the owner): S2 waits for a release with a Crawl-delay parser; until then it is left
+            # out and the six true editions publish
+            out.append(warn("ROUTE-WAITING", f"{e.get('id')} {e.get('text')!r} waits for a release: {why}",
+                            "stats.json routes"))
+            continue
+        out.append(fail("ROUTE-UNVERIFIED", f"{e.get('id')} {e.get('text')!r} is not drawn: " + why,
+                        "stats.json routes"))
+    steps = R.steps_of(rc, route.get("release")) or {}
+    skipped = sorted(sid for sid, st in steps.items() if st.get("skipped"))
+    if skipped:
+        # review round 15: a probe that could not run (port 443, the certificate) is not a pass: the wordings that rest
+        # on it give way to the code-only ones, and the data line names http only
+        out.append(warn("ROUTE-PROBE-SKIPPED", f"run-check probes skipped: {', '.join(skipped)}", "stats.json runcheck"))
     hok, hmiss = R.header_ok(route, rc)
     if route.get("header") and not hok:
         out.append(fail("ROUTE-HEADER", "the project sentence does not hold: " + "; ".join(hmiss), "stats.json routes"))

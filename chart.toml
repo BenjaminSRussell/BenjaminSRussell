@@ -371,7 +371,7 @@ absent = [{path = "Scraping_project/src/stage2/stage2_worker.py", pattern = 'Cli
 # override), sending aiohttp's own User-Agent, "Python/{major}.{minor} aiohttp/{version}": python:3.11-slim and
 # aiohttp==3.13.1. When stage 2 checks robots.txt or sends a name, a row fails and the sentence is reworded
 [[figures]]
-text = "The spider obeys `robots.txt` and its `Crawl-delay`."
+text = "The spider obeys `robots.txt` and its `Crawl-delay`"
 repo = "Scrapy"
 path = "Scraping_project/src/stage1/middlewares/spider_config.py"
 literal = '"ROBOTSTXT_OBEY": bool(spider_config.get("robotstxt_obey", True))'
@@ -766,9 +766,17 @@ loop = true                # the queue: the loop's way back ends here once this 
 file = "frontier.rs"
 text = "one queue per host, paced by that host's robots.txt"
 # the test file is P1 (SPEC §1): at 32c2651 a site whose robots.txt answers 404 is never crawled
+# Review round 15 (the owner): 0.1.3 has no Crawl-delay parser (robots.rs; HostState::new sets crawl_delay_secs 0 and
+# the only producer passes None, frontier.rs:787); this stop is drawn from the first release that has one. The anchor
+# is the mirror of L1's and L4's `absent`, so "paced by that host's robots.txt" and "It ignores `Crawl-delay`" flip on
+# the same release, never one without the other. `waits = "release"`: while the release anchors fail, the gate
+# warns (ROUTE-WAITING) instead of failing, so the true editions still publish; a release that holds while HEAD does
+# not is a regression on main and still fails (checks/route.py)
+waits = "release"
 head = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"},
-        {path = "tests/robots_4xx_allows_crawl.rs"}]
-release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"}]
+        {path = "src/robots.rs", text = "fn parse_crawl_delay"}, {path = "tests/robots_4xx_allows_crawl.rs"}]
+release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"},
+           {path = "src/robots.rs", text = "fn parse_crawl_delay"}]
 
 # Review round 3: the scope fact lives here, where it is a fact about which links are queued, not a cause.
 # url_utils.rs is_same_domain takes the start's subdomains and every domain it ends with (start on blog.x.org and
@@ -820,6 +828,45 @@ release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_l
            {path = "src/frontier.rs", text = "current_inflight >= host_state.max_inflight"}]
 runs = ["crawl_ctrl_c"]
 
+# H0, review round 15 (the systems engineer): the catch a stranger meets first on a real site. 0.1.3 reads robots.txt
+# over https (L4), and when the URL it pops for a host is disallowed it logs "blocked by robots.txt" and goes straight
+# to `continue;` (frontier.rs get_next_url), without pushing the host back on the ready heap, as its backoff and
+# at-capacity branches do. The links queued behind it are asked for only when a new link to that host is queued
+# (add_url_to_local_queue_unchecked pushes the host again). Probe robots_stall: robots.txt (Disallow: /secret)
+# answered at once, the home page linking p1-p5, secret.html, p6-p10: p1-p5 fetched, p6-p10 never in 30 s. Probe
+# robots_resume: the same site with one new link on p1.html, answered 3 s late: p6-p10 only after it. A stalled host
+# also stops the `Received work item` lines, so H1's rule reads a stall as done; the dotted line marks it as a catch.
+# The day a release re-pushes the host (main has since 6bcb6cd), robots_stall fails and the empty wording retires it.
+[[route.rustmapper.entry]]
+id = "H0"
+kind = "trap"
+scope = "release"
+loop = true
+file = "frontier.rs"
+text = "on https, a disallowed link stalls its host"
+audit = "`src/frontier.rs` `get_next_url`: the disallowed branch prints \"Shard {}: URL {} blocked by robots.txt\" and then `continue;`, with no `push_ready_host`; `add_url_to_local_queue_unchecked` pushes the host again only when a new URL is queued. Probe `robots_stall` (https on 127.0.0.1:443, robots.txt answered at once): of the five links after the disallowed one, none fetched in 30 s; probe `robots_resume`: all five fetched once a late page brought a new link"
+release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
+                                    self.shard_id, queued.url
+                                );
+                                continue;"""},
+           {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "self.push_ready_host(ReadyHost {"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
+runs = ["robots_stall", "robots_resume"]
+[[route.rustmapper.entry.instead]]
+# the https probes could not run (port 443, the certificate): the code alone, which shows the same branch
+text = "on https, a disallowed link stalls its host"
+release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
+                                    self.shard_id, queued.url
+                                );
+                                continue;"""},
+           {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "self.push_ready_host(ReadyHost {"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
+skipped = ["robots_stall"]
+[[route.rustmapper.entry.instead]]
+text = ""
+release = [{path = "src/frontier.rs"}]
+fails = ["robots_stall"]
+
 # The write path, in its order (review round 5). writer_loop appends each batch to the write-ahead log and fsyncs it
 # (sync_all) before it commits the batch to redb (order anchors, `before`). drain_batch waits at most
 # BATCH_TIMEOUT_MS (50) for the first event (recv_deadline), then takes whatever is queued, up to MAX_BATCH_SIZE,
@@ -831,9 +878,14 @@ runs = ["crawl_ctrl_c"]
 # 851, and "export-sitemap works after a kill" takes two (1,155 units, measured); the code block under the list
 # names the command. The day a kill writes the file, kill_writes_file passes and the old wording comes back until
 # this is reworded.
+# Review round 15 (the systems engineer): W1 is not drawn. The phone sheet is served up to an 851 px window, where
+# GitHub's column is 481 px and the sheet may be drawn at most 900 px tall (checks/column.py): 1,122 units. The stall
+# (H0) needs that room, W1 is the one row that reassures rather than directs, and the README's block already says it
+# where the reader types ("# sitemap.xml, even after a kill"). The row stays checked here, for the audit.
 [[route.rustmapper.entry]]
 id = "W1"
 kind = "stop"
+drawn = false
 loop = true
 file = "writer_thread.rs"
 text = "saved as it goes; export works after a kill"
@@ -997,6 +1049,26 @@ release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/robots.
            {path = "src/bfs_crawler.rs", text = "in_flight_tasks.len() < max_concurrent"}]
 runs = ["workers_cap", "crawl_delay_obeyed"]
 
+# L7, review round 15 (the student): the name a site owner sees in the log. 0.1.3's Crawl defaults --user-agent to
+# "RustSitemapCrawler/1.0" (cli.rs), sets it on the reqwest client (network.rs `.user_agent(&user_agent)`) and sends
+# no From header; the same string picks its robots.txt group (frontier.rs one_agent_allowed_by_robots). RFC 9309
+# §2.2.1 asks that the identification string describe the crawler, and RFC 9110 §10.1.2 that a robot send From so
+# its operator can be reached. Probe ua_seen (in the robots_read run): every request carried that one name, no URL or
+# address in it, and no From. The `equals` anchor fails the day the default gains a contact, and the row is reworded.
+[[route.rustmapper.entry]]
+id = "L7"
+stage = "server"
+short = "its name"
+kind = "text"
+scope = "release"
+item = true
+text = "It names itself `RustSitemapCrawler/1.0`, with no way to reach you. `--user-agent <your-bot>` sends your name instead."
+audit = "The `--user-agent` default in `src/cli.rs` (`Crawl`), set on the reqwest client in `src/network.rs`; no `From` header anywhere. Probe `ua_seen`: every request the fixture server saw named itself `RustSitemapCrawler/1.0`, with no URL or address in it, and sent no `From`"
+release = [{path = "src/cli.rs", block = "Crawl", arg = "user_agent", equals = "RustSitemapCrawler/1.0"},
+           {path = "src/network.rs", text = ".user_agent(&user_agent)"},
+           {path = "src/network.rs", absent = "header::FROM"}, {path = "src/network.rs", absent = '"From"'}]
+runs = ["ua_seen"]
+
 # L4 (review round 6, its own item since round 9): 0.1.3 never reads a Crawl-delay (robots.rs has no parser;
 # frontier.rs always stores crawl_delay_secs: None; the setter `host_state.crawl_delay_secs = delay` is never given a
 # value), and it asks for robots.txt at https://<host>/robots.txt only, so on a plain-http site it reads no rules.
@@ -1009,20 +1081,89 @@ short = "robots.txt"
 kind = "text"
 scope = "release"
 item = true
+# Review round 15 (the systems engineer): it fetches before it has the rules. With no robots.txt cached for a host,
+# 0.1.3 starts a background fetch, prints "missing robots.txt, fetching in background (allowing crawl)" and dispatches
+# the URL anyway ("// Proceed with crawling - don't block on robots.txt"), up to max_inflight (20) at a time, until
+# the answer is in. Probe robots_late (https, robots.txt answered 0.5 s late): all 10 disallowed pages fetched. Not
+# "up to 20 pages": a slow robots.txt (the fetch times out at 30 s and is retried) lets more than 20 through.
+text = "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https."
+audit = "`src/frontier.rs` `get_next_url`: with no robots.txt cached, \"missing robots.txt, fetching in background (allowing crawl)\" and \"// Proceed with crawling - don't block on robots.txt\"; no Crawl-delay parser in `src/robots.rs`; the robots URL is `format!(\"https://{}/robots.txt\")`. Probe `robots_late` (https, robots.txt answered 0.5 s late): 10 of 10 disallowed pages fetched; probe `robots_read` (plain http): no `GET /robots.txt`, the disallowed page fetched"
+release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'},
+           {path = "src/frontier.rs", fn = "get_next_url", text = "missing robots.txt, fetching in background (allowing crawl)"},
+           {path = "src/frontier.rs", fn = "get_next_url", text = "// Proceed with crawling - don't block on robots.txt"}]
+runs = ["robots_late"]
+fails = ["robots_read"]
+[[route.rustmapper.entry.instead]]
+# the https probes could not run: the round 6 wording, on the http probe alone
 text = "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
 release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"},
            {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
 fails = ["robots_read"]
+skipped = ["robots_late"]
 [[route.rustmapper.entry.instead]]
-# a release that reads robots.txt over http (probe robots_read passed) but still has no Crawl-delay parser
+# a release that waits for robots.txt (robots_late failed) but still reads it only over https
+text = "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
+release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
+fails = ["robots_read", "robots_late"]
+[[route.rustmapper.entry.instead]]
+# a release that reads robots.txt over http (probe robots_read passed) but still fetches before it is back
+text = "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`."
+release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"}]
+runs = ["robots_read", "robots_late"]
+[[route.rustmapper.entry.instead]]
+# a release that reads robots.txt over http and waits for it, with no Crawl-delay parser
 text = "It ignores `Crawl-delay`."
 release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"}]
 runs = ["robots_read"]
+fails = ["robots_late"]
 [[route.rustmapper.entry.instead]]
-# a release that reads robots.txt over http and parses Crawl-delay: L1's alternative says the pause, this one retires
+# a release that parses Crawl-delay but still fetches before robots.txt is back
+text = "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too."
+release = [{path = "src/robots.rs", text = "fn parse_crawl_delay"}]
+runs = ["robots_read", "robots_late", "crawl_delay_obeyed"]
+[[route.rustmapper.entry.instead]]
+# a release that reads robots.txt over http, waits for it and parses Crawl-delay: L1's alternative says the pause
 text = ""
 release = [{path = "src/robots.rs", text = "fn parse_crawl_delay"}]
 runs = ["robots_read", "crawl_delay_obeyed"]
+fails = ["robots_late"]
+
+# L6, review round 15 (the systems engineer): the stall H0 draws, said where a site owner reads what the crawl does
+# to a server, with the way it resumes. On a shop-shaped https fixture with Shopify's default Disallow lines (/cart,
+# /search), 0.1.3 fetched 4 pages in 70 s and none of the 12 products (review r15-2). Probes robots_stall and
+# robots_resume; retired by the empty wording once a release re-pushes the host (robots_stall fails).
+[[route.rustmapper.entry]]
+id = "L6"
+stage = "server"
+short = "robots.txt stall"
+kind = "text"
+scope = "release"
+item = true
+text = "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host."
+audit = "`src/frontier.rs` `get_next_url`: \"blocked by robots.txt\", then `continue;` with no `push_ready_host`; `add_url_to_local_queue_unchecked` pushes the host back when a new URL is queued. Probe `robots_stall`: p1-p5 fetched, `/secret.html` not, p6-p10 never in 30 s; probe `robots_resume`: p6-p10 fetched only after a page answered 3 s late brought a new link"
+release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
+                                    self.shard_id, queued.url
+                                );
+                                continue;"""},
+           {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "self.push_ready_host(ReadyHost {"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
+runs = ["robots_stall", "robots_resume"]
+[[route.rustmapper.entry.instead]]
+# the https probes could not run: the code alone
+text = "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host."
+release = [{path = "src/frontier.rs", fn = "get_next_url", text = """"Shard {}: URL {} blocked by robots.txt",
+                                    self.shard_id, queued.url
+                                );
+                                continue;"""},
+           {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "self.push_ready_host(ReadyHost {"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
+skipped = ["robots_stall"]
+[[route.rustmapper.entry.instead]]
+text = ""
+release = [{path = "src/frontier.rs"}]
+fails = ["robots_stall"]
 
 # L2 (review round 8): who else hears about the crawl, and the lever. By default the release asks crt.sh
 # (ct_log_seeder.rs, the query URL) and Common Crawl's index (common_crawl_seeder.rs) about the start URL's domain;

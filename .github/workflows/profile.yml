@@ -1,6 +1,6 @@
 # The chart's weekly job (round 4, D9: weekly and on push, not nightly): take the soundings, redraw the
-# hero, render the README, pass the gate, commit the small JSON + README to main, publish the sheet to
-# the orphan `chart` branch. A failed sounding publishes last week's figures with the dated pencil note;
+# hero, render the README, pass the gate, publish the sheet to the orphan `chart` branch, then commit the small
+# JSON + README to main (review round 15: sheets first). A failed sounding publishes last week's figures with the dated pencil note;
 # a failed gate publishes nothing and the job is red. Nothing is half-published: the publish is one
 # force-push.
 #
@@ -135,6 +135,21 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Social preview PNGs (ride the chart branch under social/)
+        if: steps.gate.outcome == 'success'
+        run: node scripts/social.mjs
+
+      - name: Publish sheets to the orphan chart branch
+        if: ${{ !inputs.dry_run }}
+        run: python3 scripts/publish_chart.py
+
+      - name: Publish, dry run
+        if: ${{ inputs.dry_run }}
+        run: python3 scripts/publish_chart.py --dry-run
+
+      # Review round 15 (the owner): the sheets go to the chart branch before README.md goes to main, so main never
+      # names a file the branch lacks (publish_chart.unshipped refuses a README that names an unshipped edition); a
+      # README merged ahead of its sheets showed a broken image at 852 to 1,199 px and the old sheet elsewhere.
       - name: Commit stats, log, lock and README to main
         if: ${{ !inputs.dry_run }}
         run: |
@@ -167,18 +182,6 @@ jobs:
             echo "::error::could not push the survey to main after 2 attempts"
             exit 1
           fi
-
-      - name: Social preview PNGs (ride the chart branch under social/)
-        if: steps.gate.outcome == 'success'
-        run: node scripts/social.mjs
-
-      - name: Publish sheets to the orphan chart branch
-        if: ${{ !inputs.dry_run }}
-        run: python3 scripts/publish_chart.py
-
-      - name: Publish, dry run
-        if: ${{ inputs.dry_run }}
-        run: python3 scripts/publish_chart.py --dry-run
 
       # The sounding failed: yesterday's figures, the dated pencil note and the dashed datum rule.
       # Still gated, still one push. Anything that fails after the sounding stays unpublished.

@@ -203,7 +203,7 @@ class Writer(unittest.TestCase):
 
     def test_committed(self):
         _, stats = load()
-        w1 = next(e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"]) if e["id"] == "W1")
+        w1 = next(e for e in R.resolve(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"]) if e["id"] == "W1")
         self.assertEqual(w1["text"], "saved as it goes; export works after a kill")      # review round 13
         self.assertNotIn("every 50 ms", sheet.PURPOSE["W1"][0])
 

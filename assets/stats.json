@@ -7491,9 +7491,10 @@
      "text": "one queue per host, paced by that host's robots.txt",
      "file": "frontier.rs",
      "verified_head": false,
-     "verified_release": true,
+     "verified_release": false,
      "missing": [
-      "head tests/robots_4xx_allows_crawl.rs: file missing"
+      "head tests/robots_4xx_allows_crawl.rs: file missing",
+      "release src/robots.rs: no 'fn parse_crawl_delay'"
      ],
      "runs": [],
      "fails": [],
@@ -7507,7 +7508,8 @@
        "src/frontier.rs",
        "src/robots.rs"
       ]
-     }
+     },
+     "waits": "release"
     },
     {
      "id": "F1",
@@ -7563,6 +7565,67 @@
      ]
     },
     {
+     "id": "H0",
+     "kind": "trap",
+     "scope": "release",
+     "loop": true,
+     "text": "on https, a disallowed link stalls its host",
+     "file": "frontier.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_stall",
+      "robots_resume"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "on https, a disallowed link stalls its host",
+       "file": "frontier.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "skipped": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs",
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": "frontier.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
      "id": "W1",
      "kind": "stop",
      "scope": "both",
@@ -7591,6 +7654,7 @@
        "src/writer_thread.rs"
       ]
      },
+     "drawn": false,
      "instead": [
       {
        "text": "logged to disk, then saved to redb, in batches",
@@ -7806,22 +7870,50 @@
      ]
     },
     {
-     "id": "L4",
+     "id": "L7",
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+     "text": "It names itself `RustSitemapCrawler/1.0`, with no way to reach you. `--user-agent <your-bot>` sends your name instead.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
-     "runs": [],
+     "runs": [
+      "ua_seen"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/cli.rs",
+       "src/network.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "its name"
+    },
+    {
+     "id": "L4",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_late"
+     ],
      "fails": [
       "robots_read"
      ],
      "paths": {
       "head": [],
       "release": [
+       "src/frontier.rs",
        "src/robots.rs"
       ]
      },
@@ -7830,6 +7922,62 @@
      "short": "robots.txt",
      "instead": [
       {
+       "text": "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_read"
+       ],
+       "skipped": [
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_read",
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "robots_read",
+        "robots_late"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
        "text": "It ignores `Crawl-delay`.",
        "file": null,
        "verified_head": true,
@@ -7837,6 +7985,29 @@
        "missing": [],
        "runs": [
         "robots_read"
+       ],
+       "fails": [
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/robots.rs: no 'fn parse_crawl_delay'"
+       ],
+       "runs": [
+        "robots_read",
+        "robots_late",
+        "crawl_delay_obeyed"
        ],
        "fails": [],
        "paths": {
@@ -7858,11 +8029,77 @@
         "robots_read",
         "crawl_delay_obeyed"
        ],
-       "fails": [],
+       "fails": [
+        "robots_late"
+       ],
        "paths": {
         "head": [],
         "release": [
          "src/robots.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "L6",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_stall",
+      "robots_resume"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "robots.txt stall",
+     "instead": [
+      {
+       "text": "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "skipped": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs",
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs"
         ]
        }
       }
@@ -8637,7 +8874,7 @@
    "use": "pick_polite"
   },
   {
-   "text": "The spider obeys `robots.txt` and its `Crawl-delay`.",
+   "text": "The spider obeys `robots.txt` and its `Crawl-delay`",
    "repo": "Scrapy",
    "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
    "literal": "\"ROBOTSTXT_OBEY\": bool(spider_config.get(\"robotstxt_obey\", True))",
@@ -8899,7 +9136,40 @@
      "ok": false,
      "gate": false,
      "secs": 17.0,
-     "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 1 ms apart; exit 0 2.0 s after one SIGINT"
+     "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 3 ms apart; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "ua_seen",
+     "cmd": "rust_sitemap crawl names itself with one User-Agent, with no contact in it and no From header",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "4 requests; User-Agent 'RustSitemapCrawler/1.0'; From never sent",
+     "ua": "RustSitemapCrawler/1.0"
+    },
+    {
+     "id": "robots_stall",
+     "cmd": "rust_sitemap crawl of an https site: after a link robots.txt disallows, the links queued behind it are not asked for",
+     "ok": true,
+     "gate": false,
+     "secs": 32.0,
+     "detail": "7 requests; robots.txt asked for; the 5 links before the disallowed one: 5 fetched; /secret.html not fetched; the 5 after it: 0 fetched; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "robots_resume",
+     "cmd": "rust_sitemap crawl of an https site: the host stalled by a disallowed link goes on when a page brings a new link",
+     "ok": true,
+     "gate": false,
+     "secs": 32.0,
+     "detail": "13 requests; before p1.html's answer (3 s late, the one new link): 0 of the 5 links after the disallowed one fetched; after it: 5, and /new.html fetched; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "robots_late",
+     "cmd": "rust_sitemap crawl of an https site whose robots.txt comes 0.5 s late fetches pages it disallows",
+     "ok": true,
+     "gate": false,
+     "secs": 17.0,
+     "detail": "22 requests; robots.txt answered 0.5 s late; 10 of 10 disallowed pages fetched, 10 allowed; exit 0 2.0 s after one SIGINT"
     },
     {
      "id": "workers_cap",

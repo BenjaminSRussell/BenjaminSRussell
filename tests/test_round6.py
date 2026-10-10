@@ -104,8 +104,9 @@ class LoadSentence(unittest.TestCase):
         # L1 with its lever, the robots clause its own item (L4)
         self.assertIn("It sends requests with no pause between them, up to 256 at a time across all hosts. "
                       "`--workers 1` sends one at a time.", text)
-        self.assertIn("It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's "
-                      "rules are not read.", text)
+        # review round 15: and it fetches before robots.txt is back (probe robots_late, over https)
+        self.assertIn("Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It "
+                      "ignores `Crawl-delay`, and reads `robots.txt` only over https.", text)
         self.assertNotIn("unless", text)
         self.assertNotIn("On main", text, "M1 waits on the cargo gate (review r06-1 #1)")
 
@@ -114,9 +115,14 @@ class LoadSentence(unittest.TestCase):
         spec = {"repo": "x", "entry": [entry(cfg, "L4")]}      # review round 9: the robots clause is L4
         base = {"src/state.rs": "HostState { max_inflight: 20, crawl_delay_secs: 0 }",
                 "src/cli.rs": '#[arg(long, default_value = "256")]\n    workers: usize,',
-                "src/robots.rs": 'pub async fn fetch_robots_txt(h: &H, d: &str) { let u = format!("https://{}/robots.txt", d); }'}
-        failed = {"version": "0.1.3", "ok": True, "steps": [{"id": "robots_read", "ok": False}]}
-        read = {"version": "0.1.4", "ok": True, "steps": [{"id": "robots_read", "ok": True}]}
+                "src/robots.rs": 'pub async fn fetch_robots_txt(h: &H, d: &str) { let u = format!("https://{}/robots.txt", d); }',
+                # review round 15: the release fetches while robots.txt is on its way (L4's first clause)
+                "src/frontier.rs": 'pub async fn get_next_url(&mut self) { "missing robots.txt, fetching in background '
+                                   '(allowing crawl)"; // Proceed with crawling - don\'t block on robots.txt\n }'}
+        failed = {"version": "0.1.3", "ok": True, "steps": [{"id": "robots_read", "ok": False},
+                                                            {"id": "robots_late", "ok": True}]}
+        read = {"version": "0.1.4", "ok": True, "steps": [{"id": "robots_read", "ok": True},
+                                                          {"id": "robots_late", "ok": False}]}
         r = R.verify_route(spec, None, tree(base), None, "0.1.3")
         self.assertIn("only over https", R.drawn(r, failed)[0]["text"])
         r = R.verify_route(spec, None, tree(base), None, "0.1.4")

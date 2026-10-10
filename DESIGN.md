@@ -3,10 +3,11 @@ assets/stats.json; edit those, not this file. check.py fails (DESIGN-FRESH) when
 
 # How the picture is drawn
 
-The picture shows how to run rustmapper 0.1.3, top to bottom, along the magenta line from `pip install rustmapper`. Its rings are the tool's steps: “`rust_sitemap crawl` starts from your URL”; “fetches up to 20 pages at a time from each host”; “saved as it goes”. The line up the left side marks the rows that repeat for every page. The dotted line marks the catch: “0.1.3 never exits by itself”. Then your step: “press Ctrl-C once”. It ends at `data/sitemap.jsonl`, “sorted 21 ways by ideal-url-organizer”. A row is drawn only when its anchors hold at `32c2651` and in the 0.1.3 sdist; the install and stop rows only when the run check passed.
+The picture shows how to run rustmapper 0.1.3, top to bottom, along the magenta line from `pip install rustmapper`. Its rings are the tool's steps: “`rust_sitemap crawl` starts from your URL”; “fetches up to 20 pages at a time from each host”. The line up the left side marks the rows that repeat for every page. The dotted line marks the catches: “on https, a disallowed link stalls its host”; “0.1.3 never exits by itself”. Then your step: “press Ctrl-C once”. It ends at `data/sitemap.jsonl`, “sorted 21 ways by ideal-url-organizer”. A row is drawn only when its anchors hold at `32c2651` and in the 0.1.3 sdist; the install and stop rows only when the run check passed.
 
 The run check (`scripts/runcheck.py`) installs the release, crawls a local three-page site with `--seeding-strategy
-none`, presses Ctrl-C once and exports the sitemap. Its probes test 5 of the 8 cautions the README prints; the other 3 (seeding, the www scope, JavaScript) are checked in the code only. What each
+none`, presses Ctrl-C once and exports the sitemap; its robots.txt probes crawl local sites over http and over https
+(port 443, a certificate made for the run). Its probes test 7 of the 10 cautions the README prints; the other 3 (seeding, the www scope, JavaScript) are checked in the code only. What each
 element is for is in `scripts/sheets/route.py` (`PURPOSE`); `check.py` fails while any row does not hold.
 
 ## Editions
@@ -54,7 +55,7 @@ Only what the picture on the profile draws with. Other tokens in `scripts/tokens
 | ink2 | `#34465F` | `#98A7BF` | the line that names the project reading the file |
 | muted | `#56657B` | `#8894A6` | the release and its date |
 | flare | `#C81392` | `#FF5ACD` | the track to follow, the loop, the start and end bars, the arrow |
-| accent | `#D73626` | `#FF6853` | the dotted line round the 0.1.3 catch |
+| accent | `#D73626` | `#FF6853` | the dotted line round the 0.1.3 catches |
 
 | Weight | Day px | Night px | Use |
 |---|---|---|---|

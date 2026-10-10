@@ -182,7 +182,7 @@ class DesignPage(unittest.TestCase):
         self.assertIn("\n# How the picture is drawn\n", text)
         for gone in ("Honesty conventions", "## Motion", "500 ms", "pencil-note", "survey", "sea-name"):
             self.assertNotIn(gone, text)
-        self.assertIn("the dotted line round the 0.1.3 catch", text)
+        self.assertIn("the dotted line round the 0.1.3 catches", text)     # review round 15: two catches, one line
         self.assertIn("the track to follow", text)
 
     def test_idea_follows_the_route(self):
@@ -259,7 +259,7 @@ class Redirects(unittest.TestCase):
         self.assertTrue(steps["redirect_kept"]["ok"] and steps["sitemap_keeps_noindex"]["ok"])
         items = rr.text_paragraphs(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"], stats["edition"],
                                    items=True)
-        self.assertEqual(len(items), 8)
+        self.assertEqual(len(items), 10)      # review round 15: L7 and L6
         for fold in (False, True):      # review round 13: the open list and the fold, each within the cap
             self.assertLessEqual(len(rr.text_paragraphs(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"],
                                                         stats["edition"], items=True, fold=fold)), rr.LIST_MAX_ITEMS)

@@ -3,7 +3,8 @@
 The image answers one sentence: how you start rustmapper, what it does with each page, where a stranger goes wrong
 and how to get out, and where the output goes next. Vertical position is the order of a run: what you type, what
 happens to each URL, how you stop it, what you get. The rows that repeat for every page are closed by one line back
-up the left side: the crawl is a loop, and the one hazard sits on that loop, with its way out on the next row.
+up the left side: the crawl is a loop, and its catches sit on that loop (review round 15: the robots.txt stall under
+the fetch stop, the crawl that never exits under the log), with the way out on the next row.
 Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a dotted line, a
 line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
 chart.toml [copy] / [identity].
@@ -84,6 +85,12 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "never slows", "Q1",
            "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 state.rs max_inflight, frontier.rs "
            "current_inflight; main.rs governor_task MIN_PERMITS)"),
+    "H0": ("the catch a stranger meets first on a real site (review round 15): over https a link robots.txt disallows "
+           "stalls the rest of that host's queue, so a crawl can go quiet with pages left; drawn under the fetch stop, "
+           "where it happens, inside the same dotted line as H1 (the two catches are consecutive rows), so H1's "
+           "quiet minute is read as done or stalled",
+           "Q5", "stats.json routes.rustmapper H0 (frontier.rs get_next_url, the blocked branch's `continue;` with no "
+           "push_ready_host; add_url_to_local_queue_unchecked); runcheck robots_stall, robots_resume"),
     "W1": ("what saving as it goes buys the reader (review round 13): after a kill, export-sitemap still has the "
            "pages to write, because each batch is logged to disk and fsynced before redb commits it (as events "
            "arrive; no period). Not \"a kill keeps the crawl\": a kill writes no sitemap.jsonl and resume cannot "
@@ -118,8 +125,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "side-by-side desk's 88 was (review round 14)"),
     ("Order is position; the loop is a line",
      "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
-     "page (fetch, at most 20 at once from one host, and the log), closed by one line back up the left side; the hazard sits on "
-     "that line and its way out on the next row",
+     "page (fetch, at most 20 at once from one host, the robots.txt stall, and the log), closed by one line back up "
+     "the left side; the catches sit on that line and the way out on the next row",
      "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
      "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
     ("The per-host cap is a clause of fetch",
@@ -138,8 +145,9 @@ BREAKS: list[tuple[str, str, str]] = [
      "only when the run check passed; the line past the end only when the reader's fields are in the writer's struct",
      "the image claims only what the tool does (SPEC §5, §6)"),
     ("Trap text in ink, ringed by dots",
-     "the trap's words are set in ink inside a dotted line of the accent with no fill (review round 3: the band and "
-     "the hatch are cut)",
+     "each trap's words are set in ink inside a dotted line of the accent with no fill (review round 3: the band and "
+     "the hatch are cut); the two traps, on consecutive rows of the loop (the robots.txt stall under the fetch stop, then "
+     "the crawl that never exits), share one line (review round 15)",
      "accent on day paper is 4.1:1, under the 4.5:1 text needs, and over 3:1 as a line in both themes; a dotted line "
      "round a danger marks it without a fill (INT 1, K1), and a filled band read as an editor's highlight"),
     ("A gap in the track under the loop",
@@ -505,13 +513,18 @@ def _build(ctx) -> str:
         k.exclude(f"{kind}:{gid}", box[0], box[1], box[2] - box[0], box[3] - box[1])
         marks.append({"kind": kind, "id": gid, "box": [round(v, 1) for v in box]})
 
-    def _danger(row):
+    def _danger(run):
         """Review round 3: a dotted danger line round the trap's words, in the accent, with no fill (INT 1, K1): a
         rounded rectangle DANGER_PAD outside the text block (the font's ascent over the first baseline to its descent
         under the last, the widest line across), its dots spaced evenly round the perimeter near DANGER_PITCH. Its
-        four edges are exclusions, so no text may cross the line. Its size follows the trap's words only."""
+        four edges are exclusions, so no text may cross the line. Its size follows the trap's words only.
+        Review round 15: traps on consecutive rows (the robots.txt stall, then the crawl that never exits) share one
+        line round both: at the row pitch two boxes would touch (phone) or overlap, and the phone sheet has no units
+        left to part them (checks/column.py, 900 px at 851). The line is drawn in the last trap's group."""
         asc, desc = k.extent("label", edition=ed, scale=sc)
         pad, rx = DANGER_PAD, DANGER_RX
+        row = dict(run[-1], x=min(r_["x"] for r_ in run), w=max(r_["x"] + r_["w"] for r_ in run) - min(r_["x"] for r_ in run),
+                   y=run[0]["y"])
         x0, x1 = row["x"] - pad, row["x"] + row["w"] + pad
         y0, y1 = row["y"] - asc - pad, row["last"] + desc + pad
         w_, h_ = x1 - x0, y1 - y0
@@ -523,7 +536,8 @@ def _build(ctx) -> str:
         for nm, box in (("top", (x0 - t, y0 - t, x1 + t, y0 + t)), ("bottom", (x0 - t, y1 - t, x1 + t, y1 + t)),
                         ("left", (x0 - t, y0 - t, x0 + t, y1 + t)), ("right", (x1 - t, y0 - t, x1 + t, y1 + t))):
             k.exclude(f"danger-{nm}:{row['id']}", box[0], box[1], box[2] - box[0], box[3] - box[1])
-        marks.append({"kind": "danger", "id": row["id"], "box": [round(v, 1) for v in (x0, y0, x1, y1)]})
+        for r_ in run:
+            marks.append({"kind": "danger", "id": r_["id"], "box": [round(v, 1) for v in (x0, y0, x1, y1)]})
 
     # ================================================================ the title block (T1, T2)
     tx = G["title_x"]
@@ -675,9 +689,14 @@ def _build(ctx) -> str:
         put("R6", loop_svg)
         mark("line", "R6", (gx - aw / 2, y_top - 1.5, X, y_bot + 1.5))
         arrow_at = [round(ya, 1), round(ya + al, 1)]
-    for row in rows:            # the hazard's words, ringed by the danger line
+    run_: list[dict] = []       # the hazards' words, ringed by the danger line; consecutive traps share one
+    for row in rows + [{"kind": None}]:
         if row["kind"] == "trap":
-            _danger(row)
+            run_.append(row)
+            continue
+        if run_:
+            _danger(run_)
+            run_ = []
     end_top = last + G["end_gap"]
     # ---- the track: one segment from the start bar to the end bar, or, while the loop has no way out, two: down to
     # the loop's foot, then again from just above the next row's ring

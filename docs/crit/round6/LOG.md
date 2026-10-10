@@ -986,3 +986,114 @@ them; the mid sheets at 746; the phone sheets at 308; the phone page at 360; the
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
   it passes (0 fail, 0 warn); DESK-PX: from 1,200 px the route's words are 14.5 px or more, and 16 px or more at the
   846 px column. FIGURES, AUDIT-COVER, AUDIT-STALE, DESIGN-FRESH, README-STALE and STRINGS-TWICE are clean.
+
+## Round 15
+
+Reviews: `review-r15-1.md` (the owner) **8 / 10**, `review-r15-2.md` (the systems engineer who runs the code)
+**7 / 10**, `review-r15-3.md` (the student on a phone) **8 / 10**. None meets the goal yet. Nothing printed in round 14
+was false, but three things were wrong with what would happen next. S2 ("paced by that host's robots.txt") was armed
+to be drawn on a 0.1.3 image the day P1 lands at HEAD, though 0.1.3 has no Crawl-delay parser. Merging would have
+put the old island sheet and a broken mid image on the profile, because S2's red gate skipped the publish. And the
+release has a fault the page never named: on https, the first link `robots.txt` disallows stalls that host's queue,
+and a slow `robots.txt` lets disallowed pages through. Every probe served plain http, where 0.1.3 never reads
+`robots.txt`, so 14 rounds missed it. Review 3 found that the `<img>` a client falls back to was the desk sheet (5.9 px
+words in a 308 px column), that rustmapper's own user agent was not on the page, and that the install note said
+"elsewhere" when only Linux had been tried.
+
+Renders: `scratchpad/r6/build/round-15/` (the standard set; desk also at 846, mid at 746, phone at 308, the phone page
+at 360, first screens at 900, 1,180, 1,280, 1,366 and 1,920). `stats.json` was re-read with `scratchpad/r6/reroute15.py`
+(the route at the same HEADs and in the 0.1.3 sdist; the figure rows), and the run check gained five steps from
+today's probe run against the same installed 0.1.3 (`scratchpad/r6/rc15/steps.json`).
+
+### What was measured first
+
+- **The stall (review 2).** `runcheck.py --probe robots_stall` (new): https on 127.0.0.1:443 with a certificate made
+  for the run, `robots.txt` `Disallow: /secret` answered at once, the home page held 1 s and linking p1 to p5,
+  `secret.html`, p6 to p10. Result: 7 requests; p1 to p5 fetched, `secret.html` not, p6 to p10 never in 30 s. Code:
+  `sdist:src/frontier.rs` `get_next_url`, "blocked by robots.txt" then `continue;` with no `push_ready_host`.
+- **It does resume (new, against review 2's wording).** `add_url_to_local_queue_unchecked` pushes the host back
+  whenever a new URL is queued. A first run with p1.html held 3 s and linking one new page fetched p6 to p10 right after
+  it. Probe `robots_resume` (new) now measures this: p6 to p10 are fetched only after the late page with the new link
+  is answered (13 requests). So "ends that host's crawl" and "never asked for" are false. "Stalls … wait for a new
+  link" is true.
+- **The late `robots.txt` (review 2).** Probe `robots_late` (new): `robots.txt` answered 0.5 s late; 22 requests, 10 of
+  the 10 disallowed pages fetched. Code: "missing robots.txt, fetching in background (allowing crawl)" and "// Proceed
+  with crawling - don't block on robots.txt" in `get_next_url`. The cap there is `max_inflight` (20) at a time, and a
+  `robots.txt` fetch may take 30 s and is then retried, so the total is not bounded by 20.
+- **The name (review 3).** Probe `ua_seen` (new, in the `robots_read` run): 4 requests, every one with User-Agent
+  `RustSitemapCrawler/1.0`, and no From header. Code: `cli.rs` `Crawl` `user_agent` default, `network.rs`
+  `.user_agent(&user_agent)`.
+- **The height budget.** The phone sheet is served up to an 851 px window, where GitHub's column is 481 px and
+  HERO-COLUMN-PX holds the picture to 900 px tall. That caps it at 1,122 units, not the 1,246 of ROUTE-HEIGHT that
+  review 2 sized against. Today it is 1,121, so H0 can be drawn only if one row gives up its line, and H0 itself must
+  fit one phone line (about 45 characters).
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: S2 on a 0.1.3 image | S2 gains `{path = "src/robots.rs", text = "fn parse_crawl_delay"}` in `release` (and `head`), with a comment: it mirrors the `absent` anchor of L1 and L4, so "paced by that host's robots.txt" and "It ignores `Crawl-delay`" flip on the same release. Tests: the 0.1.3-shaped release plus a HEAD with P1's test file leaves S2 unverified ("release src/robots.rs: no 'fn parse_crawl_delay'"). A release with `parse_crawl_delay_secs` verifies it. For both releases and both probe states, S2 is never drawn beside an L4 that says "ignores `Crawl-delay`". Built from stats where S2 holds, its group is drawn with its PURPOSE row. |
+| r1-2: publish while S2 waits | S2 has `waits = "release"` (`data/route.py` accepts only "release"). `R.waiting(e)` is true for an unverified entry with `waits` whose own release anchors fail. `checks/route.py` reports it as ROUTE-WAITING (warn) and still leaves it undrawn. Every other unverified entry is still ROUTE-UNVERIFIED (fail), and so is a `waits` entry that holds in the release but not at HEAD. `profile.yml`: "Social preview", "Publish sheets to the orphan chart branch" and "Publish, dry run" now come before "Commit stats, log, lock and README to main", so main never names a file the branch lacks. Tests: today's stats give one ROUTE-WAITING and no fail; release-pass/head-fail gives a fail; S2 without `waits` fails; the workflow's step order. Local gate on today's stats: fast 0 fail, and the render tier ran (0 fail). |
+| r1-3: Scrapy's effect on a site | `README.md` (hand-typed): the paragraph ends at "It loads no seeds: the last command gives the spider your site." Then "Before you run it:" and two items: "The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`)." and "The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`." The spider's `[[figures]]` row loses its full stop, so it still matches. Test: the list sits under the lead, and its items carry `Crawl-delay` and `Python/3.11 aiohttp/3.13.1`. |
+| r2-1: L6, the stall, in the open list | New `L6` (stage server, after L4): "On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host." (24 words.) Release anchors: the blocked branch as one literal, from the message to `continue;`, in `get_next_url`; the re-push in `add_url_to_local_queue_unchecked`; the https robots URL. `runs = ["robots_stall", "robots_resume"]`. A code-only wording holds only while the probes were `skipped`. An empty wording with `fails = ["robots_stall"]` retires it. |
+| r2-2: draw the stall | New trap `H0` (loop, release scope) right under F1: "on https, a disallowed link stalls its host", one line in every edition, same anchors and probes as L6. W1 gets `drawn = false`: it is still checked, its row stays in `chart.toml` and AUDIT, and `R.drawn` leaves it out. Two traps on consecutive rows share one dotted line, drawn in the last one's group. CONTRAST-DANGER accepts a trap inside a shared line, by the report's danger box. PURPOSE has H0; BREAKS and the module docstring say there are two catches; DESIGN.md's opening names both ("The dotted line marks the catches: …"). Heights: desk and mid 707, phone 1,121, all unchanged; the phone sheet is 899 px tall at 851. |
+| r2-3: L4, before the rules are in | L4: "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https." (22 words.) New anchors: the two `get_next_url` strings. `runs = ["robots_late"]`, `fails = ["robots_read"]`. Alternatives: the round 6 wording while `robots_late` is skipped, or once it fails; one for each later fix (http read, Crawl-delay parsed); and an empty one. |
+| r2-4: https probes | `scripts/runcheck.py`: `make_cert` (openssl, SAN localhost and 127.0.0.1, an absolute path), `serve_https` (http.server in TLS on 127.0.0.1:443), `tls_env` (SSL_CERT_FILE, NO_PROXY), `trust_cert` (macOS in CI only: `sudo -n security add-trusted-cert`, removed after), and `_skip`. Probes `robots_stall`, `robots_resume` and `robots_late`, with fixtures `tests/fixtures/robots-{stall,resume,late}-site/`. A probe that cannot bind 443, make a certificate, or get one request through, or whose `robots.txt` came too late to say anything, is `skipped`. `run_missing` treats a skipped step as neither passed nor failed. A wording with `skipped = [...]` holds only then, and ROUTE-PROBE-SKIPPED warns. Tests: each verdict; a busy port is skipped; a skipped probe never retires L6. |
+| r2-5: the data line | `render_readme.route_clause`: "…its commands were run, with seeding off, against local test sites over http and https on 10 Oct 2026 (Linux x86_64)." It prints this only while `robots_stall` and `robots_late` both ran (`https_ran`); otherwise it prints the round 14 words. The data line is built in `render_readme.py`, not `[copy] survey`. |
+| r3-1: the `<img>` fallback | `HERO_ROUTE_SOURCES`: the desk has its own `(min-width: 1200px) and (prefers-color-scheme: dark)` → night and `(min-width: 1200px)` → day; `<img src>` is `hero-phone-day.svg`. `checks/column.py`: `img_edition`, `falls_back`, and HERO-FALLBACK (fail): some width from 360 to 1,920 matches no `<source>`, or the `<img>` is not a phone edition, or its smallest text is under 11 px in the 278 px column. `served()` falls back to the `<img>`'s edition. Tests: six sources and a phone `<img>`; `served` at 360, 390, 851, 852, 1,199, 1,200 and 1,920 gives phone, phone, phone, mid, mid, desk, desk; a desk `<img>` (5.3 px at 278) and a missing desk source both fail. |
+| r3-2: rustmapper's name | New `L7` (stage server, right after L1): "It names itself `RustSitemapCrawler/1.0`, with no way to reach you.<br>`--user-agent <your-bot>` sends your name instead." Anchors: `cli.rs` `Crawl` `user_agent` `equals` the default (stricter than the absent http/@ check: any contact changes the literal); `network.rs` `.user_agent(&user_agent)`; no `header::FROM` and no `"From"`. `runs = ["ua_seen"]`. AUDIT-COVER now strips `<…>` placeholders from a literal as `visible()` strips them from the page. Tests: a contact-bearing default, a From header, or a failed probe fails the row; L7 prints second. |
+| r3-3: "elsewhere" | `_wheel_sentence`: "Prebuilt for Apple silicon on CPython 3.13. On Linux x86_64, `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core machine); other platforms were not tried." It builds the list from `source_runners`, the run checks whose install was an sdist build and passed. It takes one record or a list, and the tail goes once the three common platforms are covered. No source build: "… `pip` builds it from source elsewhere, which needs a Rust toolchain; this was not tried." Tests: one runner, two runners, none, and a wheel-only (macOS) run. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r2-1, r2-2: "ends that host's crawl", "the links queued after it are never asked for" | False in general: a new link to the host puts it back on the queue (`add_url_to_local_queue_unchecked`), measured by `robots_resume`. L6 says "stalls … wait for a new link to that host", and H0 says "stalls its host". |
+| r2-2: H0's text "the first link `robots.txt` disallows ends that host's crawl" | Besides "ends", it takes two phone lines, and the phone sheet has room for one (1,122 units at most, see the height budget). "on https, a disallowed link stalls its host" fits one line. It keeps "https", without which it is false on http sites, and "host" is the unit F1 just named. |
+| r2-2 against r1 (W1 "keep") | The owner's review keeps W1. Here it conflicts with drawing the stall, which the owner's review did not weigh, and the phone budget allows one or the other. W1 is the row that reassures rather than directs, and the README's block already says it where the reader types ("# sitemap.xml, even after a kill"). H0 marks the one place where H1's quiet-minute rule reads a stalled crawl as finished. W1 is not drawn but stays checked. To undo: drop `drawn = false` and H0. |
+| r2-3: "up to 20 pages per host before …" and the `state.rs:285` anchor | 20 is a cap at any one moment, not a total. A `robots.txt` fetch can take 30 s and is retried, so more than 20 can get through. L4 says what happens without a number. |
+| r2-4: the steps "pass by default" guard | Implemented as `skipped`. Additionally, `robots_stall` and `robots_resume` are skipped, not failed, when the disallowed page was fetched (the rules were not in yet): such a run says nothing about the stall and must not retire L6. |
+| r2-5: `[copy] survey` | The data line is built in `render_readme.route_clause`, so the change is there. |
+| r3-2: the id L6 | L6 is the stall (review 2), so the name is `L7`. The "absent http or @" anchor became `equals`, which catches any change to the default. |
+| r1-2: "do one dry_run workflow run" | See "The workflow" below. |
+| Noted, not ranked (r1): "co-author on 1 of his own 101"; a clean-tree note in the maintainer comment | Not changed this round. Taste, and a dev note; on the owner's list. |
+
+### The workflow
+
+The local gate on the committed `stats.json` gives fast 0 fail, 4 warnings (log.shards, POSITION-EMPTY,
+LICENSE-FLAGSHIP, ROUTE-WAITING S2), and then runs the render tier: 0 fail, and HERO-COLUMN-PX, HERO-FALLBACK,
+DESK-PX and FLAG-WRAP all hold. A run on GitHub cannot be judged from here, for two reasons. Its run check is on
+macos-14, which installs the prebuilt wheel (so the install note prints "this was not tried"). And whether the https
+probes run there depends on `sudo -n security add-trusted-cert`; if they cannot, they are skipped, the code-only
+wordings stand, and ROUTE-PROBE-SKIPPED warns. One `workflow_dispatch` with `dry_run: true` on `v12/purpose` before
+merging is on the owner's list.
+
+### Owner, outside this repository
+
+- **0.1.4 (Rust-sitemap).** Main already re-pushes the host after a blocked URL (`6bcb6cd`) and fails closed until
+  `robots.txt` is in (#47), so a release cut from main retires H0, L6 and L4's first clause by itself. With
+  `parse_crawl_delay_secs` in the release, S2 is drawn and L1 and L4 reword themselves. Before cutting it, rule out
+  review 2's finding: main at `32c2651`, over https with a 200 `robots.txt`, deferred the start URL and then reported
+  an empty frontier without fetching it. Also: the default user agent with a contact
+  (`rustmapper/<version> (+https://github.com/BenjaminSRussell/Rust-sitemap)`) and `From` when a contact is given; a
+  test for `status_code` null on pages fetched after a block (review 2's shop run). The rest is carried (exits when
+  idle, P1, `response.url()` as the base, `noindex` and canonical pages out of `export-sitemap`, `resume` after a
+  kill, the robots.txt port, a LICENSE, `[project.scripts]`).
+- **When S2 is drawn**, the phone sheet gains about 77 units. That fits only if H0 and H1 retire with it, which a
+  0.1.4 from main does. Otherwise HERO-COLUMN-PX fails, which is the right result.
+- **Still open:** open the profile once in the GitHub iOS app, light and dark, and log which edition it shows; the
+  dry run above; Scrapy stage 2's robots check, delay and name; `start.py --reset-delta`; `[position]` and
+  `[contact]`; one measured crawl at scale; the GitHub bio; a real iPad.
+
+### Measured state of this build
+
+- Desk sheet 1,000 x 707 (gate 770); mid 820 x 707 (gate 964); phone 600 x 1,121 (ROUTE-HEIGHT 1,246; 899 px tall at
+  the 851 px window, under HERO-COLUMN-PX's 900). The loop holds F1, then H0 and H1 in one dotted line.
+- Page: desk 3,245 px at 1,280 (was 3,021); phone 5,525 CSS px at 390 (was 5,109) and 5,949 at 360 (was 5,533). L7,
+  L6, L4's longer item and the Scrapy list add more than anything this round removed.
+- `python3 -m unittest`: 513 tests, all pass (33 new in `tests/test_round15.py`; older tests that pinned W1 drawn, the
+  old L4, the four-item list, the old run sentence, the "elsewhere" note, the 3-page data line, the five-source
+  picture and one danger mark now pin the new state).
+- `check.py --tier fast,render`: fast 0 fail, 4 warnings (log.shards, POSITION-EMPTY, LICENSE-FLAGSHIP, ROUTE-WAITING
+  S2), 0 errors, exit 2. The render tier ran: 0 fail. README-STALE, DESIGN-FRESH, AUDIT-STALE, AUDIT-COVER, FIGURES,
+  STRINGS-TWICE, README-CAUTIONS, FLAG-WRAP, CONTRAST-DANGER and HERO-FALLBACK are clean.

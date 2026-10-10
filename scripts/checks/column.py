@@ -15,6 +15,12 @@ DESK-PX (fail, review round 14): for some viewport from the desk breakpoint (`ch
   widest (846): on a laptop or a desktop the route's words should read at about the page's own 16 px body size, not
   under it. The side-by-side 1280 desk sheet gave 11.4 to 12.6 px there; the stacked 1000 one gives 14.6 to 16.1.
 
+HERO-FALLBACK (fail, review round 15, the student): the README's `<img>` (what a client that ignores `<source>`
+  shows: a tapped github.com link on an iPhone opens in the GitHub app, whose handling of <picture> is unchecked) is
+  not a phone edition, or its smallest text is under MIN_PX at column_px(360); or some viewport from VIEWPORTS[0] to
+  VIEWPORTS[1] matches no `<source>` and falls through to it. The 1,000-unit desk sheet there set 19-unit words at 5.9
+  px in a 308 px column.
+
 `derive(sheets)` gives the two numbers the serving rests on, from the column table and the built sheets: the widest
 viewport where the phone sheet is drawn at most TALL_PX tall (851 for 1,121 units: column 481), and the widest mid
 sheet whose smallest text holds MIN_PX at the next viewport's column (19 x 482 / 11 = 832 units; it is 820).
@@ -70,12 +76,45 @@ def sources(readme: str, sheet: str = SHEET) -> list[tuple[int, int, str]]:
     return out
 
 
+def img_edition(readme: str, sheet: str = SHEET) -> str | None:
+    """The edition the `<picture>`'s `<img>` names (hero-phone-day), or None."""
+    m = re.search(r'<img src="[^"]*/(' + re.escape(sheet) + r'-[\w-]+)\.svg"', readme or "")
+    return m.group(1) if m else None
+
+
+def falls_back(readme: str, vw: int, sheet: str = SHEET) -> bool:
+    """Review round 15: no `<source>` matches at `vw`, so a browser shows the `<img>`."""
+    return not any(lo <= vw <= hi for lo, hi, _n in sources(readme, sheet))
+
+
 def served(readme: str, vw: int, sheet: str = SHEET) -> str:
-    """The edition the README's `<picture>` shows at viewport `vw` (day): the first source whose widths hold."""
+    """The edition the README's `<picture>` shows at viewport `vw` (day): the first source whose widths hold, else
+    the `<img>`'s."""
     for lo, hi, name in sources(readme, sheet):
         if lo <= vw <= hi:
             return name
-    return f"{sheet}-day"
+    return img_edition(readme, sheet) or f"{sheet}-day"
+
+
+def fallback_faults(readme: str, sheets: dict, sheet: str = SHEET) -> list[str]:
+    """HERO-FALLBACK: what is wrong with the `<img>` as the edition of last resort, [] when nothing is."""
+    out = []
+    gaps = [vw for vw in range(VIEWPORTS[0], VIEWPORTS[1] + 1) if falls_back(readme, vw, sheet)]
+    if gaps:
+        out.append(f"viewports {gaps[0]}–{gaps[-1]} px match no <source> and fall through to the <img>")
+    name = img_edition(readme, sheet)
+    if name is None:
+        return out + ["no <img> names an edition of the sheet"]
+    if "-phone-" not in name:
+        out.append(f"the <img> is {name}, not a phone edition")
+    e = sheets.get(name) or {}
+    s = smallest(e) if e else None
+    if s is not None and e.get("w"):
+        px = s * column_px(VIEWPORTS[0]) / float(e["w"])
+        if px < MIN_PX - 1e-6:
+            out.append(f"the <img> ({name}) sets its smallest text at {px:.1f} px in the {column_px(VIEWPORTS[0]):g} "
+                       f"px column of a {VIEWPORTS[0]} px phone (< {MIN_PX:g})")
+    return out
 
 
 def phone_max(readme: str, sheet: str = SHEET) -> int | None:
@@ -194,6 +233,8 @@ def check(ctx) -> list[Finding]:
     if small:
         out.append(fail("DESK-PX", f"the route's words under {DESK_MIN_PX:g} px (or {DESK_FULL_PX:g} px at the "
                         f"{column_px(VIEWPORTS[1])} px column) at viewports " + "; ".join(_runs(small)), "README.md"))
+    for why in fallback_faults(readme, sheets):
+        out.append(fail("HERO-FALLBACK", why, "README.md"))
     tall = tallest(readme, sheets)
     if tall:
         out.append(fail("HERO-COLUMN-PX", f"drawn taller than {TALL_PX:g} px at viewports "
@@ -207,6 +248,8 @@ def check(ctx) -> list[Finding]:
                         f"or more, and from {TALL_FROM} a picture at most {TALL_PX:g} px tall ({'; '.join(spans)}; "
                         f"derived: phone up to {d.get('phone_until')}, mid at most {d.get('mid_w_max')} units wide)",
                         "README.md"))
+        out.append(info("HERO-FALLBACK", f"every viewport {VIEWPORTS[0]}–{VIEWPORTS[1]} px is served by a <source>; "
+                        f"the <img> is {img_edition(readme)}", "README.md"))
         out.append(info("DESK-PX", f"from {bp + 1} px the route's words are {DESK_MIN_PX:g} px or more, and "
                         f"{DESK_FULL_PX:g} px or more at the {column_px(VIEWPORTS[1])} px column", "README.md"))
     return out

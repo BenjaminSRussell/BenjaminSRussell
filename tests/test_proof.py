@@ -205,8 +205,9 @@ class InstallTime(unittest.TestCase):
         wheel = {**self.RC, "install": "prebuilt wheel"}
         self.assertIsNone(rr.install_time(wheel))
         note = rr._wheel_sentence(["cp313-cp313-macosx_11_0_arm64"], warm)
-        self.assertEqual(note, "Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, "
-                               "which needs a Rust toolchain.")
+        # review round 15: the platform it was built on, not "elsewhere"
+        self.assertEqual(note, "Prebuilt for Apple silicon on CPython 3.13. On Linux x86_64, `pip` builds it from "
+                               "source, which needs a Rust toolchain; other platforms were not tried.")
         self.assertIn("(3 min from a cold cache", rr._wheel_sentence(["cp313-cp313-macosx_11_0_arm64"], self.RC))
         spread = {**self.RC, "steps": [dict(self.RC["steps"][0], runs=[170.0, 250.0])]}
         self.assertTrue(rr.install_time(spread).startswith("3–4 min"))

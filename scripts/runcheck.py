@@ -33,6 +33,18 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
                         the old address (/dir -> /dir/ links child.html, fetched as /child.html); in the same run,
                         sitemap_keeps_noindex: export-sitemap lists the redirecting URL and a noindex, canonicalized
                         page, in one file
+    ua_seen             (review round 15) in the robots_read run, every request carried one User-Agent with no URL
+                        or address in it, and no From header (the name the crawl gives a site, `ua`)
+    robots_stall        (review round 15) over https on 127.0.0.1:443 (0.1.3 reads robots.txt only over https, and
+                        drops the port from its URL): robots.txt disallows /secret, answered at once; the home page
+                        links p1-p5, secret.html, p6-p10; the behaviour happened when p1-p5 were fetched and none of
+                        p6-p10 in STALL_SECONDS. `skipped` when 443 cannot be bound or no request gets through
+    robots_resume       (review round 15) the stall site, but p1.html (answered RESUME_HOLD s late) links a page no
+                        other links: none of p6-p10 before that answer, all five after it (a new link puts the host
+                        back on the queue)
+    robots_late         (review round 15) the same over https, robots.txt answered LATE_HOLD s late, the home page
+                        linking ten disallowed pages and ten allowed: the behaviour happened when one disallowed page
+                        was fetched
     quiet_slow_page     (review round 9) the quiet mark has a number: on a site whose second page is held SLOW_HOLD
                         s, two `Received work item` lines are at least SLOW_HOLD s apart (silence shorter than the
                         bound is not the end), and after QUIET_BOUND s with no such line, one SIGINT writes every page
@@ -43,6 +55,7 @@ Only the robots probe, against a binary already installed (it needs no install):
     python3 scripts/runcheck.py --probe workers_cap,second_ctrl_c --exe … --version 0.1.3 --out steps.json
     python3 scripts/runcheck.py --probe non200_status,quiet_slow_page --exe … --version 0.1.3 --out steps.json
     python3 scripts/runcheck.py --probe redirect_kept --exe … --version 0.1.3 --out steps.json
+    python3 scripts/runcheck.py --probe robots_read,robots_stall,robots_resume,robots_late --exe … --version 0.1.3 --out steps.json
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -71,6 +84,7 @@ import re
 import shutil
 import signal
 import socketserver
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -139,17 +153,21 @@ def serve(site: Path) -> tuple[socketserver.TCPServer, int]:
 
 
 class _Logged(_Quiet):
-    """The fixture server that keeps every request path it served, in order (review round 6, robots_read)."""
+    """The fixture server that keeps every request path it served, in order (review round 6, robots_read), and
+    (review round 15) the User-Agent and From headers each request carried (probe ua_seen)."""
     paths: list = []
+    agents: list = []
 
     def log_request(self, code="-", size="-"):
         type(self).paths.append((time.monotonic(), self.path.split("?")[0]))
+        type(self).agents.append((self.headers.get("User-Agent"), self.headers.get("From")))
 
 
-def serve_logged(site: Path) -> tuple[socketserver.TCPServer, int, list]:
-    """As serve(), and returns the list the server appends (time, path) to for every request."""
+def serve_logged(site: Path, agents: list | None = None) -> tuple[socketserver.TCPServer, int, list]:
+    """As serve(), and returns the list the server appends (time, path) to for every request; `agents`, when given,
+    gets (User-Agent, From) for each."""
     paths: list = []
-    cls = type("_LoggedSite", (_Logged,), {"paths": paths})
+    cls = type("_LoggedSite", (_Logged,), {"paths": paths, "agents": agents if agents is not None else []})
     handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
     httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
     httpd.daemon_threads = True
@@ -170,9 +188,26 @@ def robots_verdict(paths: list[tuple[float, str]]) -> tuple[bool, str]:
                                   f"/secret.html (disallowed) {'fetched' if secret else 'not fetched'}{spacing}")
 
 
+def ua_verdict(agents: list[tuple[str | None, str | None]]) -> tuple[bool, str, str | None]:
+    """ua_seen (review round 15): every request carried one and the same User-Agent, with no URL or address in it
+    and no From header, so a site owner reading the log has no way to reach whoever ran the crawl. Returns (ok,
+    detail, the name)."""
+    names = sorted({str(a) for a, _f in agents if a})
+    froms = sorted({str(f) for _a, f in agents if f})
+    if not agents:
+        return False, "no request reached the server", None
+    one = names[0] if len(names) == 1 else None
+    blank = sum(1 for a, _f in agents if not a)
+    ok = one is not None and not blank and not froms and not re.search(r"https?:|www\.|@", one)
+    return ok, (f"{len(agents)} requests; User-Agent {', '.join(repr(n) for n in names) or 'none'}"
+                + (f" ({blank} with none)" if blank else "") + "; From " + (", ".join(froms) if froms else "never sent")), one
+
+
 def probe_robots(steps: list, exe: str, name: str, work: Path) -> None:
-    """robots_read: crawl the robots fixture over plain http, one SIGINT after ROBOTS_SECONDS, read the server's log."""
-    httpd, port, paths = serve_logged(ROBOTS_SITE)
+    """robots_read: crawl the robots fixture over plain http, one SIGINT after ROBOTS_SECONDS, read the server's log.
+    Review round 15: the same run's headers give ua_seen, the name the crawl sends."""
+    agents: list = []
+    httpd, port, paths = serve_logged(ROBOTS_SITE, agents)
     try:
         d4 = work / "d4"
         proc, t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
@@ -184,6 +219,10 @@ def probe_robots(steps: list, exe: str, name: str, work: Path) -> None:
     ok, detail = robots_verdict(paths)
     _step(steps, "robots_read", f"{name} crawl of an http site whose robots.txt disallows /secret.html reads it",
           ok, f"{detail}; {exited}", took, gate=False)
+    ok, detail, ua = ua_verdict(agents)
+    _step(steps, "ua_seen", f"{name} crawl names itself with one User-Agent, with no contact in it and no From header",
+          ok, detail, gate=False)
+    steps[-1]["ua"] = ua
 
 
 class _Slow(_Quiet):
@@ -537,8 +576,235 @@ def probe_redirect(steps: list, exe: str, name: str, work: Path) -> None:
           "redirecting URL and a noindex, canonicalized page included", ok, detail, secs, gate=False)
 
 
+# ---------------------------------------------------------------- review round 15: robots.txt over https
+# 0.1.3 reads robots.txt only over https, and builds its URL without the port (robots.rs fetch_robots_txt,
+# `format!("https://{}/robots.txt", host)`), so these probes serve the fixture over TLS on 127.0.0.1:443 with a
+# certificate made for the run, and crawl https://localhost/. The crawler trusts it through SSL_CERT_FILE (reqwest's
+# default TLS is OpenSSL on Linux); on macOS, in CI, through the System keychain (`sudo -n security
+# add-trusted-cert`). A probe that cannot bind 443, make the certificate or get one request through is `skipped`:
+# it neither passed nor failed, and nothing worded on it is drawn as measured.
+HTTPS_PORT = 443
+STALL_SITE = ROOT / "tests" / "fixtures" / "robots-stall-site"   # p1-p5, secret.html (disallowed), p6-p10
+LATE_SITE = ROOT / "tests" / "fixtures" / "robots-late-site"     # secret1-10 (disallowed), then p1-p10
+RESUME_SITE = ROOT / "tests" / "fixtures" / "robots-resume-site"  # the stall site, but p1.html links new.html
+RESUME_HOLD = 3.0       # robots_resume: p1.html (the one page with a new link) is answered this late
+STALL_SECONDS = 30      # robots_stall: one SIGINT after this long (eleven pages take well under a second)
+STALL_HOLD = 1.0        # robots_stall: the home page is held this long, so robots.txt (answered at once) is in first
+LATE_HOLD = 0.5         # robots_late: robots.txt is answered this late
+LATE_SECONDS = 15       # robots_late: one SIGINT after this long
+STALL_BEFORE = tuple(f"/p{i}.html" for i in range(1, 6))
+STALL_AFTER = tuple(f"/p{i}.html" for i in range(6, 11))
+LATE_SECRET = tuple(f"/secret{i}.html" for i in range(1, 11))
+TLS_CONF = """[req]
+distinguished_name = dn
+prompt = no
+x509_extensions = v3
+[dn]
+CN = localhost
+[v3]
+subjectAltName = DNS:localhost,IP:127.0.0.1
+basicConstraints = critical,CA:TRUE
+extendedKeyUsage = serverAuth
+"""
+
+
+def make_cert(work: Path) -> tuple[Path | None, Path | None, str]:
+    """A throwaway self-signed certificate for localhost, valid two days: (cert, key, "") or (None, None, why)."""
+    work = work.resolve()      # the crawler runs in `work`: a relative SSL_CERT_FILE would point nowhere
+    conf, cert, key = work / "tls.cnf", work / "tls-cert.pem", work / "tls-key.pem"
+    conf.write_text(TLS_CONF)
+    try:
+        p = _run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", str(key), "-out", str(cert),
+                  "-days", "2", "-config", str(conf)], 120)
+    except (OSError, subprocess.SubprocessError) as e:
+        return None, None, f"no openssl: {e}"
+    if p.returncode != 0 or not cert.is_file():
+        return None, None, f"openssl req failed: {(p.stderr or p.stdout).strip()[-160:]}"
+    return cert, key, ""
+
+
+def trust_cert(cert: Path) -> str:
+    """macOS in CI only: trust the run's certificate in the System keychain (reqwest uses the Security framework
+    there, which ignores SSL_CERT_FILE). Returns what was done, for the step's detail."""
+    if platform.system() != "Darwin" or not os.environ.get("CI"):
+        return ""
+    p = _run(["sudo", "-n", "security", "add-trusted-cert", "-d", "-r", "trustRoot", "-k",
+              "/Library/Keychains/System.keychain", str(cert)], 120)
+    return "trusted in the System keychain" if p.returncode == 0 else "could not be trusted in the keychain"
+
+
+def untrust_cert(cert: Path) -> None:
+    if platform.system() == "Darwin" and os.environ.get("CI"):
+        _run(["sudo", "-n", "security", "remove-trusted-cert", "-d", str(cert)], 120)
+
+
+class _Tls(_Quiet):
+    """The https fixture: every request path is kept as it arrives (before any hold), with its User-Agent; a path
+    in `hold` is answered that many seconds late."""
+    paths: list = []
+    hold: dict = {}
+
+    def do_GET(self):  # noqa: N802 - http.server's name
+        path = self.path.split("?")[0]
+        type(self).paths.append((time.monotonic(), path))
+        if type(self).hold.get(path):
+            time.sleep(type(self).hold[path])
+        try:
+            super().do_GET()
+        except (BrokenPipeError, ConnectionResetError, ssl.SSLError):
+            pass
+
+    def log_request(self, code="-", size="-"):
+        pass
+
+
+class _TlsServer(socketserver.ThreadingTCPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+def serve_https(site: Path, cert: Path, key: Path, hold: dict | None = None,
+                port: int = HTTPS_PORT) -> tuple[socketserver.TCPServer | None, list, str]:
+    """The fixture over TLS on 127.0.0.1:`port`: (server, paths, "") or (None, [], why it could not bind)."""
+    paths: list = []
+    cls = type("_TlsSite", (_Tls,), {"paths": paths, "hold": dict(hold or {})})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    try:
+        httpd = _TlsServer(("127.0.0.1", port), handler)
+    except OSError as e:
+        return None, [], f"port {port} could not be bound ({e.strerror or e})"
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(str(cert), str(key))
+    httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, paths, ""
+
+
+def tls_env(cert: Path) -> dict:
+    """The crawler's environment over https: the run's certificate trusted, and no proxy for localhost."""
+    keep = ",".join(x for x in (os.environ.get("NO_PROXY") or os.environ.get("no_proxy") or "", "localhost",
+                                "127.0.0.1") if x)
+    return dict(os.environ, SSL_CERT_FILE=str(cert), NO_PROXY=keep, no_proxy=keep)
+
+
+def _skip(steps: list, sid: str, cmd: str, why: str) -> None:
+    """A probe that could not run: not ok, and marked `skipped`, so no route entry reads it as a pass or a fail."""
+    _step(steps, sid, cmd, False, f"skipped: {why}", gate=False)
+    steps[-1]["skipped"] = True
+    print(f"runcheck: warning: {sid} skipped: {why}", file=sys.stderr, flush=True)
+
+
+def stall_verdict(paths: list[tuple[float, str]]) -> tuple[bool, bool, str]:
+    """robots_stall: (fault present, skipped, detail). The fault: robots.txt was read before the home page's links
+    were queued, the disallowed link was not fetched, the five links before it were, and none of the five after it
+    ever was. No request, no robots.txt, or the disallowed page fetched (the rules were not in yet): skipped, since the
+    run says nothing about the stall."""
+    got = [p for _, p in paths]
+    if "/" not in got:
+        return False, True, "no request reached the server over https (the certificate was not trusted?)"
+    if "/robots.txt" not in got:
+        return False, True, f"{len(got)} requests and no GET /robots.txt"
+    if "/secret.html" in got:
+        return False, True, f"{len(got)} requests; /secret.html was fetched, so robots.txt was not in time"
+    before = sum(1 for p in STALL_BEFORE if p in got)
+    after = sum(1 for p in STALL_AFTER if p in got)
+    ok = before == len(STALL_BEFORE) and after == 0
+    return ok, False, (f"{len(got)} requests; robots.txt asked for; the 5 links before the disallowed one: {before} "
+                       f"fetched; /secret.html not fetched; the 5 after it: {after} fetched")
+
+
+def resume_verdict(paths: list[tuple[float, str]], hold: float = RESUME_HOLD) -> tuple[bool, bool, str]:
+    """robots_resume: (behaviour seen, skipped, detail). On the resume fixture the stalled host goes on once a page
+    brings a link it has not seen: none of p6-p10 was asked for before p1.html (held `hold` s, the one page with a new
+    link) was answered, and all five were after it. Skipped as robots_stall is."""
+    got = [p for _, p in paths]
+    if "/" not in got:
+        return False, True, "no request reached the server over https (the certificate was not trusted?)"
+    if "/robots.txt" not in got:
+        return False, True, f"{len(got)} requests and no GET /robots.txt"
+    if "/secret.html" in got:
+        return False, True, f"{len(got)} requests; /secret.html was fetched, so robots.txt was not in time"
+    t1 = next((t for t, p in paths if p == "/p1.html"), None)
+    if t1 is None:
+        return False, True, f"{len(got)} requests; /p1.html never asked for"
+    early = [p for t, p in paths if p in STALL_AFTER and t < t1 + hold - 0.05]
+    late = {p for t, p in paths if p in STALL_AFTER and t >= t1 + hold - 0.05}
+    ok = not early and len(late) == len(STALL_AFTER) and "/new.html" in got
+    return ok, False, (f"{len(got)} requests; before p1.html's answer ({hold:.0f} s late, the one new link): "
+                       f"{len(early)} of the 5 links after the disallowed one fetched; after it: {len(late)}, and "
+                       f"/new.html {'fetched' if '/new.html' in got else 'not fetched'}")
+
+
+def late_verdict(paths: list[tuple[float, str]]) -> tuple[bool, bool, str]:
+    """robots_late: (fault present, skipped, detail). The fault: with robots.txt answered LATE_HOLD s late, a page it
+    disallows was fetched."""
+    got = [p for _, p in paths]
+    if "/" not in got:
+        return False, True, "no request reached the server over https (the certificate was not trusted?)"
+    secret = sum(1 for p in LATE_SECRET if p in got)
+    allowed = sum(1 for p in got if re.fullmatch(r"/p\d+\.html", p))
+    if not secret and "/robots.txt" not in got:
+        return False, True, f"{len(got)} requests and no GET /robots.txt"
+    return secret > 0, False, (f"{len(got)} requests; robots.txt answered {LATE_HOLD} s late; {secret} of "
+                               f"{len(LATE_SECRET)} disallowed pages fetched, {allowed} allowed")
+
+
+def _probe_https(steps: list, exe: str, name: str, work: Path, sid: str, cmd: str, site: Path, hold: dict,
+                 secs: float, verdict) -> None:
+    cert, key, why = make_cert(work)
+    if cert is None:
+        return _skip(steps, sid, cmd, why)
+    trusted = trust_cert(cert)
+    httpd, paths, why = serve_https(site, cert, key, hold)
+    if httpd is None:
+        untrust_cert(cert)
+        return _skip(steps, sid, cmd, why)
+    try:
+        d = work / f"d-{sid}"
+        log = open(work / f"{sid}.log", "w")
+        t0 = time.monotonic()
+        proc = subprocess.Popen([exe, "crawl", "--start-url", "https://localhost/", "--seeding-strategy", "none",
+                                 "--data-dir", str(d)], stdout=log, stderr=subprocess.STDOUT, cwd=work, env=tls_env(cert))
+        proc._log = log  # type: ignore[attr-defined]
+        exited, _s = _stop(proc, signal.SIGINT, secs)
+        took = time.monotonic() - t0
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        untrust_cert(cert)
+    ok, skipped, detail = verdict(list(paths))
+    detail = detail + (f"; certificate {trusted}" if trusted else "") + f"; {exited}"
+    if skipped:
+        return _skip(steps, sid, cmd, detail)
+    _step(steps, sid, cmd, ok, detail, took, gate=False)
+
+
+def probe_stall(steps: list, exe: str, name: str, work: Path) -> None:
+    """robots_stall: crawl the stall fixture over https (robots.txt answered at once, the home page held STALL_HOLD
+    s), one SIGINT after STALL_SECONDS, read the server's log."""
+    _probe_https(steps, exe, name, work, "robots_stall", f"{name} crawl of an https site: after a link robots.txt "
+                 "disallows, the links queued behind it are not asked for", STALL_SITE,
+                 {"/": STALL_HOLD}, STALL_SECONDS, stall_verdict)
+
+
+def probe_resume(steps: list, exe: str, name: str, work: Path) -> None:
+    """robots_resume: the stall fixture with one new link, on p1.html, answered RESUME_HOLD s late."""
+    _probe_https(steps, exe, name, work, "robots_resume", f"{name} crawl of an https site: the host stalled by a "
+                 "disallowed link goes on when a page brings a new link", RESUME_SITE,
+                 {"/": STALL_HOLD, "/p1.html": RESUME_HOLD}, STALL_SECONDS, resume_verdict)
+
+
+def probe_late(steps: list, exe: str, name: str, work: Path) -> None:
+    """robots_late: crawl the late fixture over https (robots.txt answered LATE_HOLD s late), one SIGINT after
+    LATE_SECONDS, read the server's log."""
+    _probe_https(steps, exe, name, work, "robots_late", f"{name} crawl of an https site whose robots.txt comes "
+                 f"{LATE_HOLD} s late fetches pages it disallows", LATE_SITE, {"/robots.txt": LATE_HOLD},
+                 LATE_SECONDS, late_verdict)
+
+
 PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second,
-          "non200_status": probe_status, "quiet_slow_page": probe_slow, "redirect_kept": probe_redirect}
+          "non200_status": probe_status, "quiet_slow_page": probe_slow, "redirect_kept": probe_redirect,
+          "robots_stall": probe_stall, "robots_resume": probe_resume, "robots_late": probe_late}
 
 
 def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
@@ -787,6 +1053,11 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
 
             # probe: does it read robots.txt on a plain-http site, and keep out of what it disallows?
             probe_robots(steps, exe, name, work)
+            # review round 15: and over https, where 0.1.3 does read it: what one disallowed link does to the rest of
+            # the host's queue, and what it fetches before robots.txt is back
+            probe_stall(steps, exe, name, work)
+            probe_resume(steps, exe, name, work)
+            probe_late(steps, exe, name, work)
 
             # review round 8: does --workers hold it to that many requests, and what does a second Ctrl-C do?
             probe_workers(steps, exe, name, work)

@@ -8,8 +8,9 @@
 <source media="(min-width: 852px) and (max-width: 1199px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-mid-day.svg">
 <source media="(max-width: 851px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
 <source media="(max-width: 851px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
+<source media="(min-width: 1200px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
+<source media="(min-width: 1200px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
 </a>
 <!-- picture:hero:end -->
@@ -38,12 +39,14 @@
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
-Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
+Prebuilt for Apple silicon on CPython 3.13. On Linux x86_64, `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core machine); other platforms were not tried.
 
 Before you run 0.1.3:
 
 - It sends requests with no pause between them, up to 256 at a time across all hosts.<br>`--workers 1` sends one at a time.
-- It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.
+- It names itself `RustSitemapCrawler/1.0`, with no way to reach you.<br>`--user-agent <your-bot>` sends your name instead.
+- Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https.
+- On an https site, each link `robots.txt` disallows stalls that host's crawl: the links queued behind it wait for a new link to that host.
 - By default it asks crt.sh and Common Crawl about your domain.<br>`--seeding-strategy none` asks no one.
 - From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
 
@@ -83,7 +86,12 @@ rust_sitemap export-sitemap
 - Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards. A kill switch stops new downloads within 5 s, with a runbook. Docker Compose and a Helm chart for Kubernetes.
 
-Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`.
+Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds: the last command gives the spider your site.
+
+Before you run it:
+
+- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`).
+- The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`.
 
 ```sh
 cd Scrapy/Scraping_project
@@ -136,7 +144,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them.</sub>
+<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against local test sites over http and https on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

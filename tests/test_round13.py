@@ -59,6 +59,11 @@ def drawn(stats, rc=None):
     return {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], rc or stats["runcheck"]["rustmapper"])}
 
 
+def resolved(stats, rc=None):
+    """Review round 15: every entry as resolved, drawn or not (W1 is checked and kept for the audit, not drawn)."""
+    return {e["id"]: e for e in R.resolve(stats["routes"]["rustmapper"], rc or stats["runcheck"]["rustmapper"])}
+
+
 def rows(cfg, text):
     return [f for f in cfg["figures"] if f["text"] == text]
 
@@ -118,7 +123,7 @@ class RuleOne(unittest.TestCase):
 class Fold(unittest.TestCase):
     """r13-1 #2: the cautions you act on stay open; what the files hold goes in one labelled fold; 7 a list."""
 
-    OPEN = ["L1", "L4", "L2", "L5"]
+    OPEN = ["L1", "L7", "L4", "L6", "L2", "L5"]     # review round 15: its name (L7) and the robots.txt stall (L6)
     FOLD = ["L3", "X3", "X2", "X1"]
 
     def test_cap(self):
@@ -141,8 +146,9 @@ class Fold(unittest.TestCase):
             self.assertTrue(rows_[gid].get("fold"), gid)
         for gid in self.OPEN:
             self.assertFalse(rows_[gid].get("fold"), gid)
-            # each open item has its lever (a flag, or where to start) or is L4, which says what the release ignores
-            self.assertTrue("<br>`--" in line(gid) or "Start at" in line(gid) or gid == "L4", gid)
+            # each open item has its lever (a flag, or where to start) or is L4 or L6, which say what the release
+            # does with robots.txt (no flag turns either off but --ignore-robots, which is worse)
+            self.assertTrue("<br>`--" in line(gid) or "Start at" in line(gid) or gid in ("L4", "L6"), gid)
         self.assertEqual(readme_check.cautions(read(README), rr.LIST_MAX_ITEMS), [])
         self.assertEqual(readme_check.cautions_placed(read(README), stats), [])
         self.assertEqual(readme_check.cautions_scope(read(README), stats), [])
@@ -166,7 +172,7 @@ class Fold(unittest.TestCase):
         self.assertIn("X1 is not printed inside the fold", msgs)
         gone = text.replace(x1 + "\n", "", 1)
         self.assertIn("X1 is not printed", " ".join(readme_check.cautions_placed(gone, stats)))
-        eight = text.replace("- From `www.<site>`", "\n".join(["- a b c"] * 4) + "\n- From `www.<site>`", 1)
+        eight = text.replace("- From `www.<site>`", "\n".join(["- a b c"] * 2) + "\n- From `www.<site>`", 1)
         self.assertIn("8 items in the list (at most 7)", " ".join(readme_check.cautions(eight, 7)))
 
     def test_no_label_no_fold(self):
@@ -184,7 +190,7 @@ class Order(unittest.TestCase):
         cfg, stats = load()
         stages = list(R.STAGES)
         items = [e for e in cfg["route"]["rustmapper"]["entry"] if e.get("item")]
-        self.assertEqual([e["id"] for e in items], ["L1", "L4", "L2", "L5", "L3", "X3", "X2", "X1"])
+        self.assertEqual([e["id"] for e in items], ["L1", "L7", "L4", "L6", "L2", "L5", "L3", "X3", "X2", "X1"])
         for e in items:
             self.assertIn(e.get("stage"), stages, e["id"])
             self.assertTrue(e.get("short"), e["id"])
@@ -230,30 +236,38 @@ class WriteRow(unittest.TestCase):
 
     def test_committed(self):
         _, stats = load()
-        w1 = drawn(stats)["W1"]
+        w1 = resolved(stats)["W1"]     # review round 15: verified, kept for the audit, not drawn (H0 has its room)
+        self.assertTrue(w1["verified"])
+        self.assertIs(w1.get("drawn"), False)
+        self.assertNotIn("W1", drawn(stats))
         self.assertEqual(w1["text"], "saved as it goes; export works after a kill")
         self.assertEqual((w1["runs"], w1["fails"]), (["export_after_kill"], ["kill_writes_file"]))
         self.assertNotIn("keeps the crawl", w1["text"])
         self.assertNotIn("redb", w1["text"])
 
     def test_one_line_everywhere(self):
+        # review round 15: W1 is not drawn; H0 takes its place in the loop, one line in every edition, and the phone
+        # sheet keeps its 1,121 units (at most 1,122 fit 900 px at the 851 px window, checks/column.py)
         self.assertEqual(len(self.sheets), 6)
         for name, ent in self.sheets.items():
-            w1 = next(s for s in ent["route"]["steps"] if s["id"] == "W1")
-            self.assertEqual(w1["lines"], 1, name)
+            self.assertFalse(any(s["id"] == "W1" for s in ent["route"]["steps"]), name)
+            h0 = next(s for s in ent["route"]["steps"] if s["id"] == "H0")
+            self.assertEqual(h0["lines"], 1, name)
         self.assertEqual(self.sheets["hero-phone-day"]["route"]["height"], 1121)
 
     def test_kill_that_writes_brings_the_old_words_back(self):
         _, stats = load()
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         next(s for s in rc["steps"] if s["id"] == "kill_writes_file")["ok"] = True
-        self.assertEqual(drawn(stats, rc)["W1"]["text"], "logged to disk, then saved to redb, in batches")
+        self.assertEqual(resolved(stats, rc)["W1"]["text"], "logged to disk, then saved to redb, in batches")
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         next(s for s in rc["steps"] if s["id"] == "export_after_kill")["ok"] = False
-        self.assertEqual(drawn(stats, rc)["W1"]["text"], "logged to disk, then saved to redb, in batches")
+        self.assertEqual(resolved(stats, rc)["W1"]["text"], "logged to disk, then saved to redb, in batches")
 
     def test_design_opening_follows(self):
-        self.assertIn("“saved as it goes”", read(DESIGN))
+        # review round 15: W1 is not drawn, so DESIGN.md's opening names the catches instead
+        self.assertNotIn("“saved as it goes”", read(DESIGN))
+        self.assertIn("The dotted line marks the catches: “on https, a disallowed link stalls its host”", read(DESIGN))
         self.assertNotIn("saved to redb", read(DESIGN))
 
 
@@ -264,10 +278,10 @@ class DesignProbed(unittest.TestCase):
         _, stats = load()
         items = [e for e in drawn(stats).values() if e.get("kind") == "text" and e.get("item")]
         bare = [e for e in items if not (e.get("runs") or e.get("fails"))]
-        self.assertEqual((len(items), len(bare)), (8, 3))
+        self.assertEqual((len(items), len(bare)), (10, 3))       # review round 15: L7 and L6, both probed
         self.assertEqual(sorted(e["id"] for e in bare), ["L2", "L3", "L5"])
         sentence = tokens.probed(stats)
-        self.assertEqual(sentence, "Its probes test 5 of the 8 cautions the README prints; the other 3 (seeding, the www "
+        self.assertEqual(sentence, "Its probes test 7 of the 10 cautions the README prints; the other 3 (seeding, the www "
                                    "scope, JavaScript) are checked in the code only")
         self.assertIn(sentence + ".", read(DESIGN))
         self.assertNotIn("check each caution", read(DESIGN))
@@ -277,7 +291,7 @@ class DesignProbed(unittest.TestCase):
         s = copy.deepcopy(stats)
         x3 = next(e for e in s["routes"]["rustmapper"]["entries"] if e["id"] == "X3")
         x3["runs"] = []
-        self.assertEqual(tokens.probed(s), "Its probes test 4 of the 8 cautions the README prints; the other 4 "
+        self.assertEqual(tokens.probed(s), "Its probes test 6 of the 10 cautions the README prints; the other 4 "
                                            "(seeding, the www scope, JavaScript, redirects) are checked in the code only")
         for e in s["routes"]["rustmapper"]["entries"]:
             if e.get("item"):
@@ -308,8 +322,9 @@ class UserAgent(unittest.TestCase):
         cfg, stats = load()
         text = read(README)
         # review round 14: the sentence also says what stage 2 sends (test_round14)
-        self.assertIn("the last command gives the spider your site and names it `<your-bot>` (without that line, "
-                      "`UConn-Discovery-Crawler/1.0`).", text)
+        # review round 15: the name is in the spider's item of "Before you run it:"
+        self.assertIn("- The spider obeys `robots.txt` and its `Crawl-delay`, and names itself `<your-bot>` (without "
+                      "that line, `UConn-Discovery-Crawler/1.0`).", text)
         block = text.split("python start.py\n", 1)[1].split("```", 1)[0]
         self.assertIn("  scraper scrapy crawl scout \\\n  -s USER_AGENT=<your-bot> \\\n  -a allowed_domains=", block)
         self.assertTrue(all(len(ln) <= readme_check.CODE_COLUMNS for ln in block.splitlines()))
