@@ -6,12 +6,15 @@ ROUTE-UNVERIFIED (fail): an entry of routes.<name> none of whose wordings holds:
 ROUTE-HEADER (fail): the project sentence's anchors or its run-check steps do not hold.
 ROUTE-ENTRANCE (fail): runcheck.rustmapper missing, failed, for another version than edition.version, or dated more
   than 14 days before `taken`.
-ROUTE-CI (warn): the flagship has no CI record, so the title block's CI line is left out.
+ROUTE-LABEL (fail): a file name drawn on the hero (a `machine` run keyed routes:<id>, other than the end's output)
+  that is not the tail of a path among that entry's anchors, at HEAD and in the release (only the release for an
+  entry of release scope).
 ROUTE-HANDOFF (info): each hand-off's computed state.
 ROUTE-STRINGS (fail): a text run on the hero whose key is not one of the sources the spec allows, or whose truth is
   not `measured`.
 ROUTE-WORDS (fail): a theme word on the hero or in its alt text (T-WORDS).
-ROUTE-HEIGHT (fail): desk sheet taller than 640, phone taller than 1200.
+ROUTE-HEIGHT (fail): desk sheet taller than 580, phone taller than 1020 (review round 2: name and role, one command;
+  the edition with S2 drawn, once P1 lands, is 572 and 1016).
 ROUTE-PHONE-PX (fail): a phone text run under 14 px on a 390 px screen.
 ROUTE-PURPOSE (fail): a drawn element without a row in the sheet's PURPOSE table.
 """
@@ -30,7 +33,7 @@ SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "cop
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
-HEIGHT = {"desk": 640, "phone": 1200}
+HEIGHT = {"desk": 580, "phone": 1020}
 PHONE_W, PHONE_SCREEN, MIN_PX = 720, 390, 14.0
 
 
@@ -43,6 +46,32 @@ def _iso(s):
 
 def theme_words(text: str) -> list[str]:
     return sorted({m.group(1).lower() for m in WORDS_RE.finditer(text or "")})
+
+
+def label_ok(label: str, entry: dict) -> bool:
+    """True when `label` is the tail of a path among the entry's anchors on each side it describes."""
+    paths = entry.get("paths") or {}
+
+    def named(side):
+        return any(p == label or p.endswith("/" + label) for p in paths.get(side) or [])
+    return named("release") and (entry.get("scope") == "release" or named("head"))
+
+
+def labels(route: dict, texts: list[dict], where: str) -> list[Finding]:
+    """ROUTE-LABEL: every file name drawn beside a stop is a file of that entry, in the code it describes."""
+    by = {str(e.get("id")): e for e in route.get("entries") or []}
+    out = []
+    for t in texts:
+        key = str(t.get("key") or "")
+        if t.get("role") != "machine" or not key.startswith("routes:"):
+            continue
+        e = by.get(key.split(":", 1)[1])
+        if e is None or e.get("kind") in ("end", "export"):
+            continue
+        if not label_ok(str(t.get("s")), e):
+            out.append(fail("ROUTE-LABEL", f"{t.get('s')!r} is drawn beside {e.get('id')} but is not a file among its "
+                            "anchors in both trees", where))
+    return out
 
 
 def check(ctx) -> list[Finding]:
@@ -74,9 +103,6 @@ def check(ctx) -> list[Finding]:
         if not out or all(f.code != "ROUTE-ENTRANCE" for f in out):
             out.append(info("ROUTE-ENTRANCE", f"run check passed {rc.get('date')} on {rc.get('runner')} "
                             f"({rc.get('install') or 'install not recorded'})"))
-    repo = next((r for r in stats.get("repos") or [] if r.get("name") == route.get("repo")), {})
-    if not (repo.get("ci") or {}).get("conclusion"):
-        out.append(warn("ROUTE-CI", f"{route.get('repo')} has no CI record; the title block leaves its CI line out"))
     for h in stats.get("handoffs") or []:
         out.append(info("ROUTE-HANDOFF", f"{h.get('id')}: {h.get('state')}"))
 
@@ -99,6 +125,7 @@ def check(ctx) -> list[Finding]:
         words = theme_words(" ".join(str(t.get("s", "")) for t in texts) + " " + str(e.get("alt", "")))
         if words:
             out.append(fail("ROUTE-WORDS", f"theme words on the hero or in its alt: {', '.join(words)}", name))
+        out += labels(route, texts, name)
         drawn = (e.get("route") or {}).get("drawn") or []
         purpose = e.get("purpose") or {}
         for gid in drawn:

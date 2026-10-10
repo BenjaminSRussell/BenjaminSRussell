@@ -13,7 +13,9 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
     export_after_kill   after that kill, export-sitemap still writes a sitemap.xml with every page
     resume_after_kill   after that kill, `resume` runs and writes every page
 
-Every step carries `secs`, its wall time from time.monotonic(). Standard library only. Writes runcheck.json:
+Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
+in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
+median, and the step records `cache: "cold"`, `rustc` (the toolchain's version, or "none"), `cpus` and `runs`. Standard library only. Writes runcheck.json:
 
     {date, runner, python, version, scripts, install, steps: [{id, cmd, ok, gate, secs, detail}], ok}
 
@@ -167,7 +169,33 @@ def _export(steps: list, sid: str, exe: str, name: str, data: Path, work: Path, 
     return _step(steps, sid, what, e.returncode == 0 and locs == len(PAGES), detail, secs, gate=gate)
 
 
-def run(version: str, scripts: list[str], work: Path, python: str) -> dict:
+INSTALL_RUNS = 3         # the install is timed this many times, each in a fresh venv with an empty CARGO_HOME
+
+
+def rustc_version(env: dict | None = None) -> str:
+    """`rustc 1.97.0 (2d8144b78 2026-07-07)` -> "1.97.0"; "none" when there is no rustc on PATH."""
+    try:
+        p = subprocess.run(["rustc", "--version"], capture_output=True, text=True, timeout=60, env=env)
+    except (OSError, subprocess.SubprocessError):
+        return "none"
+    m = re.match(r"rustc (\S+)", p.stdout.strip())
+    return m.group(1) if p.returncode == 0 and m else "none"
+
+
+def median(xs: list[float]) -> float:
+    s = sorted(xs)
+    n = len(s)
+    return s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2
+
+
+def install_detail(how: str, rustc: str, cpus: int | None, secs: list[float], tail: str) -> str:
+    """The install step's detail: what was built, the cache state, the toolchain, the machine and the spread."""
+    spread = (f"{len(secs)} runs: median {median(secs):.1f} s, range {min(secs):.1f}-{max(secs):.1f} s"
+              if len(secs) > 1 else f"1 run: {secs[0]:.1f} s") if secs else "no run"
+    return f"{how}; cache cold (empty CARGO_HOME); rustc {rustc}; {cpus or '?'} CPUs; {spread}; {tail}"
+
+
+def run(version: str, scripts: list[str], work: Path, python: str, install_runs: int = INSTALL_RUNS) -> dict:
     steps: list[dict] = []
     venv = work / "v"
     bindir = venv / ("Scripts" if os.name == "nt" else "bin")
@@ -175,14 +203,37 @@ def run(version: str, scripts: list[str], work: Path, python: str) -> dict:
     p, secs = _timed([python, "-m", "venv", str(venv)])
     ok = _step(steps, "venv", f"{Path(python).name} -m venv v", p.returncode == 0, secs=secs)
     if ok:
-        p, secs = _timed([str(bindir / "pip"), "install", "--disable-pip-version-check", "--no-cache-dir",
-                          f"rustmapper=={version}"], timeout=1800)
-        out = p.stdout + p.stderr
-        # --no-cache-dir: a wheel pip built from the sdist last time must not pass as a prebuilt one
+        # Cold, every time (round 6, review 2): an empty CARGO_HOME, so the crates are downloaded inside the timed
+        # step; --no-cache-dir, so a wheel pip built from the sdist last time cannot pass as a prebuilt one. The
+        # first runs go to throwaway venvs; the last one, in v, is the one the probes use.
+        times: list[float] = []
+        out = ""
+        rustc = rustc_version()
+        for i in range(max(1, install_runs)):
+            target = venv if i == install_runs - 1 else work / f"v{i}"
+            if target != venv:
+                _run([python, "-m", "venv", str(target)])
+            cargo_home = Path(tempfile.mkdtemp(prefix="cargo-home-"))
+            env = dict(os.environ, CARGO_HOME=str(cargo_home))
+            t0 = time.monotonic()
+            p = subprocess.run([str(target / bindir.name / "pip"), "install", "--disable-pip-version-check",
+                                "--no-cache-dir", f"rustmapper=={version}"], capture_output=True, text=True,
+                               timeout=1800, env=env)
+            took = time.monotonic() - t0
+            shutil.rmtree(cargo_home, ignore_errors=True)
+            if target != venv:
+                shutil.rmtree(target, ignore_errors=True)
+            out = p.stdout + p.stderr
+            if p.returncode != 0:
+                break
+            times.append(took)
+            print(f"     install run {i + 1}/{install_runs}: {took:.1f} s", flush=True)
         install = "sdist (built with Rust)" if re.search(r"Building wheel|maturin", out) else "prebuilt wheel"
         tail = out.strip().splitlines()[-1] if out.strip() else ""
-        ok = _step(steps, "install", f"v/bin/pip install --no-cache-dir rustmapper=={version}", p.returncode == 0,
-                   f"{install}; {tail}", secs)
+        ok = _step(steps, "install", f"v/bin/pip install --no-cache-dir rustmapper=={version}",
+                   p.returncode == 0 and len(times) == max(1, install_runs),
+                   install_detail(install, rustc, os.cpu_count(), times, tail), median(times) if times else None)
+        steps[-1].update({"cache": "cold", "rustc": rustc, "cpus": os.cpu_count(), "runs": [round(t, 1) for t in times]})
     for exe in scripts if ok else []:
         path = bindir / exe
         ok &= _step(steps, "help", f"{exe} --help", path.exists() and _run([str(path), "--help"], 60).returncode == 0)
@@ -265,6 +316,7 @@ def main(argv=None) -> int:
     ap.add_argument("--python", default=sys.executable)
     ap.add_argument("--work", help="work directory (default: a temporary one, removed after)")
     ap.add_argument("--out", default="runcheck.json")
+    ap.add_argument("--install-runs", type=int, default=INSTALL_RUNS, help="how many cold installs to time")
     a = ap.parse_args(argv)
     edition = {}
     if a.latest:
@@ -282,7 +334,7 @@ def main(argv=None) -> int:
     work = Path(a.work) if a.work else Path(tempfile.mkdtemp(prefix="runcheck-"))
     work.mkdir(parents=True, exist_ok=True)
     try:
-        rec = run(version, scripts, work, a.python)
+        rec = run(version, scripts, work, a.python, a.install_runs)
     finally:
         if not a.work:
             shutil.rmtree(work, ignore_errors=True)

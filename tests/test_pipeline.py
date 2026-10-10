@@ -224,7 +224,7 @@ class Readme(unittest.TestCase):
         self.assertNotIn("⟨", once)
         figs = render_readme.figures(self.stats, self.cfg)    # account_since is null without a dated GraphQL fetch
         self.assertIn(f"<!-- n:account_since -->{figs['account_since']}<!-- /n -->", once)
-        self.assertIn("<!-- n:repo_count -->21<!-- /n -->", once)
+        self.assertIn(f"<!-- n:repo_count -->{self.stats['repo_count']}<!-- /n -->", once)
         self.assertIn("<!-- picture:hero:start -->\n<picture>\n<source media=", once, "bare pictures are wrapped")
         self.assertIn("1. **Boring under load.**", once)
         self.assertIn("<!-- instruments:start -->\n<!-- instruments:end -->", once, "v9.1: the sheet shows it, no mirror")
@@ -246,10 +246,13 @@ class Readme(unittest.TestCase):
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
         figs = render_readme.figures(self.stats, self.cfg)
         block = render_readme.survey_block(self.stats, figs)
-        self.assertTrue(block.startswith("<sub>The drawing describes rustmapper ")
-                        and block.endswith(" · regenerated weekly.</sub>"), block)
-        self.assertIn(f"Test counts and CI results measured {figs['taken']} from clones of {figs['repo_count']} public "
-                      "repositories", block)
+        self.assertTrue(block.startswith("<sub>The drawing is rustmapper ") and block.endswith(".</sub>"), block)
+        self.assertIn(f"Tests and CI measured {figs['taken']} from {figs['repo_count']} public repositories · "
+                      "regenerated weekly.", block)
+        head = block[5:block.index(" · regenerated weekly.")]
+        self.assertLessEqual(len(head.split()), 52, "review round 2: two plain sentences")
+        self.assertIn("(a local 3-page site, `--seeding-strategy none`)", block)
+        self.assertIn("Ctrl\u2011C", block)
         for figure in ("commits", "all_hands", "calendar_total"):
             if self.stats.get(figure):          # a null figure is not printed anywhere, so there is nothing to look for
                 self.assertNotIn(render_readme.fmt_n(self.stats[figure]), block, figure)
@@ -268,9 +271,9 @@ class Readme(unittest.TestCase):
                                      "names": {"Claude Sonnet 5": 45}},
                 "agent_authored": {"total": 297, "names": {"google-labs-jules[bot]": 125, "Claude": 172}}}
         self.assertEqual(render_readme.survey_block(full),
-                         "<sub>Test counts and CI results measured 9 Oct 2026 from clones of 21 public repositories · "
+                         "<sub>Tests and CI measured 9 Oct 2026 from 21 public repositories · regenerated weekly. "
                          "3\u00a0% of my commits carry an AI co-author trailer; 297 more were written by "
-                         "coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>")
+                         "coding agents (Claude, jules) and are not counted as mine.</sub>")
         # round 6: with the route, its head and the run check, the line says what the drawing was checked against
         routed = dict(full, edition={"project": "rustmapper", "version": "0.1.3"},
                       routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
@@ -280,10 +283,14 @@ class Readme(unittest.TestCase):
                                                "steps": [{"id": i, "ok": True} for i in
                                                          ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
         self.assertTrue(render_readme.survey_block(routed).startswith(
-            "<sub>The drawing describes rustmapper 0.1.3, the release pip installs: every line on it names code found "
-            "there, and each line about the design also at `32c2651` on main; its install, crawl, Ctrl-C, kill and "
-            "export lines were run against 0.1.3 on 9 Oct 2026 on macOS arm64. Test counts and CI results measured "
+            "<sub>The drawing is rustmapper 0.1.3 from PyPI: every file it names is in that release, and its install, "
+            "crawl, Ctrl\u2011C, kill and export lines ran on 9 Oct 2026 (macOS arm64). Tests and CI measured "
             "9 Oct 2026"))
+        # review round 2: the crawl says what ran, from the step's own command
+        step = {"id": "crawl_ctrl_c", "ok": True, "detail": "exit 0; 3 lines; keys present",
+                "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d"}
+        self.assertEqual(render_readme.crawl_words(step), " (a local 3-page site, `--seeding-strategy none`)")
+        self.assertEqual(render_readme.crawl_words(dict(step, cmd="rust_sitemap crawl --start-url https://x.org/")), "")
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
         no_share = dict(full, coauthored_total={"count": 502, "agent": 63})
@@ -304,8 +311,7 @@ class Readme(unittest.TestCase):
                          "1–3 and 9 Mar 2026, 20 May 2026")
         # a thin stats.json prints only what it holds; nothing is guessed
         thin = render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2})
-        self.assertEqual(thin, "<sub>Test counts and CI results measured 7 Oct 2026 from clones of 2 public repositories · "
-                               "regenerated weekly.</sub>")
+        self.assertEqual(thin, "<sub>Tests and CI measured 7 Oct 2026 from 2 public repositories · regenerated weekly.</sub>")
         self.assertEqual(render_readme.survey_block({}), "")
         failed = render_readme.survey_block({"taken": "2026-10-07", "repo_count": 2,
                                              "provenance": {"mode": "cache-failed", "failed_at": "2026-10-11T06:20:00Z"}})
@@ -353,7 +359,9 @@ class Readme(unittest.TestCase):
             deps = r["manifest"]["deps"]
             for name in wanted:
                 self.assertTrue(render_readme._in_manifest(name, deps), f"{repo}: {name} is not in its manifest")
-            self.assertTrue(render_readme.facts_block(self.stats, repo, self.cfg).startswith("*Built on " + ", ".join(wanted) + " · "))
+            head = r["head"]["short"]
+            self.assertTrue(render_readme.facts_block(self.stats, repo, self.cfg).startswith(
+                f"*On main at `{head}`: built on " + ", ".join(wanted) + " · "), "review round 2: the snapshot is named")
         for name in ("Scrapy", "Rust-sitemap"):     # the committed stats.json: each printed figure is the file's own
             r, live = render_readme._repo(self.stats, name), render_readme.facts_block(self.stats, name, self.cfg)
             self.assertTrue(live.startswith("*") and live.endswith("*") and "<sub>" not in live, live)
@@ -395,11 +403,11 @@ class Readme(unittest.TestCase):
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
                  "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
                  "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
-                 "pip install rustmapper", "Prebuilt wheel for Apple silicon",
+                 "pip install rustmapper", "Prebuilt for Apple silicon",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "# start.py must run from here", "cd Scraping_project", "scrapy crawl scout", "**Also**", "<summary>15 more repositories", "**Working rules**",
+                 "<!-- facts:Scrapy:start -->", "# run start.py from inside this dir", "cd Scraping_project", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>The drawing describes rustmapper", " · regenerated weekly.</sub>",
+                 "<!-- survey:start -->", "<sub>The drawing is rustmapper", " · regenerated weekly.",
                  "<!-- license:start -->", "**License**", "[DESIGN.md](DESIGN.md)"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")

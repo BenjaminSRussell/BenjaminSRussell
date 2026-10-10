@@ -4,6 +4,9 @@
     rest_repo(owner, repo, token=None) -> dict | None       repo-scoped REST fallback (token optional)
     rest_languages(owner, repo, token=None) -> dict | None  {language: bytes}
     rest_releases(owner, repo, token=None) -> list | None
+    rest_runs(owner, repo, token=None, branch) -> dict | None  the latest completed push run on the default branch
+    rest_jobs(owner, repo, run_url, token=None) -> list | None [{name, conclusion, labels}] of that run
+    rest_repos(owner, token=None) -> list | None             public, non-fork repository names
 
 The GraphQL figures are never the hero number (MASTERPLAN decision 19). What GitHub counts and the
 clones count are different things, so each figure says which it is:
@@ -21,6 +24,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -199,6 +203,7 @@ def rest_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
         "created": (d.get("created_at") or "")[:10] or None,
         "language": d.get("language"),
         "fork": bool(d.get("fork")),
+        "private": bool(d.get("private")),
         "default_branch": d.get("default_branch") or "main",
     }
 
@@ -225,7 +230,38 @@ def rest_runs(owner: str, repo: str, token: str | None = None, branch: str = "ma
     last = runs[0]
     return {"workflow": last.get("name"), "conclusion": last.get("conclusion"),
             "date": (last.get("updated_at") or last.get("created_at") or "")[:10] or None,
-            "url": last.get("html_url"), "recent": [r.get("conclusion") for r in runs]}
+            "url": last.get("html_url"), "recent": [r.get("conclusion") for r in runs],
+            "head_sha": last.get("head_sha")}
+
+
+def rest_jobs(owner: str, repo: str, run_url: str | None, token: str | None = None) -> list[dict] | None:
+    """The jobs of one run: [{name, conclusion, labels}] (labels are the runs-on labels). None when the API does not
+    answer. A job marked continue-on-error that fails can still report `success` (the step-level setting hides it),
+    so the conclusion here is what the workflow decided, and the AUDIT row says so."""
+    m = re.search(r"/actions/runs/(\d+)", str(run_url or ""))
+    if not m:
+        return None
+    d = _rest(f"repos/{owner}/{repo}/actions/runs/{m.group(1)}/jobs?per_page=100", token)
+    jobs = d.get("jobs") if isinstance(d, dict) else None
+    if not isinstance(jobs, list):
+        return None
+    return [{"name": j.get("name"), "conclusion": j.get("conclusion"), "labels": list(j.get("labels") or [])}
+            for j in jobs]
+
+
+def rest_repos(owner: str, token: str | None = None) -> list[str] | None:
+    """The owner's public repositories that are not forks (REST `users/{owner}/repos?type=owner`), every page; None
+    when the API does not answer. Cache mode unions these with the cached names, so a new repository is found."""
+    names: list[str] = []
+    for page in range(1, 11):
+        d = _rest(f"users/{owner}/repos?type=owner&per_page=100&page={page}", token)
+        if not isinstance(d, list):
+            return None if page == 1 else names
+        names += [r["name"] for r in d if isinstance(r, dict) and r.get("name") and not r.get("fork")
+                  and not r.get("private")]
+        if len(d) < 100:
+            break
+    return names
 
 
 def rest_meta(owner: str, repos: list[str], token: str | None = None) -> dict[str, dict]:

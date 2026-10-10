@@ -5,20 +5,22 @@ and how to get out, and where the output goes next. Vertical position is the ord
 happens to each URL, how you stop it, what you get. The rows that repeat for every page are closed by one line back
 up the left side: the crawl is a loop, and the one hazard sits on that loop, with its way out on the next row.
 Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a tick, a hatch
-block, a line), and every word comes from `stats.json` (routes, handoffs, edition, repos[].ci, runcheck, repo_count)
-or from chart.toml [copy] / [identity].
+block, a band, a line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
+chart.toml [copy] / [identity].
 
-Left column, the title block: the name, the role line, then one muted line: which project, out of how many, and its
-CI on main. Right, the route: the project's name and one sentence, the start bar, the install line with the release
-and the time the run check's install took, the command the wheel actually installs, then the stops (a ring on the
-magenta track), the side note (a tick, no ring: it acts on the fetches from outside), the hazard (a hatched block on
-the loop's way back) and the way out, the end bar, the file you get and its real field names, and a thin line on to
-the one other project of his that reads that file and tests the join.
+Left column, the title block: the name and the role line, nothing else (review round 2: the project's name is the
+route's header, and the counts and CI live in the text). Right, the route: the project's name and one sentence, the
+start bar, the install line with the release, the image's one command, then the stops (a ring on the magenta
+track), the side note (a tick, no ring: it acts on the fetches from outside), the hazard (a hatched block on the
+loop's way back, on a band of the accent at 14 % over paper, so it is the row seen first) and the way out, the end
+bar, the file you get and its real field names, and a thin line on to the one other project of his that reads that
+file and tests the join. Everything a reader copies or looks up (the crawl command, the install time, the CI) is in
+the README, once.
 
 A route entry is drawn only when routes.<name> says its anchors hold and the run-check probes it names came out as
-stated (scripts/data/route.py `resolve`); the install lines only when the run check passed (SPEC §6); the line past
-the end only when the hand-off's state is `runs`. Nothing else is drawn: no border, no axis, no tint, no motion, no
-legend.
+stated (scripts/data/route.py `resolve`); a desk file label only when that file is among the entry's anchors in the
+code it describes; the install line only when the run check passed (SPEC §6); the line past the end only when the
+hand-off's state is `runs`. Nothing else is drawn: no border, no axis, no motion, no legend.
 
 Every glyph goes through typeset (ctx.k); every stroke width through chartlib.stroke.
 """
@@ -36,21 +38,17 @@ KIND = "chart"
 SIZES = {"desk": (1280, 620), "phone": (720, 1170)}   # nominal: the height is the last baseline + 36 (phone 30)
 EDITIONS = ("day", "night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
+HAZARD_TINT = 0.14       # the hazard band: accent at 14 % over paper (day #F0D4C7, night #312531); ink on it ~10:1
 RUNCHECK_MAX_AGE = 14    # days before `taken` a passing run check still counts (SPEC §7, ROUTE-ENTRANCE)
 
 # id -> (what a stranger learns, the visitor question, where it comes from). SPEC §2.2; T-PURPOSE holds the sheet to it.
 PURPOSE: dict[str, tuple[str, str, str]] = {
     "T1": ("whose page this is", "Q1", "chart.toml [identity]"),
     "T2": ("what he builds, in the first two words", "Q1", "chart.toml [copy] role_line"),
-    "T3": ("which project this is, that it is one of several listed below, and that its tests pass on main", "Q3",
-           "stats.json repo_count, repos[Rust-sitemap].ci"),
     "R0": ("which project, and what it does, before any detail", "Q2", "stats.json routes.rustmapper.header"),
     "R1": ("where you begin", "Q4", "R1-I5 (the entrance is a fixed point)"),
-    "R2": ("the line that gets it, and how old the release is", "Q4",
+    "R2": ("the line that gets it, and how old the release is: the image's one command", "Q4",
            "stats.json edition.version, edition.date; runcheck.rustmapper"),
-    "R4": ("what the install costs: how long it took in the run check, and on what", "Q4",
-           "stats.json runcheck.rustmapper steps[install].secs, runner, install"),
-    "R3": ("the command that actually runs after pip", "Q4", "stats.json edition.scripts; runcheck.rustmapper"),
     "R5": ("one way through, in the order of a run", "Q4", "R1-F3 (the line you follow)"),
     "R6": ("the crawl is a loop: the rows it spans repeat for every page", "Q1",
            "Rust-sitemap src/bfs_crawler.rs frontier.add_links; Mercator (SRC-173 §3)"),
@@ -59,10 +57,10 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "F1": ("each page is fetched and its same-site links are queued again", "Q1", "stats.json routes.rustmapper F1"),
     "G1": ("the crawl slows when it cannot save what it found, not when the network is slow", "Q1",
            "stats.json routes.rustmapper G1"),
-    "W1": ("a kill does not lose the pages, and the command that gets them back", "Q5",
-           "stats.json routes.rustmapper W1; runcheck export_after_kill"),
-    "H1": ("pointed at a real site, it does not stop, and it goes wider than the start host", "Q5",
-           "stats.json routes.rustmapper H1; runcheck ends_by_itself"),
+    "W1": ("a kill does not lose the pages: the writer saves every 50 ms, and the command that gets them back", "Q5",
+           "stats.json routes.rustmapper W1 (writer_thread.rs BATCH_TIMEOUT_MS); runcheck export_after_kill"),
+    "H1": ("pointed at a real site, it does not stop, and it goes wider than the start host; the band makes it the "
+           "row seen first", "Q5", "stats.json routes.rustmapper H1; runcheck ends_by_itself"),
     "C1": ("how to stop it so the file is written, and what loses it", "Q5",
            "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c, kill_writes_file"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
@@ -73,9 +71,9 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
 
 BREAKS: list[tuple[str, str, str]] = [
     ("Caps lines in role `label`",
-     "the role line and the title block are set through role `label` in capitals with explicit tracking "
-     "(desk 1.6, phone 1.0); no run uses `label-caps`",
-     "check_type allows one label-caps run per sheet; the title block has three caps lines"),
+     "the role line is set through role `label` in capitals with explicit tracking (desk 1.6, phone 1.0); no run "
+     "uses `label-caps`",
+     "check_type allows one label-caps run per sheet; the role line is two caps lines"),
     ("Name at 88 on the desk",
      "the desk name is set at 88 (phone 132)",
      "the title column is 56 to 410 px, and the name at 141 would be over 500 px wide"),
@@ -95,9 +93,10 @@ BREAKS: list[tuple[str, str, str]] = [
      "an entry is drawn only when its anchors hold in the code at HEAD and in the released sdist; the install lines "
      "only when the run check passed; the line past the end only when the reader's fields are in the writer's struct",
      "the image claims only what the tool does (SPEC §5, §6)"),
-    ("Trap text in ink",
-     "the trap's words are set in ink; only its hatch block is in the accent colour",
-     "accent on day paper is 4.1:1, under the 4.5:1 text needs; a graphic needs 3:1"),
+    ("Trap text in ink, on a band",
+     "the trap's words are set in ink on a band of the accent at 14 % over paper; its hatch block is in the accent",
+     "accent on day paper is 4.1:1, under the 4.5:1 text needs; ink on the band is 10.3:1 by day and 8.4:1 by night, "
+     "and the one catch has to be the row a stranger sees first (owner test 1)"),
     ("Phone role line at 204",
      "on the phone the role line sits at 204 (SPEC: 196) and everything under it 8 lower",
      "at 196 its text box meets the descent of the name set at 132 (the bounds check measures the font's boxes)"),
@@ -155,28 +154,11 @@ def _repo(data: dict, name: str) -> dict:
 
 # ---------------------------------------------------------------- data -> what the sheet says
 
-def ci_words(ci: dict | None) -> str | None:
-    """success -> PASSED, failure -> FAILED, any other value -> LAST RUN <VALUE>; None when there is no record."""
-    if not isinstance(ci, dict) or not ci.get("conclusion") or not ci.get("date"):
-        return None
-    v = str(ci["conclusion"]).lower()
-    word = {"success": "PASSED", "failure": "FAILED"}.get(v, f"LAST RUN {v.replace('_', ' ').upper()}")
-    return f"CI ON MAIN {word} {_date(ci['date'])}"
-
-
-def install_words(rc: dict | None) -> str | None:
-    """What the install cost in the run check: "3 min on Linux x86_64: pip builds it from source", or
-    "9 s on macOS arm64: prebuilt wheel". None when the install step carries no time."""
-    if not isinstance(rc, dict):
-        return None
-    st = next((x for x in rc.get("steps") or [] if x.get("id") == "install" and x.get("ok")), None)
-    if not st or st.get("secs") is None or not rc.get("runner"):
-        return None
-    secs = float(st["secs"])
-    t = f"{round(secs / 60)} min" if secs >= 90 else f"{max(1, round(secs))} s"
-    how = {"sdist (built with Rust)": "pip builds it from source",
-           "prebuilt wheel": "prebuilt wheel"}.get(str(rc.get("install") or ""))
-    return f"{t} on {rc['runner']}" + (f": {how}" if how else "")
+def over(paper: str, ink: str, alpha: float) -> str:
+    """`ink` laid over `paper` at `alpha`, as one opaque colour (the hazard band: accent at 14 % over paper)."""
+    a = [int(paper.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+    b = [int(ink.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+    return "#%02X%02X%02X" % tuple(round(x * (1 - alpha) + y * alpha) for x, y in zip(a, b))
 
 
 def entrance_ok(data: dict, project: str = PROJECT) -> tuple[bool, str]:
@@ -211,27 +193,21 @@ def plan(data: dict, cfg: dict, project: str = PROJECT) -> dict:
     if not isinstance(route, dict) or not route.get("entries"):
         raise RuntimeError(f"hero: stats.json carries no routes.{project}; run build_stats.py (scripts/data/route.py)")
     repo_name = route.get("repo") or "Rust-sitemap"
-    repo = _repo(data, repo_name)
     ed = data.get("edition") or {}
     aliases = (cfg.get("hero") or {}).get("aliases") or {}
     rc = (data.get("runcheck") or {}).get(project)
     entries = R.drawn(route, rc)
     ok, why = entrance_ok(data, project)
-    cmd = R.command_name(ed.get("scripts"), project) if ok else None
+    R.command_name(ed.get("scripts"), project)       # raises when the release ships no command: nothing to install
     header_ok, _ = R.header_ok(route, rc)
     p = {
         "project": aliases.get(repo_name, project),
         "repo": repo_name,
         "header": route.get("header") if header_ok else None,
         "role": [s.strip() for s in str((cfg.get("copy") or {}).get("role_line") or "").split("·") if s.strip()],
-        "repo_count": data.get("repo_count") or len(data.get("repos") or []),
-        "ci": ci_words(repo.get("ci")),
         "entrance": ok, "entrance_why": why,
         "install": f"pip install {ed.get('project') or project}" if ok and ed.get("version") else None,
         "release": f"{ed['version']} · {_date(ed['date'])}" if ok and ed.get("version") and ed.get("date") else None,
-        "install_cost": install_words(rc) if ok else None,
-        "command": f"{cmd} crawl --start-url <site>" if cmd else None,
-        "cmd": cmd,
         "steps": [e for e in entries if e["kind"] in ("stop", "step", "note", "trap")],
         "end": next((e for e in entries if e["kind"] == "end"), None),
         "handoff": None,
@@ -353,7 +329,18 @@ def _build(ctx) -> str:
                  f'{c.stroke("LINE", theme.accent, caps="butt")}/>')
         mark("hatch", gid, (x0, y0, x1, y1))
 
-    # ================================================================ the title block (T1–T3)
+    def _band(row, x0):
+        """The hazard's band (review round 2): accent at HAZARD_TINT over paper, from the hatch's left edge to the
+        text's right limit, as tall as the row's text block (the font's ascent over the first baseline to its descent
+        under the last) plus 6. It goes first in the row's group, so the track, the loop and the words sit on it. Its
+        size follows the number of text lines only, like every other mark."""
+        asc, desc = k.extent("label", edition=ed, scale=sc)
+        y0, y1 = row["y"] - asc - 3, row["last"] + desc + 3
+        groups[row["id"]].insert(0, f'<rect x="{E.fmt(x0)}" y="{E.fmt(y0)}" width="{E.fmt(RIGHT - x0)}" '
+                                    f'height="{E.fmt(y1 - y0)}" fill="{over(theme.paper, theme.accent, HAZARD_TINT)}"/>')
+        marks.append({"kind": "band", "id": row["id"], "box": [round(v, 1) for v in (x0, y0, RIGHT, y1)]})
+
+    # ================================================================ the title block (T1, T2)
     tx = G["title_x"]
     nsz, ntr = G["name_size"], G["name_track"]
     ben = k.text("Ben", tx, G["name_y"], "display", size=nsz, tracking=ntr, edition=ed, scale=sc, truth="measured",
@@ -366,27 +353,6 @@ def _build(ctx) -> str:
     for i, line in enumerate(p["role"]):
         title_last = G["role_y"] + G["role_pitch"] * i
         lbl(line, tx, title_last, "T2", "copy:role_line", caps=True)
-    # T3: one muted line, the same words on desk and phone: which project, out of how many, and its CI on main.
-    # Pieces join with " · " and break between pieces only, measured in the day cut.
-    pieces = [(p["project"], "routes:project"), (f"1 of {p['repo_count']}", "repo_count")]
-    if p["ci"]:
-        pieces.append((p["ci"], "repos:ci"))
-    sep = " · "
-    lines_t3: list[list[tuple[str, str]]] = [[]]
-    for text, key in pieces:
-        trial = sep.join(t for t, _ in lines_t3[-1] + [(text, key)])
-        if lines_t3[-1] and k.text_width(trial.upper(), "label", edition=day_ed, scale=sc, tracking=track) > G["title_w"]:
-            lines_t3.append([])
-        lines_t3[-1].append((text, key))
-    fy = title_last + G["fine_gap"]
-    for li, line in enumerate(lines_t3):
-        x = tx
-        for j, (text, key) in enumerate(line):
-            run = (sep if j else "") + text
-            lbl(run, x, fy, "T3", key, fill=theme.muted, caps=True)
-            x += width(run, caps=True)
-        title_last = fy
-        fy += G["fine_pitch"]
 
     # ================================================================ the route (R0–R15)
     X, TX, RIGHT, LH = G["track_x"], G["text_x"], G["right"], G["line"]
@@ -409,19 +375,10 @@ def _build(ctx) -> str:
         if p["release"]:
             lbl(p["release"], RIGHT, y, "R2", "edition:version", fill=theme.muted, caps=True, anchor="end")
         last = y
-        y += LH
-        if p["install_cost"]:
-            for line in wrap(p["install_cost"], RIGHT - TX):
-                lbl(line, TX, y, "R4", "runcheck:install", fill=theme.muted)
-                last = y
-                y += LH
-    if p["command"]:
-        lbl(p["command"], TX, y, "R3", "edition:scripts", role="machine")
-        last = y
-        y += LH
     y = last + G["entry_gap"]
     track_top = bar_top + bh
     step_report = []
+    rows: list[dict] = []
     loop_rows: list[dict] = []
     for e in p["steps"]:
         gid = e["id"]
@@ -449,6 +406,7 @@ def _build(ctx) -> str:
             for i, line in enumerate(lines):
                 lbl(line, TX, y + LH * i, gid, f"routes:{gid}", fill=ink)
         row = {"id": gid, "kind": kind, "y": y, "cy": cy, "last": y + LH * (len(lines) - 1), "loop": e.get("loop")}
+        rows.append(row)
         if e.get("loop"):
             loop_rows.append(row)
         step_report.append({"id": gid, "kind": kind, "y": round(y, 1), "lines": len(lines), "loop": bool(e.get("loop"))})
@@ -472,10 +430,12 @@ def _build(ctx) -> str:
         for row in loop_rows:
             if row["kind"] == "trap":
                 hx0, hx1 = G["loop_hatch"]
+                _band(row, hx0)
                 _hatch(row["id"], hx0, hx1, row["y"])
     for row in step_report:     # a trap off the loop keeps its block left of the track
         if row["kind"] == "trap" and not row["loop"]:
             x0, x1, _, _ = G["hatch"]
+            _band(next(r for r in rows if r["id"] == row["id"]), x0)
             _hatch(row["id"], x0, x1, row["y"])
     end_top = last + G["end_gap"]
     put("R5", f'<path d="M{E.fmt(X)} {E.fmt(track_top)}V{E.fmt(end_top)}" fill="none" '

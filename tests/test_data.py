@@ -567,7 +567,7 @@ class Tree(unittest.TestCase):
         try:
             ci = github.rest_runs("o", "r", None, "main")
             self.assertEqual(ci, {"workflow": "CI", "conclusion": "success", "date": "2026-10-07", "url": "u1",
-                                  "recent": ["success", "failure"]})
+                                  "recent": ["success", "failure"], "head_sha": None})
             self.assertIn("branch=main&event=push&status=completed", calls[0])
             github._rest = lambda *a, **k: None
             self.assertIsNone(github.rest_runs("o", "r"))

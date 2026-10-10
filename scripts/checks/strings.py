@@ -5,8 +5,8 @@ is printed), no text run on the hero whose report `truth` is anything but measur
 Figures inside `<!-- n:key -->…<!-- /n -->` markers are build-written and exempt ("Oct 2024" is
 banned as a hand-typed figure, not as a date).
 
-STRINGS-TWICE (round 6, review 1: one home per fact): no run of more than TWICE_WORDS words appears both in the
-hero's text and in README.md's visible text (the alt text, which repeats the image for screen readers by design, and
+STRINGS-TWICE (round 6, review 1: one home per fact): no run of more than TWICE_WORDS words, and (review 2) no
+run of SHORT_WORDS words that names code or a date, appears both in the hero's text and in README.md's visible text (the alt text, which repeats the image for screen readers by design, and
 HTML comments are left out). The image keeps what a list cannot show; the text keeps what you copy or look up."""
 from __future__ import annotations
 
@@ -61,11 +61,24 @@ def unmeasured(report: dict | None) -> list[Finding]:
 
 
 TWICE_WORDS = 4
-_WORD = re.compile(r"[a-z0-9][a-z0-9_.'/-]*[a-z0-9]|[a-z0-9]")
+SHORT_WORDS = 3          # review round 2: a run this short counts when it holds a code token or a date
+TWICE_ALLOW = ("pip install rustmapper",)    # the image's one command is the entrance, and the code block copies it
+_WORD = re.compile(r"(?:--)?[a-z0-9][a-z0-9_.'/-]*[a-z0-9]|[a-z0-9]")
+MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 
 
 def _words(text: str) -> list[str]:
-    return _WORD.findall(str(text or "").lower())
+    return _WORD.findall(str(text or "").lower().replace("\u2011", "-"))
+
+
+def code_or_date(gram: tuple[str, ...]) -> bool:
+    """A run that names code (an identifier with `_`, a `--flag`, a .rs or .jsonl file) or carries a date (a month
+    with a year): short, but a fact all the same."""
+    if any("_" in w or w.startswith("--") or w.endswith(".rs") or ".jsonl" in w for w in gram):
+        return True
+    has_month = any(w[:3] in MONTHS and w.isalpha() for w in gram)
+    has_year = any(re.fullmatch(r"(19|20)\d\d", w) for w in gram)
+    return has_month and has_year
 
 
 def readme_visible(readme: str) -> str:
@@ -76,18 +89,23 @@ def readme_visible(readme: str) -> str:
     return t.replace("`", " ").replace("*", " ")
 
 
-def twice(hero_text: list[str], readme: str, n: int = TWICE_WORDS + 1) -> list[str]:
-    """The runs of `n` words found both in the hero's text runs (each run, and each element's runs joined in order)
-    and in README.md's visible text."""
+def twice(hero_text: list[str], readme: str, n: int = TWICE_WORDS + 1, short: int = SHORT_WORDS) -> list[str]:
+    """The runs found both in the hero's text runs (each run, and each element's runs joined in order) and in
+    README.md's visible text: any run of `n` words, and any run of `short` words that names code or a date
+    (review round 2: "pip install rustmapper" is the one exception)."""
     page = _words(readme_visible(readme))
-    grams = {tuple(page[i:i + n]) for i in range(len(page) - n + 1)}
     hits = []
-    for chunk in hero_text:
-        w = _words(chunk)
-        for i in range(len(w) - n + 1):
-            g = tuple(w[i:i + n])
-            if g in grams and " ".join(g) not in hits:
-                hits.append(" ".join(g))
+    for size, need in ((n, None), (short, code_or_date)):
+        grams = {tuple(page[i:i + size]) for i in range(len(page) - size + 1)}
+        for chunk in hero_text:
+            w = _words(chunk)
+            for i in range(len(w) - size + 1):
+                g = tuple(w[i:i + size])
+                if need and not need(g):
+                    continue
+                phrase = " ".join(g)
+                if g in grams and phrase not in hits and not any(phrase in a for a in TWICE_ALLOW):
+                    hits.append(phrase)
     return hits
 
 

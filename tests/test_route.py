@@ -185,12 +185,74 @@ class Probes(unittest.TestCase):
         runcheck._step(steps, "ends_by_itself", "crawl alone", False, gate=False)
         self.assertEqual(steps[0]["secs"], 180.0)
         self.assertFalse(steps[1]["gate"])
-        self.assertEqual(sheet.install_words({"runner": "Linux x86_64", "install": "sdist (built with Rust)",
-                                              "steps": steps}), "3 min on Linux x86_64: pip builds it from source")
-        self.assertEqual(sheet.install_words({"runner": "macOS arm64", "install": "prebuilt wheel",
-                                              "steps": [{"id": "install", "ok": True, "secs": 8.6}]}),
-                         "9 s on macOS arm64: prebuilt wheel")
-        self.assertIsNone(sheet.install_words({"runner": "x", "steps": [{"id": "install", "ok": True}]}))
+
+    def test_install_detail_names_cache_toolchain_and_spread(self):
+        import runcheck
+        self.assertEqual(runcheck.median([3.0, 1.0, 2.0]), 2.0)
+        d = runcheck.install_detail("sdist (built with Rust)", "1.97.0", 4, [250.0, 240.5, 262.1], "ok")
+        self.assertIn("cache cold", d)
+        self.assertIn("rustc 1.97.0", d)
+        self.assertIn("4 CPUs", d)
+        self.assertIn("3 runs: median 250.0 s, range 240.5-262.1 s", d)
+
+
+class Constants(unittest.TestCase):
+    """Round 6, review 2: W1's figure is the writer's constant, read from the code, not typed."""
+    SPEC = {"repo": "x", "entry": [
+        {"id": "W1", "kind": "stop", "file": "writer_thread.rs", "text": "saved every {const:BATCH_TIMEOUT_MS} ms",
+         "head": [{"path": "src/writer_thread.rs", "const": "BATCH_TIMEOUT_MS"},
+                  {"path": "src/export.rs", "fn": "run_export", "absent": "WalReader"}],
+         "release": [{"path": "src/writer_thread.rs", "const": "BATCH_TIMEOUT_MS"},
+                     {"path": "src/main.rs", "fn": "run_export", "text": "CrawlerState::new"},
+                     {"path": "src/main.rs", "fn": "run_export", "absent": "WalReader"}]}]}
+    MAIN = ("fn build() { let r = WalReader::new(d); }\n"
+            "async fn run_export(d: String) -> Result<(), E> {\n    let s = CrawlerState::new(&d)?;\n    { inner(); }\n}\n")
+
+    def route(self, head_ms="50", rel_ms="50", main=MAIN):
+        head = tree({"src/writer_thread.rs": f"const BATCH_TIMEOUT_MS: u64 = {head_ms}; // drain",
+                     "src/export.rs": "pub async fn run_export(d: String) { let s = CrawlerState::new(&d); }"})
+        rel = tree({"src/writer_thread.rs": f"const BATCH_TIMEOUT_MS: u64 = {rel_ms};", "src/main.rs": main})
+        return R.verify_route(self.SPEC, head, rel, "abc", "0.1.3")["entries"][0]
+
+    def test_anchor_const_prints_the_code_value(self):            # T-ANCHOR, const
+        self.assertEqual(self.route()["text"], "saved every 50 ms")
+        e = self.route("75", "75")
+        self.assertEqual(e["text"], "saved every 75 ms")
+        self.assertTrue(e["verified_head"] and e["verified_release"])
+
+    def test_const_differs_between_trees(self):
+        e = self.route("75", "50")
+        self.assertFalse(e["verified_head"])
+        self.assertIn("head BATCH_TIMEOUT_MS = 75, release BATCH_TIMEOUT_MS = 50: the figure differs", e["missing"])
+
+    def test_fn_narrows_to_the_body(self):                       # T-ANCHOR, fn
+        self.assertTrue(self.route()["verified_release"])          # WalReader is in build(), not in run_export()
+        e = self.route(main=self.MAIN.replace("CrawlerState::new(&d)?", "WalReader::new(&d)?"))
+        self.assertFalse(e["verified_release"])
+        self.assertTrue(any("fn run_export" in m for m in e["missing"]), e["missing"])
+        e = self.route(main="fn other() {}")
+        self.assertTrue(any("no fn run_export" in m for m in e["missing"]), e["missing"])
+
+    def test_label_only_when_the_file_is_anchored_in_both(self):  # ROUTE-LABEL
+        self.assertEqual(self.route()["file"], "writer_thread.rs")  # anchored in both trees
+        spec = {"repo": "x", "entry": [
+            {"id": "G1", "kind": "note", "file": "governor.rs", "text": "slows",
+             "head": [{"path": "src/orchestration/governor.rs"}], "release": [{"path": "src/main.rs"}]},
+            {"id": "F1", "kind": "stop", "file": "bfs_crawler.rs", "text": "fetch",
+             "head": [{"path": "src/bfs_crawler.rs"}], "release": [{"path": "src/bfs_crawler.rs"}]},
+            {"id": "S1", "kind": "stop", "scope": "release", "file": "seeder.rs", "text": "seeds",
+             "release": [{"path": "src/seeder.rs"}]}]}
+        files = {"src/orchestration/governor.rs": "", "src/main.rs": "", "src/bfs_crawler.rs": "", "src/seeder.rs": ""}
+        r = R.verify_route(spec, tree(files), tree(files), "abc", "0.1.3")
+        by = {e["id"]: e for e in R.drawn(r)}
+        self.assertIsNone(by["G1"]["file"])                         # 0.1.3 keeps the governor in main.rs
+        self.assertEqual(by["F1"]["file"], "bfs_crawler.rs")
+        self.assertEqual(by["S1"]["file"], "seeder.rs")             # release scope: the release's file
+        texts = [{"s": "governor.rs", "role": "machine", "key": "routes:G1"},
+                 {"s": "bfs_crawler.rs", "role": "machine", "key": "routes:F1"}]
+        found = route_check.labels(r, texts, "hero-day")
+        self.assertEqual([f.code for f in found], ["ROUTE-LABEL"])
+        self.assertIn("governor.rs", found[0].msg)
 
 
 class Commands(unittest.TestCase):
@@ -207,7 +269,7 @@ class Commands(unittest.TestCase):
             s = copy.deepcopy(stats)
             s["edition"]["scripts"] = scripts
             s["runcheck"]["rustmapper"]["scripts"] = scripts
-            self.assertEqual(sheet.plan(s, cfg)["command"], want)
+            self.assertNotIn("command", sheet.plan(s, cfg))     # review round 2: the command's one home is the README
             block = rr.install_block(s, "Rust-sitemap", cfg)
             self.assertIn(want.split()[0] + " crawl \\\n    --start-url <your-site>", block)
         s = copy.deepcopy(stats)
@@ -233,13 +295,6 @@ class Commands(unittest.TestCase):
             z.writestr("rustmapper-0.1.3.dist-info/RECORD",
                        "rustmapper-0.1.3.data/scripts/rust_sitemap,sha256=x,4\nrustmapper-0.1.3.dist-info/RECORD,,\n")
         self.assertEqual(pypi.scripts_in_wheel(buf.getvalue()), ["rust_sitemap", "rustmapper"])
-
-    def test_ci_words(self):                                      # T-CI
-        self.assertEqual(sheet.ci_words({"conclusion": "success", "date": "2026-10-07"}), "CI ON MAIN PASSED 7 OCT 2026")
-        self.assertEqual(sheet.ci_words({"conclusion": "failure", "date": "2026-10-07"}), "CI ON MAIN FAILED 7 OCT 2026")
-        self.assertEqual(sheet.ci_words({"conclusion": "cancelled", "date": "2026-10-07"}),
-                         "CI ON MAIN LAST RUN CANCELLED 7 OCT 2026")
-        self.assertIsNone(sheet.ci_words(None))
 
 
 class Handoffs(unittest.TestCase):
@@ -310,7 +365,7 @@ class RouteSheet(unittest.TestCase):
     def test_heights(self):
         for e in EDITIONS:
             ent = self.freport["sheets"][f"hero-{e}"]
-            self.assertLessEqual(ent["h"], 1200 if "phone" in e else 640, e)
+            self.assertLessEqual(ent["h"], route_check.HEIGHT["phone" if "phone" in e else "desk"], e)
             self.assertEqual(ent["h"], int(round(ent["route"]["last_baseline"] + (30 if "phone" in e else 36))))
 
     def test_unverified_entry_is_not_drawn(self):
@@ -411,6 +466,7 @@ class RouteSheet(unittest.TestCase):
                     self.assertGreaterEqual(t["size"] * 390 / 720, 14 - 1e-6)
 
     def test_trap_text_is_ink_and_the_hatch_accent(self):
+        from checks.contrast import wcag
         for e in EDITIONS:
             svg = self.svg(self.fout, e)
             th = tokens.THEMES["night" if "night" in e else "day"]
@@ -418,6 +474,18 @@ class RouteSheet(unittest.TestCase):
                 g = re.search(rf'<g id="hero-{gid}">(.*?)</g>(?=<g id="hero-)', svg, re.S).group(1)
                 self.assertIn(f'stroke="{th.accent}"', g)
                 self.assertNotIn(f'fill="{th.accent}"', g)
+                band = sheet.over(th.paper, th.accent, sheet.HAZARD_TINT)
+                self.assertTrue(g.startswith("<rect"), "the band goes first, under the words")
+                self.assertIn(f'fill="{band}"', g)
+                self.assertGreaterEqual(wcag(th.ink, band), 7.0)
+        self.assertEqual(sheet.over("#F4EEE1", "#D73626", 0.14), "#F0D4C7")
+        self.assertEqual(sheet.over("#0F1A2B", "#FF6853", 0.14), "#312531")
+
+    def test_title_block_is_name_and_role(self):
+        for e in EDITIONS:
+            texts = [t for t in self.report["sheets"][f"hero-{e}"]["text"]]
+            self.assertFalse(any(t["key"] in ("repo_count", "repos:ci") for t in texts), e)
+            self.assertNotIn("1 OF", " ".join(t["s"] for t in texts))
 
     def test_budgets(self):
         for name, e in self.freport["sheets"].items():
@@ -435,7 +503,6 @@ class RouteSheet(unittest.TestCase):
         s["runcheck"]["rustmapper"]["ok"] = False
         p = sheet.plan(s, self.cfg)
         self.assertIsNone(p["install"])
-        self.assertIsNone(p["command"])
         s = all_verified(self.stats)
         s["runcheck"]["rustmapper"]["version"] = "0.1.2"
         self.assertFalse(sheet.entrance_ok(s)[0])
@@ -456,7 +523,7 @@ class RouteSheet(unittest.TestCase):
         n, rep, _out = _build(self.tmp, "live", _write(self.tmp, live, "live"))
         self.assertEqual(n, 0, rep["problems"])
         texts = " ".join(t["s"] for t in rep["sheets"]["hero-day"]["text"])
-        self.assertIn(f"1 OF {live['repo_count']}", texts)
+        self.assertNotIn(f"1 OF {live['repo_count']}", texts)     # review round 2: the title block is name and role
         self.assertNotIn("CI ON MAIN", texts)
 
 

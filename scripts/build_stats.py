@@ -29,7 +29,7 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import ASSETS, LOG_PATH, LOGIN, ROOT, STATS_PATH, claims as claims_mod, derive as derive_mod  # noqa: E402
 from data import github, logsim, model, pypi, releases as releases_mod, survey as survey_mod, tree as tree_mod  # noqa: E402
-from data import load_chart_toml, route as route_mod  # noqa: E402
+from data import load_chart_toml, proof as proof_mod, route as route_mod  # noqa: E402
 
 MODES = ("live", "cache", "cache-failed")
 HEAD_REPOS = ("Rust-sitemap", "Scrapy", "ideal-url-organizer")   # round 6, SPEC §5.1: the code the page cites
@@ -203,6 +203,43 @@ def route_records(cfg: dict, git_dirs: dict[str, str], ed_raw: dict | None, wd: 
     return {"heads": heads, "routes": routes, "handoffs": handoffs}
 
 
+def readme_repo_links(owner: str, path: str | None = None) -> list[str]:
+    """The github.com/<owner>/<name> repositories README.md links to, in page order, the profile itself left out."""
+    try:
+        with open(path or os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError:
+        return []
+    found = re.findall(rf"github\.com/{re.escape(owner)}/([A-Za-z0-9_.-]+?)(?=[/)\"'#?\s]|$)", text)
+    return [n for n in dict.fromkeys(found) if n != owner]
+
+
+def list_repositories(owner: str, names: list[str], token: str | None, rest_repos=None, rest_repo=None,
+                      links: list[str] | None = None) -> tuple[list[str], list[str]]:
+    """Review round 2: cache mode must still find a new repository. The cached names, united with REST's list of
+    the owner's public non-fork repositories when it answers, and with any repository README.md links to that the
+    REST repo endpoint confirms is the owner's, public and not a fork. Returns (names, sources used)."""
+    rest_repos = rest_repos or github.rest_repos
+    rest_repo = rest_repo or github.rest_repo
+    used = ["cache"] if names else []
+    out = list(names)
+    listed = rest_repos(owner, token)
+    if listed is not None:
+        used.append("rest")
+        out += [n for n in listed if n not in out]
+    added = False
+    for cand in (links if links is not None else readme_repo_links(owner)):
+        if cand in out:
+            continue
+        m = rest_repo(owner, cand, token)
+        if m and not m.get("fork") and not m.get("private"):
+            out.append(cand)
+            added = True
+    if added:
+        used.append("readme")
+    return out, used
+
+
 def load_runcheck(path: str | None, cache: dict) -> dict | None:
     """SPEC §6: `runcheck.rustmapper` from the run-check job's runcheck.json, else the cache's."""
     if path:
@@ -336,6 +373,10 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
             print("graphql failed, keeping cached fields:", exc)
             mode = "cache"
     names = repos or (list(gh["repo_meta"].keys()) if gh.get("repo_meta") else [r["name"] for r in cache.get("repos", [])])
+    repo_list = ["graphql"] if gh.get("repo_meta") else ["cache"]
+    if not repos and not gh.get("repo_meta"):
+        names, repo_list = list_repositories(owner, names, token)
+        gh["repo_count"] = len(names)
     if not names:
         raise SystemExit("no repository list: no GraphQL and no cache")
     meta = gh.get("repo_meta") or github.rest_meta(owner, names, token)
@@ -394,6 +435,9 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
             if name in flagships:   # D4: the project's own CI on its default branch, where the API answers
                 ci = github.rest_runs(owner, name, token, m.get("default_branch") or "main")
                 if ci is not None:
+                    jobs = github.rest_jobs(owner, name, ci.get("url"), token)
+                    if jobs is not None:     # review round 2: what "passed" covers, job by job
+                        ci["jobs"] = jobs
                     rec["ci"] = ci
                 elif name in cached_v2 and cached_v2[name].get("ci"):
                     rec["ci"] = dict(cached_v2[name]["ci"], stale=True)
@@ -409,6 +453,9 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
         instruments["releases"] = "live" if github.rest_releases(owner, flagship, token) is not None else \
             ("cache" if cache.get("notices") else "none")
         extra = route_records(cfg, git_dirs, ed, wd, cache)
+        # review round 2: the rules' months from git, and the README's typed figures checked at HEAD
+        extra["rules"] = proof_mod.rule_records(hand, git_dirs, identity, cache.get("rules"))
+        extra["figures"] = proof_mod.figure_records(cfg.get("figures") or [], git_dirs, cache.get("figures"))
     finally:
         if tmp:
             tmp.cleanup()
@@ -422,9 +469,10 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
     stats = assemble(records, taken, updated_at, run_id, mode, gh, ed, notices,
                      derive_mod.corrections(profile_commits, identity), claims, trial, sources,
                      unsurveyed, instruments, features, soundings=soundings_taken(out))
-    for key in ("routes", "handoffs"):
+    for key in ("routes", "handoffs", "rules", "figures"):
         if key in extra:
             stats[key] = extra[key]
+    stats["provenance"]["repo_list"] = repo_list
     rc = load_runcheck(runcheck_path, cache)
     if rc is not None:
         stats["runcheck"] = rc

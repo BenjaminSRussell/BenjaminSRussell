@@ -25,7 +25,7 @@
 **[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin.
 
 <!-- facts:Rust-sitemap:start -->
-*Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
+*On main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
@@ -38,7 +38,7 @@ rust_sitemap export-sitemap \
     --output sitemap.xml
 ```
 
-Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
+Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -47,11 +47,11 @@ Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from so
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
 
 <!-- facts:Scrapy:start -->
-*Built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python*
+*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · 69k lines of Python*
 <!-- facts:Scrapy:end -->
 
 ```sh
-# start.py must run from here
+# run start.py from inside this dir
 cd Scraping_project
 # the whole pipeline; needs docker
 # and docker-compose
@@ -65,26 +65,26 @@ Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by fi
 
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Near-duplicates are dropped by URL hash and MinHash. Most pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
+- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Circuit breakers wrap the HTTP, Delta Lake and Redis services; per-host throttles are separate. Docker Compose and a Helm chart for Kubernetes.
 
 <a name="also"></a>
 **Also**
 
-- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25+ ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
+- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25 ways to sort a pile of URLs: by domain, crawl depth, subdomain, actual page content. Home of the "no regex" rule.
 - [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands. It adds headless-Chrome rendering, SQLite storage with full-text search, and browser TLS-fingerprint impersonation, all off by default.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. A stream-tee forwards tokens to the client while parsing them for metrics, so logging costs the caller nothing.
-- [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code across seven languages, from stylometry down to git-history patterns.
+- [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — probabilistic forensics for AI-generated code, from stylometry down to git-history patterns.
 
 <details>
-<summary>15 more repositories: Swift widgets, a C game engine, games, tooling</summary>
+<summary><!-- n:more_count -->15<!-- /n --> more repositories: Swift widgets, a C game engine, games, tooling</summary>
 <br>
 
 - [**3d-swift-globe-widget**](https://github.com/BenjaminSRussell/3d-swift-globe-widget) — Titan: a native macOS 3D globe in MapKit and SwiftUI, permanent night mode, packets arcing from NYC to LA.
 - [**Spotify_to_apple_music**](https://github.com/BenjaminSRussell/Spotify_to_apple_music) — library migration in both directions, matching on ISRC first and on fuzzy text and duration after. A SwiftUI face and a CLI.
 - [**game_engine**](https://github.com/BenjaminSRussell/game_engine) — a voxel engine in C with its own physics. The kind of thing you build to learn why engines are hard.
 - [**cozy-game**](https://github.com/BenjaminSRussell/cozy-game) — Cozy Haven, a farming game in React Native and Expo.
-- [**Data_science_dev**](https://github.com/BenjaminSRussell/Data_science_dev) — Data Science Tycoon, a browser game: climb from data-entry clerk to Chief Data Officer by making charts your boss rates out of five.
+- [**Data_science_dev**](https://github.com/BenjaminSRussell/Data_science_dev) — Data Science Tycoon, a browser game: climb from data-entry clerk to Chief Data Officer by making charts for your boss.
 - [**Wheel**](https://github.com/BenjaminSRussell/Wheel) — a Three.js prize wheel with a physics-based spin and an LED rim. Lands on a programming language.
 - [**FashionDB**](https://github.com/BenjaminSRussell/FashionDB) — scrapes Reddit and the web for fashion rules and runs them through an NLP pipeline.
 - [**Data-visualizer**](https://github.com/BenjaminSRussell/Data-visualizer) — a lightweight, Superset-inspired exploration UI over PostgreSQL. Display only, by design.
@@ -99,17 +99,17 @@ Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by fi
 **Working rules**
 
 <!-- notices:start -->
-1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
-2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.*
-3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Sep 2025: Prometheus and Grafana.*
-4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025.*
+1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: a circuit breaker in the error handler.*
+2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables; rustmapper, Nov 2025, the write-ahead log.*
+3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
+4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025; Claude wrote its first version.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The drawing describes rustmapper 0.1.3, the release pip installs: every line on it names code found there, and each line about the design also at `32c2651` on main; its install, crawl, Ctrl-C, kill and export lines were run against 0.1.3 on 9 Oct 2026 on Linux x86_64. Test counts and CI results measured 10 Oct 2026 from clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
+<sub>The drawing is rustmapper 0.1.3 from PyPI: every file it names is in that release, and its install, crawl (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines ran on 10 Oct 2026 (Linux x86_64). Tests and CI measured 10 Oct 2026 from 22 public repositories · regenerated weekly. 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

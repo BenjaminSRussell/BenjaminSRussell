@@ -9,8 +9,10 @@
     command_name(scripts) -> str                                              the command the image prints
     wheel_words(wheels) -> str                                                the platform note, or ""
 
-An anchor is `{path}` (the file exists), `{path, text}` (the file contains the literal) or `{path, absent}` (the
-file does not contain it). An entry is verified only when every `head` anchor holds in the repository at its HEAD
+An anchor is `{path}` (the file exists), `{path, text}` (the file contains the literal), `{path, absent}` (the
+file does not contain it) or `{path, const}` (the file defines that numeric constant, whose value `{const:NAME}` in
+the entry's text prints); `fn` narrows `text` and `absent` to one Rust function's body. An entry's desk file label
+is drawn only when a path ending in that name is among its anchors on each side it describes (`label_for`). An entry is verified only when every `head` anchor holds in the repository at its HEAD
 and every `release` anchor holds in the released sdist: what the image draws is true of the code a visitor reads
 and of the release pip installs. An entry with `scope = "release"` describes the release only (what pip installs,
 e.g. a default that HEAD has since changed); it needs release anchors and no head anchors.
@@ -37,18 +39,53 @@ STATES = ("runs", "fields differ", "no reader")
 
 # ---------------------------------------------------------------- anchors
 
+_CONST = r"\bconst\s+{name}\s*:\s*[\w:<>]+\s*=\s*([0-9][0-9_]*(?:\.[0-9]+)?)\s*;"
+
+
+def fn_body(src: str, name: str) -> str | None:
+    """The body of `fn <name>(…) { … }` in Rust source, braces matched; None when there is no such function."""
+    m = re.search(rf"\bfn\s+{re.escape(name)}\s*[<(]", src or "")
+    if not m:
+        return None
+    i = src.find("{", m.end())
+    if i < 0:
+        return None
+    depth, j = 1, i + 1
+    while j < len(src) and depth:
+        depth += {"{": 1, "}": -1}.get(src[j], 0)
+        j += 1
+    return src[i + 1:j - 1]
+
+
+def const_value(src: str | None, name: str) -> str | None:
+    """`const BATCH_TIMEOUT_MS: u64 = 50;` -> "50" (underscores dropped); None when the constant is not there."""
+    m = re.search(_CONST.format(name=re.escape(name)), src or "")
+    return m.group(1).replace("_", "") if m else None
+
+
 def check_anchor(read, anchor: dict) -> str | None:
-    """None when the anchor holds, else a short reason naming the file and the string."""
+    """None when the anchor holds, else a short reason naming the file and the string.
+
+    `fn` narrows `text` / `absent` to that function's body (so "the export path never opens the WAL" can be said of
+    one function, not the whole file); `const` holds when the file defines that numeric constant."""
     path = str(anchor.get("path") or "")
     if not path:
         return "anchor without a path"
     src = read(path)
     if src is None:
         return f"{path}: file missing"
+    where = path
+    if anchor.get("fn"):
+        body = fn_body(src, str(anchor["fn"]))
+        if body is None:
+            return f"{path}: no fn {anchor['fn']}"
+        src, where = body, f"{path} fn {anchor['fn']}"
     if "text" in anchor and str(anchor["text"]) not in src:
-        return f"{path}: no {anchor['text']!r}"
+        return f"{where}: no {anchor['text']!r}"
     if "absent" in anchor and str(anchor["absent"]) in src:
-        return f"{path}: contains {anchor['absent']!r}"
+        return f"{where}: contains {anchor['absent']!r}"
+    if anchor.get("const") and const_value(src, str(anchor["const"])) is None:
+        return f"{where}: no const {anchor['const']}"
     return None
 
 
@@ -56,8 +93,39 @@ def check_anchors(read, anchors: list[dict] | None, where: str) -> list[str]:
     return [f"{where} {r}" for a in anchors or [] if (r := check_anchor(read, a))]
 
 
-def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: str) -> dict:
-    """One candidate wording of an entry, with its anchors checked on both sides."""
+def anchor_consts(read, anchors: list[dict] | None) -> dict[str, str]:
+    """{name: value} for every `const` anchor that holds."""
+    out = {}
+    for a in anchors or []:
+        if a.get("const") and check_anchor(read, a) is None:
+            out[str(a["const"])] = const_value(read(str(a["path"])), str(a["const"]))
+    return out
+
+
+_CONST_REF = re.compile(r"\{const:(\w+)\}")
+
+
+def label_for(file: str | None, head: list[dict] | None, release: list[dict] | None, scope: str) -> str | None:
+    """The desk file label, only when it is true for the code it labels: a path ending in that name is among the
+    release anchors, and among the head anchors too unless the entry describes the release only (round 6, review 2:
+    0.1.3 has no governor.rs, so G1 carries no label)."""
+    if not file:
+        return None
+
+    def named(anchors):
+        return any(str(a.get("path") or "") == file or str(a.get("path") or "").endswith("/" + file)
+                   for a in anchors or [])
+    if not named(release):
+        return None
+    if scope != "release" and not named(head):
+        return None
+    return file
+
+
+def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: str, file: str | None = None,
+               kind: str = "stop") -> dict:
+    """One candidate wording of an entry, with its anchors checked on both sides. `{const:NAME}` in the text is the
+    value of that constant, read from the code through a `const` anchor; head and release must agree on it."""
     if not e.get("release") or (scope != "release" and not e.get("head")):
         raise ValueError(f"route entry {eid}: needs release anchors" + ("" if scope == "release" else " and head anchors"))
     if scope == "release":
@@ -65,9 +133,26 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
     else:
         mh = no_head or check_anchors(rh, e.get("head"), "head")
     mr = no_rel or check_anchors(rr, e.get("release"), "release")
-    return {"text": str(e["text"]), "file": e.get("file") or None, "verified_head": not mh, "verified_release": not mr,
+    text = str(e["text"])
+    consts_h = anchor_consts(rh, e.get("head")) if not no_head else {}
+    consts_r = anchor_consts(rr, e.get("release")) if not no_rel else {}
+    for name in _CONST_REF.findall(text):
+        vr, vh = consts_r.get(name), consts_h.get(name)
+        if vr is None:
+            mr = mr + [f"release: no const anchor for {{const:{name}}}"]
+            continue
+        if scope != "release" and vh is not None and vh != vr:
+            mh = mh + [f"head {name} = {vh}, release {name} = {vr}: the figure differs"]
+            continue
+        text = text.replace(f"{{const:{name}}}", vr)
+    # an end's `file` is what the run writes (data/sitemap.jsonl), not a source file: it is not a label
+    label = (e.get("file") or file) if kind in ("end", "export") else \
+        label_for(e.get("file") or file, e.get("head"), e.get("release"), scope)
+    return {"text": text, "file": label, "verified_head": not mh, "verified_release": not mr,
             "missing": mh + mr, "runs": [str(x) for x in e.get("runs") or []],
-            "fails": [str(x) for x in e.get("fails") or []]}
+            "fails": [str(x) for x in e.get("fails") or []],
+            "paths": {"head": sorted({str(a.get("path")) for a in e.get("head") or []}),
+                      "release": sorted({str(a.get("path")) for a in e.get("release") or []})}}
 
 
 def verify_route(spec: dict, read_head, read_release, head_sha: str | None, release: str | None) -> dict:
@@ -91,9 +176,9 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
         if kind not in KINDS:
             raise ValueError(f"route entry {eid}: kind {kind!r} not in {KINDS}")
         scope = str(e.get("scope") or "both")
-        first = _candidate(e, rh, rr, no_head, no_rel, scope, eid)
+        first = _candidate(e, rh, rr, no_head, no_rel, scope, eid, kind=kind)
         rec = {"id": eid, "kind": kind, "scope": scope, "loop": bool(e.get("loop")), **first}
-        alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid) for a in e.get("instead") or []]
+        alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
         entries.append(rec)
@@ -179,7 +264,7 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             reasons += [f"[{i}] {m}" if len(cands) > 1 else m for m in miss]
         base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
         if chosen is not None:
-            out.append({**base, "text": chosen["text"], "file": chosen.get("file") or e.get("file"),
+            out.append({**base, "text": chosen["text"], "file": chosen.get("file") if "file" in chosen else e.get("file"),
                         "verified": True, "missing": []})
         else:
             out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})

@@ -664,6 +664,14 @@ def text_width(s: str, role: str | None = None, font: str | None = None, size: f
     return _advance(shape(s, font, size, tracking or 0.0))
 
 
+def extent(role: str, edition="day", scale: str | None = None, size: float | None = None) -> tuple[float, float]:
+    """(ascent, descent) in px of `role`'s face at its size: the box a run's bbox uses above and below its baseline."""
+    ed, sc, f, sz, tr, case, _g = _resolve(role, edition, scale, None, size, None)
+    face = _face(f)
+    k = sz / face.upm
+    return face.asc * k, face.desc * k
+
+
 def _is_figures(s: str) -> bool:
     t = s.strip()
     return bool(t) and all(c.isdigit() or c in ".,–-%/:₀₁₂₃₄₅₆₇₈₉ " for c in t) and any(c.isdigit() for c in t)

@@ -5,7 +5,8 @@ Text ink against paper and land: WCAG ≥ 4.5:1 for ink/ink2 (body sizes), ≥ 3
 ≥ 3:1 on paper. Red and green marks keep an OKLab lightness gap (≥ .06 day, ≥ .10 night) and are
 told apart under deutan/protan simulation (ΔE_ok ≥ .06). Night: the lights (flare, light_core,
 accent, ok) are lighter than every text fill. Lights brighter than text is also checked on the
-report's lights[] when a sheet fills it."""
+report's lights[] when a sheet fills it. CONTRAST-BAND (round 6, review 2): ink on the hero's hazard band ≥ 4.5:1, its
+hatch and the route lines crossing it ≥ 3:1."""
 from __future__ import annotations
 
 import re
@@ -103,6 +104,18 @@ def check(ctx) -> list[Finding]:
             light_l = max(oklab(getattr(th, k))[0] for k in ("flare", "light_core", "ok", "accent"))
             if light_l <= text_l:
                 out.append(fail("CONTRAST-LIGHTS", f"night: brightest light L {light_l:.3f} ≤ brightest text L {text_l:.3f}"))
+    # round 6, review 2: the hero's hazard band. Its words are ink (≥ 4.5:1 on the band); the hatch (accent) and the
+    # track and loop (flare) that cross it stay ≥ 3:1 on it.
+    from sheets.route import HAZARD_TINT, over
+    for ed_name, th in tokens.THEMES.items():
+        band = over(th.paper, th.accent, HAZARD_TINT)
+        c = wcag(th.ink, band)
+        if c < 4.5:
+            out.append(fail("CONTRAST-BAND", f"{ed_name}: ink on the hazard band {band} is {c:.2f}:1 < 4.5:1"))
+        for line_name in ("accent", "flare"):
+            c = wcag(getattr(th, line_name), band)
+            if c < 3.0:
+                out.append(fail("CONTRAST-BAND", f"{ed_name}: {line_name} on the hazard band {band} is {c:.2f}:1 < 3:1"))
     # per-sheet lights[] when present
     report = ctx.report or {}
     for name, e in report.get("sheets", {}).items():

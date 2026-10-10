@@ -206,12 +206,16 @@ def _figures_block_retired(figs: dict) -> str:
 
 def notices_block(cfg: dict, stats: dict, limit: int = NOTICES_ON_PAGE) -> str:
     """The first `limit` hand notices from chart.toml, as the page prints them (v10: four, and no release
-    line; the editions live in stats.json for the chart, not on the page)."""
+    line; the editions live in stats.json for the chart, not on the page). Review round 2: each cite's `{month:key}`
+    is the month of his first commit adding the anchor (stats.json `rules`); a month not found prints "?", and
+    NOTICE-DATE fails it."""
+    from data import proof
     rows = []
     hand = sorted(cfg.get("notices", []), key=lambda x: x.get("n", 0))[:limit]
     for i, nt in enumerate(hand, 1):
         body = f" {nt['body']}" if nt.get("body") else ""
-        cite = f" *{nt['cite']}*" if nt.get("cite") else ""
+        text, _missing = proof.fill_cite(nt.get("cite") or "", int(nt.get("n", i)), stats.get("rules") or [])
+        cite = f" *{text}*" if text else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
     return "\n".join(rows)
 
@@ -328,7 +332,7 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
     parts: list[str] = []
     deps = built_on(r, cfg, (name,))
     if deps:
-        parts.append("Built on " + ", ".join(deps))
+        parts.append(("built on " if (r.get("head") or {}).get("short") else "Built on ") + ", ".join(deps))
     tests = r.get("test_functions")
     if isinstance(tests, int) and not isinstance(tests, bool):
         parts.append(_plural(tests, "test"))
@@ -339,6 +343,9 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         word = CI_WORDS.get(str(ci["conclusion"]).lower(), str(ci["conclusion"]).replace("_", " "))
         when = fmt_date(ci.get("date") or ci.get("at") or ci.get("run_at") or ci.get("updated_at"))
         item = f"CI {word}" + (f" {when}" if when else "")
+        failed = [str(j.get("name")) for j in ci.get("jobs") or [] if str(j.get("conclusion")) == "failure"]
+        if failed and str(ci["conclusion"]).lower() == "success":     # a job that may fail without failing the run
+            item += f", {', '.join(failed)} failed (not blocking)"
         parts.append(item + (" (last known run)" if ci.get("stale") else ""))   # stale: the API did not answer this time
     else:
         wf = _count(r.get("workflows"))
@@ -355,7 +362,12 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
             parts.append(f"{fmt_k(langs[lang])} lines of {lang}")
     # round 6: no "last commit" date. It is sweep-adjusted, and beside a CI date and the code's own date it read as
     # inaccurate; the hero's code date answers "is it alive".
-    return "*" + " · ".join(p.replace("*", r"\*") for p in parts) + "*" if parts else ""
+    if not parts:
+        return ""
+    # review round 2: the counts are main's, not the release's; say which snapshot they are
+    head = (r.get("head") or {}).get("short")
+    lead = f"On main at `{head}`: " if head else ""
+    return "*" + lead + " · ".join(p.replace("*", r"\*") for p in parts) + "*"
 
 
 def facts_repos(text: str) -> list[str]:
@@ -365,8 +377,28 @@ def facts_repos(text: str) -> list[str]:
 
 # ------------------------------------------------------------------ round 6: how to run it, where its output goes
 
-def _wheel_sentence(wheels) -> str:
-    """The note under the install block, from the release's wheels (the same facts as the hero's platform note)."""
+def install_time(rc: dict | None) -> str | None:
+    """The source build's time, only when the run check measured it cold (an empty CARGO_HOME, so every crate was
+    downloaded inside the timed step): "3 min from a cold cache on a 4-core Linux x86_64 machine". None otherwise:
+    a warm build says nothing about a stranger's first install."""
+    if not isinstance(rc, dict) or rc.get("install") != "sdist (built with Rust)":
+        return None
+    st = next((x for x in rc.get("steps") or [] if x.get("id") == "install" and x.get("ok")), None)
+    if not st or st.get("cache") != "cold" or not rc.get("runner"):
+        return None
+    runs = [float(t) for t in st.get("runs") or [] if isinstance(t, (int, float))] or \
+        ([float(st["secs"])] if st.get("secs") is not None else [])
+    if not runs:
+        return None
+    lo, hi = round(min(runs) / 60), round(max(runs) / 60)
+    span = f"{lo} min" if lo == hi else f"{lo}–{hi} min"
+    cores = f"{st['cpus']}-core " if isinstance(st.get("cpus"), int) else ""
+    return f"{span} from a cold cache on a {cores}{rc['runner']} machine"
+
+
+def _wheel_sentence(wheels, rc: dict | None = None) -> str:
+    """The note under the install block, from the release's wheels, with the measured source-build time when the
+    run check timed it cold (review round 2: the image no longer carries the install time)."""
     try:
         from data import route as route_mod
     except ImportError:
@@ -375,17 +407,18 @@ def _wheel_sentence(wheels) -> str:
     names = {n for n, _ in plats}
     if "any platform" in names or all(c in names for c in route_mod.COMMON):
         return ""
+    t = install_time(rc)
+    tail = f" ({t})" if t else ""
     if not plats:
-        return "No prebuilt wheel: `pip` builds from source and needs a Rust toolchain."
+        return f"No prebuilt wheel: `pip` builds it from source, which needs a Rust toolchain{tail}."
     friendly = {"macOS arm64": "Apple silicon", "macOS x86_64": "Intel Macs"}
     parts = []
     for n, v in plats:
         piece = f"{friendly.get(n, n)} on {v.replace('Python', 'CPython')}"
         if piece not in parts:
             parts.append(piece)
-    one = len(parts) == 1
-    return (f"Prebuilt wheel{'' if one else 's'} for {' and '.join(parts)}; elsewhere `pip` builds from source and "
-            "needs a Rust toolchain.")
+    return (f"Prebuilt for {' and '.join(parts)}; elsewhere `pip` builds it from source, which needs a Rust "
+            f"toolchain{tail}.")
 
 
 def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
@@ -409,7 +442,7 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         lines += ["", "# newer than the release:", "cargo install --git \\",
                   f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
-    note = _wheel_sentence(ed.get("wheels"))
+    note = _wheel_sentence(ed.get("wheels"), (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper"))
     return "\n".join(lines) + (f"\n\n{note}" if note else "")
 
 
@@ -530,59 +563,78 @@ def agent_clause(stats: dict) -> str:
     return "; ".join(p for p in (first, second) if p)
 
 
-RUN_WORDS = (("install", "install"), ("crawl_ctrl_c", "crawl"), ("crawl_ctrl_c", "Ctrl-C"), ("kill_writes_file", "kill"),
-             ("export", "export"))
+NBH = "\u2011"          # a non-breaking hyphen: "Ctrl‑C" never splits on the phone (review round 2)
+RUN_WORDS = (("install", "install"), ("crawl_ctrl_c", "crawl"), ("crawl_ctrl_c", f"Ctrl{NBH}C"),
+             ("kill_writes_file", "kill"), ("export", "export"))
+_NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine"}
+
+
+def crawl_words(step: dict | None) -> str:
+    """What the run check's crawl was, from its own command and detail: "(a local 3-page site, `--seeding-strategy
+    none`)". Review round 2: the defaults the image describes were not what ran, so the line says what did."""
+    if not isinstance(step, dict):
+        return ""
+    cmd, detail = str(step.get("cmd") or ""), str(step.get("detail") or "")
+    bits = []
+    m = re.search(r"(\d+) lines", detail)
+    if re.search(r"127\.0\.0\.1|localhost", cmd):
+        bits.append(f"a local {m.group(1)}-page site" if m else "a local site")
+    f = re.search(r"--seeding-strategy\s+(\S+)", cmd)
+    if f:
+        bits.append(f"`--seeding-strategy {f.group(1)}`")
+    return f" ({', '.join(bits)})" if bits else ""
 
 
 def route_clause(stats: dict, figs: dict) -> str:
-    """Round 6, SPEC §4 block 14 and review 1: what the drawing describes, what it was checked against, and which of
-    its lines were run, against which release, when and on what."""
+    """Round 6, SPEC §4 block 14, reviews 1 and 2: what the drawing is, and which of its lines were run, when and on
+    what. "The drawing is rustmapper 0.1.3 from PyPI: every file it names is in that release, and its install, crawl
+    (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines ran on 9 Oct 2026
+    (Linux x86_64)." """
     route = (stats.get("routes") or {}).get("rustmapper") or {}
-    repo = next((r for r in stats.get("repos") or [] if r.get("name") == route.get("repo")), {})
-    head = repo.get("head") or {}
     ed = stats.get("edition") or {}
-    if not route or not head.get("short") or not ed.get("version"):
+    if not route or not ed.get("version"):
         return ""
     v = ed["version"]
-    out = (f"The drawing describes {ed.get('project') or 'rustmapper'} {v}, the release pip installs: every line on it "
-           f"names code found there, and each line about the design also at `{head['short']}` on main")
+    out = f"The drawing is {ed.get('project') or 'rustmapper'} {v} from PyPI: every file it names is in that release"
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
     if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
-        ids = {s.get("id") for s in rc.get("steps") or []}
-        words = [w for sid, w in RUN_WORDS if sid in ids]
+        steps = {s.get("id"): s for s in rc.get("steps") or []}
+        words = [w + (crawl_words(steps.get(sid)) if w == "crawl" else "") for sid, w in RUN_WORDS if sid in steps]
         if words:
             listed = ", ".join(words[:-1]) + (" and " if len(words) > 1 else "") + words[-1]
-            out += f"; its {listed} lines were run against {v} on {fmt_date(rc['date'])} on {rc.get('runner')}"
+            out += f", and its {listed} lines ran on {fmt_date(rc['date'])} ({rc.get('runner')})"
     return out + "."
 
 
 def survey_block(stats: dict, figs: dict | None = None) -> str:
-    """Round 6, SPEC §4 block 14: the data line at the foot, from stats only. `The drawing is checked against
-    rustmapper's code at 32c2651 and its 0.1.3 release on PyPI: … Test counts and CI results measured 9 Oct 2026 from
-    clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more … · regenerated
-    weekly.` An item whose key is absent is left out, never estimated. No figure on the page uses commit-days now,
-    so the bulk-edit clause is gone."""
+    """Round 6, SPEC §4 block 14, review round 2: the data line at the foot, from stats only, in plain sentences.
+    The drawing and what was run (route_clause); then "Tests and CI measured 10 Oct 2026 from 22 public repositories
+    · regenerated weekly."; then the AI-trailer sentence with its base. An item whose key is absent is left out,
+    never estimated."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
-    parts: list[str] = []
     when = figs.get("taken") or ""
     repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
-    lead = "Test counts and CI results measured" + (f" {when}" if when else "")
+    lead = "Tests and CI measured" + (f" {when}" if when else "")
     if repo_count:
-        lead += f" from clones of {repo_count} public repositories"
-    if lead != "Test counts and CI results measured":
-        parts.append(lead)
+        lead += f" from {repo_count} public repositories"
+    pieces = []
+    if lead != "Tests and CI measured":
+        pieces.append(lead)
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
-        parts.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
+        pieces.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
     agents = agent_clause(stats)
-    if agents:
-        parts.append(agents)
-    if not parts:
+    if not pieces and not agents:
         return ""
-    parts.append("regenerated weekly")
+    sentences = []
     head = route_clause(stats, figs)
-    return "<sub>" + (head + " " if head else "") + " · ".join(parts) + ".</sub>"
+    if head:
+        sentences.append(head)
+    sentences.append(" · ".join(pieces + ["regenerated weekly"]) + ".")
+    if agents:
+        sentences.append(agents[0].upper() + agents[1:] + ".")
+    return "<sub>" + " ".join(sentences) + "</sub>"
 
 
 LOG_LEDE_COMPUTED = ("A rustmapper run as the log would record it, entered the way a log is kept. The figures are "
@@ -689,12 +741,30 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "handoffs", handoffs_block(stats, cfg))
     text, _ = fill_block(text, "license", license_block(root))
     text, _ = fill_block(text, "log_lede", log_lede_block(_load_log(cfg, root)))
+    more = more_count(text, stats)
+    if more is not None:
+        figs = dict(figs, more_count=str(more))
     for key in inline_keys(text):
         if key in figs:
             text, _ = fill_inline(text, key, figs[key])
         else:
             warnings.append(f"inline marker n:{key} has no figure; left as written")
     return text
+
+
+def also_names(text: str) -> list[str]:
+    """The repositories of the **Also** list (the bullets between it and <details>), in page order."""
+    m = re.search(r"\*\*Also\*\*(.*?)<details>", text, re.S)
+    return re.findall(r"^- \[\*\*([\w.-]+)\*\*\]", m.group(1), re.M) if m else []
+
+
+def more_count(text: str, stats: dict) -> int | None:
+    """Review round 2: the "N more repositories" figure, computed: every public repository, less the profile, the
+    flagships (the facts blocks) and the Also list. None without a repository count."""
+    n = stats.get("repo_count")
+    if not isinstance(n, int) or not n:
+        return None
+    return n - 1 - len(facts_repos(text)) - len(also_names(text))
 
 
 def _load_log(cfg: dict, root: str = ROOT) -> dict | None:

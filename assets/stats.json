@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "updated_at": "2026-10-10T00:02:26Z",
+ "updated_at": "2026-10-10T00:37:53Z",
  "taken": "2026-10-10",
  "run_id": "local",
  "provenance": {
@@ -14,11 +14,15 @@
    "pypi": "live",
    "releases": "live"
   },
-  "graphql_at": null
+  "graphql_at": null,
+  "repo_list": [
+   "cache",
+   "readme"
+  ]
  },
  "login": "BenjaminSRussell",
  "account_since": null,
- "repo_count": 21,
+ "repo_count": 22,
  "followers": null,
  "stars": null,
  "calendar_total": null,
@@ -953,6 +957,44 @@
      "cancelled",
      "cancelled",
      "success"
+    ],
+    "head_sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+    "jobs": [
+     {
+      "name": "test (3.12)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "test (3.11)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "entrypoint-smoke",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Package build smoke",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "deploy",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     }
     ]
    },
    "head": {
@@ -1588,6 +1630,58 @@
      "success",
      "success",
      "success"
+    ],
+    "head_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+    "jobs": [
+     {
+      "name": "Clippy",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Python wrapper",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Build Release (ubuntu-latest)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Test (ubuntu-latest, stable)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Format",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Security Audit",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Benchmark",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     }
     ]
    },
    "head": {
@@ -5277,6 +5371,206 @@
    "first_ns": null,
    "last_ns": null,
    "main_language": "Python"
+  },
+  {
+   "name": "excel-and-vba",
+   "aliases": [],
+   "slot": null,
+   "commits": 4,
+   "merges": 0,
+   "coauthored": {
+    "count": 2,
+    "share": 0.5,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 4,
+   "others": [],
+   "first": "2026-05-30",
+   "last": "2026-10-07",
+   "commit_days": 2,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-05-30",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 2
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 4
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Python",
+   "stars": 0,
+   "span": "May 2026–",
+   "stale_branches": [],
+   "tests": 0,
+   "test_functions": 0,
+   "workflows": 0,
+   "manifest": null,
+   "lines": {
+    "Python": 55
+   },
+   "stale_branch_count": 3,
+   "months": {
+    "2026-05": 1
+   },
+   "first_ns": "2026-05-30",
+   "last_ns": "2026-05-30",
+   "main_language": "Python"
   }
  ],
  "unsurveyed": [],
@@ -5325,29 +5619,29 @@
    "url": "",
    "source": "hand",
    "body": "The system worth having is the one still running after you have stopped watching it.",
-   "cite": "Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.",
+   "cite": "Scrapy, {month:breaker}: a circuit breaker in the error handler.",
    "n": 1
   },
   {
    "repo": "Scrapy",
    "tag": "N2",
-   "date": "2025-09",
+   "date": "2025-10",
    "title": "Keep the log. Raw before clean.",
    "url": "",
    "source": "hand",
    "body": "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten.",
-   "cite": "Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.",
+   "cite": "Scrapy, {month:delta}, the Delta Lake tables; rustmapper, {month:wal}, the write-ahead log.",
    "n": 2
   },
   {
    "repo": "Scrapy",
    "tag": "N3",
-   "date": "2025-09",
+   "date": "2025-10",
    "title": "Dashboards before speed.",
    "url": "",
    "source": "hand",
    "body": "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one.",
-   "cite": "Scrapy, Sep 2025: Prometheus and Grafana.",
+   "cite": "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards.",
    "n": 3
   },
   {
@@ -5358,7 +5652,7 @@
    "url": "",
    "source": "hand",
    "body": "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not.",
-   "cite": "ideal-url-organizer, Nov 2025.",
+   "cite": "ideal-url-organizer, {month:urlparse}; Claude wrote its first version.",
    "n": 4
   },
   {
@@ -6376,10 +6670,10 @@
    "first": null
   }
  ],
- "commits": 2033,
+ "commits": 2037,
  "merges": 405,
  "coauthored_total": {
-  "count": 502,
+  "count": 504,
   "share": 0.247,
   "agent": 63,
   "agent_share": 0.031,
@@ -6401,7 +6695,7 @@
    "github-actions[bot]": 1
   }
  },
- "all_hands": 2339,
+ "all_hands": 2343,
  "first_commit": "2025-09-25",
  "days_surveyed": 380,
  "hours": [
@@ -6417,10 +6711,10 @@
   2,
   8,
   9,
-  12,
+  13,
   11,
   25,
-  10,
+  11,
   15,
   13,
   8,
@@ -6433,15 +6727,15 @@
  "weekdays": [
   25,
   15,
-  32,
+  33,
   26,
   20,
-  13,
+  14,
   24
  ],
  "hours_basis": "author-local commit-days",
  "tz_offsets": {
-  "-0400": 1371,
+  "-0400": 1375,
   "-0500": 662
  },
  "variation": {
@@ -6450,7 +6744,7 @@
   "prior_hour": 12,
   "annual_change": null,
   "basis_days": [
-   137,
+   139,
    18
   ],
   "min_basis_days": 60
@@ -6743,10 +7037,12 @@
   },
   {
    "start": "2026-05-25",
-   "n": 0,
-   "days": 0,
+   "n": 2,
+   "days": 1,
    "sweep": 0,
-   "repos": {}
+   "repos": {
+    "excel-and-vba": 2
+   }
   },
   {
    "start": "2026-06-01",
@@ -6899,9 +7195,9 @@
   },
   {
    "start": "2026-10-05",
-   "n": 726,
+   "n": 728,
    "days": 3,
-   "sweep": 514,
+   "sweep": 516,
    "repos": {
     "Data_science_dev": 308,
     "Scrapy": 173,
@@ -6921,18 +7217,19 @@
     "2d-swift-widgets": 6,
     "rust_llm_logger": 7,
     "3d-swift-globe-widget": 1,
-    "mlx_Qwen_data_entry": 5
+    "mlx_Qwen_data_entry": 5,
+    "excel-and-vba": 2
    }
   }
  ],
  "tide": {
   "hw": {
    "start": "2026-10-05",
-   "n": 726,
+   "n": 728,
    "cause": "Data_science_dev",
    "cause_days": 2,
-   "cause_share": 0.424,
-   "sweep_share": 0.708
+   "cause_share": 0.423,
+   "sweep_share": 0.709
   },
   "lw": {
    "start": "2026-08-24",
@@ -6996,7 +7293,7 @@
   },
   {
    "date": "2026-10-07",
-   "repos": 19,
+   "repos": 20,
    "names": [
     "2d-swift-widgets",
     "3d-swift-globe-widget",
@@ -7013,6 +7310,7 @@
     "Scrapy",
     "Spotify_to_apple_music",
     "Wheel",
+    "excel-and-vba",
     "go_go_go",
     "ideal-url-organizer",
     "mlx_Qwen_data_entry",
@@ -7044,24 +7342,44 @@
      "kind": "stop",
      "scope": "release",
      "loop": false,
-     "text": "start URL; by default also seeds from sitemaps, CT logs, Common Crawl",
+     "text": "start URL; by default also sitemaps, certificate logs, Common Crawl",
      "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [],
      "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/cli.rs",
+       "src/common_crawl_seeder.rs",
+       "src/ct_log_seeder.rs",
+       "src/seeder.rs",
+       "src/sitemap_seeder.rs"
+      ]
+     },
      "instead": [
       {
-       "text": "start URL; seeds from sitemaps, CT logs, Common Crawl if asked",
-       "file": null,
+       "text": "start URL; sitemaps, certificate logs, Common Crawl if asked",
+       "file": "seeder.rs",
        "verified_head": true,
        "verified_release": false,
        "missing": [
         "release src/cli.rs: no 'default_value = \"none\"'"
        ],
        "runs": [],
-       "fails": []
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
       }
      ]
     },
@@ -7078,7 +7396,18 @@
       "head tests/robots_4xx_allows_crawl.rs: file missing"
      ],
      "runs": [],
-     "fails": []
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/frontier.rs",
+       "src/robots.rs",
+       "tests/robots_4xx_allows_crawl.rs"
+      ],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     }
     },
     {
      "id": "F1",
@@ -7093,35 +7422,63 @@
      "runs": [
       "crawl_ctrl_c"
      ],
-     "fails": []
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/bfs_crawler.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs"
+      ]
+     }
     },
     {
      "id": "G1",
      "kind": "note",
      "scope": "both",
      "loop": true,
-     "text": "fewer requests in flight when redb commits slow down",
-     "file": "governor.rs",
+     "text": "fetches fewer pages at once when saving falls behind",
+     "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [],
-     "fails": []
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/orchestration/governor.rs"
+      ],
+      "release": [
+       "src/main.rs"
+      ]
+     }
     },
     {
      "id": "W1",
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "logged before stored: after a kill, export-sitemap still writes sitemap.xml",
-     "file": "wal.rs",
+     "text": "saved every 50 ms: after a kill, export-sitemap still works",
+     "file": "writer_thread.rs",
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
       "export_after_kill"
      ],
-     "fails": []
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/cli.rs",
+       "src/orchestration/export.rs",
+       "src/writer_thread.rs"
+      ],
+      "release": [
+       "src/cli.rs",
+       "src/main.rs",
+       "src/writer_thread.rs"
+      ]
+     }
     },
     {
      "id": "H1",
@@ -7137,6 +7494,13 @@
      "fails": [
       "ends_by_itself"
      ],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/cli.rs",
+       "src/url_utils.rs"
+      ]
+     },
      "instead": [
       {
        "text": "no depth limit, and the parent domain counts as same-site: stop it with --max-urls N",
@@ -7147,7 +7511,14 @@
         "release src/cli.rs: no 'max_urls'"
        ],
        "runs": [],
-       "fails": []
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/cli.rs",
+         "src/url_utils.rs"
+        ]
+       }
       },
       {
        "text": "no page or depth limit, and the parent domain counts as same-site; a 3-page crawl ended in {secs:ends_by_itself} s",
@@ -7158,7 +7529,14 @@
        "runs": [
         "ends_by_itself"
        ],
-       "fails": []
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/cli.rs",
+         "src/url_utils.rs"
+        ]
+       }
       }
      ]
     },
@@ -7167,7 +7545,7 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once: that writes the file; a second press, or a kill, quits without it",
+     "text": "press Ctrl-C once: that writes data/sitemap.jsonl; a second press or a kill skips it",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7178,9 +7556,17 @@
      "fails": [
       "kill_writes_file"
      ],
+     "paths": {
+      "head": [
+       "src/orchestration/shutdown.rs"
+      ],
+      "release": [
+       "src/main.rs"
+      ]
+     },
      "instead": [
       {
-       "text": "press Ctrl-C once: that writes the file; a second press quits without it",
+       "text": "press Ctrl-C once: that writes data/sitemap.jsonl; a second press skips it",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -7188,7 +7574,15 @@
        "runs": [
         "crawl_ctrl_c"
        ],
-       "fails": []
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/orchestration/shutdown.rs"
+        ],
+        "release": [
+         "src/main.rs"
+        ]
+       }
       }
      ]
     },
@@ -7205,7 +7599,15 @@
      "runs": [
       "crawl_ctrl_c"
      ],
-     "fails": []
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/state.rs"
+      ],
+      "release": [
+       "src/state.rs"
+      ]
+     }
     }
    ],
    "gates": {
@@ -7319,9 +7721,152 @@
    "readers": []
   }
  ],
+ "rules": [
+  {
+   "n": 1,
+   "key": "breaker",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "class CircuitBreaker",
+   "found": true,
+   "sha": "fd33c11",
+   "date": "2025-09-29",
+   "author": "Benjamin Russell",
+   "first_sha": "fd33c11",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true
+  },
+  {
+   "n": 2,
+   "key": "delta",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "write_deltalake",
+   "found": true,
+   "sha": "52dcbd8",
+   "date": "2025-10-04",
+   "author": "Benjamin Russell",
+   "first_sha": "52dcbd8",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true
+  },
+  {
+   "n": 2,
+   "key": "wal",
+   "repo": "Rust-sitemap",
+   "path": null,
+   "text": "[u32 len][u32 crc32c]",
+   "found": true,
+   "sha": "4334458",
+   "date": "2025-11-03",
+   "author": "Benjamin Russell",
+   "first_sha": "4334458",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true
+  },
+  {
+   "n": 3,
+   "key": "prometheus",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "prometheus_client",
+   "found": true,
+   "sha": "d571e6e",
+   "date": "2025-10-01",
+   "author": "Benjamin Russell",
+   "first_sha": "d571e6e",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true
+  },
+  {
+   "n": 3,
+   "key": "grafana",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "\"panels\"",
+   "found": true,
+   "sha": "e8cbe15",
+   "date": "2025-10-06",
+   "author": "Benjamin Russell",
+   "first_sha": "e8cbe15",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true
+  },
+  {
+   "n": 4,
+   "key": "urlparse",
+   "repo": "ideal-url-organizer",
+   "path": null,
+   "text": "urllib.parse",
+   "found": true,
+   "sha": "2be623e",
+   "date": "2025-11-13",
+   "author": "Benjamin Russell",
+   "first_sha": "6e8087f",
+   "first_author": "Claude",
+   "first_is_his": false
+  }
+ ],
+ "figures": [
+  {
+   "text": "25 ways",
+   "repo": "ideal-url-organizer",
+   "path": null,
+   "literal": null,
+   "glob": "src/organizers/method_*.py",
+   "count": 25,
+   "measured": 25,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 3",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage3/stage3_worker.py",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "50,000 characters",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/core/config.py",
+   "literal": "massive_doc_threshold=50000",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 4",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage4/large_doc_processor.py",
+   "literal": "bart-large-cnn",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "localhost:3000",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docker-compose.yml",
+   "literal": "\"3000:3000\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  }
+ ],
  "runcheck": {
   "rustmapper": {
-   "date": "2026-10-09",
+   "date": "2026-10-10",
    "runner": "Linux x86_64",
    "python": "3.13.16",
    "version": "0.1.3",
@@ -7335,7 +7880,7 @@
      "cmd": "python3.13 -m venv v",
      "ok": true,
      "gate": true,
-     "secs": 3.1,
+     "secs": 2.6,
      "detail": ""
     },
     {
@@ -7343,8 +7888,16 @@
      "cmd": "v/bin/pip install --no-cache-dir rustmapper==0.1.3",
      "ok": true,
      "gate": true,
-     "secs": 179.8,
-     "detail": "sdist (built with Rust); Successfully installed rustmapper-0.1.3"
+     "secs": 171.4,
+     "detail": "sdist (built with Rust); cache cold (empty CARGO_HOME); rustc 1.97.0; 4 CPUs; 3 runs: median 171.4 s, range 168.2-174.3 s; Successfully installed rustmapper-0.1.3",
+     "cache": "cold",
+     "rustc": "1.97.0",
+     "cpus": 4,
+     "runs": [
+      168.2,
+      171.4,
+      174.3
+     ]
     },
     {
      "id": "help",
