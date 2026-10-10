@@ -635,3 +635,68 @@ and the two new probes, merged from `scratchpad/r6/rc9/steps.json`).
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails; run alone
   it passes (0 fail, 0 warn). README-CAUTIONS, README-CD, README-TODO, CI-GATES, STRINGS-TWICE, STRINGS-COUNT,
   FIGURES, AUDIT-COVER, README-STALE and AUDIT-STALE are clean.
+
+## Round 10
+
+Reviews: `review-r10-1.md` (the owner's test) **8 / 10**, `review-r10-2.md` (information design and cartography)
+**8 / 10**, `review-r10-3.md` (the systems engineer) **8 / 10**. None meets the goal. All three say the image is the
+right picture. What holds the page back is text that says something the code does not do (review 1), a stop rule
+that lives only in an image of text (review 2), and a stop rule whose clock starts too early (review 3). The reviews
+do not conflict. Review 3 sets the words for review 2's code-block fix, and the owner's review is followed where it
+gives wording.
+
+Renders: `scratchpad/r6/build/round-10/` (the standard set, plus the phone sheets at 308 px and the phone page at
+360, `page-phone-360-*.png`). `stats.json` was re-read from the local trees with `scratchpad/r6/reroute10.py`
+(as reroute9, no new probes).
+
+### What was measured first
+
+- **What `python start.py` loads (review 1).** At `96e7a1a`, `start.py` runs `docker-compose up -d` and calls
+  `cli.py reset` only `if args.reset_delta:`. The scout spider takes `-a start_urls` or the Delta table
+  `seed_urls`, and `_load_seed_urls` returns `[]` when the table is missing. `cli.py reset` reads
+  `data/raw/uconn_urls.csv` with `pd.read_csv(header=None)`. The file has 143,218 non-blank lines, but 10 quoted
+  fields never close on their own line and each swallows the next one, so pandas (and Python's csv module, which
+  gives the same rows) loads **143,208** rows. Of those, **134,807** have a `urlsplit().hostname` of `uconn.edu`
+  or a subdomain of it. The review's 143,218 and 134,745 counted lines, not the rows the code loads. The page
+  prints the loaded rows.
+- **Where flags split on a phone (review 2).** The new `render.mjs wrap` measures each inline code span character
+  by character in Chromium at 320, 360, 375, 390, 412 and 430 px, with 16 px and 41 px side padding. With the round 9
+  joins, `--workers 1` splits as `--` | `workers 1` (at 360 and 412), and `--seeding-strategy none` splits as
+  `--seeding-` | `strategy none` (at 320 to 430). The new Scrapy sentence's `--reset-delta` split as `--reset-` |
+  `delta` at 320, 360, 390 and 430. With each flag starting its own line, nothing splits at any of those widths.
+- **H1's new words on the phone.** "…done once `Received work item` lines stop for 30 s" stays two lines at 600
+  units (the dotted box holds it at 390 and at 308). Heights are unchanged: desk 543, phone 1,087.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: the Scrapy run sentence says what `start.py` does | "Run these from the folder you cloned [Scrapy](…) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site." New `[[figures]]` rows: "a worker for each of the four stages" (`docker-compose.yml` has `stage1-worker:` to `stage4-worker:`, `postgres:`, `redis:`, `grafana:`; `start.py` runs `("docker-compose", "up", "-d")`); "It loads no seeds by default." (`start.py` `if args.reset_delta:`, `LOCAL_SEED_FILE`, the `cli.py` `reset` call; `base_spider.py` `or self._load_seed_urls()` and `return []`; `cli.py` `pd.read_csv(csv_path, header=None, names=["url"])`); "143,208" and "134,807 of them on uconn.edu" (new kind `csv_rows`, with `host`, in `data/proof.py`). FIGURES now also fails a CLAIMS phrase ("sample site") that no holding row's text contains. AUDIT §2 and §7 rows. |
+| r1-2: the list names the release it describes | `list_lead = "Before you run {release}:"`, filled in `render_readme.text_blocks`, prints "Before you run 0.1.3:". L4, X1 and X2 (and L4's alternative) start "It …". The image's H1 keeps its own "0.1.3". README-CAUTIONS: if any drawn list entry has `scope = "release"`, the lead must name the release and no item may start with it (`checks/readme.py` `cautions_scope`). AUDIT §7 row for the lead. |
+| r2-1 + r3-1: the stop rule in the code block | `render_readme.stop_lines` prints `# 0.1.3 runs until stopped: when` / `# "Received work item" stops` / `# for 30 s, then Ctrl-C once` (32, 28 and 28 columns), filled with `edition.version` and H1's `quiet` (now carried by `route.resolve`), only while H1 is drawn with its number. H1 drawn without the number: the old line. H1 retired: no stop line. "received work item" is in STRINGS-TWICE's allowlist, with the reason. Phone cost: two code lines, about 48 px at 390. AUDIT §7 row. |
+| r3-1: H1's clock starts once the lines stop | "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s". New release anchor: `src/main.rs` has `crawler.initialize(&seeding_strategy).await?` before `process_incoming_urls(`. A fixture with the order reversed falls back to "…, even after the last page". PURPOSE H1 updated. |
+| r3-2: the scope lever, the 7th item | L5, after L2: "From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all." (22 words). Its anchors are the same in both trees: `is_same_domain`'s two branches, `add_url_to_local_queue_unchecked`'s `if !Self::is_same_domain(&url_domain, start_url_domain)`, `get_root_domain(&start_url_domain)`, and the crt.sh query. An empty alternative retires it when any anchor goes. `LIST_MAX_ITEMS` and the README-CAUTIONS cap go from 6 to 7. |
+| r2-2: each lever starts its own line | `render_readme.lever_line`: where an item's second sentence opens with a code span, the two are joined by `<br>`. New render-tier check FLAG-WRAP (`checks/wrap.py`, `render.mjs wrap`): no inline code that begins with "-" may wrap before its first space, at 320 to 430 px with 16 and 41 px padding, in any paragraph or list item of the visible prose. Measured clean today, and it fails the round 9 joins. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r1-1: "143,218 bundled URLs, 134,745 of them on uconn.edu" | Those count the file's lines. `cli.py reset` loads 143,208 rows, because 10 quoted fields span two lines, and 134,807 of the rows it loads are on uconn.edu. The figure the reader acts on is what the command loads, and the `csv_rows` row checks that. |
+| r1-1: "It loads no seeds unless you add `--reset-delta`, which loads …" | In that position `--reset-delta` splits as `--reset-` / `delta` at four phone widths (the same fault as review 2's must-fix 2). So the sentence ends before the flag: "It loads no seeds by default.<br>`--reset-delta` loads …". It has the same facts and one more line break, and the flag starts a line. FLAG-WRAP checks the whole prose, not only the list, so a flag can't split anywhere on the page. |
+| r1-1: "a strings check" for "sample site" | It is in FIGURES (`CLAIMS`), next to the rule for numbers, because the check is the same: visible prose needs a holding `[[figures]]` row. |
+| r2-1 / r3-1: `# 0.1.3 runs until stopped: once` … `# for 30 s, press Ctrl-C once` | STRINGS-TWICE fails "for 30 s press ctrl-c once": that is the image's H1 and C1 rows read in order, a five-word run. The comment says the rule, and the image keeps the caution about a second press. The lines read "…: when" / "… stops" / "# for 30 s, then Ctrl-C once", which also avoids "once … once". |
+| r3-2: "release and HEAD scope" | L5 is scope "both", with the same anchors on both sides, because it holds on main too (with seeding asked for). It is printed under "Before you run 0.1.3:", which stays true. It retires instead of failing when an anchor goes, as review 3 asked ("Retire the item if any of them goes"). |
+| r2-2: "a render-tier check in the phone harness" | The scratch harness is not part of the repository. The check runs through `scripts/render.mjs wrap` in the render tier, with the CSS and paddings of review 2's `wrap.mjs`. |
+| Owner, outside this repository | Carried: fix P1 and ship 0.1.4 (H1, four list items and M1 retire by themselves), commit Rust-sitemap's LICENSE, let `start.py` accept `docker compose`, fix `resume` after a kill, seed with `get_registrable_domain`, record statuses and back off on 429/503, `cargo audit` and `clippy -Dwarnings` as blocking. New this round: move Scrapy's UConn defaults (`config.yml` `allowed_domains`, the seed file) to a named profile, and have `--reset-delta` without a seed file load nothing (review 1). Watch `docker-compose ps` on a seeded clone for an hour, because `restart: unless-stopped` on `scraper` may rerun the 50-item pipeline (review 1). Have 0.1.4 print a line when seeding ends and crawling starts (review 3). |
+
+### Measured state of this build
+
+- Desk sheet 543 high (gate 620); phone 600 × 1,087 (gate 1,246). Neither changed this round.
+- Page: desk 2,737 px at 1,280 (was 2,617); phone 5,172 CSS px at 390 (was 5,004), with two stop lines, the 7th
+  item and the two `<br>` levers.
+- `python3 -m unittest`: 406 tests, all pass (21 new in `tests/test_round10.py`, one of them a Chromium render).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
+  it passes (0 fail, 0 warn), FLAG-WRAP included. README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER,
+  README-STALE and AUDIT-STALE are clean.

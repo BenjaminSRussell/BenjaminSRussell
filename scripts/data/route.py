@@ -415,7 +415,9 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
             out.append({**base, "text": chosen["text"], "file": chosen.get("file") if "file" in chosen else e.get("file"),
                         "verified": True, "missing": [], "retired": not str(chosen["text"]).strip(),
-                        "fails": list(chosen.get("fails") or [])})
+                        "fails": list(chosen.get("fails") or []),
+                        # review round 10: the quiet the drawn wording prints, for the README's stop lines
+                        **({"quiet": chosen["quiet"]} if chosen.get("quiet") is not None else {})})
         else:
             out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})
     return out

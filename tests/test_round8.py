@@ -355,7 +355,7 @@ class WhatItSees(unittest.TestCase):
         text = read(README)
         # review round 9: items of the cautions list
         self.assertRegex(text, r"\n- It reads links from the HTML a server sends, and no JavaScript runs\. go_go_go can "
-                               r"render pages in headless Chrome\.\n- 0\.1\.3 writes one `sitemap\.xml`")
+                               r"render pages in headless Chrome\.\n- It writes one `sitemap\.xml`")
 
 
 class Compose(unittest.TestCase):

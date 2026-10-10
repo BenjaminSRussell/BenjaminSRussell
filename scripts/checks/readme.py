@@ -85,7 +85,7 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 _FENCE = re.compile(r"^```[^\n]*\n(.*?)^```\s*$", re.S | re.M)
 
 
-def cautions(text: str, max_items: int = 6, max_words: int = 25) -> list[str]:
+def cautions(text: str, max_items: int = 7, max_words: int = 25) -> list[str]:
     """README-CAUTIONS (review round 9): under each install block's code, at most one prose paragraph (the wheel
     note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
     colon right before the list is its lead-in, not prose."""
@@ -111,6 +111,40 @@ def cautions(text: str, max_items: int = 6, max_words: int = 25) -> list[str]:
                 n = len(it[2:].split())
                 if n > max_words:
                     out.append(f"{name}: an item is {n} words (at most {max_words}): {it[2:60]!r}")
+    return out
+
+
+def cautions_scope(text: str, stats: dict) -> list[str]:
+    """README-CAUTIONS (review round 10): when any drawn list entry describes the release only (`scope =
+    "release"`), the list's lead-in names the release (the facts line above it dates main, whose defaults differ), and
+    no item starts with the release number (the lead says it once)."""
+    try:
+        from data import route as route_mod
+    except ImportError:
+        return []
+    ver = str(((stats or {}).get("edition") or {}).get("version") or "")
+    out = []
+    for name, body in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
+        route = next((r for r in ((stats or {}).get("routes") or {}).values()
+                      if isinstance(r, dict) and r.get("repo") == name), None)
+        if route is None or not ver:
+            continue
+        rc = ((stats or {}).get("runcheck") or {}).get(str(((stats or {}).get("edition") or {}).get("project") or "rustmapper"))
+        items = [e for e in route_mod.drawn(route, rc) if e.get("kind") == "text" and e.get("item")]
+        if not any(e.get("scope") == "release" for e in items):
+            continue
+        fences = list(_FENCE.finditer(body))
+        tail = _COMMENT.sub("", body[fences[-1].end():]) if fences else body
+        paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
+        for i, p in enumerate(paras):
+            if not all(ln.startswith("- ") for ln in p.splitlines()):
+                continue
+            lead = paras[i - 1] if i and paras[i - 1].endswith(":") else ""
+            if ver not in lead:
+                out.append(f"{name}: the list describes {ver} and its lead-in {lead!r} does not name it")
+            for ln in p.splitlines():
+                if ln[2:].lstrip().startswith(ver):
+                    out.append(f"{name}: an item starts with {ver}, which the lead-in already names: {ln[2:60]!r}")
     return out
 
 
@@ -188,8 +222,8 @@ def check(ctx) -> list[Finding]:
         import render_readme as _rr
         lim = (_rr.LIST_MAX_ITEMS, _rr.LIST_MAX_WORDS)
     except Exception:
-        lim = (6, 25)
-    for msg in cautions(text, *lim):
+        lim = (7, 25)
+    for msg in cautions(text, *lim) + cautions_scope(text, ctx.stats or {}):
         out.append(fail("README-CAUTIONS", msg, "README.md"))
     for msg in cd_agrees(text):
         out.append(fail("README-CD", msg, "README.md"))

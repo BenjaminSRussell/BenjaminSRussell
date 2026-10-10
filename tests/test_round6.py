@@ -104,7 +104,7 @@ class LoadSentence(unittest.TestCase):
         # L1 with its lever, the robots clause its own item (L4)
         self.assertIn("It sends requests with no pause between them, up to 256 at a time across all hosts. "
                       "`--workers 1` sends one at a time.", text)
-        self.assertIn("0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's "
+        self.assertIn("It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's "
                       "rules are not read.", text)
         self.assertNotIn("unless", text)
         self.assertNotIn("On main", text, "M1 waits on the cargo gate (review r06-1 #1)")
@@ -120,7 +120,7 @@ class LoadSentence(unittest.TestCase):
         r = R.verify_route(spec, None, tree(base), None, "0.1.3")
         self.assertIn("only over https", R.drawn(r, failed)[0]["text"])
         r = R.verify_route(spec, None, tree(base), None, "0.1.4")
-        self.assertTrue(R.drawn(r, read)[0]["text"].endswith("{release} ignores `Crawl-delay`."))
+        self.assertTrue(R.drawn(r, read)[0]["text"].endswith("It ignores `Crawl-delay`."))
         parsed = dict(base, **{"src/robots.rs": base["src/robots.rs"] + "\npub fn parse_crawl_delay_secs(b: &str) {}"})
         r = R.verify_route(spec, None, tree(parsed), None, "0.1.4")
         self.assertEqual(R.drawn(r, read), [], "the old wording needs a probe that saw the pause")

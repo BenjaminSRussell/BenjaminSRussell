@@ -521,7 +521,7 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
     lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\",
              *(f"    {f} {v}" for f, v in BLOCK_CRAWL_FLAGS)]
     gates = route.get("gates") or {}
-    lines += stop_lines(rc, gates)
+    lines += stop_lines(rc, gates, route, ed.get("version"))
     if (gates.get("export_defaults") or {}).get("ok"):
         # review round 4: the release's defaults (cli.rs ExportSitemap and Crawl, value-anchored) are these paths, so
         # the flags go; where it writes is said once, by the image's Ctrl-C row and the sentence under this block
@@ -540,18 +540,44 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
     return "\n".join(lines) + "".join(f"\n\n{x}" for x in blocks)
 
 
-def stop_lines(rc: dict | None, gates: dict | None = None) -> list[str]:
+# review round 10: "when … then", not "once … press Ctrl-C once" (STRINGS-TWICE: "for 30 s press ctrl-c once" is the
+# image's H1 and C1 rows read in order, a five-word run; the comment says the rule, the image keeps the caution)
+STOP_QUIET = ("# {release} runs until stopped: when", '# "Received work item" stops', "# for {quiet} s, then Ctrl-C once")
+
+
+def stop_lines(rc: dict | None, gates: dict | None = None, route: dict | None = None,
+               release: str | None = None) -> list[str]:
     """Review round 4: the pasted crawl never returns, and a Ctrl-C flushes the rest of a paste (termios NOFLSH), so
     the block says how it ends: one comment line while the run check found that the crawl does not end by itself
     (`ends_by_itself` failed) and that one SIGINT writes the file (`crawl_ctrl_c` passed). Review round 5: the way
     back after a kill lives here too, above the export line, where the reader types, not in the image: "# sitemap.xml,
     even after a kill:" while a kill writes no file (`kill_writes_file` failed), the export on what it left wrote the
     pages (`export_after_kill` passed), and the release's export reads the stored state (release gate
-    `export_after_kill`). Otherwise nothing."""
+    `export_after_kill`). Otherwise nothing.
+
+    Review round 10 (reviews 2 and 3): the stop rule has a text home where the reader acts. While the image draws
+    the trap (H1) with its quiet number, the one comment line becomes three (STOP_QUIET, each at most CODE_COLUMNS),
+    filled with the release and the quiet exactly as the image fills them; the clock starts once the lines that were
+    coming stop. H1 drawn without its number: the old line. H1 retired (a release that exits by itself): no stop line."""
     steps = {s.get("id"): s for s in (rc or {}).get("steps") or [] if isinstance(s, dict)}
     ends, ctrl = steps.get("ends_by_itself"), steps.get("crawl_ctrl_c")
     out = []
-    if ends is not None and not ends.get("ok") and ctrl is not None and ctrl.get("ok"):
+    trap = None
+    if route is not None:
+        try:
+            from data import route as route_mod
+            trap = next((e for e in route_mod.resolve(route, rc) if e.get("kind") == "trap"), None)
+        except ImportError:
+            trap = None
+    if trap is not None and trap.get("verified") and trap.get("retired"):
+        pass
+    elif trap is not None and trap.get("verified") and trap.get("quiet") is not None and release:
+        quiet = [ln.format(release=release, quiet=trap["quiet"]) for ln in STOP_QUIET]
+        if all(len(ln) <= 32 for ln in quiet):
+            out += quiet
+        else:
+            out.append("# stop it with one Ctrl-C")
+    elif ends is not None and not ends.get("ok") and ctrl is not None and ctrl.get("ok"):
         out.append("# stop it with one Ctrl-C")
     kill, after = steps.get("kill_writes_file"), steps.get("export_after_kill")
     gate = (gates or {}).get("export_after_kill") or {}
@@ -566,7 +592,7 @@ def _file_name(path: str) -> str:
     return path[2:] if str(path).startswith("./") else str(path)
 
 
-LIST_MAX_ITEMS = 6          # review round 9: one short list (Microsoft's style guide: 2 to 7 items)
+LIST_MAX_ITEMS = 7          # review round 9: one short list (Microsoft's style guide: 2 to 7 items); round 10: L5 is the 7th
 LIST_MAX_WORDS = 25         # review round 9: each item at most this many words
 
 
@@ -595,11 +621,24 @@ def text_blocks(route: dict | None, rc: dict | None, ed: dict | None, repo: dict
     items = text_paragraphs(route, rc, ed, repo, items=True)
     out = []
     if items:
+        # review round 10: the lead names the release the items describe ({release}; the facts line above dates main)
         lead = str((route or {}).get("list_lead") or "").strip()
-        body = "\n".join(f"- {keep_together(t)}" for t in items)
+        lead = lead.replace("{release}", str((ed or {}).get("version") or "the release"))
+        body = "\n".join(f"- {lever_line(keep_together(t))}" for t in items)
         out.append(f"{lead}\n\n{body}" if lead else body)
     out += [keep_together(p) for p in text_paragraphs(route, rc, ed, repo, items=False)]
     return out
+
+
+_LEVER = re.compile(r"(?<=[.!?]) (?=`)")
+
+
+def lever_line(text: str) -> str:
+    """Review round 10 (the information designer): where an item's second sentence opens with a code span (the lever:
+    `--workers 1`, `--seeding-strategy none`), the two sentences are joined by <br>, not a space, so the flag starts a
+    line and never wraps at its own hyphens on a phone (a hyphen-minus is a soft wrap opportunity in CSS, and U+2011
+    would break the copied flag). Only the first such break; anything else is left alone."""
+    return _LEVER.sub("<br>", str(text or ""), count=1)
 
 
 def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,

@@ -325,6 +325,54 @@ path = "Scraping_project/start.py"
 literal = '"local": ("docker", "docker-compose")'
 also = [{path = "Scraping_project/start.py", literal = 'shutil.which('}]
 
+# Review round 10 (the owner): what `python start.py` does at 96e7a1a. start.py runs `docker-compose up -d` (every
+# service: PostgreSQL, Redis, Grafana, a worker per stage) and loads seeds only `if args.reset_delta:`, through
+# `cli.py reset`, from LOCAL_SEED_FILE. The scout spider's start URLs are `-a start_urls` or else the Delta table
+# seed_urls, and with no table `_load_seed_urls` returns [] (src/stage1/experimental/base_spider.py). So a fresh
+# clone crawls nothing until --reset-delta, and the seeds that flag loads are a university's live site.
+[[figures]]
+text = "a worker for each of the four stages"
+repo = "Scrapy"
+path = "Scraping_project/docker-compose.yml"
+literal = "\n  stage1-worker:"
+also = [{path = "Scraping_project/docker-compose.yml", literal = "\n  stage2-worker:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  stage3-worker:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  stage4-worker:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  postgres:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  redis:"},
+        {path = "Scraping_project/docker-compose.yml", literal = "\n  grafana:"},
+        {path = "Scraping_project/start.py", literal = '("docker-compose", "up", "-d")'}]
+
+[[figures]]
+text = "It loads no seeds by default."
+repo = "Scrapy"
+path = "Scraping_project/start.py"
+literal = "    if args.reset_delta:"
+also = [{path = "Scraping_project/start.py", literal = 'LOCAL_SEED_FILE = Path("data/raw/uconn_urls.csv")'},
+        {path = "Scraping_project/start.py", literal = '"cli.py",'},
+        {path = "Scraping_project/start.py", literal = '"reset",'},
+        {path = "Scraping_project/src/stage1/experimental/base_spider.py", literal = 'or self._load_seed_urls()'},
+        {path = "Scraping_project/src/stage1/experimental/base_spider.py", literal = "            return []"},
+        {path = "Scraping_project/cli.py", literal = 'pd.read_csv(csv_path, header=None, names=["url"])'}]
+
+# the rows `cli.py reset` loads: pd.read_csv(header=None) gives the rows Python's csv module reads (quoted fields
+# that never close swallow the next line: 143,218 non-blank lines, 143,208 rows); `host` keeps the rows whose
+# urlsplit().hostname is that domain or ends in "." + it
+[[figures]]
+text = "143,208"
+repo = "Scrapy"
+path = "Scraping_project/data/raw/uconn_urls.csv"
+csv_rows = true
+count = 143208
+
+[[figures]]
+text = "134,807 of them on uconn.edu"
+repo = "Scrapy"
+path = "Scraping_project/data/raw/uconn_urls.csv"
+csv_rows = true
+host = "uconn.edu"
+count = 134807
+
 # review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
 # utils/retry.py have no caller. The two figures are the defaults the worker reads.
 [[figures]]
@@ -482,8 +530,10 @@ header_head = [{path = "src/orchestration/shutdown.rs", text = 'join("sitemap.js
 header_release = [{path = "src/main.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
 header_runs = ["crawl_ctrl_c"]
 # review round 9: the line that introduces the cautions under the install block (the `item` text entries); it goes
-# when no item is left
-list_lead = "Before you run it:"
+# when no item is left. Review round 10 (the owner): the items describe the release pip installs, and the facts line
+# just above dates main (whose --workers default is 512 and seeding default "none"), so the lead names the release
+# ({release}, filled by render_readme.text_blocks) and no item repeats it
+list_lead = "Before you run {release}:"
 
 # README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
 # P1 test (a site whose robots.txt is a 404 is crawled) and the P2 test (--duration stops a stalled crawl) are at HEAD.
@@ -657,11 +707,18 @@ loop = true
 # longest backoff before a host is dropped, 2^(MAX_FAILURES_THRESHOLD - 1) = 4 s (state.rs record_failure, counted in
 # whole seconds, so 1 s more), rounded up to the next 10: 30. Probe quiet_slow_page: a page held 15 s leaves two
 # work-item lines 15 s apart, and after 30 s with none, one SIGINT writes every page.
-text = "{release} never exits by itself; done once `Received work item` is quiet for {quiet} s"
+# Review round 10 (the systems engineer): the clock starts at the first `Received work item`, not at launch. 0.1.3
+# seeds by default and main.rs runs `crawler.initialize(&seeding_strategy)` (every seeder, to the end: crt.sh with up
+# to 87 s of retries, then DNS checks, then Common Crawl) before it spawns the first shard worker, so before the first
+# work item the terminal is quiet too (measured: 14.9 s with crt.sh failing fast). "lines stop" says they were coming;
+# "is quiet" did not. Order anchor: initialize before the first `process_incoming_urls(`; a release that starts the
+# shards first leaves H1 unverified.
+text = "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s"
 audit = "It sums the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 30. Probe `quiet_slow_page` waited that long"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"},
+           {path = "src/main.rs", text = "crawler.initialize(&seeding_strategy).await?", before = "process_incoming_urls("},
            {path = "src/cli.rs", block = "Crawl", arg = "timeout"},
            {path = "src/network.rs", text = ".timeout(Duration::from_secs(timeout_secs))"},
            {path = "src/state.rs", const = "MAX_FAILURES_THRESHOLD"},
@@ -762,13 +819,13 @@ id = "L4"
 kind = "text"
 scope = "release"
 item = true
-text = "{release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
+text = "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
 release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"},
            {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
 fails = ["robots_read"]
 [[route.rustmapper.entry.instead]]
 # a release that reads robots.txt over http (probe robots_read passed) but still has no Crawl-delay parser
-text = "{release} ignores `Crawl-delay`."
+text = "It ignores `Crawl-delay`."
 release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"}]
 runs = ["robots_read"]
 [[route.rustmapper.entry.instead]]
@@ -794,6 +851,34 @@ release = [{path = "src/cli.rs", arg = "seeding_strategy", equals = "all"},
            {path = "src/bfs_crawler.rs", text = 'let enable_ct = enable_all || strategies.contains(&"ct");'},
            {path = "src/bfs_crawler.rs", text = 'let enable_commoncrawl = enable_all || strategies.contains(&"commoncrawl");'}]
 
+# L5, review round 10 (the systems engineer): the scope lever. The base of is_same_domain is the start URL's host
+# (frontier.rs add_url_to_local_queue_unchecked drops every URL, seeds included, that fails it against
+# start_url_domain), while the seeders ask about the root (bfs_crawler.rs initialize: get_root_domain). From
+# www.<site>, blog.<site> is neither a subdomain nor a parent of the base, so it is dropped, even when crt.sh lists
+# it; from <site> it is a subdomain and kept. Heritrix documents the same trap and cure. It retires if any
+# anchor goes.
+[[route.rustmapper.entry]]
+id = "L5"
+kind = "text"
+item = true
+text = "From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all."
+head = [{path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
+        {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"},
+        {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "if !Self::is_same_domain(&url_domain, start_url_domain)"},
+        {path = "src/bfs_crawler.rs", text = "get_root_domain(&start_url_domain)"},
+        {path = "src/ct_log_seeder.rs", text = 'DEFAULT_CRTSH_BASE: &str = "https://crt.sh"'},
+        {path = "src/ct_log_seeder.rs", text = '"{}/?q=%.{}'}]
+release = [{path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
+           {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"},
+           {path = "src/frontier.rs", fn = "add_url_to_local_queue_unchecked", text = "if !Self::is_same_domain(&url_domain, start_url_domain)"},
+           {path = "src/bfs_crawler.rs", text = "get_root_domain(&start_url_domain)"},
+           {path = "src/ct_log_seeder.rs", text = '"https://crt.sh/?q=%.{}'}]
+[[route.rustmapper.entry.instead]]
+# any anchor gone (siblings taken, seeds not filtered, the seeders asking about the start host): the item retires
+text = ""
+head = [{path = "src/url_utils.rs"}]
+release = [{path = "src/url_utils.rs"}]
+
 # Review round 8: what it cannot see. 0.1.3 parses the HTML it is sent (scraper, html5ever) and has no browser or
 # JavaScript engine among its dependencies, so a page built by JavaScript yields only the links in its HTML. go_go_go's
 # --enable-js-rendering is the [[figures]] row "optional headless-Chrome rendering".
@@ -815,7 +900,7 @@ kind = "text"
 scope = "release"
 item = true
 from_head = true
-text = "{release} writes one `sitemap.xml` however many pages it found; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
+text = "It writes one `sitemap.xml` however many pages it found; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
 audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at"
 head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
 release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
@@ -836,7 +921,7 @@ id = "X2"
 kind = "text"
 scope = "release"
 item = true
-text = "{release} gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links."
+text = "It gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links."
 audit = "Probe `non200_status`: on the fixture site, busy.html (429, `Retry-After: 2`) was asked for once in 12 s, beyond.html (linked only from it) never, and the rows for busy.html and gone.html (404) have `status_code` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
            {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},

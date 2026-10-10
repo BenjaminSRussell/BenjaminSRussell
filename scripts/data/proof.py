@@ -212,6 +212,28 @@ def cite_keys(cite: str) -> list[str]:
 
 # ---------------------------------------------------------------- the README's typed figures
 
+def csv_rows(src: str, host: str | None = None) -> int:
+    """Review round 10: the rows of a CSV file as Python's csv module reads them, which are the rows
+    `pd.read_csv(path, header=None)` gives (a quoted field that never closes swallows the next line), blank rows
+    left out. With `host`, only the rows whose first field's `urlsplit().hostname` is `host` or ends in "." + host."""
+    import csv
+    import io
+    from urllib.parse import urlsplit
+    n = 0
+    for row in csv.reader(io.StringIO(src or "", newline="")):
+        if not row:
+            continue
+        if host:
+            try:
+                h = urlsplit(row[0]).hostname or ""
+            except ValueError:
+                continue
+            if h != host and not h.endswith("." + host):
+                continue
+        n += 1
+    return n
+
+
 def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[dict] | None = None,
                    read=None, ls=None) -> list[dict]:
     """Each `[[figures]]` row checked at its repository's HEAD. `read(git_dir, path)` and `ls(git_dir)` default to
@@ -234,6 +256,10 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
             rec["contains"] = str(f["contains"])
         if f.get("parts"):
             rec["parts"] = [str(x) for x in f["parts"]]
+        if f.get("csv_rows"):    # review round 10: a count of a CSV file's rows (and of those on one host)
+            rec["csv_rows"] = True
+            if f.get("host"):
+                rec["host"] = str(f["host"])
         gd = git_dirs.get(rec["repo"])
         if not gd:
             old = cached.get((rec["text"], rec["repo"]))
@@ -254,6 +280,12 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
                 rec["why"] = f"{rec['path']}: file missing at HEAD"
             elif rec["literal"] and str(rec["literal"]) not in src:
                 rec["why"] = f"{rec['path']}: no {rec['literal']!r} at HEAD"
+            elif rec.get("csv_rows"):
+                n = csv_rows(src, rec.get("host"))
+                rec["measured"] = n
+                rec["holds"] = n == rec["count"]
+                on = f" on {rec['host']}" if rec.get("host") else ""
+                rec["why"] = "" if rec["holds"] else f"{rec['path']}: {n} rows{on}, not {rec['count']}"
             elif rec.get("keys"):
                 keys = dict_keys(src, rec["keys"])
                 rec["measured"] = len(keys) if keys is not None else None

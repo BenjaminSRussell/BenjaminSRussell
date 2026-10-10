@@ -66,7 +66,10 @@ def unmeasured(report: dict | None) -> list[Finding]:
 
 TWICE_WORDS = 4
 SHORT_WORDS = 3          # review round 2: a run this short counts when it holds a code token or a date
-TWICE_ALLOW = ("pip install rustmapper",)    # the image's one command is the entrance, and the code block copies it
+# the image's one command is the entrance, and the code block copies it. Review round 10: "received work item" is the
+# log line the reader watches, and the stop rule is said twice on purpose: in the image's trap row and in the code
+# block's comment, where the reader has a hand on the keyboard (a screen reader, a search and a copy reach only text)
+TWICE_ALLOW = ("pip install rustmapper", "received work item")
 _WORD = re.compile(r"(?:--)?[a-z0-9][a-z0-9_.'/-]*[a-z0-9]|[a-z0-9]")
 MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 

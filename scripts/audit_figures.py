@@ -80,6 +80,13 @@ FIXED = [
      "the source build, timed INSTALL_RUNS times, each in a fresh venv with an empty CARGO_HOME; the span of the "
      "runs in whole minutes; printed only when `cache` is `cold`", "test_proof InstallTime",
      (r"\d+(?:–\d+)? min from a cold cache on a \d+-core",)),
+    ("install", "Before you run <version>:", "`edition.version`", "review round 10: the release the cautions describe "
+     "(the list's entries are checked on the sdist pip installs; the facts line above them dates main), the latest "
+     "version on PyPI", "README-CAUTIONS; README-STALE", (r"Before you run \d+\.\d+\.\d+:",)),
+    ("install", "# <version> runs until stopped … for N s", "`edition.version`, `routes.rustmapper` H1 `quiet`",
+     "review round 10: the release and H1's `{quiet}`, filled as the image fills them; printed only while H1 is drawn "
+     "with its number (`render_readme.stop_lines`)", "test_round10 StopLines; README-STALE",
+     (r"# \d+\.\d+\.\d+ runs until stopped", r"# for \d+ s,")),
     ("survey", "rustmapper <version>, <date> (<runner>)", "`edition.version`, `runcheck.rustmapper.date`, `runner`",
      "the release the drawing describes, and the day and machine the run check ran its lines on", "ROUTE-ENTRANCE",
      (r"rustmapper \d+\.\d+\.\d+, the release pip installs", r"on " + _DATE + r" \(")),
@@ -210,7 +217,13 @@ def records(cfg: dict) -> list[dict]:
         if f.get("handoff"):
             continue
         how = (f"{f['count']} files match `{f['glob']}`" if f.get("glob") else
-               f"`{f['path']}` contains `{f['literal']}`" if f.get("literal") else f"`{f['path']}` exists")
+               f"`{f['path']}` contains `{str(f['literal']).replace(chr(10), '⏎')}`" if f.get("literal") else
+               f"the dict literal assigned to `{f['keys']}` in `{f['path']}` has {f['count']} keys" if f.get("keys") else
+               (f"`{f['path']}` has {f['count']:,} rows as Python's csv module reads them (the rows "
+                f"`pd.read_csv(header=None)` loads)" + (f" whose `urlsplit().hostname` is `{f['host']}` or ends in "
+                f"`.{f['host']}`" if f.get("host") else "")) if f.get("csv_rows") else f"`{f['path']}` exists")
+        how += "".join(f"; `{a['path']}` contains `{str(a['literal']).replace(chr(10), '⏎')}`"
+                       for a in f.get("also") or [])
         out.append({"where": "README prose", "printed": f["text"], "key": f"`[[figures]]` ({f['repo']})",
                     "definition": f"at HEAD, {how}", "check": "FIGURES", "figure": f["text"]})
     return out

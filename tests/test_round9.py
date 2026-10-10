@@ -66,15 +66,15 @@ class Cautions(unittest.TestCase):
         tail = install(text).split("```", 2)[2]
         paras = [p for p in tail.split("\n\n") if p.strip()]
         self.assertTrue(paras[0].startswith("Prebuilt for Apple silicon"), paras[0])
-        self.assertEqual(paras[1], "Before you run it:")
+        self.assertEqual(paras[1], "Before you run 0.1.3:")      # review round 10: the lead names the release
         items = paras[2].strip().splitlines()
-        self.assertEqual(len(items), 6)
+        self.assertEqual(len(items), 7)                    # review round 10: L5, the scope lever
         for it in items:
             self.assertTrue(it.startswith("- "), it)
             self.assertLessEqual(len(it[2:].split()), rr.LIST_MAX_WORDS, it)
-        self.assertIn("`--workers 1` sends one at a time.", items[0])
+        self.assertIn("<br>`--workers 1` sends one at a time.", items[0])
         self.assertIn("crt.sh and Common Crawl", items[2])
-        self.assertIn("`--seeding-strategy none` asks no one.", items[2])
+        self.assertIn("<br>`--seeding-strategy none` asks no one.", items[2])
         self.assertNotIn("20 pages", tail, "the per-host 20 is said once, in the image")
 
     def test_the_check_bites(self):
@@ -82,7 +82,7 @@ class Cautions(unittest.TestCase):
         end = "\n<!-- install:Rust-sitemap:end -->\n"
         self.assertEqual(readme_check.cautions(head + "Lead:\n\n- one\n- two" + end), [])
         self.assertTrue(readme_check.cautions(head + "A second paragraph of cautions." + end))
-        self.assertTrue(readme_check.cautions(head + "Lead:\n\n" + "\n".join(f"- item {i}" for i in range(7)) + end))
+        self.assertTrue(readme_check.cautions(head + "Lead:\n\n" + "\n".join(f"- item {i}" for i in range(8)) + end))
         self.assertTrue(readme_check.cautions(head + "Lead:\n\n- " + " ".join(["word"] * 26) + end))
 
     def test_retired_items_drop_and_the_lead_goes(self):
@@ -90,7 +90,7 @@ class Cautions(unittest.TestCase):
         route = copy.deepcopy(stats["routes"]["rustmapper"])
         rc = stats["runcheck"]["rustmapper"]
         blocks = rr.text_blocks(route, rc, stats["edition"])
-        self.assertTrue(blocks[0].startswith("Before you run it:\n\n- "))
+        self.assertTrue(blocks[0].startswith("Before you run 0.1.3:\n\n- "))
         for e in route["entries"]:
             if e.get("item"):
                 e["instead"] = [{"text": "", "verified_head": True, "verified_release": True, "missing": []}]
@@ -100,8 +100,8 @@ class Cautions(unittest.TestCase):
 
     def test_lead_in_from_the_route(self):
         cfg, stats = load()
-        self.assertEqual(cfg["route"]["rustmapper"]["list_lead"], "Before you run it:")
-        self.assertEqual(stats["routes"]["rustmapper"]["list_lead"], "Before you run it:")
+        self.assertEqual(cfg["route"]["rustmapper"]["list_lead"], "Before you run {release}:")
+        self.assertEqual(stats["routes"]["rustmapper"]["list_lead"], "Before you run {release}:")
 
 
 class NothingUnreleased(unittest.TestCase):
@@ -132,7 +132,8 @@ class ScrapyOrder(unittest.TestCase):
         self.assertLess(i, text.index("- Raw pages land in Delta Lake"))
         self.assertLess(text.index("- Prometheus metrics on Grafana dashboards."), text.index("Run these from the folder you cloned"))
         self.assertLess(text.index("Run these from the folder you cloned"), text.index("cd Scrapy/Scraping_project"))
-        self.assertIn("`start.py` runs only inside `Scraping_project`.", text)
+        # review round 10: the cd says where to stand; the sentence says what start.py does
+        self.assertIn("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts", text)
 
     def test_the_check_bites(self):
         old = ("Run these from a clone of [Scrapy](https://x), in `Scraping_project` (`start.py` runs only there).\n\n"
@@ -172,7 +173,7 @@ class StatusCode(unittest.TestCase):
         x2 = {e["id"]: e for e in R.resolve(route, rc)}["X2"]
         self.assertTrue(x2["verified"] and not x2["retired"], x2)
         self.assertIn("gives no `status_code` to a page that answers 404, 429 or 503", x2["text"])
-        self.assertIn("0.1.3 gives no `status_code`", read(README))
+        self.assertIn("- It gives no `status_code`", read(README))
         # a release that records statuses or asks again: the probe fails and the item retires
         next(s for s in rc["steps"] if s["id"] == "non200_status")["ok"] = False
         x2 = {e["id"]: e for e in R.resolve(route, rc)}["X2"]
@@ -203,7 +204,7 @@ class QuietNumber(unittest.TestCase):
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         route = stats["routes"]["rustmapper"]
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
-        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` is quiet for 30 s")
+        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` lines stop for 30 s")
         next(s for s in rc["steps"] if s["id"] == "quiet_slow_page")["quiet_secs"] = 20
         h1 = {e["id"]: e for e in R.resolve(route, rc)}["H1"]
         self.assertEqual(h1["text"], "{release} never exits by itself, even after the last page")

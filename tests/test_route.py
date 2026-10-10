@@ -122,7 +122,7 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L3", "X1", "X2", "M1"])
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L5", "L3", "X1", "X2", "M1"])
         # r7: G1 in F1; r8: L2, L3; r9: L4 (the robots clause, its own item), X2 (what the file cannot say)
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
@@ -146,7 +146,7 @@ class Anchors(unittest.TestCase):
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
         # review round 9: the clearing mark with its number (computed, quiet_secs; probe quiet_slow_page)
-        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` is quiet for 30 s")
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` lines stop for 30 s")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
         self.assertEqual(drawn["C1"]["text"],
@@ -245,6 +245,8 @@ class Quiet(unittest.TestCase):
     QUIET_FILES = {
         "src/cli.rs": 'Crawl {\n #[arg(short, long, default_value = "20", help = "t")]\n timeout: u64,\n}',
         "src/network.rs": "let client = Client::builder().timeout(Duration::from_secs(timeout_secs));",
+        # review round 10: every seeder runs before the first shard worker takes a URL
+        "src/main.rs": "crawler.initialize(&seeding_strategy).await?;\nshard.process_incoming_urls(&d).await;",
         "src/state.rs": ("impl HostState { pub const MAX_FAILURES_THRESHOLD: u32 = 3;\n"
                          "pub fn is_permanently_failed(&self) -> bool { self.failures >= Self::MAX_FAILURES_THRESHOLD }\n"
                          "pub fn record_failure(&mut self) { let b = (2_u32.pow(self.failures.min(8))).min(300); } }")}
@@ -261,7 +263,7 @@ class Quiet(unittest.TestCase):
         # review round 9: the clearing mark with its number, on both quiet probes
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True,
                                quiet_slow_page=True)["text"],
-                         "{release} never exits by itself; done once `Received work item` is quiet for 30 s")
+                         "{release} never exits by itself; done once `Received work item` lines stop for 30 s")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
                          "{release} never exits by itself, even after the last page", "no slow-page probe: no number")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False,
@@ -429,7 +431,11 @@ class Commands(unittest.TestCase):
         block = rr.install_block(stats, "Rust-sitemap", cfg)
         code = block.split("```")[1]
         self.assertEqual(code.strip().splitlines()[1:], ["pip install rustmapper", "rust_sitemap crawl \\",
-                                                         "    --start-url <your-site>", "# stop it with one Ctrl-C",
+                                                         "    --start-url <your-site>",
+                                                         # review round 10: the stop rule where the reader acts
+                                                         "# 0.1.3 runs until stopped: when",
+                                                         '# "Received work item" stops',
+                                                         "# for 30 s, then Ctrl-C once",
                                                          "# sitemap.xml, even after a kill",
                                                          "rust_sitemap export-sitemap"])
         self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))

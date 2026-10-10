@@ -40,21 +40,24 @@
 pip install rustmapper
 rust_sitemap crawl \
     --start-url <your-site>
-# stop it with one Ctrl-C
+# 0.1.3 runs until stopped: when
+# "Received work item" stops
+# for 30 s, then Ctrl-C once
 # sitemap.xml, even after a kill
 rust_sitemap export-sitemap
 ```
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
-Before you run it:
+Before you run 0.1.3:
 
-- It sends requests with no pause between them, up to 256 at a time across all hosts. `--workers 1` sends one at a time.
-- 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.
-- By default it asks crt.sh and Common Crawl about your domain. `--seeding-strategy none` asks no one.
+- It sends requests with no pause between them, up to 256 at a time across all hosts.<br>`--workers 1` sends one at a time.
+- It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.
+- By default it asks crt.sh and Common Crawl about your domain.<br>`--seeding-strategy none` asks no one.
+- From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
 - It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
-- 0.1.3 writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.
-- 0.1.3 gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links.
+- It writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.
+- It gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links.
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -70,7 +73,7 @@ Before you run it:
 - Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
 - Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
 
-Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into; `start.py` runs only inside `Scraping_project`. `python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). The last command runs only discovery, on your site.
+Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site.
 
 ```sh
 cd Scrapy/Scraping_project

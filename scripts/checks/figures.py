@@ -3,7 +3,9 @@
 FIGURES (fail): a run of digits or a number word in README.md's visible text outside the build-written marker blocks
   (and outside inline `n:` figures) that no `[[figures]]` row covers, or a row that does not hold at its
   repository's HEAD (stats.json `figures`, checked by scripts/data/proof.py). Link targets, comments and repository
-  names (3d-swift-widget) are not prose.
+  names (3d-swift-widget) are not prose. Review round 10 (the owner): a CLAIMS phrase ("sample site": what a
+  command crawls) in the visible prose needs a holding row whose text contains it, as a number does; the old Scrapy
+  run sentence said `python start.py` "crawls a university's sample site" with no row, and it loads no seeds at all.
 """
 from __future__ import annotations
 
@@ -32,6 +34,21 @@ def prose(readme: str) -> str:
     return t.replace("\u00a0", " ")      # review round 7: "60\u00a0s" is the row "60 s" (same length)
 
 
+CLAIMS = ("sample site",)
+
+
+def unbacked_claims(readme: str, rows: list[dict]) -> list[str]:
+    """Each CLAIMS phrase in the visible prose that no holding row's text contains."""
+    text = prose(readme)
+    out = []
+    for c in CLAIMS:
+        for m in re.finditer(re.escape(c), text, re.I):
+            if not any(c.lower() in str(r.get("text") or "").lower() for r in rows or [] if r.get("holds")):
+                line = text[max(0, m.start() - 30):m.end() + 30].replace("\n", " ").strip()
+                out.append(f"{m.group(0)!r} in “…{line}…”")
+    return out
+
+
 def uncovered(readme: str, rows: list[dict]) -> list[str]:
     text = prose(readme)
     spans = []
@@ -55,6 +72,8 @@ def check(ctx) -> list[Finding]:
         if not r.get("holds"):
             out.append(fail("FIGURES", f"{r.get('text')!r} ({r.get('repo')}) does not hold at HEAD: {r.get('why')}",
                             "stats.json figures"))
+    for hit in unbacked_claims(ctx.readme or "", rows):
+        out.append(fail("FIGURES", f"{hit} says what a command does with no [[figures]] row behind it", "README.md"))
     for hit in uncovered(ctx.readme or "", rows):
         out.append(fail("FIGURES", f"{hit} is typed into the README with no [[figures]] row behind it", "README.md"))
     return out

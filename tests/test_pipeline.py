@@ -492,7 +492,7 @@ class Readme(unittest.TestCase):
                  "<!-- pick:start -->",
                  "<!-- facts:Rust-sitemap:start -->", "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main",
                  "<!-- install:Rust-sitemap:start -->",
-                 "pip install rustmapper", "Prebuilt for Apple silicon", "Before you run it:\n\n- It sends requests",
+                 "pip install rustmapper", "Prebuilt for Apple silicon", "Before you run 0.1.3:\n\n- It sends requests",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system",
                  "<!-- facts:Scrapy:start -->", "- Raw pages land in Delta Lake",
                  "Run these from the folder you cloned [Scrapy]", "cd Scrapy/Scraping_project",

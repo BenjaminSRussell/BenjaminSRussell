@@ -10,6 +10,7 @@
 //   node scripts/render.mjs silhouette <svg...> [--out <dir>]
 //       128 px thumbnails (frozen state), grey → threshold → 16×8 mass grid, pairwise L1 (≥ 0.25 passes).
 //   node scripts/render.mjs phone <svg> <out.png> [--width 360] [--dpr 3]
+//   node scripts/render.mjs wrap <spec.json>   where inline code wraps in README list items (review round 10)
 //   node scripts/render.mjs matrix        placeholder (T10's source matrix; needs the README preview page)
 //
 // No image library: pixels are read in the page through a <canvas>, so Playwright is the only dependency.
@@ -34,7 +35,7 @@ function flag(name, dflt) {
 }
 function usage() {
   console.error('usage: render.mjs frames <svg> <outdir> t1,t2,... [--still <svg>] [--width 1280] [--strip <png>] [--json <path>]\n' +
-    '       render.mjs silhouette <svg...> [--out <dir>]\n       render.mjs phone <svg> <out.png> [--width 360] [--dpr 3]\n       render.mjs matrix');
+    '       render.mjs silhouette <svg...> [--out <dir>]\n       render.mjs phone <svg> <out.png> [--width 360] [--dpr 3]\n       render.mjs wrap <spec.json>\n       render.mjs matrix');
   process.exit(2);
 }
 
@@ -224,6 +225,39 @@ async function matrix() {
   console.log(JSON.stringify({ status: 'not implemented', note: 'source matrix (T10 check 21) needs the README preview page from render_readme.py; contexts 360/390/412/600/767/768/1024/1280 × DPR 1,3 × scheme × reduced-motion' }, null, 1));
 }
 
-const cmds = { frames, silhouette, phone, matrix };
+// Review round 10: where inline code wraps in README prose on phone widths. Input JSON {blocks: [{tag: li | p,
+// html}], widths, pads, css}; for each width and side padding, each <code> in each block is measured character by character
+// (Range.getBoundingClientRect): the index of the first character that starts a new line, or -1. Prints JSON rows
+// {width, pad, item, code, at}.
+async function wrap() {
+  const [file] = argv;
+  if (!file) usage();
+  const spec = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { browser, page } = await launch(1, 390, 800);
+  const rows = [];
+  for (const w of spec.widths) {
+    await page.setViewportSize({ width: w, height: 800 });
+    for (const pad of spec.pads) {
+      await page.setContent(`<!doctype html><meta charset=utf-8><style>${spec.css}.md{padding:16px ${pad}px}</style>` +
+        `<div class=md>${spec.blocks.map((b, i) => b.tag === 'li' ? `<ul><li data-i=${i}>${b.html}</li></ul>` : `<p data-i=${i}>${b.html}</p>`).join('')}</div>`);
+      const got = await page.evaluate(() => [...document.querySelectorAll('[data-i]')].flatMap(li => [...li.querySelectorAll('code')].map(c => {
+        const t = c.textContent, node = c.firstChild;
+        let at = -1;
+        for (let i = 1; i < t.length; i++) {
+          const r = document.createRange();
+          r.setStart(node, i - 1); r.setEnd(node, i); const a = r.getBoundingClientRect();
+          r.setStart(node, i); r.setEnd(node, i + 1); const b = r.getBoundingClientRect();
+          if (b.top > a.top + 2) { at = i; break; }
+        }
+        return { item: +li.dataset.i, code: t, at };
+      })));
+      for (const g of got) rows.push({ width: w, pad, ...g });
+    }
+  }
+  await browser.close();
+  console.log(JSON.stringify(rows));
+}
+
+const cmds = { frames, silhouette, phone, matrix, wrap };
 if (!cmds[cmd]) usage();
 cmds[cmd]().catch(e => { console.error(e); process.exit(1); });

@@ -35,7 +35,8 @@ def readme_spans(readme: str, recs: list[dict], stats: dict, cfg: dict) -> list[
         s = str(s or "").replace(" ", " ").replace("*", " ")
         if not s.strip():
             return
-        for m in re.finditer(re.escape(s), text):
+        # review round 10: any run of white space matches any other (an item's <br> is blanked to four spaces)
+        for m in re.finditer(r"\s+".join(re.escape(w) for w in s.split()), text):
             spans.append((m.start(), m.end()))
     for r in recs:
         for pat in r.get("covers") or ():

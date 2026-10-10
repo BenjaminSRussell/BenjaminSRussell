@@ -378,7 +378,7 @@ class Wording(unittest.TestCase):
         cfg, _ = load()
         h1 = entry(cfg, "H1")
         # review round 9: the clearing mark with its number
-        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` is quiet for {quiet} s")
+        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s")
         self.assertEqual(h1["instead"][0]["text"], "{release} never exits by itself, even after the last page")
 
     def test_one_spelling(self):
