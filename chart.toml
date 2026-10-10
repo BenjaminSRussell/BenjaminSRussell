@@ -34,8 +34,9 @@ unit_approaches = "SOUNDINGS IN URLS · THOUSANDS"
 limit_label = "LIMIT OF SURVEY 2026"
 footer_line = "The chart ends here. The web doesn't."
 # review round 3: which of the two tools is for which job (README marker `pick`). Printed only while rustmapper's
-# route header holds (it writes one line per page, SitemapNode) and every [[figures]] row with use = "pick" holds.
-pick = "For the list of a site's URLs from one command, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**."
+# route header holds (it writes one line per page, SitemapNode), every [[figures]] row with use = "pick" holds, and
+# (review round 4: it takes three steps, not one command) the release gate `no_services` holds: Redis is a flag.
+pick = "For the list of a site's URLs, from one binary with no services to run, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**."
 log_footnote = "Heights observed, not predicted."
 
 [copy.review]
@@ -356,6 +357,17 @@ cargo = [{path = "tests/robots_4xx_allows_crawl.rs"}, {path = "tests/duration_st
 # review round 3: "the Python API built with maturin is on main" is said only while main has it
 python_api = [{path = "python/rustmapper/__init__.py"}, {path = "pyproject.toml", text = 'bindings = "pyo3"'}]
 
+# Review round 4: README lines that rest on the release (the sdist pip builds). `export_defaults`: the install block
+# drops `--data-dir ./data --output sitemap.xml` from its export line while these are the release's defaults, and
+# the crawl writes where the export reads. `no_services`: the pick sentence's "no services to run" while Redis is an
+# opt-in flag of the crawl (a clap bool is false unless given).
+[route.rustmapper.release_gates]
+export_defaults = [{path = "src/cli.rs", block = "ExportSitemap", arg = "data_dir", equals = "./data"},
+                   {path = "src/cli.rs", block = "ExportSitemap", arg = "output", equals = "./sitemap.xml"},
+                   {path = "src/cli.rs", block = "Crawl", arg = "data_dir", equals = "./data"}]
+no_services = [{path = "src/cli.rs", block = "Crawl", text = 'help = "Enable distributed crawling with Redis")]'},
+               {path = "src/cli.rs", block = "Crawl", text = "enable_redis: bool,"}]
+
 # The route is the run's order: what you type, what happens to each URL, how you stop it, what you get. The rows with
 # `loop = true` repeat for every page, and the image draws one line back from the last of them to the first.
 # `runs` / `fails` name run-check probes (scripts/runcheck.py) that must have passed / failed for the release.
@@ -387,13 +399,14 @@ release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/r
 
 # Review round 3: the scope fact lives here, where it is a fact about which links are queued, not a cause. "Above or
 # below": url_utils.rs is_same_domain takes the start's subdomains and every domain it ends with (start on
-# blog.x.org and x.org is crawled too); siblings are not.
+# blog.x.org and x.org is crawled too); siblings are not. Review round 4: "your URL's", because the check is made
+# against the start URL's host (frontier.rs start_url_domain), not the fetched page's.
 [[route.rustmapper.entry]]
 id = "F1"
 kind = "stop"
 loop = true
 file = "bfs_crawler.rs"
-text = "fetches a page; queues links on its domain, above or below it"
+text = "fetches a page; queues links on your URL's domain, above or below it"
 head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
         {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
         {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
@@ -403,10 +416,11 @@ release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_l
            {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
            {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"}]
 runs = ["crawl_ctrl_c"]
+# (the release's frontier checks a link against the start URL's domain, which "your URL's" names)
 
 [[route.rustmapper.entry]]
 id = "G1"
-kind = "note"              # it acts on the fetches from the side (semaphore permits), so no ring on the line
+kind = "note"              # it changes how many fetches run at once: a line under F1's words, no mark of its own
 loop = true
 file = "governor.rs"
 text = "fetches fewer pages at once when saving falls behind"
@@ -415,28 +429,41 @@ head = [{path = "src/orchestration/governor.rs", text = "THROTTLE_THRESHOLD_MS"}
 release = [{path = "src/main.rs", text = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "add_permits"}]
 
 # The figure is the constant as the code defines it, in both trees. Review round 3: what a kill leaves, and the
-# command that gets the pages back, are said once, on C1.
+# command that gets the pages back, are said once, on C1. Review round 4: "to its database" (the redb state the
+# writer commits to, writer_thread.rs; state.rs `use redb`), so C1's export after a kill has something to read.
 [[route.rustmapper.entry]]
 id = "W1"
 kind = "stop"
 loop = true
 file = "writer_thread.rs"
-text = "saved every {const:BATCH_TIMEOUT_MS} ms"
+text = "saved to its database every {const:BATCH_TIMEOUT_MS} ms"
 head = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-        {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"}]
+        {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
+        {path = "src/writer_thread.rs", text = "state.apply_event_batch(&batch)"}, {path = "src/state.rs", text = "use redb::"}]
 release = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-           {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"}]
+           {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
+           {path = "src/writer_thread.rs", text = "state.apply_event_batch(&batch)"}, {path = "src/state.rs", text = "use redb::"}]
 
 # One hazard, on the loop. Review round 3: its words are its cause, not its scope. In 0.1.3 the check "frontier
 # empty and no tasks in flight" sits in the `else =>` arm of tokio::select!, which runs only when every branch is
 # disabled, and that never happens (Rust-sitemap #65, fixed on main in d751cf0); the run check's three-page crawl,
 # all three pages written, was still running at 150 s (probe ends_by_itself). Once a release ends by itself, the
 # empty alternative retires the row: no hazard is drawn and the track's gap closes.
+# Review round 4: the mark that says when to act. 0.1.3 prints "Crawler: Received work item: <url>" for every URL it
+# starts (start_crawling, stderr, no switch); probe quiet_after_last_page holds when those lines named as many URLs
+# as the file then had, and the last came at least 100 s before the SIGINT. Without that probe, the cause alone.
 [[route.rustmapper.entry]]
 id = "H1"
 kind = "trap"
 scope = "release"
 loop = true
+text = "never stops by itself; done when `Received work item` lines stop"
+release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
+           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
+           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"}]
+runs = ["crawl_ctrl_c", "quiet_after_last_page"]
+fails = ["ends_by_itself"]
+[[route.rustmapper.entry.instead]]
 text = "never stops by itself, even after the last page"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"}]
@@ -449,21 +476,24 @@ runs = ["ends_by_itself"]
 
 # The reader's one step, and what to do when the process was killed instead (in a container the stop is TERM, then
 # KILL, and 0.1.3 listens for Ctrl-C only): export-sitemap reads the stored state (CrawlerState, saved every 50 ms
-# by the writer), never the WAL. Backticks set code in the code face.
+# by the writer), never the WAL. Backticks set code in the code face. Review round 4: the export writes sitemap.xml,
+# not the JSONL (`{arg:output}`, the ExportSitemap --output default, in both trees), and the command is named as the
+# wheel installs it (`{script}`, edition.scripts, filled by the sheet as the README's code block is).
 [[route.rustmapper.entry]]
 id = "C1"
 kind = "step"
-text = "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, run `export-sitemap`"
+text = "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, `{script} export-sitemap` writes the pages to `{arg:output}`"
 head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
         {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'},
         {path = "src/orchestration/export.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
         {path = "src/orchestration/export.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
-        {path = "src/cli.rs", text = "ExportSitemap"}]
+        {path = "src/cli.rs", text = "ExportSitemap"}, {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
 release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
            {path = "src/main.rs", text = 'join("sitemap.jsonl")'},
            {path = "src/main.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
            {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
-           {path = "src/cli.rs", text = "ExportSitemap"}]
+           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new"},
+           {path = "src/cli.rs", text = "ExportSitemap"}, {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
 runs = ["crawl_ctrl_c", "export_after_kill"]
 fails = ["kill_writes_file"]
 [[route.rustmapper.entry.instead]]
@@ -525,6 +555,9 @@ writer_struct = "SitemapNode"
 reader = "scripts/import_rust_sitemapper.py"
 reader_list = "URL_RECORD_FIELDS"
 test = "tests/test_import_rust_sitemapper.py"
+# review round 4: what the receiving side does with the file. The reader imports it and then runs the organizer's
+# whole pipeline (`./run.sh --all`), so the arrow says "sorted by"; without those strings, "read by".
+does = {verb = "sorted by", text = ["run.sh", "--all"]}
 url = "https://github.com/BenjaminSRussell/ideal-url-organizer"
 # README sentences (marker `handoffs`): {to}, {url}, {reader}, {file} are filled from the computed record
 # the image draws this join (R15) while its state is `runs`, so the README says nothing (one home per fact)

@@ -6,13 +6,16 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 3): the hero is the way into rustmapper. It answers one sentence: how
+Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 4): the hero is the way into rustmapper. It answers one sentence: how
 you start it, what it does with each page, where a stranger goes wrong and how to get out, and where the output goes
 next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date,
-the stops on the magenta track (the file, then what happens there), the rows that repeat for every page closed by one
-line back up the left side, the one hazard on that loop with its words ringed by a dotted line in the accent, the
-reader's one step (Ctrl-C) on the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin
-line on to ideal-url-organizer, which reads that file and tests the join. While the release never stops by itself the
+the stops on the magenta track (what happens there, every row's words at one left edge; on the desk the source file
+stands right-aligned left of the track), the governor as a line under the fetch stop's words, the rows that repeat
+for every page closed by one line back up the left side, the one hazard on that loop with its words (and the line of
+output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C, and after a
+kill the export command as installed and the file it writes) on the next row, the end bar, `data/sitemap.jsonl` with
+its real field names, and a thin line on to ideal-url-organizer, which sorts that file and tests the join. While the
+release never stops by itself the
 track breaks under the loop and starts again just above Ctrl-C, so the shape alone says the only way on is the
 reader's. Code inside a row's words is set in the code face. The title block on the left is his name and what he
 builds. Nothing has a size that depends on data. Each drawn element is a

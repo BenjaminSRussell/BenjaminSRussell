@@ -18,8 +18,10 @@ ROUTE-HANDOFF (info): each hand-off's computed state.
 ROUTE-STRINGS (fail): a text run on the hero whose key is not one of the sources the spec allows, or whose truth is
   not `measured`.
 ROUTE-WORDS (fail): a theme word on the hero or in its alt text (T-WORDS).
-ROUTE-HEIGHT (fail): desk sheet taller than 580, phone taller than 1020 (review round 2: name and role, one command;
-  the edition with S2 drawn, once P1 lands, is 572 and 1016).
+ROUTE-HEIGHT (fail): desk sheet taller than 620, phone taller than 1100 (review round 4: C1 on two lines, H1 with the
+  line that says the crawl is done; today 571 and 1051, and the edition with S2 drawn, once P1 lands, 607 and 1094).
+ROUTE-LEFT-EDGE (fail, review round 4): the words of every drawn row of the route (stops, the note, the hazard, the
+  step) do not start at one x, right of the track; file labels left of the track are not rows' words.
 ROUTE-PHONE-PX (fail): a phone text run under 14 px on a 390 px screen.
 ROUTE-PURPOSE (fail): a drawn element without a row in the sheet's PURPOSE table.
 """
@@ -38,7 +40,7 @@ SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "cop
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
-HEIGHT = {"desk": 600, "phone": 1040}   # review round 3: + the gap under the loop (15 desk, 19 phone); with S2, 587 / 1035
+HEIGHT = {"desk": 620, "phone": 1100}   # review round 4: C1 on two lines, H1 with its mark; S2 drawn, see LOG round 4
 TWICE_SELF = 4
 SOURCE_FILE = re.compile(r"[\w./-]+\.(rs|py|toml)$")
 PHONE_W, PHONE_SCREEN, MIN_PX = 720, 390, 14.0
@@ -117,6 +119,24 @@ def self_twice(texts: list[dict], where: str, n: int = TWICE_SELF) -> list[Findi
     return out
 
 
+def left_edge(entry: dict, where: str) -> list[Finding]:
+    """ROUTE-LEFT-EDGE: the leftmost run right of the track, per drawn row, is at one x in the edition."""
+    rep = entry.get("route") or {}
+    track = [m["box"] for m in rep.get("marks") or [] if m.get("kind") == "track"]
+    if not track:
+        return []
+    right = max(b[2] for b in track)
+    ids = [st["id"] for st in rep.get("steps") or []]
+    xs = {}
+    for t in entry.get("text") or []:
+        key = str(t.get("key") or "")
+        if key.startswith("routes:") and key[7:] in ids and float(t.get("x0", 0)) > right:
+            xs[key[7:]] = min(xs.get(key[7:], 1e9), float(t["x0"]))
+    if xs and max(xs.values()) - min(xs.values()) > 0.5:
+        return [fail("ROUTE-LEFT-EDGE", "rows start at " + ", ".join(f"{k} {v:.1f}" for k, v in xs.items()), where)]
+    return []
+
+
 def check(ctx) -> list[Finding]:
     out: list[Finding] = []
     stats = ctx.stats or {}
@@ -169,6 +189,7 @@ def check(ctx) -> list[Finding]:
         if words:
             out.append(fail("ROUTE-WORDS", f"theme words on the hero or in its alt: {', '.join(words)}", name))
         out += labels(route, texts, name, stats.get("handoffs"))
+        out += left_edge(e, name)
         out += code_face(texts, name)
         out += self_twice(texts, name)
         drawn = (e.get("route") or {}).get("drawn") or []

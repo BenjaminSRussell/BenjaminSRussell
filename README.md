@@ -25,7 +25,7 @@
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <!-- pick:start -->
-For the list of a site's URLs from one command, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**.
+For the list of a site's URLs, from one binary with no services to run, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**.
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
@@ -41,9 +41,8 @@ For the list of a site's URLs from one command, **rustmapper**; to keep the page
 pip install rustmapper
 rust_sitemap crawl \
     --start-url <your-site>
-rust_sitemap export-sitemap \
-    --data-dir ./data \
-    --output sitemap.xml
+# stop it with one Ctrl-C
+rust_sitemap export-sitemap
 ```
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
@@ -61,7 +60,8 @@ It sends up to 20 requests at a time to one host, 256 in all, with no pause betw
 <!-- facts:Scrapy:end -->
 
 ```sh
-# run start.py from inside this dir
+# in a clone of this repository;
+# start.py runs only from here
 cd Scraping_project
 # the whole pipeline (needs docker
 # and docker-compose); it crawls a
@@ -122,9 +122,9 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The drawing is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release; the reader it points to is ideal-url-organizer's, at `159968a`. Its install, crawl (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines were run on 10 Oct 2026 (Linux x86_64). Tests and CI measured 10 Oct 2026 from 22 public repositories · regenerated weekly. 3 % of Ben's commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as his.</sub>
+<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release; the reader it points to is ideal-url-organizer's, at `159968a`. Its install, crawl (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines were run on 10 Oct 2026 (Linux x86_64). Tests and CI measured 10 Oct 2026 from 22 public repositories · regenerated weekly. Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->
-<sub>**This profile** Code MIT; images and text CC BY 4.0; fonts under their own licenses in [`scripts/fonts/`](scripts/fonts/). The image is rustmapper's route in `chart.toml` (`[route.rustmapper]`, each line with the code it rests on); the build draws only the lines that code and its run check prove · how it's built → [DESIGN.md](DESIGN.md)</sub>
+<sub>**This profile** Code MIT; images and text CC BY 4.0; fonts under their own licenses in [`scripts/fonts/`](scripts/fonts/).</sub>
 <!-- license:end -->

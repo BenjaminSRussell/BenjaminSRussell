@@ -12,6 +12,9 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
     kill_writes_file    a crawl sent SIGTERM (what `kill`, `timeout` and `docker stop` send) writes sitemap.jsonl
     export_after_kill   after that kill, export-sitemap still writes a sitemap.xml with every page
     resume_after_kill   after that kill, `resume` runs and writes every page
+    quiet_after_last_page  (review round 4) in the ends_by_itself run, the crawl's `Received work item` lines name
+                        as many URLs as sitemap.jsonl has lines after the SIGINT, and the last of them came at
+                        least QUIET_SECONDS before it: a reader can tell the crawl is done from its own output
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -55,6 +58,8 @@ EXIT_SECONDS = 60       # how long a stopped crawl may take to exit
 ENDS_SECONDS = 150      # ends_by_itself: how long a crawl with no signal is given to exit by itself
 KILL_SECONDS = 5        # kill_writes_file: SIGTERM after this long
 RESUME_SECONDS = 20     # resume_after_kill: one SIGINT after this long, if it is still running
+QUIET_SECONDS = 100     # quiet_after_last_page: the last work-item line at least this long before the SIGINT
+WORK_ITEM = re.compile(r"Received work item: (\S+)")   # the line 0.1.3 prints for every URL it starts (stderr)
 
 
 def _step(steps: list, sid: str, cmd: str, ok: bool, detail: str = "", secs: float | None = None,
@@ -128,6 +133,79 @@ def _crawl(exe: str, args: list[str], work: Path, logname: str) -> tuple[subproc
     proc = subprocess.Popen([exe, *args], stdout=log, stderr=subprocess.STDOUT, cwd=work)
     proc._log = log  # type: ignore[attr-defined]
     return proc, time.monotonic()
+
+
+def _crawl_stamped(exe: str, args: list[str], work: Path, logname: str) -> tuple[subprocess.Popen, float, list]:
+    """As _crawl, with the output read through a pipe: each line goes to the log as it comes, and every
+    `Received work item` line is stamped with time.monotonic() (review round 4: when the crawl goes quiet)."""
+    log = open(work / logname, "w")
+    proc = subprocess.Popen([exe, *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=work, text=True,
+                            errors="replace", bufsize=1)
+    stamps: list[tuple[float, str]] = []
+
+    def pump():
+        for line in proc.stdout:  # type: ignore[union-attr]
+            log.write(line)
+            log.flush()
+            m = WORK_ITEM.search(line)
+            if m:
+                stamps.append((time.monotonic(), m.group(1)))
+
+    th = threading.Thread(target=pump, daemon=True)
+    th.start()
+
+    class _Log:
+        def close(self):
+            th.join(10)
+            log.close()
+    proc._log = _Log()  # type: ignore[attr-defined]
+    return proc, time.monotonic(), stamps
+
+
+def jsonl_lines(path: Path) -> int:
+    try:
+        return sum(1 for ln in path.read_text(encoding="utf-8", errors="replace").splitlines() if ln.strip())
+    except OSError:
+        return 0
+
+
+def quiet_verdict(stamps: list[tuple[float, str]], t_sig: float | None, lines: int,
+                  quiet: float = QUIET_SECONDS) -> tuple[bool, str]:
+    """quiet_after_last_page: the distinct URLs on the work-item lines equal the file's lines after the SIGINT, and
+    the last work-item line came at least `quiet` seconds before the SIGINT. No SIGINT (the crawl ended by itself):
+    the probe does not apply and fails, so a hazard worded on it is not drawn."""
+    if t_sig is None:
+        return False, "the crawl exited by itself; no SIGINT was sent"
+    if not stamps:
+        return False, "no Received work item line"
+    urls = {u.rstrip("/") for _, u in stamps}
+    gap = t_sig - max(t for t, _ in stamps)
+    ok = len(urls) == lines and gap >= quiet
+    return ok, (f"{len(stamps)} work-item lines for {len(urls)} URLs, the last {gap:.0f} s before the SIGINT; "
+                f"{lines} lines in sitemap.jsonl after it")
+
+
+def probe_ends(steps: list, exe: str, name: str, url: str, port: int, work: Path) -> None:
+    """ends_by_itself, then quiet_after_last_page from the same run's output."""
+    d2 = work / "d2"
+    proc, t0, stamps = _crawl_stamped(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir",
+                                            str(d2)], work, "ends.log")
+    t_sig = None
+    try:
+        proc.wait(ENDS_SECONDS)
+        took = time.monotonic() - t0
+        proc._log.close()  # type: ignore[attr-defined]
+        good, detail = check_jsonl(d2 / "sitemap.jsonl", port)
+        _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
+              proc.returncode == 0 and good, f"exit {proc.returncode} after {took:.1f} s; {detail}", took, gate=False)
+    except subprocess.TimeoutExpired:
+        t_sig = time.monotonic()
+        _stop(proc, signal.SIGINT, 0)
+        _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
+              False, f"still running at {ENDS_SECONDS} s; stopped with one SIGINT", ENDS_SECONDS, gate=False)
+    ok, detail = quiet_verdict(stamps, t_sig, jsonl_lines(d2 / "sitemap.jsonl"))
+    _step(steps, "quiet_after_last_page", f"{name} crawl: its Received work item lines stop once the pages run out",
+          ok, detail, gate=False)
 
 
 def _stop(proc: subprocess.Popen, sig: int, after: float) -> tuple[str, float | None]:
@@ -259,21 +337,8 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
                         good, f"{exited}; {detail}", secs)
             ok &= _export(steps, "export", exe, name, data, work, "s.xml", True)
 
-            # probe: does a crawl end by itself once the pages run out?
-            d2 = work / "d2"
-            proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(d2)],
-                              work, "ends.log")
-            try:
-                proc.wait(ENDS_SECONDS)
-                took = time.monotonic() - t0
-                good, detail = check_jsonl(d2 / "sitemap.jsonl", port)
-                _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
-                      proc.returncode == 0 and good, f"exit {proc.returncode} after {took:.1f} s; {detail}", took,
-                      gate=False)
-            except subprocess.TimeoutExpired:
-                _stop(proc, signal.SIGINT, 0)
-                _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
-                      False, f"still running at {ENDS_SECONDS} s; stopped with one SIGINT", ENDS_SECONDS, gate=False)
+            # probes: does a crawl end by itself once the pages run out, and does its output say when it is done?
+            probe_ends(steps, exe, name, url, port, work)
 
             # probes: a kill, then export-sitemap and resume on what it left
             d3 = work / "d3"

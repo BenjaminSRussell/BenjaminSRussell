@@ -24,8 +24,10 @@ first candidate (the entry itself, then each alternative in order) whose anchors
 drawn. `{secs:<step>}` in a text is that step's measured wall time. An alternative whose text is "" retires the
 entry once it holds (round 6, review 3): the fault is gone, so nothing is drawn and nothing fails. Value anchors
 `{path, field}` (a struct literal's `field: 20`) and `{path, arg}` (a clap argument's `default_value`) print as
-`{field:NAME}` and `{arg:NAME}`, as `{const:NAME}` does; `equals` pins the value. Entries of kind `text` are README
-sentences, checked the same way and never drawn. The sheet draws verified entries only; check.py
+`{field:NAME}` and `{arg:NAME}`, as `{const:NAME}` does; `equals` pins the value. Review round 4: a clap default
+may be a string (`default_value = "./sitemap.xml"`), printed without its leading `./`; `block` narrows an anchor to
+the braces after that name (one clap subcommand, `ExportSitemap { … }`), as `fn` does to a function. Entries of
+kind `text` are README sentences, checked the same way and never drawn. The sheet draws verified entries only; check.py
 fails on any other.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
@@ -45,7 +47,7 @@ STATES = ("runs", "fields differ", "no reader")
 
 _CONST = r"\bconst\s+{name}\s*:\s*[\w:<>]+\s*=\s*([0-9][0-9_]*(?:\.[0-9]+)?)\s*;"
 _FIELD_INIT = r"\b{name}\s*:\s*([0-9][0-9_]*)\b"            # a struct literal's field: `max_inflight: 20,`
-_ARG_DEFAULT = r'default_value\s*=\s*"([0-9][0-9_]*)"(?:(?!#\[arg)[\s\S])*?\b{name}\s*:'   # clap: the arg's default
+_ARG_DEFAULT = r'default_value\s*=\s*"([^"]*)"(?:(?!#\[arg)[\s\S])*?\b{name}\s*:'   # clap: the arg's default
 
 
 def fn_body(src: str, name: str) -> str | None:
@@ -63,6 +65,32 @@ def fn_body(src: str, name: str) -> str | None:
     return src[i + 1:j - 1]
 
 
+def block_body(src: str, name: str) -> str | None:
+    """The braces after `<name> {` (a clap subcommand variant, a struct literal), matched; None when absent."""
+    m = re.search(rf"\b{re.escape(name)}\s*\{{", src or "")
+    if not m:
+        return None
+    depth, j = 1, m.end()
+    while j < len(src) and depth:
+        depth += {"{": 1, "}": -1}.get(src[j], 0)
+        j += 1
+    return src[m.end():j - 1]
+
+
+def narrow(src: str | None, anchor: dict) -> tuple[str | None, str]:
+    """The part of `src` an anchor speaks of (`fn`, then `block`), and a name for it; (None, why) when absent."""
+    where = str(anchor.get("path") or "")
+    if src is None:
+        return None, f"{where}: file missing"
+    for key, fn in (("fn", fn_body), ("block", block_body)):
+        if anchor.get(key):
+            src = fn(src, str(anchor[key]))
+            if src is None:
+                return None, f"{where}: no {'fn ' if key == 'fn' else ''}{anchor[key]}"
+            where += f" {'fn ' if key == 'fn' else ''}{anchor[key]}"
+    return src, where
+
+
 def const_value(src: str | None, name: str) -> str | None:
     """`const BATCH_TIMEOUT_MS: u64 = 50;` -> "50" (underscores dropped); None when the constant is not there."""
     m = re.search(_CONST.format(name=re.escape(name)), src or "")
@@ -76,9 +104,13 @@ def field_value(src: str | None, name: str) -> str | None:
 
 
 def arg_value(src: str | None, name: str) -> str | None:
-    """`#[arg(short, long, default_value = "256", …)] workers: usize` -> "256": the first clap default of that arg."""
+    """`#[arg(short, long, default_value = "256", …)] workers: usize` -> "256": the first clap default of that arg
+    (underscores dropped from a number; a string as written, `./sitemap.xml`)."""
     m = re.search(_ARG_DEFAULT.format(name=re.escape(name)), src or "")
-    return m.group(1).replace("_", "") if m else None
+    if not m:
+        return None
+    v = m.group(1)
+    return v.replace("_", "") if re.fullmatch(r"[0-9][0-9_]*", v) else v
 
 
 VALUE_KINDS = {"const": const_value, "field": field_value, "arg": arg_value}
@@ -92,15 +124,9 @@ def check_anchor(read, anchor: dict) -> str | None:
     path = str(anchor.get("path") or "")
     if not path:
         return "anchor without a path"
-    src = read(path)
+    src, where = narrow(read(path), anchor)
     if src is None:
-        return f"{path}: file missing"
-    where = path
-    if anchor.get("fn"):
-        body = fn_body(src, str(anchor["fn"]))
-        if body is None:
-            return f"{path}: no fn {anchor['fn']}"
-        src, where = body, f"{path} fn {anchor['fn']}"
+        return where
     if "text" in anchor and str(anchor["text"]) not in src:
         return f"{where}: no {anchor['text']!r}"
     if "absent" in anchor and str(anchor["absent"]) in src:
@@ -125,9 +151,7 @@ def anchor_consts(read, anchors: list[dict] | None) -> dict[str, str]:
     for a in anchors or []:
         for kind, fn in VALUE_KINDS.items():
             if a.get(kind) and check_anchor(read, a) is None:
-                src = read(str(a["path"]))
-                if a.get("fn"):
-                    src = fn_body(src, str(a["fn"]))
+                src, _ = narrow(read(str(a["path"])), a)
                 out[f"{kind}:{a[kind]}"] = fn(src, str(a[kind]))
     return out
 
@@ -136,7 +160,10 @@ _CONST_REF = re.compile(r"\{((?:const|field|arg):\w+)\}")
 
 
 def _num(v: str) -> str:
-    """50000 -> "50,000" (a figure a reader reads); 256 and 50 stay as they are."""
+    """50000 -> "50,000" (a figure a reader reads); 256 and 50 stay as they are; a path default "./sitemap.xml"
+    prints as the file's name, "sitemap.xml" (review round 4: where the export writes, relative to where you are)."""
+    if v.startswith("./"):
+        return v[2:]
     return f"{int(v):,}" if v.isdigit() and len(v) > 4 else v
 
 
@@ -224,6 +251,12 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
     for gname, anchors in (spec.get("gates") or {}).items():   # HEAD-only conditions for README lines (SPEC §4.5)
         miss = no_head or check_anchors(rh, anchors, "head")
         gates[gname] = {"ok": not miss, "missing": miss}
+    # review round 4: release-only conditions for README lines (what pip installs: the export's default paths, Redis
+    # off unless asked); a value anchor's value is kept, so the README can print it
+    for gname, anchors in (spec.get("release_gates") or {}).items():
+        miss = no_rel or check_anchors(rr, anchors, "release")
+        gates[gname] = {"ok": not miss, "missing": miss, "scope": "release",
+                        "values": anchor_consts(rr, anchors) if not no_rel else {}}
     ids = [x["id"] for x in entries]
     if len(set(ids)) != len(ids):
         raise ValueError(f"route ids not unique: {ids}")
@@ -405,6 +438,10 @@ def handoff_state(spec: dict, read_writer_head, read_writer_release, read_reader
     if src is None:
         return out
     out["reader_fields"] = list_literal(src, spec["reader_list"])
+    # review round 4: what the receiving side does with the file, when its reader says so (`does`: {verb, text[]})
+    does = spec.get("does") or {}
+    if does.get("verb") and does.get("text"):
+        out["does"] = does["verb"] if all(str(t) in src for t in does["text"]) else None
     test = spec.get("test")
     out["test"] = test if test and read_reader(test) is not None else None
     need = set(out["reader_fields"])

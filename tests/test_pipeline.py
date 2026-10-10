@@ -205,8 +205,14 @@ class Readme(unittest.TestCase):
         # pick: only while its Scrapy rows hold and the route's header holds
         rows = [{"text": f["text"], "repo": f["repo"], "use": "pick", "holds": True}
                 for f in self.cfg["figures"] if f.get("use") == "pick"]
-        s = dict(self.stats, figures=rows, routes={"rustmapper": {"header_verified": True}})
+        ok = {"header_verified": True, "gates": {"no_services": {"ok": True}}}
+        s = dict(self.stats, figures=rows, routes={"rustmapper": ok})
         self.assertIn("**rustmapper**", render_readme.pick_block(s, self.cfg))
+        self.assertIn("from one binary with no services to run", render_readme.pick_block(s, self.cfg))
+        self.assertNotIn("one command", render_readme.pick_block(s, self.cfg))   # review round 4: it takes three steps
+        # review round 4: "no services" only while the release's crawl takes Redis as an opt-in flag
+        self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": dict(ok, gates={"no_services": {"ok": False}})}),
+                                                  self.cfg), "")
         self.assertEqual(render_readme.pick_block(dict(s, figures=[dict(rows[0], holds=False)] + rows[1:]), self.cfg), "")
         self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": {"header_verified": False}}), self.cfg), "")
         # about: the 0.1.3 wheel has no module, so the Python API is main's while main has it
@@ -287,8 +293,9 @@ class Readme(unittest.TestCase):
         """D5 / F3.4: measured when, from how many clones, my commits on their default branches, the bulk-edit days
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
         figs = render_readme.figures(self.stats, self.cfg)
-        block = render_readme.survey_block(self.stats, figs)
-        self.assertTrue(block.startswith("<sub>The drawing is rustmapper ") and block.endswith(".</sub>"), block)
+        block = render_readme.survey_block(self.stats, figs, ["Rust-sitemap", "Scrapy"], {"Rust-sitemap": "rustmapper"})
+        self.assertTrue(block.startswith("<sub>The [drawing](DESIGN.md) is rustmapper ") and block.endswith(".</sub>"),
+                        block)
         self.assertIn(f"Tests and CI measured {figs['taken']} from {figs['repo_count']} public repositories · "
                       "regenerated weekly.", block)
         head = block[5:block.index(" · regenerated weekly.")]
@@ -303,10 +310,11 @@ class Readme(unittest.TestCase):
                      "author's commits", f"{(self.stats.get('coauthored_total') or {}).get('agent')} commits"):
             self.assertNotIn(word, block, word)
         self.assertNotIn("bulk-edit", block)      # round 6: no figure on the page uses commit-days
-        cot = self.stats.get("coauthored_total") or {}
-        self.assertEqual("% of Ben's commits carry an AI co-author trailer" in block, "agent_share" in cot)
-        self.assertEqual("written by coding agents" in block or "written by a coding agent" in block,
-                         bool((self.stats.get("agent_authored") or {}).get("total")))
+        # review round 4: the AI clause qualifies the printed tests and lines, per repository with a facts line
+        self.assertNotIn("co-author trailer", block)
+        self.assertNotIn("not counted as his", block)
+        self.assertIn("Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) "
+                      "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>", block)
         # F3.4's own example, from a fixture carrying the keys the data builder adds
         full = {"taken": "2026-10-09", "repo_count": 21, "commits": 2032,
                 "sweep_dates": ["2025-11-10", "2025-11-09", "2026-10-07", "2026-10-01"],
@@ -314,9 +322,8 @@ class Readme(unittest.TestCase):
                                      "names": {"Claude Sonnet 5": 45}},
                 "agent_authored": {"total": 297, "names": {"google-labs-jules[bot]": 125, "Claude": 172}}}
         self.assertEqual(render_readme.survey_block(full),
-                         "<sub>Tests and CI measured 9 Oct 2026 from 21 public repositories · regenerated weekly. "
-                         "3\u00a0% of Ben's commits carry an AI co-author trailer; 297 more were written by "
-                         "coding agents (Claude, jules) and are not counted as his.</sub>")
+                         "<sub>Tests and CI measured 9 Oct 2026 from 21 public repositories · regenerated weekly.</sub>",
+                         "no repository with a facts line: no AI clause")
         # round 6: with the route, its head and the run check, the line says what the drawing was checked against
         routed = dict(full, edition={"project": "rustmapper", "version": "0.1.3"},
                       routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
@@ -326,7 +333,7 @@ class Readme(unittest.TestCase):
                                                "steps": [{"id": i, "ok": True} for i in
                                                          ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
         self.assertTrue(render_readme.survey_block(routed).startswith(
-            "<sub>The drawing is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release. "
+            "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release. "
             "Its install, crawl, Ctrl\u2011C, kill and export lines were run on 9 Oct 2026 (macOS arm64). Tests and CI "
             "measured 9 Oct 2026"))
         # review round 3: with the hand-off drawn, the line says the reader is the other project's, at its commit
@@ -343,18 +350,22 @@ class Readme(unittest.TestCase):
         self.assertEqual(render_readme.crawl_words(dict(step, cmd="rust_sitemap crawl --start-url https://x.org/")), "")
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
-        no_share = dict(full, coauthored_total={"count": 502, "agent": 63})
-        self.assertEqual(clause(no_share), "297 commits were written by coding agents (Claude, jules) and are not counted as his")
-        no_agents = {k: v for k, v in full.items() if k != "agent_authored"}
-        self.assertEqual(clause(no_agents), "3\u00a0% of Ben's commits carry an AI co-author trailer")
-        self.assertEqual(clause({}), "")
-        self.assertEqual(clause(dict(full, coauthored_total={"agent_share": 0.004})).split(";")[0],
-                         "under 1\u00a0% of Ben's commits carry an AI co-author trailer")
-        self.assertEqual(clause(dict(full, coauthored_total={"agent_share": 0})).split(";")[0],
-                         "none of Ben's commits carry an AI co-author trailer")
-        self.assertEqual(clause(dict(full, agent_authored={"total": 1, "names": ["Claude Sonnet 5"]})).split("; ")[1],
-                         "1 more was written by a coding agent (Claude) and is not counted as his")
-        self.assertEqual(clause(dict(no_share, agent_authored={"total": 0, "names": {}})), "", "zero agent commits, no half")
+        repos = {"repos": [{"name": "Rust-sitemap", "all_hands": 146, "others": [{"name": "Claude", "commits": 45, "bot": True}]},
+                           {"name": "Scrapy", "all_hands": 499, "others": [
+                               {"name": "google-labs-jules[bot]", "commits": 49, "bot": True},
+                               {"name": "Claude", "commits": 22, "bot": True},
+                               {"name": "dependabot[bot]", "commits": 8, "bot": True},
+                               {"name": "A Person", "commits": 3, "bot": False}]}]}
+        al = {"Rust-sitemap": "rustmapper"}
+        self.assertEqual(clause(repos, ["Rust-sitemap", "Scrapy"], al),
+                         "Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) "
+                         "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499")
+        self.assertEqual(clause(repos, ["Scrapy"], al).split(": ")[1],
+                         "coding agents (jules, Claude) authored 71 of Scrapy's 499 commits", "dependabot is not an agent")
+        self.assertEqual(clause(repos, [], al), "")
+        self.assertEqual(clause(repos, ["nowhere"], al), "", "a repository without its counts is left out")
+        none = {"repos": [{"name": "x", "all_hands": 9, "others": [{"name": "dependabot[bot]", "commits": 2, "bot": True}]}]}
+        self.assertEqual(clause(none, ["x"]), "", "no agent commits, nothing to qualify")
         self.assertEqual([render_readme.agent_short(n) for n in ("google-labs-jules[bot]", "Claude", "Claude Haiku 4.5", "other[bot]")],
                          ["jules", "Claude", "Claude", "other"])
         self.assertEqual(render_readme.fmt_days(["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-09", "2026-05-20"]),
@@ -439,7 +450,9 @@ class Readme(unittest.TestCase):
         self.assertEqual(render_readme.position_block(cfg), "<i>open to work · UTC−5</i><br>")
         self.assertEqual(render_readme.position_block(self.cfg), "", "chart.toml's position is empty today")
         self.assertIn("**This profile** Code MIT", render_readme.license_block())
-        self.assertTrue(render_readme.license_block().endswith(" · how it's built → [DESIGN.md](DESIGN.md)</sub>"))
+        # review round 4: the terms only; no "how it's built" footer (the data line's "drawing" links DESIGN.md)
+        self.assertTrue(render_readme.license_block().endswith("[`scripts/fonts/`](scripts/fonts/).</sub>"))
+        self.assertNotIn("chart.toml", render_readme.license_block())
         self.assertTrue(render_readme.license_block().startswith("<sub>"))
 
     def test_committed_readme_is_the_one_chart_page(self):
@@ -456,11 +469,12 @@ class Readme(unittest.TestCase):
                  "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
                  "pip install rustmapper", "Prebuilt for Apple silicon",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "# run start.py from inside this dir", "cd Scraping_project", "python start.py",
+                 "<!-- facts:Scrapy:start -->", "# in a clone of this repository;", "# start.py runs only from here",
+                 "cd Scraping_project", "python start.py",
                  "# or only discovery, on your own site:", "docker-compose run --rm scraper", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>The drawing is rustmapper", " · regenerated weekly.",
-                 "<!-- license:start -->", "**This profile** Code MIT", "[DESIGN.md](DESIGN.md)"]
+                 "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) is rustmapper", " · regenerated weekly.",
+                 "<!-- license:start -->", "**This profile** Code MIT"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
         for gone in ("## Soundings", "## Approaches", "## Ship's log", "## Instruments", "<summary><b>Colophon</b>",

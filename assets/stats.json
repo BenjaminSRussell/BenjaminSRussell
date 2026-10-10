@@ -7418,7 +7418,7 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "fetches a page; queues links on its domain, above or below it",
+     "text": "fetches a page; queues links on your URL's domain, above or below it",
      "file": "bfs_crawler.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7464,7 +7464,7 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "saved every 50 ms",
+     "text": "saved to its database every 50 ms",
      "file": "writer_thread.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7473,9 +7473,11 @@
      "fails": [],
      "paths": {
       "head": [
+       "src/state.rs",
        "src/writer_thread.rs"
       ],
       "release": [
+       "src/state.rs",
        "src/writer_thread.rs"
       ]
      }
@@ -7485,13 +7487,14 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "never stops by itself, even after the last page",
+     "text": "never stops by itself; done when `Received work item` lines stop",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "crawl_ctrl_c"
+      "crawl_ctrl_c",
+      "quiet_after_last_page"
      ],
      "fails": [
       "ends_by_itself"
@@ -7503,6 +7506,25 @@
       ]
      },
      "instead": [
+      {
+       "text": "never stops by itself, even after the last page",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [
+        "ends_by_itself"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      },
       {
        "text": "",
        "file": null,
@@ -7527,7 +7549,7 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, run `export-sitemap`",
+     "text": "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, `{script} export-sitemap` writes the pages to `sitemap.xml`",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7669,6 +7691,21 @@
     "python_api": {
      "ok": true,
      "missing": []
+    },
+    "export_defaults": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:data_dir": "./data",
+      "arg:output": "./sitemap.xml"
+     }
+    },
+    "no_services": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {}
     }
    },
    "sdist": {
@@ -7753,6 +7790,7 @@
    "reader": "scripts/import_rust_sitemapper.py",
    "test": "tests/test_import_rust_sitemapper.py",
    "state": "runs",
+   "does": "sorted by",
    "missing_fields": []
   },
   {
@@ -8034,6 +8072,14 @@
      "gate": false,
      "secs": 150,
      "detail": "still running at 150 s; stopped with one SIGINT"
+    },
+    {
+     "id": "quiet_after_last_page",
+     "cmd": "rust_sitemap crawl: its Received work item lines stop once the pages run out",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "3 work-item lines for 3 URLs, the last 150 s before the SIGINT; 3 lines in sitemap.jsonl after it"
     },
     {
      "id": "kill_writes_file",

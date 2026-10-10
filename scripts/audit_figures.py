@@ -58,10 +58,10 @@ FIXED = [
     ("survey", "measured <date> from N public repositories", "`taken`, `repo_count`",
      "the day of the build; the owner's public non-fork repositories (GraphQL live; in cache mode the cached names, "
      "REST's list when it answers, and README links REST confirms)", "REPO-SET"),
-    ("survey", "N % of my commits carry an AI co-author trailer", "`coauthored_total.agent_share`",
-     "of his commits on HEAD, the share with a Co-authored-by trailer naming an agent", "README-STALE"),
-    ("survey", "N more were written by coding agents", "`agent_authored.total`",
-     "commits on HEAD whose author is a coding agent (Claude, jules), not in his count", "README-STALE"),
+    ("survey", "coding agents authored N of <repo>'s M commits", "`repos[].others`, `repos[].all_hands`",
+     "for each repository with a facts line: commits on HEAD whose author is a coding agent (`others[]` with "
+     "`bot: true`, less `survey.AUTOMATION`), over all its commits on HEAD; the facts lines' tests and lines include "
+     "their code", "test_pipeline AgentClause; README-STALE"),
     ("more_count", "N more repositories", "computed (`render_readme.more_count`)",
      "`repo_count` − the profile − the flagships − the Also list", "REPO-SET"),
 ]

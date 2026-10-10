@@ -129,10 +129,13 @@ class Anchors(unittest.TestCase):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
         self.assertIn("by default", drawn["S1"]["text"])
-        # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope
-        self.assertEqual(drawn["H1"]["text"], "never stops by itself, even after the last page")
-        self.assertIn("after a kill, run `export-sitemap`", drawn["C1"]["text"])
-        self.assertIn("above or below it", drawn["F1"]["text"])
+        # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope; review round 4:
+        # with the line of output that says the crawl is done, while the run check saw it go quiet
+        self.assertEqual(drawn["H1"]["text"], "never stops by itself; done when `Received work item` lines stop")
+        # review round 4: after a kill the export writes sitemap.xml (cli.rs --output's default), named as installed
+        self.assertIn("after a kill, `{script} export-sitemap` writes the pages to `sitemap.xml`", drawn["C1"]["text"])
+        self.assertIn("on your URL's domain, above or below it", drawn["F1"]["text"])
+        self.assertEqual(drawn["W1"]["text"], "saved to its database every 50 ms")
         self.assertNotIn("kill", drawn["W1"]["text"])
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
 
@@ -198,6 +201,101 @@ class Probes(unittest.TestCase):
         self.assertIn("rustc 1.97.0", d)
         self.assertIn("4 CPUs", d)
         self.assertIn("3 runs: median 250.0 s, range 240.5-262.1 s", d)
+
+
+class Quiet(unittest.TestCase):
+    """Review round 4: H1 says when the crawl is done, from its own output, only while the run check saw it go quiet."""
+
+    def test_quiet_verdict(self):
+        import runcheck
+        stamps = [(10.0, "http://127.0.0.1:1/"), (10.2, "http://127.0.0.1:1/a.html"), (10.3, "http://127.0.0.1:1/b.html")]
+        ok, detail = runcheck.quiet_verdict(stamps, 160.0, 3)
+        self.assertTrue(ok, detail)
+        self.assertIn("3 work-item lines for 3 URLs, the last 150 s before the SIGINT; 3 lines in sitemap.jsonl", detail)
+        self.assertFalse(runcheck.quiet_verdict(stamps, 60.0, 3)[0], "under 100 s of quiet")
+        self.assertFalse(runcheck.quiet_verdict(stamps, 160.0, 2)[0], "a URL started but not written")
+        self.assertFalse(runcheck.quiet_verdict(stamps, None, 3)[0], "it ended by itself: no SIGINT")
+        self.assertFalse(runcheck.quiet_verdict([], 160.0, 0)[0])
+        self.assertTrue(runcheck.WORK_ITEM.search("Crawler: Received work item: http://x/ (depth 0)"))
+
+    def test_h1_takes_the_quiet_words_only_on_the_probe(self):
+        spec = {"repo": "x", "entry": [e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "H1"]}
+        body = ('pub async fn start_crawling(&self) { loop { tokio::select! { else => { eprintln!("Crawl complete: '
+                'frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }')
+        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body}), None, "0.1.3")
+
+        def words(**probes):
+            rc = {"version": "0.1.3", "ok": True, "steps": [{"id": k, "ok": v} for k, v in probes.items()]}
+            return {e["id"]: e for e in R.resolve(r, rc)}["H1"]
+        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
+                         "never stops by itself; done when `Received work item` lines stop")
+        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False)["text"],
+                         "never stops by itself, even after the last page")
+        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False)["text"],
+                         "never stops by itself, even after the last page", "no quiet probe recorded: the cause alone")
+        self.assertTrue(words(crawl_ctrl_c=True, ends_by_itself=True, quiet_after_last_page=False)["retired"])
+        # a release that no longer prints the line: the quiet wording's anchor fails, the cause alone is drawn
+        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body.replace("Received work item", "item")}),
+                           None, "0.1.3")
+        rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "crawl_ctrl_c", "ok": True},
+                                                        {"id": "ends_by_itself", "ok": False},
+                                                        {"id": "quiet_after_last_page", "ok": True}]}
+        self.assertEqual({e["id"]: e for e in R.resolve(r, rc)}["H1"]["text"], "never stops by itself, even after the last page")
+
+
+class StringDefaults(unittest.TestCase):
+    """Review round 4: a clap default that is a path, narrowed to one subcommand, prints as the file's name."""
+    CLI = ('Crawl {\n #[arg(short, long, default_value = "./data", help = "d")]\n data_dir: String,\n},\n'
+           'ExportSitemap {\n #[arg(short, long, default_value = "./out", help = "d")]\n data_dir: String,\n'
+           ' #[arg(short, long, default_value = "./sitemap.xml", help = "o")]\n output: String,\n}')
+
+    def test_block_and_string_arg(self):
+        self.assertEqual(R.arg_value(self.CLI, "output"), "./sitemap.xml")
+        self.assertEqual(R.block_body(self.CLI, "ExportSitemap").count("default_value"), 2)
+        spec = {"repo": "x", "entry": [{"id": "C1", "kind": "step", "text": "export writes `{arg:output}`",
+                                        "head": [{"path": "c.rs", "block": "ExportSitemap", "arg": "output"}],
+                                        "release": [{"path": "c.rs", "block": "ExportSitemap", "arg": "output"}]}],
+                "release_gates": {"export_defaults": [
+                    {"path": "c.rs", "block": "ExportSitemap", "arg": "data_dir", "equals": "./data"}]}}
+        r = R.verify_route(spec, tree({"c.rs": self.CLI}), tree({"c.rs": self.CLI}), "abc", "0.1.3")
+        self.assertEqual(r["entries"][0]["text"], "export writes `sitemap.xml`")
+        g = r["gates"]["export_defaults"]
+        self.assertFalse(g["ok"], "ExportSitemap's data_dir is ./out here, not Crawl's ./data")
+        self.assertIn("release c.rs ExportSitemap: arg data_dir is ./out, not ./data", g["missing"])
+        self.assertIn("no Missing", R.check_anchor(tree({"c.rs": self.CLI}), {"path": "c.rs", "block": "Missing", "arg": "x"}))
+
+    def test_release_gate_without_sdist_fails(self):
+        r = R.verify_route({"repo": "x", "entry": [], "release_gates": {"no_services": [{"path": "c.rs"}]}},
+                           None, None, None, None)
+        self.assertFalse(r["gates"]["no_services"]["ok"])
+
+    def test_committed_gates_hold(self):
+        with open(STATS, encoding="utf-8") as fh:
+            g = json.load(fh)["routes"]["rustmapper"]["gates"]
+        self.assertTrue(g["export_defaults"]["ok"], g["export_defaults"])
+        self.assertTrue(g["no_services"]["ok"], g["no_services"])
+
+
+class HandoffVerb(unittest.TestCase):
+    """Review round 4: the arrow past the end says what the next project does with the file, from its reader."""
+    SPEC = {"id": "j", "kind": "fields", "from": "a", "to": "b", "file": "data/sitemap.jsonl", "writer": "s.rs",
+            "writer_struct": "N", "reader": "r.py", "reader_list": "F", "test": "t.py",
+            "does": {"verb": "sorted by", "text": ["run.sh", "--all"]}}
+
+    def state(self, reader):
+        w = tree({"s.rs": "pub struct N {\n pub url: String,\n}"})
+        return R.handoff_state(self.SPEC, w, w, tree({"r.py": reader, "t.py": ""}), None, "1" * 40, "2" * 40, "0.1.3")
+
+    def test_verb_from_the_reader(self):
+        self.assertEqual(self.state('F = ["url"]\nsubprocess.run(["./run.sh", "--all"])')["does"], "sorted by")
+        h = self.state('F = ["url"]\n')
+        self.assertEqual(h["state"], "runs")
+        self.assertIsNone(h["does"])
+
+    def test_committed_handoff_is_sorted(self):
+        with open(STATS, encoding="utf-8") as fh:
+            h = next(x for x in json.load(fh)["handoffs"] if x["state"] == "runs")
+        self.assertEqual(h["does"], "sorted by")
 
 
 class Constants(unittest.TestCase):
@@ -273,13 +371,36 @@ class Commands(unittest.TestCase):
             s = copy.deepcopy(stats)
             s["edition"]["scripts"] = scripts
             s["runcheck"]["rustmapper"]["scripts"] = scripts
-            self.assertNotIn("command", sheet.plan(s, cfg))     # review round 2: the command's one home is the README
+            # review round 4: the image's one other command (C1, after a kill) is named as the wheel installs it
+            c1 = next(e for e in sheet.plan(s, cfg)["steps"] if e["id"] == "C1")
+            self.assertIn(f"`{want.split()[0]} export-sitemap`", c1["text"])
+            self.assertNotIn("{script}", c1["text"])
             block = rr.install_block(s, "Rust-sitemap", cfg)
             self.assertIn(want.split()[0] + " crawl \\\n    --start-url <your-site>", block)
         s = copy.deepcopy(stats)
         s["edition"]["scripts"] = []
         with self.assertRaises(RuntimeError):
             sheet.plan(s, cfg)
+
+    def test_install_block_says_how_it_ends(self):               # review round 4
+        with open(STATS, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        cfg = load_cfg()
+        block = rr.install_block(stats, "Rust-sitemap", cfg)
+        code = block.split("```")[1]
+        self.assertEqual(code.strip().splitlines()[1:], ["pip install rustmapper", "rust_sitemap crawl \\",
+                                                         "    --start-url <your-site>", "# stop it with one Ctrl-C",
+                                                         "rust_sitemap export-sitemap"])
+        self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))
+        s = copy.deepcopy(stats)
+        for st in s["runcheck"]["rustmapper"]["steps"]:
+            if st["id"] == "ends_by_itself":
+                st["ok"] = True
+        self.assertNotIn("Ctrl-C", rr.install_block(s, "Rust-sitemap", cfg), "a crawl that ends needs no stop line")
+        s = copy.deepcopy(stats)
+        s["routes"]["rustmapper"]["gates"]["export_defaults"] = {"ok": False, "missing": ["changed"]}
+        self.assertIn("    --data-dir ./data \\\n    --output sitemap.xml", rr.install_block(s, "Rust-sitemap", cfg),
+                      "a release with other defaults gets its flags back")
 
     def test_wheels(self):                                        # T-WHEELS
         self.assertEqual(R.wheel_words(["cp313-cp313-macosx_11_0_arm64"]),
@@ -608,8 +729,7 @@ class RouteSheet(unittest.TestCase):
             phone = "phone" in e
             G = sheet.L["phone" if phone else "desk"]
             for gid in ("S1", "F1", "C1", "H1"):
-                runs = [t for t in ent["text"] if t["key"] == f"routes:{gid}" and t["role"] != "machine" or
-                        (t["key"] == f"routes:{gid}" and t["x0"] >= (G["rule_x"] or 0) - 1)]
+                runs = [t for t in ent["text"] if t["key"] == f"routes:{gid}" and t["x0"] >= G["text_x"] - 1]
                 lines: dict[float, list] = {}
                 for t in runs:
                     lines.setdefault(round(t["y"], 1), []).append(t)
@@ -619,9 +739,60 @@ class RouteSheet(unittest.TestCase):
                 for y, ts in lines.items():
                     w = max(t["x1"] for t in ts) - min(t["x0"] for t in ts)
                     self.assertGreaterEqual(w, 0.45 * measure, f"{e} {gid}: a line of {w:.0f} at {y}")
-            if not phone:
-                g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
-                self.assertEqual(round(min(t["x0"] for t in g1)), G["text_x"], "the note starts in the label column")
+            g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
+            self.assertEqual(round(min(t["x0"] for t in g1)), G["text_x"], "the note starts at the rows' left edge")
+
+    def test_governor_is_a_note_under_fetch(self):                # review round 4: no tick, inside F1's row
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            rep = ent["route"]
+            self.assertFalse([m for m in rep["marks"] if m["id"] == "G1"], f"{e}: G1 has a mark of its own")
+            self.assertNotIn("tick", {m["kind"] for m in rep["marks"]})
+            steps = {st["id"]: st for st in rep["steps"]}
+            self.assertEqual(steps["G1"].get("under"), "F1", e)
+            G = sheet.L["phone" if "phone" in e else "desk"]
+            f1 = [t for t in ent["text"] if t["key"] == "routes:F1" and t["x0"] >= G["text_x"] - 1]
+            g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
+            w1 = [t for t in ent["text"] if t["key"] == "routes:W1" and t["x0"] >= G["text_x"] - 1]
+            self.assertEqual(max(t["y"] for t in g1) - max(t["y"] for t in f1), G["line"], f"{e}: G1 is F1's next line")
+            self.assertLess(max(t["y"] for t in g1), min(t["y"] for t in w1), e)
+            th = tokens.THEMES["night" if "night" in e else "day"]
+            self.assertIn(f'fill="{th.ink2}"', re.search(r'<g id="hero-G1">(.*?)</g>', self.svg(self.out, e), re.S).group(1))
+
+    def test_one_left_edge_and_desk_files_left_of_the_track(self):   # review round 4: ROUTE-LEFT-EDGE
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            self.assertEqual(route_check.left_edge(ent, e), [], e)
+            G = sheet.L["phone" if "phone" in e else "desk"]
+            xs = {st["x"] for st in ent["route"]["steps"]}
+            self.assertEqual(xs, {G["text_x"]}, e)
+            files = [t for t in ent["text"] if t["key"].startswith("routes:") and t["x1"] <= G["track_x"]]
+            if "phone" in e:
+                self.assertEqual(files, [], "the phone carries no file names")
+                continue
+            self.assertTrue(ent["route"]["file_labels"])
+            self.assertEqual(sorted(t["s"] for t in files), ["bfs_crawler.rs", "seeder.rs", "writer_thread.rs"])
+            th = tokens.THEMES["night" if "night" in e else "day"]
+            for t in files:
+                self.assertEqual(t["role"], "machine")
+                self.assertAlmostEqual(t["x1"], G["file_right"], delta=0.6)
+                self.assertGreaterEqual(t["x0"], G["title_x"])
+        bad = copy.deepcopy(self.report["sheets"]["hero-day"])
+        for t in bad["text"]:
+            if t["key"] == "routes:W1" and t["x0"] > sheet.L["desk"]["track_x"]:
+                t["x0"] += 30
+        self.assertEqual([f.code for f in route_check.left_edge(bad, "hero-day")], ["ROUTE-LEFT-EDGE"])
+
+    def test_desk_files_all_or_none(self):                        # review round 4: a label that would touch the title
+        s = copy.deepcopy(self.stats)
+        for x in s["routes"]["rustmapper"]["entries"]:
+            if x["id"] == "S1":
+                x["file"] = "a_very_long_source_file_name_that_reaches_the_role.rs"
+        n, rep, _out = _build(self.tmp, "longlabel", _write(self.tmp, s, "longlabel"), editions=["day"])
+        self.assertEqual(n, 0, rep["problems"])
+        ent = rep["sheets"]["hero-day"]
+        self.assertFalse(ent["route"]["file_labels"])
+        self.assertFalse([t for t in ent["text"] if t["key"].startswith("routes:") and t["x1"] <= sheet.L["desk"]["track_x"]])
 
     def test_code_is_in_the_code_face(self):                      # TYPE-CODE on the build
         for e in EDITIONS:
@@ -629,7 +800,11 @@ class RouteSheet(unittest.TestCase):
             self.assertEqual(route_check.code_face(texts, e), [])
             self.assertEqual(route_check.self_twice(texts, e), [])
             mono = [t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:C1"]
-            self.assertEqual(mono, ["data/sitemap.jsonl", "export-sitemap"], e)
+            # review round 4: the export is named as installed (edition.scripts) and writes cli.rs's default output
+            self.assertEqual(mono, ["data/sitemap.jsonl", f"{self.stats['edition']['scripts'][0]} export-sitemap",
+                                    "sitemap.xml"], e)
+            ho = [t["s"] for t in texts if t["key"].startswith("handoffs:")]
+            self.assertTrue(ho[0].startswith("sorted by ideal-url-organizer"), ho)   # review round 4: what it does
 
     def test_title_block_is_name_and_role(self):
         for e in EDITIONS:

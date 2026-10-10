@@ -216,3 +216,65 @@ Renders: `scratchpad/r6/build/round-03/` (the standard set, plus `once-p1-lands/
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
   it passes (0 fail). TYPE-CODE, HERO-SELF-TWICE, ROUTE-LABEL, CONTRAST-DANGER, STRINGS-TWICE, FIGURES, README-STALE,
   README-CODE-WIDTH and AUDIT-STALE are clean.
+
+## Round 4
+
+Reviews: `review-r04-1.md` (the owner's test) **7 / 10**, `review-r04-2.md` (the chart historian) **7 / 10**,
+`review-r04-3.md` (the working navigator) **7 / 10**. None meets the goal. Where they conflict, review 1 (the owner's
+lens) wins.
+
+Renders: `scratchpad/r6/build/round-04/` (the standard set, plus `once-p1-lands/`, the same sheet with S2 drawn,
+from `stats-r4-all.json`).
+
+### What was measured first
+
+- **When the crawl is done, from its own output.** `scripts/runcheck.py` has a new probe, `quiet_after_last_page`,
+  taken from the `ends_by_itself` run: the crawl's output is read through a pipe, and each `Received work item` line
+  is stamped as it arrives. The probe passes when those lines name as many URLs as `sitemap.jsonl` has lines after
+  the SIGINT, and the last came at least 100 s before it. The two probes were run again on 10 Oct 2026 (Linux x86_64)
+  on the 0.1.3 binary that day's run check installed (`scratchpad/r6/rc4/probe.py`): `ends_by_itself` no
+  (still running at 150 s), `quiet_after_last_page` yes ("3 work-item lines for 3 URLs, the last 150 s before the
+  SIGINT; 3 lines in sitemap.jsonl after it"). Both steps replace or join the record in `runcheck.rustmapper`; the
+  install and the other steps are the morning's.
+- **The routes and the hand-off, re-checked.** `routes.rustmapper` and the fields hand-off were verified again from
+  the Rust-sitemap clone at `32c2651`, the 0.1.3 sdist and ideal-url-organizer at `159968a`
+  (`scratchpad/r6/reroute4.py`, which refuses a tree at another commit than `stats.json` names).
+- **What the export writes.** `run_export_sitemap_command` (sdist `src/main.rs`) opens `CrawlerState` and builds a
+  `SitemapWriter` on `--output`, whose default in `cli.rs` `ExportSitemap` is `./sitemap.xml` in both trees. It never
+  writes `sitemap.jsonl`. `--data-dir` defaults to `./data` for both `crawl` and `export-sitemap`.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-2: the stop in the pasted block | The install block reads `pip install rustmapper` / `rust_sitemap crawl \` / `    --start-url <your-site>` / `# stop it with one Ctrl-C` / `rust_sitemap export-sitemap`. The comment is printed only while `ends_by_itself` failed and `crawl_ctrl_c` passed. The export's two flags are gone while the new release gate `export_defaults` holds: `ExportSitemap`'s `data_dir` is `./data` and its `output` `./sitemap.xml`, and `Crawl`'s `data_dir` is `./data` (value anchors, narrowed to the subcommand by the new anchor key `block`). If a release changes them, the flags come back. 7 lines to 5. The optional `# writes ./sitemap.xml` line is not printed: the image's Ctrl-C row and X1's sentence under the block already say where it writes, and STRINGS-TWICE caught the repeat. |
+| r1-3 (wins over r2-3): one left edge | Every row's words start at x 484 on the desk, as on the phone. The desk's file labels are set in `machine` 19, muted, right-aligned to x 424 on the row's first baseline, in the empty column under the role line. They are drawn all or none: if one would come within 4 units of the name or the role line, or the column met the loop's line, none is drawn (test). Today all three fit (`seeder.rs` 321–424, `bfs_crawler.rs` 264–424, `writer_thread.rs` 242–424; the role line's second line ends at 224). New ROUTE-LEFT-EDGE (fast tier, from the build report): every drawn row's leftmost run right of the track starts at one x. |
+| r1-4 (wins over r2-4): the AI clause | "Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499." Computed per repository with a facts line from `repos[].others` with `bot: true`, less `survey.AUTOMATION` (dependabot's 8 Scrapy commits are left out), over `repos[].all_hands`. No agent commits, no clause. The trailer share and the 297 are gone from the page. AUDIT §7 row replaced; tests. |
+| r1-5: the licence line | "**This profile** Code MIT; images and text CC BY 4.0; fonts under their own licenses in `scripts/fonts/`." The build sentence is cut. DESIGN.md is linked from the word "drawing" in the data line. |
+| r1-6: the pick sentence | "For the list of a site's URLs, from one binary with no services to run, **rustmapper**; …". Printed only while the release gate `no_services` holds: `Crawl`'s Redis flag is a clap `bool` (`enable_redis: bool,` under "Enable distributed crawling with Redis"), false unless given. |
+| r2-1 + r3-2: C1 and W1 | C1 "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, `rust_sitemap export-sitemap` writes the pages to `sitemap.xml`". `sitemap.xml` is `{arg:output}`, read from `ExportSitemap --output`'s default in both trees (a string default prints without its `./`); new release anchor `fn run_export_sitemap_command` contains `SitemapWriter::new`. `rust_sitemap` is `{script}`, filled by the sheet from `edition.scripts` by the T-SCRIPTS rule (test: C1 names `edition.scripts[0]`). On the desk it breaks at the semicolon into two lines. Not r2's "→": on the phone the arrow and the file fell to a line of their own; "writes the pages to" keeps three balanced phone lines and is plainer. W1 "saved to its database every 50 ms", with anchors `state.apply_event_batch(&batch)` in `writer_thread.rs` and `use redb::` in `state.rs`, both trees. |
+| r2-2: the governor under fetch | The tick is gone. G1's words are the last line of F1's row, in `ink2`, at F1's x; `hero-G1` and its PURPOSE row stay. BREAKS: "The governor is a note under fetch". Test: no mark for G1, its line is F1's next line and above W1. |
+| r3-1: when to act | H1 "never stops by itself; done when `Received work item` lines stop", with the release anchor `fn start_crawling` containing `Crawler: Received work item:` and the probe `quiet_after_last_page` (above). Without that probe it falls back to "never stops by itself, even after the last page"; once a release ends by itself, the empty alternative still retires the row. Tests for all three. Desk one line; phone two. |
+| r3-3: whose domain | F1 "fetches a page; queues links on your URL's domain, above or below it". |
+| r3-4: what the next project does | The hand-off record gains `does`: "sorted by" when ideal-url-organizer's reader at `to_sha` contains `run.sh` and `--all` (it imports the file and runs the organizer's whole pipeline), else "read by". Desk "sorted by ideal-url-organizer: `scripts/import_rust_sitemapper.py`, with a test"; phone "sorted by ideal-url-organizer, with a test". |
+| r3-5: the Scrapy block | "# in a clone of this repository;" / "# start.py runs only from here" above `cd Scraping_project` (32 and 30 columns). |
+| — | ROUTE-HEIGHT desk ≤ 620, phone ≤ 1100. Today 571 / 1051; with S2 drawn 607 / 1094. DESIGN.md's paragraph (from `tokens.py`) describes the route as drawn now. |
+
+### Fixes declined, and why
+
+| Must-fix | Why not |
+|---|---|
+| r1-1: ship rustmapper 0.1.4 from main (P1 robots 4xx, the MIT `LICENSE`, `[project.scripts]`, a wheel workflow, the release) | All of it is work in Rust-sitemap and a PyPI release under the owner's account, outside this repository and this session's credentials. The findings are recorded for him: a 0.1.4 cut from `32c2651` would fail to build (PEP 639: `license-files = ["LICENSE"]` matches no file) and would ship no command (`bindings = "pyo3"` without `[project.scripts]`). Review 3 asks not to hold the image for it, and the image says what pip installs today. ROUTE-UNVERIFIED still fails on S2 and LICENSE-FLAGSHIP still warns, as they should; once 0.1.4 passes the run check, H1, the gap, C1's kill clause and X1 retire, S2 is drawn, and the gate goes green with no edit here. |
+| r1-2 (part): "# writes ./sitemap.xml" | Optional in the review, and a repeat: STRINGS-TWICE fails "rust_sitemap export-sitemap writes" against the image's C1. The file's name is on C1 and in X1's sentence under the block. |
+| r3-2 (part): exempt `<script> <subcommand>` runs from STRINGS-TWICE's 3-word rule | No run collides now. The only collision the build met was a real repeat of a fact (above), which the exemption would have hidden. |
+| r2-4: "The working rules are dated by Ben's own first commits: 297 …" | Conflicts with r1-4 (owner lens), applied above. |
+| r2-3: one rule column at x 686 | Conflicts with r1-3 (owner lens), applied above: the column is x 484 and the files move left of the track. |
+
+### Measured state of this build
+
+- Desk sheet 571 high (607 with S2 drawn; gate 620); phone 1051 (1094; gate 1100).
+- `python3 -m unittest`: 274 tests, all pass.
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail, 0 warn). ROUTE-LEFT-EDGE, ROUTE-HEIGHT, ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE,
+  FIGURES, README-STALE, README-CODE-WIDTH and AUDIT-STALE are clean.
