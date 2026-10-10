@@ -307,8 +307,9 @@ class UserAgent(unittest.TestCase):
     def test_committed(self):
         cfg, stats = load()
         text = read(README)
-        self.assertIn("The last command crawls your site as `<your-bot>`; without that line, its requests say "
-                      "`UConn-Discovery-Crawler/1.0`.", text)
+        # review round 14: the sentence also says what stage 2 sends (test_round14)
+        self.assertIn("the last command gives the spider your site and names it `<your-bot>` (without that line, "
+                      "`UConn-Discovery-Crawler/1.0`).", text)
         block = text.split("python start.py\n", 1)[1].split("```", 1)[0]
         self.assertIn("  scraper scrapy crawl scout \\\n  -s USER_AGENT=<your-bot> \\\n  -a allowed_domains=", block)
         self.assertTrue(all(len(ln) <= readme_check.CODE_COLUMNS for ln in block.splitlines()))
@@ -332,7 +333,7 @@ class UserAgent(unittest.TestCase):
 class Politeness(unittest.TestCase):
     """r13-3 #2: the pick sentence says Scrapy obeys robots.txt and its Crawl-delay and waits out a Retry-After."""
 
-    CLAUSE = "It obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`."
+    CLAUSE = "Scrapy obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`."   # review round 14
 
     def files(self, **over):
         f = {"Scraping_project/src/stage1/middlewares/spider_config.py": SPIDER_CONFIG,
@@ -340,15 +341,20 @@ class Politeness(unittest.TestCase):
              "Scraping_project/config.yml": CONFIG,
              "Scraping_project/tests/unit/stage1/test_robots_policy.py":
                  "def test_disallowed_path_is_never_requested_and_crawl_delay_is_capped():\n",
-             "Scraping_project/tests/unit/stage1/test_retry_after.py": "# Retry-After\n"}
+             "Scraping_project/tests/unit/stage1/test_retry_after.py": "# Retry-After\n",
+             # review round 14: a stage 2 that checks robots.txt and sends its own name
+             "Scraping_project/src/stage2/stage2_worker.py":
+                 "robots = RobotFileParser(robots_txt_url)\n"
+                 "aiohttp.ClientSession(connector=c, headers={'User-Agent': UA})\n"}
         f.update(over)
         return f
 
     def test_committed(self):
         cfg, stats = load()
         self.assertEqual(cfg["copy"]["pick_polite"], self.CLAUSE)
-        self.assertIn("and needs Docker. " + self.CLAUSE + "\n<!-- pick:end -->", read(README))
-        self.assertEqual(len([f for f in cfg["figures"] if f.get("use") == "pick_polite"]), 3)
+        # review round 14: off the page while stage 2 neither checks robots.txt nor sends its own name
+        self.assertIn("and needs Docker.\n<!-- pick:end -->", read(README))
+        self.assertEqual(len([f for f in cfg["figures"] if f.get("use") == "pick_polite"]), 4)
 
     def test_rows_hold_on_the_fixture(self):
         cfg, _ = load()
@@ -359,6 +365,10 @@ class Politeness(unittest.TestCase):
 
     def test_clause_drops_when_a_row_fails(self):
         cfg, stats = load()
+        stats = copy.deepcopy(stats)
+        for r in stats["figures"]:
+            if r.get("use") == "pick_polite":
+                r["holds"] = True      # review round 14: as on the day stage 2 holds too
         self.assertTrue(rr.pick_block(stats, cfg).endswith(self.CLAUSE))
         s = copy.deepcopy(stats)
         next(r for r in s["figures"] if r.get("use") == "pick_polite")["holds"] = False

@@ -9,6 +9,8 @@ FIGURES (fail): a run of digits or a number word in README.md's visible text out
   Review round 11 (the owner): the printed working rules' bodies (chart.toml [[notices]], build-written, so not in
   the prose above) are read too: a typed number there needs a holding row, and a row marked `block = "notices"`
   must be in one of them (rule 1 carries the breaker's 5 URLs and 60 s, said nowhere else).
+  Review round 14: a `use = "pick_polite"` row that does not hold fails only while the pick sentence's politeness
+  clause is printed; otherwise it is the gate that keeps the clause off (its stage 2 row fails at 96e7a1a).
 """
 from __future__ import annotations
 
@@ -81,7 +83,12 @@ def uncovered(readme: str, rows: list[dict], text: str | None = None) -> list[st
 def check(ctx) -> list[Finding]:
     out: list[Finding] = []
     rows = (ctx.stats or {}).get("figures") or []
+    polite = str(((ctx.cfg or {}).get("copy") or {}).get("pick_polite") or "").strip()
     for r in rows:
+        # review round 14: a pick_polite row gates a clause the build leaves out while any of them fails; it is a
+        # claim only while that clause is printed
+        if r.get("use") == "pick_polite" and (not polite or polite not in (ctx.readme or "")):
+            continue
         if not r.get("holds"):
             out.append(fail("FIGURES", f"{r.get('text')!r} ({r.get('repo')}) does not hold at HEAD: {r.get('why')}",
                             "stats.json figures"))

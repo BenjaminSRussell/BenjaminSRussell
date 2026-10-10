@@ -448,6 +448,10 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
     # inaccurate; the hero's code date answers "is it alive".
     if not parts:
         return ""
+    # review round 14 (the screener): who wrote the code the counts count, beside them, not five screens down
+    agents = agent_clause(r)
+    if agents:
+        parts.append(agents)
     # review round 2: the counts are main's, not the release's; say which snapshot they are
     head = (r.get("head") or {}).get("short")
     # review round 9: a flagship with no sentence of its own (rustmapper: the image and the pick sentence introduce
@@ -835,48 +839,47 @@ def _share_pct(v) -> str | None:
 WHOSE = "Ben's"          # review round 3: the page speaks of him in the third person throughout
 
 
-def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | None = None) -> str:
-    """Review round 4: the AI disclosure qualifies the figures the page prints. The facts lines count tests and lines
-    per repository, whoever wrote them, so the clause says so and gives, for each repository with a facts line, the
-    commits a coding agent authored over all its commits (`repos[].others` with `bot: true`, less dependency and CI
-    automation, over `repos[].all_hands`): "Tests and lines are counted per repository, whoever wrote them: coding
-    agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499". A repository without its
-    counts is left out; with none, nothing."""
+def agent_counts(r: dict) -> dict | None:
+    """Review round 4 / 14: the commits coding agents authored in one repository (`others` with `bot: true`, less
+    dependency and CI automation), over all its commits (`all_hands`), their names (agent_short), and his own commits
+    (`commits`) that carry an agent's Co-authored-by trailer (`coauthored.agent`). None without the counts, or with
+    no agent commit."""
     try:
         from data.survey import AUTOMATION
     except ImportError:
         AUTOMATION = ("dependabot[bot]", "renovate[bot]", "github-actions[bot]", "pre-commit-ci[bot]")
-    aliases = aliases or {}
-    by = {r.get("name"): r for r in stats.get("repos") or [] if isinstance(r, dict)}
-    parts, names, cosigned = [], {}, []
-    for name in repos or []:
-        r = by.get(name) or {}
-        total = r.get("all_hands")
-        if not isinstance(total, int) or isinstance(total, bool) or total <= 0 or not isinstance(r.get("others"), list):
-            continue
-        agents = [o for o in r["others"] if isinstance(o, dict) and o.get("bot") and o.get("name") not in AUTOMATION]
-        n = sum(int(o.get("commits") or 0) for o in agents)
-        for o in agents:
-            short = agent_short(o.get("name") or "")
-            names[short] = names.get(short, 0) + int(o.get("commits") or 0)
-        parts.append(f"{fmt_n(n)} of {aliases.get(name, name)}'s {fmt_n(total)}")
-        # review round 7: his own commits that carry an agent's Co-authored-by trailer (`coauthored.agent`), beside
-        # the authored count as AUDIT §5 allows; said only when every repository listed has the count
-        co = (r.get("coauthored") or {}).get("agent") if isinstance(r.get("coauthored"), dict) else None
-        cosigned.append(co if isinstance(co, int) and not isinstance(co, bool) else None)
-    if not parts:
+    total = r.get("all_hands")
+    if not isinstance(total, int) or isinstance(total, bool) or total <= 0 or not isinstance(r.get("others"), list):
+        return None
+    agents = [o for o in r["others"] if isinstance(o, dict) and o.get("bot") and o.get("name") not in AUTOMATION]
+    names: dict[str, int] = {}
+    for o in agents:
+        short = agent_short(o.get("name") or "")
+        names[short] = names.get(short, 0) + int(o.get("commits") or 0)
+    n = sum(names.values())
+    if n <= 0:
+        return None
+    co = (r.get("coauthored") or {}).get("agent") if isinstance(r.get("coauthored"), dict) else None
+    mine = r.get("commits")
+    return {"authored": n, "total": total, "names": [k for k, v in sorted(names.items(), key=lambda kv: -kv[1]) if v],
+            "cosigned": co if isinstance(co, int) and not isinstance(co, bool) else None,
+            "his": mine if isinstance(mine, int) and not isinstance(mine, bool) else None}
+
+
+def agent_clause(r: dict) -> str:
+    """Review round 14 (the screener): the agent share beside the counts it qualifies, as the facts line's last item:
+    "coding agents (Claude) authored 45 of its 146 commits and co-signed 1 of his own 101". The co-signed count is said
+    only beside the authored one (AUDIT §5) and only when it is more than 0; with no agent commit, nothing."""
+    a = agent_counts(r or {})
+    if not a:
         return ""
-    who = [k for k, v in sorted(names.items(), key=lambda kv: -kv[1]) if v]
-    if not who:
-        return ""
-    parts[0] += " commits"
-    listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
-    tail = ""
-    if cosigned and all(c is not None for c in cosigned) and any(cosigned):
-        nums = [fmt_n(c) for c in cosigned]
-        tail = ", and co-signed " + (nums[0] if len(nums) == 1 else ", ".join(nums[:-1]) + " and " + nums[-1]) + " of his own"
-    return (f"Tests and lines are counted per repository, whoever wrote them: coding agents ({', '.join(who)}) "
-            f"authored {listed}{tail}")
+    out = f"coding agents ({', '.join(a['names'])}) authored {fmt_n(a['authored'])} of its {fmt_n(a['total'])} commits"
+    if a["cosigned"] and a["his"]:
+        out += f" and co-signed {fmt_n(a['cosigned'])} of his own {fmt_n(a['his'])}"
+    return out
+
+
+COUNTED_WHOLE = "Tests and lines are counted per repository, whoever wrote them."
 
 
 # The crawl command the README's block prints (install_block), as (flag, value) pairs.
@@ -952,7 +955,7 @@ def survey_block(stats: dict, figs: dict | None = None, repos: list[str] | None 
                  aliases: dict | None = None) -> str:
     """Round 6, SPEC §4 block 14; review round 5: the data line at the foot, what a visitor needs and nothing about
     the build: which release the drawing is and that it was run (route_clause), then what the facts lines' tests and
-    lines include, the commits coding agents authored in each repository with a facts line (`agent_clause`). The
+    lines include (review round 14: the agent counts themselves are on each facts line, `agent_clause`). The
     facts lines date and pin every count, so no "measured on" or schedule is repeated here. When the last build
     failed and the figures are the run before's, it says so. An item whose key is absent is left out, never
     estimated."""
@@ -965,9 +968,10 @@ def survey_block(stats: dict, figs: dict | None = None, repos: list[str] | None 
     if prov.get("mode") == "cache-failed":
         failed = fmt_date(prov.get("failed_at"))
         sentences.append(f"The last run failed{' on ' + failed if failed else ''}; these figures are from the run before.")
-    agents = agent_clause(stats, repos, aliases)
-    if agents:
-        sentences.append(agents[0].upper() + agents[1:] + ".")
+    # review round 14: the agent counts moved to the facts lines (agent_clause); the data line keeps what they mean
+    by = {r.get("name"): r for r in stats.get("repos") or [] if isinstance(r, dict)}
+    if any(agent_counts(by.get(n) or {}) for n in repos or []):
+        sentences.append(COUNTED_WHOLE)
     if not sentences:
         return ""
     return "<sub>" + " ".join(sentences) + "</sub>"

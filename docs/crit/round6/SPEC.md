@@ -128,6 +128,12 @@ strings; the gates in section 7 are the limits.
 
 **Desk: 1280 × 620 (870 × 422 on screen; today's hero is 870 × 424).**
 
+> Review round 14: superseded. The desk sheet is now the mid edition's stacked layout on a 1000-unit sheet
+> (`scripts/sheets/route.py`: `SIZES["desk"] = (1000, 900)`, `L["desk"] = dict(L["mid"])`; 1000 × 707 today, gate 770).
+> Side by side at 1280 its 19-unit words were 12.6 px in GitHub's 846 px column; stacked they are 16.1 px there and
+> 14.6 px at a 1,200 px window (`checks/column.py` DESK-PX). The left-column and route-column coordinates below are
+> kept as the record of the first build.
+
 Left column, x 56 to 410:
 - T1: role `display` set at 88 (the current hero's documented break), ink, baseline 128.
 - T2: role `label`, 19, tracking 1.6, caps, ink, baselines 182 and 210.

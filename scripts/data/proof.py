@@ -25,6 +25,8 @@ marks the row the image's hand-off label reads (sheets/route.handoff_words).
 
 Review round 13: `absent = [{path, pattern}]` must not match (a regular expression; the file must exist): config.yml
 with no top-level `scrapy:` section, so the UConn user agent is the one sent.
+Review round 14: `present = [{path, pattern}]` must match (the mirror of `absent`): the gate that keeps the pick
+sentence's politeness clause off the page until Scrapy's stage 2 checks robots.txt.
 
 Review round 8: `{text, repo, glob, contains, count}` counts only the matching files that contain the literal (the four
 organizers that take `List[PageContent]`), and `parts = [text, …]` on a row asks that the counts of those rows add up
@@ -307,6 +309,15 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
             if s2 is None or str(a.get("literal")) not in s2:
                 rec["holds"] = False
                 rec["why"] = f"{a.get('path')}: no {a.get('literal')!r} at HEAD"
+        for a in f.get("present") or []:  # review round 14: a pattern the claim needs (the mirror of `absent`)
+            if not rec["holds"]:
+                break
+            s2 = read(gd, str(a.get("path")))
+            if s2 is None:
+                rec["holds"], rec["why"] = False, f"{a.get('path')}: file missing at HEAD"
+            elif not re.search(str(a.get("pattern")), s2):
+                rec["holds"] = False
+                rec["why"] = f"{a.get('path')}: no match for {a.get('pattern')!r} at HEAD"
         for a in f.get("absent") or []:   # review round 13: a pattern that would make the claim false
             if not rec["holds"]:
                 break

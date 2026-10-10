@@ -47,7 +47,12 @@ pick = "**rustmapper** gives you a site's list of URLs from one binary, with no 
 # Review round 13 (the navigator): the cautions say what rustmapper 0.1.3 does not do for the site it crawls; this
 # says that his other tool does it. Appended to `pick` only while every [[figures]] row with use = "pick_polite"
 # holds (render_readme.pick_block); the caps (60 s, 120 s) stay in Scrapy's README
-pick_polite = "It obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`."
+# Review round 14 (the owner): the scout obeys robots.txt, but it queues every link for stage 2 before (or without)
+# requesting it, and stage 2 fetches them all with aiohttp: no robots.txt check, no Crawl-delay, no User-Agent of
+# its own. So the clause is off the page while the fourth row (stage 2 checks robots.txt and sends its own name)
+# fails, and comes back by itself the day it holds. It names Scrapy, so it cannot be read as rustmapper, whose
+# list says "It ignores `Crawl-delay`" ten lines below.
+pick_polite = "Scrapy obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`."
 # Review round 7: the Languages line's first two (what the page is about); the rest is every other main_language of
 # his public repositories, ordered by how many repositories, then lines (render_readme.languages_block)
 languages_lead = ["Python", "Rust"]
@@ -348,6 +353,105 @@ path = "Scraping_project/src/stage1/middlewares/spider_config.py"
 literal = 'RetryAfterMiddleware": 560'
 also = [{path = "Scraping_project/tests/unit/stage1/test_retry_after.py", literal = "Retry-After"}]
 
+# review round 14 (the owner): the gate on stage 2. It fails at 96e7a1a (stage2_worker.py never mentions robots and
+# opens its ClientSession with no headers), so the clause is not printed; checks/figures.py does not fail a
+# pick_polite row while the clause is off the page
+[[figures]]
+text = "Scrapy obeys robots.txt in stage 2 too"
+use = "pick_polite"
+repo = "Scrapy"
+path = "Scraping_project/src/stage2/stage2_worker.py"
+present = [{path = "Scraping_project/src/stage2/stage2_worker.py", pattern = '(?i)robots'}]
+absent = [{path = "Scraping_project/src/stage2/stage2_worker.py", pattern = 'ClientSession\((?![^)]*headers=)'}]
+
+# review round 14 (the owner): what the Scrapy run sentence says each stage does to a site. The spider (the scout's
+# settings) obeys robots.txt and its Crawl-delay; the scout yields every in-scope link to stage2_queue before it
+# yields the request for it (an HTML link) or instead of one (any other link), and the queue pipeline writes it with
+# only an SSRF check; stage 2 has no robots.txt or Crawl-delay code and fetches 4 at a time per host (no compose
+# override), sending aiohttp's own User-Agent, "Python/{major}.{minor} aiohttp/{version}": python:3.11-slim and
+# aiohttp==3.13.1. When stage 2 checks robots.txt or sends a name, a row fails and the sentence is reworded
+[[figures]]
+text = "The spider obeys `robots.txt` and its `Crawl-delay`."
+repo = "Scrapy"
+path = "Scraping_project/src/stage1/middlewares/spider_config.py"
+literal = '"ROBOTSTXT_OBEY": bool(spider_config.get("robotstxt_obey", True))'
+also = [{path = "Scraping_project/src/stage1/scout_spider.py", literal = 'custom_settings = get_spider_settings("scout")'},
+        {path = "Scraping_project/src/stage1/middlewares/spider_config.py", literal = 'PoliteRobotsTxtMiddleware": 100'},
+        {path = "Scraping_project/src/stage1/middlewares/spider_config.py", literal = '"scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware": None'},
+        {path = "Scraping_project/tests/unit/stage1/test_robots_policy.py", literal = "def test_disallowed_path_is_never_requested_and_crawl_delay_is_capped"}]
+absent = [{path = "Scraping_project/config.yml", pattern = '(?im)^\s*robotstxt_obey\s*:\s*(false|no|off|0)\b'}]
+
+[[figures]]
+text = "disallowed ones too"
+repo = "Scrapy"
+path = "Scraping_project/src/stage1/scout_spider.py"
+literal = """yield self._queue_for_stage2(url, response.url, content_hint)
+
+                    self.scout_stats["html_queued_js"] += 1
+                    self.scout_stats["pages_queued_stage2"] += 1
+
+                    yield scrapy.Request("""
+also = [{path = "Scraping_project/src/stage1/scout_spider.py", literal = """                else:
+                    yield self._queue_for_stage2(url, response.url, content_hint)"""},
+        {path = "Scraping_project/src/pipelines.py", literal = 'elif target_stage == "stage2":'}]
+absent = [{path = "Scraping_project/src/stage2/stage2_worker.py", pattern = '(?i)robots|crawl.?delay'},
+          {path = "Scraping_project/src/workers/stage2_worker.py", pattern = '(?i)robots|crawl.?delay'},
+          {path = "Scraping_project/src/pipelines.py", pattern = '(?i)robots'}]
+
+[[figures]]
+text = "4 at a time per host"
+repo = "Scrapy"
+path = "Scraping_project/src/stage2/stage2_worker.py"
+literal = "DEFAULT_STAGE2_PER_HOST_CONCURRENCY = 4"
+also = [{path = "Scraping_project/config.yml", literal = "\n  per_host_concurrency: 4\n"}]
+absent = [{path = "Scraping_project/docker-compose.yml", pattern = 'STAGE2_PER_HOST_CONCURRENCY'}]
+
+[[figures]]
+text = "`Python/3.11 aiohttp/3.13.1`"
+repo = "Scrapy"
+path = "Scraping_project/Dockerfile"
+literal = "FROM python:3.11-slim as base"
+also = [{path = "Scraping_project/requirements.txt", literal = "\naiohttp==3.13.1\n"},
+        {path = "Scraping_project/src/stage2/stage2_worker.py", literal = "aiohttp.ClientSession(connector=connector, timeout=aiohttp.ClientTimeout(total=30))"},
+        {path = "Scraping_project/src/stage2/stage2_worker.py", literal = "session.get(current, allow_redirects=False)"}]
+absent = [{path = "Scraping_project/src/stage2/stage2_worker.py", pattern = '(?i)user.?agent|ClientSession\([^)]*headers=|session\.get\(current[^)]*headers='}]
+
+# review round 14 (the screener): Scrapy's third bullet says how it is run, not only that it has dashboards. The alert
+# named is on a metric the code emits with that label; no count of alerts is printed (verifying all of them against
+# emitted metrics is more than a row can hold). The kill switch's 5 s is CrawlGuard's default, and config.yml does
+# not change it; both stages consult the guard before each download
+[[figures]]
+text = "Prometheus alerts on its own metrics"
+repo = "Scrapy"
+path = "Scraping_project/monitoring/alerting_rules.yml"
+literal = "alert: DeltaWriteFailuresSustained"
+also = [{path = "Scraping_project/src/lakehouse/lakehouse_manager.py", literal = '"delta_write_failures_total"'},
+        {path = "Scraping_project/monitoring/prometheus.yml", literal = "/etc/prometheus/alerting_rules.yml"},
+        {path = "Scraping_project/docker-compose.yml", literal = "./monitoring/alerting_rules.yml:/etc/prometheus/alerting_rules.yml"}]
+
+[[figures]]
+text = "Delta writes spilling to disk"
+repo = "Scrapy"
+path = "Scraping_project/monitoring/alerting_rules.yml"
+literal = 'delta_write_failures_total{outcome="spilled"}'
+also = [{path = "Scraping_project/src/lakehouse/lakehouse_manager.py", literal = 'DELTA_WRITE_FAILURES.labels(table=table_name, outcome="spilled").inc()'}]
+
+[[figures]]
+text = "stops new downloads within 5 s"
+repo = "Scrapy"
+path = "Scraping_project/src/utils/crawl_guard.py"
+literal = 'opt("kill_switch_check_secs", 5.0)'
+also = [{path = "Scraping_project/src/stage1/middlewares/spider_config.py", literal = 'CrawlGuardMiddleware": 25'},
+        {path = "Scraping_project/src/stage2/stage2_worker.py", literal = "self._crawl_guard_reason()"},
+        {path = "Scraping_project/cli.py", literal = "def cmd_killswitch"},
+        {path = "Scraping_project/tests/unit/test_crawl_guard_kill_switch.py", literal = "def test_"}]
+absent = [{path = "Scraping_project/config.yml", pattern = 'kill_switch_check_secs'}]
+
+[[figures]]
+text = "with a runbook"
+repo = "Scrapy"
+path = "Scraping_project/docs/runbooks/sev1_abuse_kill_switch.md"
+
 # review round 13 (the navigator): who the page's Scrapy command says it is. settings.py's USER_AGENT falls back to
 # the UConn name unless config.yml has a `scrapy:` section with user_agent, and it has none; the scout's own settings
 # do not set one. The run sentence names it and the code block gives `-s USER_AGENT`, which wins over both
@@ -387,8 +491,14 @@ also = [{path = "Scraping_project/docker-compose.yml", literal = "\n  stage2-wor
         {path = "Scraping_project/docker-compose.yml", literal = "\n  grafana:"},
         {path = "Scraping_project/start.py", literal = '("docker-compose", "up", "-d")'}]
 
+# Review round 14 (the owner): the `--reset-delta` sentence is cut. Since b787e65 (8 Oct 2026) `cli.py reset` goes
+# through destructive_guard: start.py's `--force` means `--confirm --yes`, `--yes` needs ALLOW_LAKE_RESET=1 in the
+# container, and the scraper service does not set it (with -T no confirmation can be typed), so the reset is refused
+# and start.py exits 3. The sentence may come back, with the word "wipes" (cmd_reset deletes the whole lake first),
+# only once start.py passes ALLOW_LAKE_RESET=1 (or `-e`) to that `docker-compose run`; "is refused" is the owner's
+# to-do list, not the visitor's
 [[figures]]
-text = "It loads no seeds by default."
+text = "It loads no seeds:"
 repo = "Scrapy"
 path = "Scraping_project/start.py"
 literal = "    if args.reset_delta:"
@@ -397,25 +507,8 @@ also = [{path = "Scraping_project/start.py", literal = 'LOCAL_SEED_FILE = Path("
         {path = "Scraping_project/start.py", literal = '"reset",'},
         {path = "Scraping_project/src/stage1/experimental/base_spider.py", literal = 'or self._load_seed_urls()'},
         {path = "Scraping_project/src/stage1/experimental/base_spider.py", literal = "            return []"},
-        {path = "Scraping_project/cli.py", literal = 'pd.read_csv(csv_path, header=None, names=["url"])'}]
-
-# the rows `cli.py reset` loads: pd.read_csv(header=None) gives the rows Python's csv module reads (quoted fields
-# that never close swallow the next line: 143,218 non-blank lines, 143,208 rows); `host` keeps the rows whose
-# urlsplit().hostname is that domain or ends in "." + it
-[[figures]]
-text = "143,208"
-repo = "Scrapy"
-path = "Scraping_project/data/raw/uconn_urls.csv"
-csv_rows = true
-count = 143208
-
-[[figures]]
-text = "134,807 of them on uconn.edu"
-repo = "Scrapy"
-path = "Scraping_project/data/raw/uconn_urls.csv"
-csv_rows = true
-host = "uconn.edu"
-count = 134807
+        {path = "Scraping_project/cli.py", literal = 'pd.read_csv(csv_path, header=None, names=["url"])'},
+        {path = "Scraping_project/cli.py", literal = "guarded_lake_wipe(DELTA_LAKE, args"}]
 
 # review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
 # utils/retry.py have no caller. The two figures are the defaults the worker reads. Review round 11: they are printed

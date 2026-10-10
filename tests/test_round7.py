@@ -345,20 +345,20 @@ class Cosigned(unittest.TestCase):
     """r07-2 #6, r07-3 #7: the co-signed commits beside the authored ones; "shows"; the Scrapy repository's."""
 
     def test_clause(self):
-        repos = {"repos": [{"name": "A", "all_hands": 10, "others": [{"name": "Claude", "commits": 4, "bot": True}],
-                            "coauthored": {"agent": 1}},
-                           {"name": "B", "all_hands": 20, "others": [{"name": "Claude", "commits": 6, "bot": True}],
-                            "coauthored": {"agent": 3}}]}
-        got = rr.agent_clause(repos, ["A", "B"], {"B": "the B repository"})
-        self.assertTrue(got.endswith("authored 4 of A's 10 commits and 6 of the B repository's 20, and co-signed 1 and 3 "
-                                     "of his own"), got)
-        repos["repos"][1].pop("coauthored")
-        self.assertNotIn("co-signed", rr.agent_clause(repos, ["A", "B"]))
+        # review round 14: per repository, on its facts line; co-signed only beside the authored count, and only > 0
+        a = {"name": "A", "all_hands": 10, "commits": 6, "others": [{"name": "Claude", "commits": 4, "bot": True}],
+             "coauthored": {"agent": 1}}
+        self.assertEqual(rr.agent_clause(a), "coding agents (Claude) authored 4 of its 10 commits and co-signed 1 of "
+                                             "his own 6")
+        self.assertNotIn("co-signed", rr.agent_clause(dict(a, coauthored={"agent": 0})))
+        a.pop("coauthored")
+        self.assertNotIn("co-signed", rr.agent_clause(a))
 
     def test_committed(self):
         text = read(README).replace(NB, " ")
         self.assertIn("The [drawing](DESIGN.md) shows rustmapper 0.1.3", text)
-        self.assertIn("71 of the Scrapy repository's 499, and co-signed 1 and 30 of his own.", text)
+        self.assertIn("coding agents (jules, Claude) authored 71 of its 499 commits and co-signed 30 of his own 420*",
+                      text)
 
 
 class Framework(unittest.TestCase):

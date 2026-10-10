@@ -10,6 +10,11 @@ HERO-COLUMN-PX (fail): for some viewport from VIEWPORTS[0] to VIEWPORTS[1] CSS p
   The phone sheet (600 x 1,121) was drawn 1,080 to 1,429 px tall at 1,012 to 1,199 px; the mid edition (820 wide,
   stacked, desk type) is served from `chart.toml` `mid_from_px` to `breakpoint_px`.
 
+DESK-PX (fail, review round 14): for some viewport from the desk breakpoint (`chart.toml` `breakpoint_px` + 1) to
+  VIEWPORTS[1], the served sheet's smallest text is under DESK_MIN_PX, or under DESK_FULL_PX where the column is its
+  widest (846): on a laptop or a desktop the route's words should read at about the page's own 16 px body size, not
+  under it. The side-by-side 1280 desk sheet gave 11.4 to 12.6 px there; the stacked 1000 one gives 14.6 to 16.1.
+
 `derive(sheets)` gives the two numbers the serving rests on, from the column table and the built sheets: the widest
 viewport where the phone sheet is drawn at most TALL_PX tall (851 for 1,121 units: column 481), and the widest mid
 sheet whose smallest text holds MIN_PX at the next viewport's column (19 x 482 / 11 = 832 units; it is 820).
@@ -36,6 +41,8 @@ VIEWPORTS = (360, 1920)
 TALL_FROM = 768          # review round 12: two columns from here (a laptop, or a tablet held sideways)
 TALL_PX = 900.0          # review round 12: the tallest the hero may be drawn there
 SHEET = "hero"
+DESK_MIN_PX = 14.5       # review round 14: the route's words from the desk breakpoint up
+DESK_FULL_PX = 16.0      # and where GitHub's column is its widest, the page's body size
 
 
 def column_px(vw: int) -> float:
@@ -151,6 +158,27 @@ def _runs(bad: list[tuple[int, str, float]], worst_of=min) -> list[str]:
     return runs
 
 
+def desk_small(readme: str, sheets: dict, lo: int, hi: int = VIEWPORTS[1]) -> list[tuple[int, str, float]]:
+    """Review round 14: [(viewport, edition, px)] from `lo` to `hi` whose served sheet's smallest text is under
+    DESK_MIN_PX, or under DESK_FULL_PX where the column is its widest."""
+    out = []
+    full = column_px(VIEWPORTS[1])
+    for vw in range(lo, hi + 1):
+        name = served(readme, vw)
+        e = sheets.get(name)
+        if not e or not e.get("w"):
+            continue
+        s = smallest(e)
+        if s is None:
+            continue
+        col = column_px(vw)
+        px = s * col / float(e["w"])
+        floor = DESK_FULL_PX if col >= full else DESK_MIN_PX
+        if px < floor - 1e-6:
+            out.append((vw, name, px))
+    return out
+
+
 def check(ctx) -> list[Finding]:
     sheets = (ctx.report or {}).get("sheets") or {}
     if f"{SHEET}-day" not in sheets:
@@ -161,6 +189,11 @@ def check(ctx) -> list[Finding]:
     if bad:
         out.append(fail("HERO-COLUMN-PX", "text under " + f"{MIN_PX:g} px at viewports " + "; ".join(_runs(bad)),
                         "README.md"))
+    bp = int(((ctx.cfg or {}).get("chart") or {}).get("breakpoint_px", 1199))
+    small = desk_small(readme, sheets, bp + 1)
+    if small:
+        out.append(fail("DESK-PX", f"the route's words under {DESK_MIN_PX:g} px (or {DESK_FULL_PX:g} px at the "
+                        f"{column_px(VIEWPORTS[1])} px column) at viewports " + "; ".join(_runs(small)), "README.md"))
     tall = tallest(readme, sheets)
     if tall:
         out.append(fail("HERO-COLUMN-PX", f"drawn taller than {TALL_PX:g} px at viewports "
@@ -174,4 +207,6 @@ def check(ctx) -> list[Finding]:
                         f"or more, and from {TALL_FROM} a picture at most {TALL_PX:g} px tall ({'; '.join(spans)}; "
                         f"derived: phone up to {d.get('phone_until')}, mid at most {d.get('mid_w_max')} units wide)",
                         "README.md"))
+        out.append(info("DESK-PX", f"from {bp + 1} px the route's words are {DESK_MIN_PX:g} px or more, and "
+                        f"{DESK_FULL_PX:g} px or more at the {column_px(VIEWPORTS[1])} px column", "README.md"))
     return out

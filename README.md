@@ -27,14 +27,14 @@
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <!-- pick:start -->
-**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker. It obeys `robots.txt` and its `Crawl-delay`, and waits out a `Retry-After`.
+**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker.
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
 <!-- about:Rust-sitemap:end -->
 
 <!-- facts:Rust-sitemap:start -->
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 test functions · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust*
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 test functions · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust · coding agents (Claude) authored 45 of its 146 commits and co-signed 1 of his own 101*
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
@@ -76,14 +76,14 @@ rust_sitemap export-sitemap
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system on top of the Scrapy framework, in four stages: discovery, analysis, summaries, large documents.
 
 <!-- facts:Scrapy:start -->
-*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 test functions (CI selects all but 41) · CI passed 8 Oct 2026: tests, ruff, mypy, bandit · MIT license · 69k lines of Python*
+*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 test functions (CI selects all but 41) · CI passed 8 Oct 2026: tests, ruff, mypy, bandit · MIT license · 69k lines of Python · coding agents (jules, Claude) authored 71 of its 499 commits and co-signed 30 of his own 420*
 <!-- facts:Scrapy:end -->
 
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
 - Repeat URLs are dropped by their hash, near-duplicate pages by MinHash. In stage 3 a page's summary is its first five sentences; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.
+- Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards. A kill switch stops new downloads within 5 s, with a runbook. Docker Compose and a Helm chart for Kubernetes.
 
-Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site as `<your-bot>`; without that line, its requests say `UConn-Discovery-Crawler/1.0`.
+Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`.
 
 ```sh
 cd Scrapy/Scraping_project
@@ -136,7 +136,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of the Scrapy repository's 499, and co-signed 1 and 30 of his own.</sub>
+<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

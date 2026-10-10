@@ -63,21 +63,21 @@ class ScrapyRun(unittest.TestCase):
     SENTENCE = ("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. "
                 "`python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs "
                 "Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). "
-                "It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on "
-                "uconn.edu. The last command crawls your site as `<your-bot>`; without that line, its requests say "
-                "`UConn-Discovery-Crawler/1.0`.")   # review round 13: who the crawl says it is
+                "It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without "
+                "that line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The "
+                "stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, "
+                "as `Python/3.11 aiohttp/3.13.1`.")   # review round 14: both stages; the --reset-delta sentence cut
 
     def test_committed(self):
         text = read(README)
         self.assertIn(self.SENTENCE, text)
         self.assertNotIn("sample site", text)
+        self.assertNotIn("--reset-delta", text)
         _, stats = load()
         rows = {f["text"]: f for f in stats["figures"]}
-        for t in ("a worker for each of the four stages", "It loads no seeds by default.",
-                  "143,208", "134,807 of them on uconn.edu"):
+        for t in ("a worker for each of the four stages", "It loads no seeds:"):
             self.assertTrue(rows[t]["holds"], rows[t])
-        self.assertEqual(rows["143,208"]["measured"], 143208)
-        self.assertEqual(rows["134,807 of them on uconn.edu"]["measured"], 134807)
+        self.assertNotIn("143,208", rows)
         self.assertEqual(figures_check.uncovered(text, stats["figures"]), [])
         self.assertEqual(figures_check.unbacked_claims(text, stats["figures"]), [])
 
@@ -293,7 +293,8 @@ class Levers(unittest.TestCase):
     def test_render(self):
         """Render tier, in Chromium: the committed items split no flag at 320 to 430 px; the round-9 joins did."""
         blocks = [b for b in wrap_check.blocks_html(read(README)) if "<code>-" in b[1]]
-        self.assertEqual([t for t, _ in blocks], ["li", "li", "p"], "the two levers and the Scrapy run sentence")
+        # review round 14: the Scrapy run sentence lost its one flag (--reset-delta) with the sentence
+        self.assertEqual([t for t, _ in blocks], ["li", "li"], "the two levers")
         rows = wrap_check.measure(ROOT, blocks)
         if rows is None:
             self.skipTest("render.mjs wrap could not start Chromium")
@@ -301,7 +302,6 @@ class Levers(unittest.TestCase):
         old = wrap_check.split_flags(wrap_check.measure(ROOT, [(t, h.replace("<br>", " ")) for t, h in blocks]))
         self.assertTrue(any("'--workers 1'" in b for b in old), old)
         self.assertTrue(any("'--seeding-strategy none'" in b for b in old), old)
-        self.assertTrue(any("'--reset-delta' splits as '--reset-' | 'delta'" in b for b in old), old)
 
 
 if __name__ == "__main__":

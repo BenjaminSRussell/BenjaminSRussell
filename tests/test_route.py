@@ -1012,26 +1012,11 @@ class RouteSheet(unittest.TestCase):
         wide = [{"key": "routes:H1", "role": "machine", "s": "Received work", "x0": 0, "x1": 50, "y": 1}]
         self.assertEqual([f.code for f in route_check.code_spaces(wide, "x", 4.0)], ["ROUTE-CODE-SPACE"])
 
-    def test_desk_file_labels_need_a_line_under_the_title(self):  # review round 5: proximity, not only overlap
-        saved = copy.deepcopy(sheet.L["desk"])
-        try:
-            sheet.L["desk"]["head_y"] = saved["head_y"] + 80        # the rows a line and more below the role line
-            n, rep, _out = _build(self.tmp, "farlabels", _write(self.tmp, self.stats, "farlabels"), editions=["day"])
-        finally:
-            sheet.L["desk"].clear()
-            sheet.L["desk"].update(saved)
-        self.assertTrue(rep["sheets"]["hero-day"]["route"]["file_labels"], "far enough from the title: drawn")
-
-    def test_desk_files_all_or_none(self):                        # review round 4: a label that would touch the title
-        s = copy.deepcopy(self.stats)
-        for x in s["routes"]["rustmapper"]["entries"]:
-            if x["id"] == "S1":
-                x["file"] = "a_very_long_source_file_name_that_reaches_the_role.rs"
-        n, rep, _out = _build(self.tmp, "longlabel", _write(self.tmp, s, "longlabel"), editions=["day"])
-        self.assertEqual(n, 0, rep["problems"])
-        ent = rep["sheets"]["hero-day"]
-        self.assertFalse(ent["route"]["file_labels"])
-        self.assertFalse([t for t in ent["text"] if t["key"].startswith("routes:") and t["x1"] <= sheet.L["desk"]["track_x"]])
+    def test_no_edition_draws_file_labels(self):                 # review round 14: the side-by-side desk is retired
+        for sc in ("desk", "mid", "phone"):
+            self.assertIsNone(sheet.L[sc]["file_right"], sc)
+        for e in EDITIONS:
+            self.assertFalse(self.report["sheets"][f"hero-{e}"]["route"]["file_labels"], e)
 
     def test_code_is_in_the_code_face(self):                      # TYPE-CODE on the build
         for e in EDITIONS:

@@ -48,7 +48,11 @@ KIND = "chart"
 # Review round 12 (the owner): a mid edition, 820 wide, for viewports of 852 to 1199 px (an iPad held sideways, a
 # laptop window under 1,200 px), where GitHub's column is 482 to 765 px: the phone's stacked composition (title on top,
 # the route under it) at the desk's type sizes. The phone sheet there was drawn 900 to 1,429 px tall.
-SIZES = {"desk": (1280, 620), "phone": (600, 1250), "mid": (820, 900)}
+# Review round 14 (the cartographer): the desk sheet is the mid's stacked layout on a 1000-unit sheet, the extra 220
+# units left as paper on the right. Side by side at 1280 its 19-unit text was 12.6 px in GitHub's 846 px column, under
+# the 16 px body text below it, for every desktop window from 1,200 px up; stacked at 1000 it is 16.1 px there and 14.6
+# px at 1,200 (column 766), where the mid sheet one pixel narrower is 17.7 px
+SIZES = {"desk": (1000, 900), "phone": (600, 1250), "mid": (820, 900)}
 EDITIONS = ("day", "night", "mid-day", "mid-night", "phone-day", "phone-night")   # nothing moves: no still editions
 PROJECT = "rustmapper"
 DANGER_PAD = 6           # the danger line round the trap's words: padding, corner radius, dot pitch (desk, phone)
@@ -108,9 +112,10 @@ BREAKS: list[tuple[str, str, str]] = [
      "the role line is set through role `label` in capitals with explicit tracking (desk 1.6, phone 1.0); no run "
      "uses `label-caps`",
      "check_type allows one label-caps run per sheet; the role line is two caps lines"),
-    ("Name at 88 on the desk",
-     "the desk name is set at 88 (phone 132)",
-     "the title column is 56 to 410 px, and the name at 141 would be over 500 px wide"),
+    ("Name at 68 on the desk and mid",
+     "the desk and mid name is set at 68 (phone 132)",
+     "the name stands over the route, not beside it, and at 68 it is 57.5 px in an 846 px column, the size the "
+     "side-by-side desk's 88 was (review round 14)"),
     ("Order is position; the loop is a line",
      "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
      "page (fetch, at most 20 at once from one host, and the log), closed by one line back up the left side; the hazard sits on "
@@ -152,12 +157,11 @@ BREAKS: list[tuple[str, str, str]] = [
      "on the phone the stops carry their rules only",
      "600 units leave 480 for text at the 26-unit floor (review round 6: the phone sheet is 600 wide, so 26 units "
      "are 13.3 px in the 308 px image GitHub shows on a 390 px phone)"),
-    ("Desk file names left of the track, only clear of the title",
-     "on the desk every row's words start at x 484, as on the phone; a stop's source file may stand right-aligned to "
-     "x 424 on its first baseline only if every label keeps clear of the title block's boxes and its cap top is a "
-     "line (28) under the role line's last baseline; otherwise none is drawn, and today none is",
-     "with each rule after its own file name the rows started at four different x's (review round 4); one baseline "
-     "under PYTHON AND RUST, seeder.rs read as a line of the title (review round 5)"),
+    ("No file names left of the track",
+     "every edition starts each row's words at one x right of the track and draws no source file names beside it",
+     "with each rule after its own file name the rows started at four different x's (review round 4); on the "
+     "side-by-side desk the labels could never keep clear of the title and none was drawn (review round 5), and the "
+     "stacked desk has no column left of the track (review round 14)"),
     ("Release label right after the install command",
      "the release label starts 32 after the end of `pip install rustmapper`, on its baseline, in muted caps, desk and "
      "phone; if it would pass the measure it goes under the command at the left edge, never to the right edge",
@@ -184,6 +188,12 @@ BREAKS: list[tuple[str, str, str]] = [
      "there GitHub's column is 482 to 765 px; the 1280 desk sheet's 19-unit text would be under 11 px, and the 600-unit "
      "phone sheet was drawn 900 to 1,429 px tall, so the loop, the catch, Ctrl-C and the file fell below the first "
      "screen of an iPad held sideways (review round 12)"),
+    ("Desk sheet 1000 wide, stacked like the mid",
+     "from a 1,200 px window up the README serves day and night: the mid's layout (the title on top, the route under it "
+     "at one left edge) on a 1000-unit sheet, the extra 220 units left as paper on the right",
+     "GitHub's column is 766 to 846 px there; the side-by-side 1280 sheet set the route's 19-unit words at 11.4 to "
+     "12.6 px, under the page's 16 px body text and under the 0.2 degree x-height at which reading slows (Legge and "
+     "Bigelow 2011), for every common desktop screen; at 1000 they are 14.6 to 16.1 px (review round 14)"),
     ("No motion, no still editions",
      "the six editions are day, night, mid-day, mid-night, phone-day and phone-night; nothing moves",
      "nothing in the subject moves on a period"),
@@ -194,13 +204,6 @@ MONTHS_MIXED = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 # ---------------------------------------------------------------- layout (sheet units, SPEC §2.3)
 L = {
-    "desk": {"title_x": 56, "title_w": 354, "name_size": 88, "name_track": -1.5, "name_y": 128, "role_y": 182,
-             "role_pitch": 28, "fine_gap": 52, "fine_pitch": 28, "track_x": 456, "text_x": 484, "file_right": 424,
-             "right": 1224, "head_y": 84, "head_after_title": None, "sent_gap": 34, "line": 28, "bar_gap": 30,
-             "bar_w": 24, "bar_h": 4, "r2_gap": 30, "entry_gap": 42, "pitch": 36, "end_gap": 30, "r13_gap": 30,
-             "ring_r": 6, "ring_dy": 6, "loop_out": 14,
-             "loop_dy": 13, "loop_arrow": (8, 10), "gap": 16, "stub": 10, "after_end": 26, "tip": 8, "label_gap": 14,
-             "arrow_w": 10, "rule_after_file": 20, "foot": 36},
     "phone": {"title_x": 40, "title_w": 520, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
               "role_pitch": 34, "fine_gap": 46, "fine_pitch": 34, "track_x": 56, "text_x": 88, "file_right": None,
               "right": 568, "head_y": None, "head_after_title": 70, "sent_gap": 40, "line": 34, "bar_gap": 28,
@@ -218,6 +221,10 @@ L = {
             "loop_dy": 13, "loop_arrow": (8, 10), "gap": 16, "stub": 10, "after_end": 26, "tip": 8, "label_gap": 14,
             "arrow_w": 10, "rule_after_file": 20, "foot": 30},
 }
+# review round 14: the desk geometry is the mid's exactly (title_x 40, name 68, text_x 80, right 780), so its lines
+# break as the mid's do and no row runs past 89 characters; the side-by-side geometry (title column 354, track at 456,
+# file labels right-aligned to 424 left of the track) is retired, and with it the desk's file labels
+L["desk"] = dict(L["mid"])
 TRACK = {"desk": 1.6, "phone": 1.0, "mid": 1.6}
 FILE_CLEAR = 4           # review round 4: a desk file label keeps this far from the title block's boxes
 LINES = ("R5", "R6", "R15")   # review round 5: painted first, under the marks

@@ -93,8 +93,8 @@ class BreakerOnce(unittest.TestCase):
         self.assertEqual(len(hits), 1, hits)
         self.assertIn("Boring under load.", hits[0])
         self.assertIn("When 5 URLs in a row on one host fail every retry, that host is left alone for 60", hits[0])
-        self.assertIn("- Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.",
-                      read(README))
+        self.assertIn("A kill switch stops new downloads within 5\u00a0s, with a runbook. Docker Compose and a Helm chart "
+                      "for Kubernetes.", read(README))   # review round 14: the third bullet says how it is run
 
     def test_the_check_reads_the_rules(self):
         cfg, stats = load()
@@ -159,9 +159,9 @@ class CommandInImage(unittest.TestCase):
         for ed in ("hero-day", "hero-phone-day"):
             runs = [t for t in report["sheets"][ed]["text"] if t.get("key") == "routes:S1"]
             self.assertEqual([t["s"] for t in runs if t.get("role") == "machine"], ["rust_sitemap", "crawl"], ed)
-        # review r11-2 #1's sizes: phone 1,121 (gate 1,246), desk 571 (gate 620)
+        # review r11-2 #1's sizes: phone 1,121 (gate 1,246); review round 14: desk 707, stacked 1000 wide (gate 770)
         self.assertLessEqual(report["sheets"]["hero-phone-day"]["h"], 1246)
-        self.assertLessEqual(report["sheets"]["hero-day"]["h"], 620)
+        self.assertLessEqual(report["sheets"]["hero-day"]["h"], 770)
 
 
 class InstallOrder(unittest.TestCase):

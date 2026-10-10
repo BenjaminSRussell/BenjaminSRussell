@@ -908,3 +908,81 @@ phone page at 360, and `page-1180-1.png`, `page-900-1.png`). `stats.json` was re
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
   it passes (0 fail, 0 warn). README-CAUTIONS, FIGURES, FLAG-WRAP, STRINGS-TWICE, DESIGN-FRESH, AUDIT-COVER,
   README-STALE and AUDIT-STALE are clean.
+
+## Round 14
+
+Reviews: `review-r14-1.md` (the owner) **8 / 10**, `review-r14-2.md` (the staff engineer screening for data
+infrastructure) **8 / 10**, `review-r14-3.md` (information design and cartography) **8 / 10**. None meets the goal
+yet. All three found the same false sentence: round 13's "It obeys `robots.txt` and its `Crawl-delay`" is true of
+Scrapy's spider and false of the system the README starts, because the scout queues every link for stage 2 before
+(or instead of) requesting it, and stage 2 fetches them all with aiohttp, with no robots.txt check, no Crawl-delay and
+no name of its own. Reviews 1 and 3 found a second: `--reset-delta` loads nothing since Scrapy `b787e65`, because the
+reset `start.py` runs is refused by the lake guard. Review 2 asked for the agent counts beside the counts they
+qualify, and for the third Scrapy bullet to say how the system is run. Review 3 measured the desk sheet's words at
+12.6 px in GitHub's 846 px column, under the page's own 16 px body text, for every desktop window from 1,200 px up.
+Where the reviews differ on wording, the owner's review wins.
+
+Renders: `scratchpad/r6/build/round-14/` (the standard set; the desk sheets also at 846, the column GitHub gives
+them; the mid sheets at 746; the phone sheets at 308; the phone page at 360; the README's first screen at 1,180,
+900, 1,366 x 650, 1,280 x 600 and 1,920 x 960). `stats.json` figure rows were re-read at the same HEADs with
+`scratchpad/r6/reroute14.py` (no new probe run; the round 12 run check stands).
+
+### What was measured first
+
+- **Stage 2 (reviews 1, 2, 3).** Scrapy `96e7a1a`: `scout_spider.py` yields `_queue_for_stage2(url, …)` before
+  `scrapy.Request(url, …)` for an HTML link and alone for any other link; `pipelines.py` writes it on
+  `elif target_stage == "stage2":` with only an SSRF check. `stage2_worker.py` has no `robots` and no Crawl-delay
+  (`grep -ic robots` 0), opens `aiohttp.ClientSession(connector=connector, timeout=…)` and calls
+  `session.get(current, allow_redirects=False)` with no headers, so aiohttp sends `Python/3.11 aiohttp/3.13.1`
+  (`python:3.11-slim`, `aiohttp==3.13.1`). Per host: `DEFAULT_STAGE2_PER_HOST_CONCURRENCY = 4`, `config.yml`
+  `per_host_concurrency: 4`, no compose override.
+- **The reset (reviews 1, 3).** `start.py` runs `docker-compose run --rm --no-deps -T scraper python cli.py reset
+  --force`; `cmd_reset` calls `guarded_lake_wipe(DELTA_LAKE, args, …)`, and `--yes` needs `ALLOW_LAKE_RESET=1`, which
+  no compose service sets. Review 1's run of the guard with those flags (refused, exit 3) stands.
+- **Bullet 3 (review 2).** `alerting_rules.yml` `alert: DeltaWriteFailuresSustained` on
+  `delta_write_failures_total{outcome="spilled"}`, which `lakehouse_manager.py` increments with that label;
+  `prometheus.yml` loads `/etc/prometheus/alerting_rules.yml`, mounted in compose. `crawl_guard.py`
+  `opt("kill_switch_check_secs", 5.0)`, no override in `config.yml`; both stages consult the guard
+  (`CrawlGuardMiddleware`, `_crawl_guard_reason()`); `cmd_killswitch`, 15 tests, `docs/runbooks/sev1_abuse_kill_switch.md`.
+- **The desk sheet (review 3).** Rebuilt with `SIZES["desk"] = (1000, 900)` and `L["desk"] = L["mid"]`: 1,000 x 707,
+  0 problems; 19-unit words are 14.6 px at a 1,200 px window (column 766) and 16.1 px from 1,280 (column 846); the
+  image is 598 px tall at 846. In the 1,366 x 650 preview the whole route, the hand-off line included, is on the
+  first screen.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1, r2-1, r3-2: Scrapy's politeness | The pick sentence's clause is off the page. `[copy] pick_polite` now starts "Scrapy obeys …", so the day it returns it cannot be read as rustmapper; a fourth `use = "pick_polite"` row on `stage2_worker.py` (`present` `(?i)robots`, `absent` a `ClientSession(` without `headers=`) fails today and brings the clause back by itself once stage 2 checks robots.txt and sends its own name. `proof.py` gains `present` (a regex that must match). `checks/figures.py` fails a `pick_polite` row only while the clause is printed, so the gate does not turn the build red. The run sentence now reads, after "install Compose standalone).": "It loads no seeds: the last command gives the spider your site and names it `<your-bot>` (without that line, `UConn-Discovery-Crawler/1.0`). The spider obeys `robots.txt` and its `Crawl-delay`. The stage 2 worker then fetches every link the spider queued, disallowed ones too, 4 at a time per host, as `Python/3.11 aiohttp/3.13.1`." Four new `[[figures]]` rows: the spider's settings, middleware and robots test; "disallowed ones too" (the scout's order anchor, its non-HTML branch, the pipeline's stage 2 branch; `absent` robots and Crawl-delay in both stage 2 files and robots in the pipeline); "4 at a time per host" (default, config, no compose override); "`Python/3.11 aiohttp/3.13.1`" (Dockerfile, requirements, the session and the GET as they are; `absent` any user agent or `headers=`). Tests: each change in stage 2 (a robots check, a delay, a header, another aiohttp, 8 per host, a compose override, the scout queueing after its request) fails its row. |
+| r1-2, r3-2: `--reset-delta` | The sentence and its two CSV rows are cut; "It loads no seeds by default." is "It loads no seeds:", its row also reads `guarded_lake_wipe(DELTA_LAKE, args` in `cli.py`, and `chart.toml` says when the sentence may come back (start.py passes `ALLOW_LAKE_RESET=1`, and the word "wipes", since `cmd_reset` deletes the lake first). No "is refused" on the page. |
+| r2-2: agent counts | Each flagship's facts line ends with its own count: "coding agents (Claude) authored 45 of its 146 commits and co-signed 1 of his own 101"; Scrapy "coding agents (jules, Claude) authored 71 of its 499 commits and co-signed 30 of his own 420" (`render_readme.agent_counts`, `agent_clause`). The data line keeps the definition: "Tests and lines are counted per repository, whoever wrote them." AUDIT §7 has a row for each clause; AUDIT's `agent_authored` row says where it is printed. Tests: the clauses equal the computed counts; no agent commit prints no clause, not "0 of". |
+| r2-3: bullet 3 | "Prometheus alerts on its own metrics, such as Delta writes spilling to disk, and Grafana dashboards. A kill switch stops new downloads within 5 s, with a runbook. Docker Compose and a Helm chart for Kubernetes." Four rows (the alert with its metric, Prometheus loading the rules and compose mounting them; the `spilled` label in the rule and the code; the 5 s default, both stages' guard, the CLI command and the tests, `absent` a `config.yml` override; the runbook file). No alert count is printed. |
+| r3-1: the desk sheet | `scripts/sheets/route.py`: `SIZES["desk"] = (1000, 900)`, `L["desk"] = dict(L["mid"])`; the side-by-side geometry (title column 354, track at 456, file labels at 424) is retired. `hero-day.svg` and `hero-night.svg` are the stacked sheets, 1,000 x 707. `checks/column.py` gains DESK-PX (from `breakpoint_px` + 1 to 1,920: at least 14.5 px, and 16 where the column is 846); the desk height gate is 770. DESIGN.md (from `tokens.py`), the BREAKS table, SPEC §2.3 (a superseded note) say so. Tests: the geometry equals the mid's; the built desk sheet is 1,000 wide with the mid's height, drawn elements and PURPOSE IDs; DESK-PX fails the 1,280 sheet and passes the 1,000 one. The review renders draw the desk at 846 as well as 870. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r2-1: "Its discovery spider obeys …" as the pick clause | The owner's review drops the clause until stage 2 earns it, and the run sentence says what each stage does. Two sentences saying the spider obeys robots.txt would also fail STRINGS-TWICE. |
+| r2-1: "… without that name." | The owner's wording names the string a site owner will see in the log (`Python/3.11 aiohttp/3.13.1`), which says more than "without that name". |
+| r2-1: the scout literal "count 2"; `absent` `User-Agent` | Rows cannot count a literal; the two branches are anchored separately (the HTML branch as an order anchor, the else branch). The user-agent check is `(?i)user.?agent` plus `headers=` on the session and on the GET, which covers more ways to send a name. |
+| r1-1: the gate's text "It obeys robots.txt (stage 2)" | It is "Scrapy obeys robots.txt in stage 2 too", so the row reads as what it gates. |
+| r2-2: "agents also co-signed 1 and 30 of his own commits" on the data line | AUDIT §5 prints the co-signed count only beside the authored one; on the data line "1 and 30" would name no repository. Each facts line carries both, with his own commit count as the denominator ("1 of his own 101"). |
+| r3-1: desk height gate 760 | 707 today; S2's two lines add about 56, which is 763. The gate is 770 (651 px at 846). |
+| r3-1: `edition.DESK_W` | Left at 1,280: other sheets (built only on request) use it; the hero's width comes from `route.SIZES`. |
+| r2-1 evidence: stage 4's `MyScraper/1.0 (Educational Research Bot)` | Not printed: stage 4 fetches only documents over 50,000 characters, and a third agent string would add two phone lines to a sentence the owner sized. On the owner's list below. |
+| Live-like stats build | `v92/live-stats.json` (8 Oct) carries no `routes.rustmapper`, so the hero cannot build from it; that was so before this round. |
+| Owner, outside this repository | New: Scrapy stage 2 should consult robots.txt (Protego, as Scrapy does), wait each host's Crawl-delay and send `USER_AGENT` from config, and stage 4 should too (`large_doc_processor.py:86`); or the scout should queue a link for stage 2 only once its request comes back. Then the pick clause returns by itself. `start.py --reset-delta` should pass `-e ALLOW_LAKE_RESET=1` (or drop `-T` and `--force`), and its help should say it wipes the lake. Carried: 0.1.4 (exits when idle, P1, `response.url()` as the base, `noindex` and canonicalized pages out of `export-sitemap`, `resume` after a kill, the robots.txt port, a LICENSE, `[project.scripts]`); `[position]` and `[contact]`; one measured crawl at scale; `state.rs:240`'s stale "(default: 2)"; the GitHub bio; the iOS and Android apps; a real iPad. |
+
+### Measured state of this build
+
+- Desk sheet 1,000 x 707 (gate 770); mid 820 x 707 (gate 964); phone 600 x 1,121 (gate 1,246). From 1,200 px the
+  route's words are 14.6 to 16.1 px (were 11.4 to 12.6).
+- Page: desk 3,021 px at 1,280 (was 2,774; the image is 221 px taller); phone 5,109 CSS px at 390 (was 4,965) and
+  5,533 at 360 (was 5,365): the agent clauses and bullet 3 add more than the reset and pick cuts save.
+- `python3 -m unittest`: 480 tests, all pass (15 new in `tests/test_round14.py`; older tests that pinned the reset
+  sentence, the old bullet, the old data line, the 1,280 desk and its file labels now hold the new ones).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
+  it passes (0 fail, 0 warn); DESK-PX: from 1,200 px the route's words are 14.5 px or more, and 16 px or more at the
+  846 px column. FIGURES, AUDIT-COVER, AUDIT-STALE, DESIGN-FRESH, README-STALE and STRINGS-TWICE are clean.

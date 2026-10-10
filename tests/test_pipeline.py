@@ -328,9 +328,9 @@ class Readme(unittest.TestCase):
         # review round 4: the AI clause qualifies the printed tests and lines, per repository with a facts line
         self.assertNotIn("co-author trailer", block)
         self.assertNotIn("not counted as his", block)
-        self.assertIn("Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) "
-                      "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499, and co-signed 1 and 30 of his "
-                      "own.</sub>", block)
+        # review round 14: the counts are on the facts lines; the data line keeps what they mean
+        self.assertIn("Tests and lines are counted per repository, whoever wrote them.</sub>", block)
+        self.assertNotIn("authored", block)
         # F3.4's own example, from a fixture carrying the keys the data builder adds
         full = {"taken": "2026-10-09", "repo_count": 21, "commits": 2032,
                 "sweep_dates": ["2025-11-10", "2025-11-09", "2026-10-07", "2026-10-01"],
@@ -373,23 +373,21 @@ class Readme(unittest.TestCase):
         for f, v in render_readme.BLOCK_CRAWL_FLAGS:
             self.assertIn(f"{f} {v}", block)
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
+        # review round 14: the agent counts are on each facts line (agent_clause takes one repository)
         clause = render_readme.agent_clause
-        repos = {"repos": [{"name": "Rust-sitemap", "all_hands": 146, "others": [{"name": "Claude", "commits": 45, "bot": True}]},
-                           {"name": "Scrapy", "all_hands": 499, "others": [
-                               {"name": "google-labs-jules[bot]", "commits": 49, "bot": True},
-                               {"name": "Claude", "commits": 22, "bot": True},
-                               {"name": "dependabot[bot]", "commits": 8, "bot": True},
-                               {"name": "A Person", "commits": 3, "bot": False}]}]}
-        al = {"Rust-sitemap": "rustmapper"}
-        self.assertEqual(clause(repos, ["Rust-sitemap", "Scrapy"], al),
-                         "Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) "
-                         "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499")
-        self.assertEqual(clause(repos, ["Scrapy"], al).split(": ")[1],
-                         "coding agents (jules, Claude) authored 71 of Scrapy's 499 commits", "dependabot is not an agent")
-        self.assertEqual(clause(repos, [], al), "")
-        self.assertEqual(clause(repos, ["nowhere"], al), "", "a repository without its counts is left out")
-        none = {"repos": [{"name": "x", "all_hands": 9, "others": [{"name": "dependabot[bot]", "commits": 2, "bot": True}]}]}
-        self.assertEqual(clause(none, ["x"]), "", "no agent commits, nothing to qualify")
+        rust = {"name": "Rust-sitemap", "all_hands": 146, "others": [{"name": "Claude", "commits": 45, "bot": True}]}
+        scrapy = {"name": "Scrapy", "all_hands": 499, "others": [
+            {"name": "google-labs-jules[bot]", "commits": 49, "bot": True},
+            {"name": "Claude", "commits": 22, "bot": True},
+            {"name": "dependabot[bot]", "commits": 8, "bot": True},
+            {"name": "A Person", "commits": 3, "bot": False}]}
+        self.assertEqual(clause(rust), "coding agents (Claude) authored 45 of its 146 commits")
+        self.assertEqual(clause(scrapy), "coding agents (jules, Claude) authored 71 of its 499 commits",
+                         "dependabot is not an agent")
+        self.assertEqual(clause({}), "", "a repository without its counts is left out")
+        none = {"name": "x", "all_hands": 9, "others": [{"name": "dependabot[bot]", "commits": 2, "bot": True}]}
+        self.assertEqual(clause(none), "", "no agent commits, nothing to qualify")
+        self.assertEqual(render_readme.survey_block({"repos": [none]}, repos=["x"]), "")
         self.assertEqual([render_readme.agent_short(n) for n in ("google-labs-jules[bot]", "Claude", "Claude Haiku 4.5", "other[bot]")],
                          ["jules", "Claude", "Claude", "other"])
         self.assertEqual(render_readme.fmt_days(["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-09", "2026-05-20"]),

@@ -134,7 +134,8 @@ class PhoneHeading(unittest.TestCase):
         G = sheet.L["phone"]
         self.assertGreaterEqual(G["head_after_title"], route_check.HEAD_GAP_PITCHES * G["role_pitch"])
         self.assertEqual(G["head_after_title"], 70)
-        self.assertIsNone(sheet.L["desk"]["head_after_title"], "the desk sets the route in its own column")
+        # review round 14: the desk is stacked like the mid, the route under the title
+        self.assertEqual(sheet.L["desk"]["head_after_title"], sheet.L["mid"]["head_after_title"])
 
 
 class AlsoLines(unittest.TestCase):

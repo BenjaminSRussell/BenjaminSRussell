@@ -21,11 +21,13 @@ GitHub's README column, measured on the live profile page on 10 Oct 2026 (Playwr
 under a 768 px viewport it is the viewport less 82 px (278 at 360, 308 at 390); from 768 to 1011 the viewport less
 370; from 1012 to 1279 the viewport less 434; from 1280 on, 846. The README serves the phone sheet (600 wide) up to
 851 px, the mid sheet (820 wide) from 852 to 1199 px (`chart.toml` `mid_from_px`, `breakpoint_px`) and the desk
-sheet (1280 wide) from 1200. Above 851 px the phone sheet would be drawn over 900 px tall; at 852 the mid
-sheet's 19-unit text is 11.2 px, and at 1200 the desk sheet's is 11.4 px. `checks/column.py`
-(HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to 11 px text and, from 768, to a picture at most 900 px
-tall; `checks/route.py` holds the phone sheet's text to 13 px at 308 and 11 px at 278, and the heights to desk
-620, mid 964 and phone 1,246 units. Re-measure when GitHub changes the profile layout; the table is in
+sheet, the mid's layout 1000 wide, from 1200. Above 851 px the phone sheet would be drawn over 900 px tall; at
+852 the mid sheet's 19-unit text is 11.2 px, and at 1200 the desk sheet's is 14.6 px (16.1 px at the 846 px
+column, the page's own body size). `checks/column.py` (HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to
+11 px text and, from 768, to a picture at most 900 px tall, and (DESK-PX) from 1200 px to 14.5 px text, 16
+where the column is 846; `checks/route.py` holds the phone sheet's text to 13 px at 308 and 11 px at 278, and the
+heights to desk 770, mid 964 and phone 1,246 units.
+Re-measure when GitHub changes the profile layout; the table is in
 `checks/column.py`. The sheets are published to the `chart` branch under `assets/v9/`.
 
 ## Actions playbook
@@ -64,7 +66,7 @@ The dotted line is `DANGER` (`0.1 {g}`), its gap chosen so the dots space evenly
 
 | Role | Font | Desk | Mid | Phone | Use |
 |---|---|---|---|---|---|
-| display | serif | 88 | 68 | 132 | his name |
+| display | serif | 68 | 68 | 132 | his name |
 | label | cond | 19 | 19 | 26 | every row's words, and the role line in capitals |
 | project | serif | 41 | 41 | 40 | the project's name |
 | machine | plex | 19 | 19 | 26 | commands, file names and field names |

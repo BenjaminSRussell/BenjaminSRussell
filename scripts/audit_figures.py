@@ -101,14 +101,15 @@ FIXED = [
     ("survey", "measured <date> from N public repositories", "`taken`, `repo_count`",
      "the day of the build; the owner's public non-fork repositories (GraphQL live; in cache mode the cached names, "
      "REST's list when it answers, and README links REST confirms)", "REPO-SET", ()),
-    ("survey", "coding agents authored N of <repo>'s M commits", "`repos[].others`, `repos[].all_hands`",
-     "for each repository with a facts line: commits on HEAD whose author is a coding agent (`others[]` with "
-     "`bot: true`, less `survey.AUTOMATION`), over all its commits on HEAD; the facts lines' tests and lines include "
-     "their code", "test_pipeline AgentClause; README-STALE", (r"\d[\d,]* of [\w' -]+?'s \d[\d,]*",)),
-    ("survey", "and co-signed N and M of his own", "`repos[].coauthored.agent`",
-     "review round 7: of his own commits (`commits`), those carrying a `Co-authored-by` trailer that names an agent "
-     "(§2 `coauthored`), printed beside the authored count as §5 allows, for the same repositories in the same order",
-     "test_round7 Cosigned; README-STALE", (r"co-signed [\d, and]+ of his own",)),
+    ("facts", "coding agents (<names>) authored N of its M commits", "`repos[].others`, `repos[].all_hands`",
+     "review round 14: on each flagship's facts line, beside the counts it qualifies: commits on HEAD whose author is "
+     "a coding agent (`others[]` with `bot: true`, less `survey.AUTOMATION`), over all its commits on HEAD; the "
+     "facts lines' tests and lines include their code, as the data line says", "test_round14 AgentFacts; README-STALE",
+     (r"authored \d[\d,]* of its \d[\d,]* commits",)),
+    ("facts", "and co-signed N of his own M", "`repos[].coauthored.agent`, `repos[].commits`",
+     "review round 7 / 14: of his own commits on HEAD (`commits`), those carrying a `Co-authored-by` trailer that "
+     "names an agent (§2 `coauthored`), printed only beside the authored count, as §5 allows, and only when over 0",
+     "test_round14 AgentFacts; README-STALE", (r"co-signed \d[\d,]* of his own \d[\d,]*",)),
     ("more_count", "N more repositories", "computed (`render_readme.more_count`)",
      "`repo_count` − the profile − the flagships − the Also list", "REPO-SET", (r"\d+\s+more repositories",)),
     ("license", "CC BY 4.0", "`LICENSE-ASSETS.md`", "the license of the profile's images and text, as that file "

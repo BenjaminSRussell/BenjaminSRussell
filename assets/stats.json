@@ -8625,6 +8625,106 @@
    "use": "pick_polite"
   },
   {
+   "text": "Scrapy obeys robots.txt in stage 2 too",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": false,
+   "why": "Scraping_project/src/stage2/stage2_worker.py: no match for '(?i)robots' at HEAD",
+   "use": "pick_polite"
+  },
+  {
+   "text": "The spider obeys `robots.txt` and its `Crawl-delay`.",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "\"ROBOTSTXT_OBEY\": bool(spider_config.get(\"robotstxt_obey\", True))",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "disallowed ones too",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/scout_spider.py",
+   "literal": "yield self._queue_for_stage2(url, response.url, content_hint)\n\n                    self.scout_stats[\"html_queued_js\"] += 1\n                    self.scout_stats[\"pages_queued_stage2\"] += 1\n\n                    yield scrapy.Request(",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "4 at a time per host",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_PER_HOST_CONCURRENCY = 4",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "`Python/3.11 aiohttp/3.13.1`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/Dockerfile",
+   "literal": "FROM python:3.11-slim as base",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Prometheus alerts on its own metrics",
+   "repo": "Scrapy",
+   "path": "Scraping_project/monitoring/alerting_rules.yml",
+   "literal": "alert: DeltaWriteFailuresSustained",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Delta writes spilling to disk",
+   "repo": "Scrapy",
+   "path": "Scraping_project/monitoring/alerting_rules.yml",
+   "literal": "delta_write_failures_total{outcome=\"spilled\"}",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stops new downloads within 5 s",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/utils/crawl_guard.py",
+   "literal": "opt(\"kill_switch_check_secs\", 5.0)",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "with a runbook",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docs/runbooks/sev1_abuse_kill_switch.md",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
    "text": "`UConn-Discovery-Crawler/1.0`",
    "repo": "Scrapy",
    "path": "Scraping_project/src/settings.py",
@@ -8658,7 +8758,7 @@
    "why": ""
   },
   {
-   "text": "It loads no seeds by default.",
+   "text": "It loads no seeds:",
    "repo": "Scrapy",
    "path": "Scraping_project/start.py",
    "literal": "    if args.reset_delta:",
@@ -8667,31 +8767,6 @@
    "measured": null,
    "holds": true,
    "why": ""
-  },
-  {
-   "text": "143,208",
-   "repo": "Scrapy",
-   "path": "Scraping_project/data/raw/uconn_urls.csv",
-   "literal": null,
-   "glob": null,
-   "count": 143208,
-   "measured": 143208,
-   "holds": true,
-   "why": "",
-   "csv_rows": true
-  },
-  {
-   "text": "134,807 of them on uconn.edu",
-   "repo": "Scrapy",
-   "path": "Scraping_project/data/raw/uconn_urls.csv",
-   "literal": null,
-   "glob": null,
-   "count": 134807,
-   "measured": 134807,
-   "holds": true,
-   "why": "",
-   "csv_rows": true,
-   "host": "uconn.edu"
   },
   {
    "text": "5 URLs in a row on one host",

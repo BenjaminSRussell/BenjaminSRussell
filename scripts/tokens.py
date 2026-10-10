@@ -116,7 +116,7 @@ _PHONE = {
 # Night swaps the sans/mono roles to the Light cuts (T5): applied by the type engine, not duplicated here.
 NIGHT_LIGHT_CUTS = {"cond": "cond-light", "plex": "plex-light"}
 # Review round 12: the hero's mid edition (820 wide, shown at 482 to 765 px) sets the desk's roles at the desk's
-# sizes: 19 units there are 11.2 px at 482 and 17.7 px at 765, against 11.4 to 12.6 px for the desk sheet itself.
+# sizes: 19 units there are 11.2 px at 482 and 17.7 px at 765 (review round 14: the desk sheet, stacked 1000 wide, 14.6 to 16.1 px).
 _MID = dict(_DESK)
 ROLES = {"desk": _DESK, "phone": _PHONE, "mid": _MID}
 GRADE = {"day": ("spread", 0.22), "night": ("choke", 0.18)}
@@ -252,11 +252,13 @@ GitHub's README column, measured on the live profile page on 10 Oct 2026 (Playwr
 under a 768 px viewport it is the viewport less 82 px (278 at 360, 308 at 390); from 768 to 1011 the viewport less
 370; from 1012 to 1279 the viewport less 434; from 1280 on, 846. The README serves the phone sheet (600 wide) up to
 {pmax} px, the mid sheet (820 wide) from {mid} to {bp} px (`chart.toml` `mid_from_px`, `breakpoint_px`) and the desk
-sheet (1280 wide) from {desk}. Above {pmax} px the phone sheet would be drawn over {tall} px tall; at {mid} the mid
-sheet's 19-unit text is {mid_px} px, and at {desk} the desk sheet's is {desk_px} px. `checks/column.py`
-(HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to 11 px text and, from 768, to a picture at most {tall} px
-tall; `checks/route.py` holds the phone sheet's text to 13 px at 308 and 11 px at 278, and the heights to desk
-{h_desk}, mid {h_mid} and phone {h_phone} units. Re-measure when GitHub changes the profile layout; the table is in
+sheet, the mid's layout 1000 wide, from {desk}. Above {pmax} px the phone sheet would be drawn over {tall} px tall; at
+{mid} the mid sheet's 19-unit text is {mid_px} px, and at {desk} the desk sheet's is {desk_px} px ({full_px} px at the 846 px
+column, the page's own body size). `checks/column.py` (HERO-COLUMN-PX) holds every viewport from 360 to 1920 px to
+11 px text and, from 768, to a picture at most {tall} px tall, and (DESK-PX) from {desk} px to {dmin} px text, {dfull}
+where the column is 846; `checks/route.py` holds the phone sheet's text to 13 px at 308 and 11 px at 278, and the
+heights to desk {h_desk}, mid {h_mid} and phone {h_phone} units.
+Re-measure when GitHub changes the profile layout; the table is in
 `checks/column.py`. The sheets are published to the `chart` branch under `assets/v9/`.
 
 ## Actions playbook
@@ -295,13 +297,16 @@ def design_md(stats: dict | None = None, cfg: dict | None = None) -> str:
     stats, cfg = _load(stats, cfg)
     from checks import route as route_check
     from checks import column
+    from sheets import route as sheet
     ch = cfg.get("chart") or {}
     bp = int(ch.get("breakpoint_px", 1199))
     mid = int(ch.get("mid_from_px") or bp + 1)
     head = DESIGN_HEAD.format(
         idea=idea(stats, cfg), probed=probed(stats, cfg), pmax=mid - 1, mid=mid, bp=bp, desk=bp + 1, tall=f"{column.TALL_PX:g}",
-        mid_px=f"{FLOORS['mid']['semantic'] * column.column_px(mid) / 820:.1f}",
-        desk_px=f"{FLOORS['desk']['semantic'] * column.column_px(bp + 1) / 1280:.1f}",
+        mid_px=f"{FLOORS['mid']['semantic'] * column.column_px(mid) / sheet.SIZES['mid'][0]:.1f}",
+        desk_px=f"{FLOORS['desk']['semantic'] * column.column_px(bp + 1) / sheet.SIZES['desk'][0]:.1f}",
+        full_px=f"{FLOORS['desk']['semantic'] * column.column_px(column.VIEWPORTS[1]) / sheet.SIZES['desk'][0]:.1f}",
+        dmin=f"{column.DESK_MIN_PX:g}", dfull=f"{column.DESK_FULL_PX:g}",
         h_desk=route_check.HEIGHT["desk"], h_mid=route_check.HEIGHT["mid"], h_phone=f"{route_check.HEIGHT['phone']:,}")
     return head + "\n" + markdown_tables()
 

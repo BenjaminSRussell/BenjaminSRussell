@@ -133,7 +133,7 @@ class ScrapyOrder(unittest.TestCase):
         self.assertEqual(readme_check.cd_agrees(text), [])
         i = text.index("<!-- facts:Scrapy:end -->")
         self.assertLess(i, text.index("- Raw pages land in Delta Lake"))
-        self.assertLess(text.index("- Prometheus metrics on Grafana dashboards."), text.index("Run these from the folder you cloned"))
+        self.assertLess(text.index("- Prometheus alerts on its own metrics"), text.index("Run these from the folder you cloned"))   # review round 14
         self.assertLess(text.index("Run these from the folder you cloned"), text.index("cd Scrapy/Scraping_project"))
         # review round 10: the cd says where to stand; the sentence says what start.py does
         self.assertIn("Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts", text)

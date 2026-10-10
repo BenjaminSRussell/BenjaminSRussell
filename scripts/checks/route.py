@@ -59,7 +59,9 @@ WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
 # title gap and foot gave back 18 units; LOG round 6)
 # review round 12: the mid sheet (820 wide) is served up to a 1199 px viewport, a 765 px column; drawn at most 900 px
 # tall there (checks/column.py TALL_PX) is 964 units. Today 707 (S2 drawn would add about 2 lines, 56 units)
-HEIGHT = {"desk": 620, "phone": 1246, "mid": 964}
+# review round 14: the desk sheet is the mid's layout 1000 wide (707 today, as the mid); 770 units leave room for S2's
+# two lines (about 56) and are 651 px at the 846 px column
+HEIGHT = {"desk": 770, "phone": 1246, "mid": 964}
 # review round 8: today desk 571, phone 1,121 (the title gap is 70, F1 three phone lines); with S2 drawn about 1,198
 HEAD_GAP_PITCHES = 2
 RELEASE_GAP_MAX = 40
