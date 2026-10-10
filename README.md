@@ -32,21 +32,10 @@
 <!-- about:Rust-sitemap:end -->
 
 <!-- facts:Rust-sitemap:start -->
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust*
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 test functions · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust*
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
-```sh
-pip install rustmapper
-rust_sitemap crawl \
-    --start-url <your-site>
-# 0.1.3 runs until stopped: when
-# "Received work item" stops
-# for 30 s, then Ctrl-C once
-# sitemap.xml, even after a kill
-rust_sitemap export-sitemap
-```
-
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
 Before you run 0.1.3:
@@ -57,7 +46,19 @@ Before you run 0.1.3:
 - From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.
 - It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
 - It writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.
-- It gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links.
+- Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried.
+
+```sh
+pip install rustmapper
+rust_sitemap crawl \
+    --start-url <your-site>
+# 0.1.3 runs until stopped: when
+# "Received work item" stops
+# for 60 s, then Ctrl-C once
+
+# sitemap.xml, even after a kill
+rust_sitemap export-sitemap
+```
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -66,12 +67,12 @@ Before you run 0.1.3:
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system on top of the Scrapy framework, in four stages: discovery, analysis, summaries, large documents.
 
 <!-- facts:Scrapy:start -->
-*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests (CI selects all but 41) · CI passed 8 Oct 2026: tests, ruff, mypy, bandit · MIT license · 69k lines of Python*
+*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 test functions (CI selects all but 41) · CI passed 8 Oct 2026: tests, ruff, mypy, bandit · MIT license · 69k lines of Python*
 <!-- facts:Scrapy:end -->
 
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
 - Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
+- Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes.
 
 Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into. `python start.py` starts PostgreSQL, Redis, Grafana and a worker for each of the four stages. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). It loads no seeds by default.<br>`--reset-delta` loads 143,208 bundled URLs, 134,807 of them on uconn.edu. The last command crawls your site.
 
@@ -89,7 +90,7 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 <a name="also"></a>
 **Also**
 
-- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 25 ways to sort a pile of URLs: 21 from the URLs and their crawl records (domain, crawl depth, subdomain, …), 4 more from the fetched pages.
+- [**ideal-url-organizer**](https://github.com/BenjaminSRussell/ideal-url-organizer) — 21 ways to sort a pile of URLs from their crawl records (domain, crawl depth, subdomain, …).
 - [**go_go_go**](https://github.com/BenjaminSRussell/go_go_go) — rustmapper's counterpart in Go, with the same crawl, resume and export-sitemap commands, plus optional headless-Chrome rendering and SQLite storage with full-text search.
 - [**rust_llm_logger**](https://github.com/BenjaminSRussell/rust_llm_logger) — a non-buffering reverse proxy for LLM servers, in Rust. Each chunk is parsed for token counts and passed straight on, and the call is logged only after the client has its last byte.
 - [**Ai_code_detector**](https://github.com/BenjaminSRussell/Ai_code_detector) — `aicd scan` scores each file of a repository for signs of AI authorship, from its comments, naming, structure and git history, and says why it flagged it.
@@ -108,8 +109,7 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 - [**Data-visualizer**](https://github.com/BenjaminSRussell/Data-visualizer) — a lightweight, Superset-inspired exploration UI over PostgreSQL. Display only, by design.
 - [**Elusive_trades_data**](https://github.com/BenjaminSRussell/Elusive_trades_data) — HVAC parts search across several supplier APIs, part numbers matched by zero-shot classification. File-based: no database, no Docker, no passwords.
 - [**mlx_Qwen_data_entry**](https://github.com/BenjaminSRussell/mlx_Qwen_data_entry) — Qwen-DBA: profiles database workloads and has Qwen, on Apple MLX, recommend optimizations, with a human in the loop.
-- [**excel-and-vba**](https://github.com/BenjaminSRussell/excel-and-vba) — spreadsheet automation.
-- Also: [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets) · [MLX_convertion](https://github.com/BenjaminSRussell/MLX_convertion) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader)
+- Also: [3d-swift-widget](https://github.com/BenjaminSRussell/3d-swift-widget) · [2d-swift-widgets](https://github.com/BenjaminSRussell/2d-swift-widgets) · [MLX_convertion](https://github.com/BenjaminSRussell/MLX_convertion) · [Course_crusader](https://github.com/BenjaminSRussell/Course_crusader) · [excel-and-vba](https://github.com/BenjaminSRussell/excel-and-vba)
 
 </details>
 
@@ -117,10 +117,9 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 **Working rules**
 
 <!-- notices:start -->
-1. **Boring under load.** One failing host is set aside for a minute; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
+1. **Boring under load.** When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
 2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025: raw pages written to Delta Lake with `write_deltalake`.*
 3. **Measure from the start.** Metrics were exported 6 days after the first commit, and a dashboard was up 5 days after that. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
-4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).

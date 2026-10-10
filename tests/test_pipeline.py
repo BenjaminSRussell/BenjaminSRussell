@@ -291,9 +291,10 @@ class Readme(unittest.TestCase):
     def test_notices_first_four_and_no_release_line(self):
         block = render_readme.notices_block(self.cfg, self.stats)
         rows = [r for r in block.splitlines() if r.strip()]
-        self.assertEqual(len(rows), 4, block)
+        self.assertEqual(len(rows), 3, block)       # review r11-1 #1: rule 4 is cut
         self.assertTrue(rows[0].startswith("1. **Boring under load.**"))
-        self.assertTrue(rows[-1].startswith("4. **Parse, don't pattern-match.**"))
+        self.assertTrue(rows[-1].startswith("3. **Measure from the start.**"))
+        self.assertNotIn("pattern-match", block)
         self.assertNotIn("The surface is part of the system", block)
         self.assertNotIn("editions", block)
         self.assertNotIn("pypi.org", block)
@@ -408,14 +409,14 @@ class Readme(unittest.TestCase):
                            "ci": {"workflow": "CI/CD", "conclusion": "failure", "date": "2026-10-08", "stale": True},
                            "lines": {"Python": 69120, "Rust": 1003}, "main_language": "Python", "last_ns": None}]}
         self.assertEqual(sp(render_readme.facts_block(full, "rustmapper", self.cfg)),
-                         "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests · CI passed 7 Oct 2026 · 16k lines of Rust*")
+                         "*Built on tokio, redb, rkyv, reqwest, clap · 115 test functions · CI passed 7 Oct 2026 · 16k lines of Rust*")   # r11-3 #3: the unit
         # no test_functions, no tests item (a file count reads wrong for inline Rust tests); stale CI says so; null last_ns omitted
         self.assertEqual(sp(render_readme.facts_block(full, "Scrapy")),
                          "*CI failed 8 Oct 2026 (last known run) · 69k lines of Python*")
         self.assertEqual(render_readme.facts_block(full, "nowhere"), "")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "Scrapy", "commits": 900, "tests": 257}]}, "Scrapy"), "",
                          "no D2 keys the line prints, no line")
-        self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "test_functions": 1}]}, "x"), "*1 test*")
+        self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "test_functions": 1}]}, "x"), "*1 test function*")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "workflows": 2}]}, "x"), "*2 CI workflows*",
                          "workflows without a CI result")
         lang = {"repos": [{"name": "x", "lines": {"Python": 900, "Rust": 2000}, "main_language": "Python"}]}
@@ -452,7 +453,7 @@ class Readme(unittest.TestCase):
             self.assertNotIn("test file", live)
             self.assertNotIn("last worked", live)
             if isinstance(r.get("test_functions"), int):
-                self.assertRegex(live, re.escape(f" · {render_readme._plural(r['test_functions'], 'test')}") +
+                self.assertRegex(live, re.escape(f" · {render_readme._plural(r['test_functions'], 'test function')}") +
                                  r"( \(CI selects all but [\d,]+\))? · ", name)
             if (r.get("ci") or {}).get("conclusion") == "success":
                 self.assertIn(f"CI passed {render_readme.fmt_date(r['ci']['date'])}", live)
@@ -461,7 +462,7 @@ class Readme(unittest.TestCase):
                 "<!-- facts:Scrapy:start -->\n<!-- facts:Scrapy:end -->\n<!-- facts:nowhere:start -->x<!-- facts:nowhere:end -->\n")
         once = render_readme.main(tmpl, self.cfg, full, use_sheet_alts=False)
         self.assertIn("<!-- facts:Rust-sitemap:start -->\n**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · "
-                      "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests", once)
+                      "*Built on tokio, redb, rkyv, reqwest, clap · 115 test functions", once)
         self.assertIn("<!-- facts:Scrapy:start -->\n*CI failed", once)
         self.assertIn("<!-- facts:nowhere:start -->\n<!-- facts:nowhere:end -->", once, "an unknown repository prints nothing")
         self.assertEqual(render_readme.main(once, self.cfg, full, use_sheet_alts=False), once)
@@ -492,13 +493,13 @@ class Readme(unittest.TestCase):
                  "<!-- pick:start -->",
                  "<!-- facts:Rust-sitemap:start -->", "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main",
                  "<!-- install:Rust-sitemap:start -->",
-                 "pip install rustmapper", "Prebuilt for Apple silicon", "Before you run 0.1.3:\n\n- It sends requests",
+                 "Prebuilt for Apple silicon", "Before you run 0.1.3:\n\n- It sends requests", "pip install rustmapper",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system",
                  "<!-- facts:Scrapy:start -->", "- Raw pages land in Delta Lake",
                  "Run these from the folder you cloned [Scrapy]", "cd Scrapy/Scraping_project",
                  "\npython start.py", "docker-compose run --rm \\", "scraper scrapy crawl scout", "**Also**",
                  "more repositories:", "**Working rules**",
-                 "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
+                 "<!-- notices:start -->", "3. **Measure from the start.**", "Found a mistake? [Open an issue]",
                  "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) shows rustmapper", "Tests and lines are counted",
                  "<!-- license:start -->", "**This profile** Code MIT"]
         positions = [text.index(m) for m in order]

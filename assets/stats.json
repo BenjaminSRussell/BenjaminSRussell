@@ -5704,17 +5704,6 @@
    "n": 3
   },
   {
-   "repo": "ideal-url-organizer",
-   "tag": "N4",
-   "date": "2025-11",
-   "title": "Parse, don't pattern-match.",
-   "url": "",
-   "source": "hand",
-   "body": "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not.",
-   "cite": "ideal-url-organizer, {month:urlparse}: URLs split with `urllib.parse`.",
-   "n": 4
-  },
-  {
    "repo": "BenjaminSRussell",
    "tag": "N5",
    "date": "2025-11",
@@ -7401,12 +7390,14 @@
      "kind": "stop",
      "scope": "release",
      "loop": false,
-     "text": "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl",
+     "text": "`{script} crawl` starts from your URL; by default also from sitemaps, certificate logs and Common Crawl",
      "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
      "missing": [],
-     "runs": [],
+     "runs": [
+      "crawl_help"
+     ],
      "fails": [],
      "paths": {
       "head": [
@@ -7421,6 +7412,52 @@
       ]
      },
      "instead": [
+      {
+       "text": "`{script} crawl` starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl",
+       "file": "seeder.rs",
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/cli.rs: no 'default_value = \"none\"'"
+       ],
+       "runs": [
+        "crawl_help"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
+      },
+      {
+       "text": "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl",
+       "file": "seeder.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
+      },
       {
        "text": "starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl",
        "file": "seeder.rs",
@@ -7581,11 +7618,11 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "{release} never exits by itself; done once `Received work item` lines stop for 30 s",
+     "text": "{release} never exits by itself; done once `Received work item` lines stop for 60 s",
      "file": null,
      "verified_head": true,
      "verified_release": true,
-     "quiet": 30,
+     "quiet": 60,
      "missing": [],
      "runs": [
       "crawl_ctrl_c",
@@ -7962,7 +7999,7 @@
      "kind": "text",
      "scope": "release",
      "loop": false,
-     "text": "It gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links.",
+     "text": "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried.",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -8283,69 +8320,9 @@
     "Scraping_project/monitoring/dashboards/scraping_pipeline_health.json"
    ],
    "repo_first": "2025-09-25"
-  },
-  {
-   "n": 4,
-   "key": "urlparse",
-   "repo": "ideal-url-organizer",
-   "path": null,
-   "text": "urllib.parse",
-   "found": true,
-   "sha": "2be623e",
-   "date": "2025-11-13",
-   "author": "Benjamin Russell",
-   "first_sha": "6e8087f",
-   "first_author": "Claude",
-   "first_is_his": false,
-   "scope": "self",
-   "at_head": true,
-   "head_paths": [
-    "src/analyzers/semantic_analyzer.py",
-    "src/core/url_parser.py",
-    "src/core/web_crawler.py"
-   ]
   }
  ],
  "figures": [
-  {
-   "text": "25 ways",
-   "repo": "ideal-url-organizer",
-   "path": null,
-   "literal": null,
-   "glob": "src/organizers/method_*.py",
-   "count": 25,
-   "measured": 25,
-   "holds": true,
-   "why": "",
-   "parts": [
-    "21 from",
-    "4 more"
-   ]
-  },
-  {
-   "text": "21 from",
-   "repo": "ideal-url-organizer",
-   "path": "src/main.py",
-   "literal": null,
-   "glob": null,
-   "count": 21,
-   "measured": 21,
-   "holds": true,
-   "why": "",
-   "keys": "self.methods"
-  },
-  {
-   "text": "4 more",
-   "repo": "ideal-url-organizer",
-   "path": null,
-   "literal": null,
-   "glob": "src/organizers/method_*.py",
-   "count": 4,
-   "measured": 4,
-   "holds": true,
-   "why": "",
-   "contains": "List[PageContent]"
-  },
   {
    "text": "resume and export-sitemap commands",
    "repo": "go_go_go",
@@ -8575,7 +8552,7 @@
    "host": "uconn.edu"
   },
   {
-   "text": "5 URLs",
+   "text": "5 URLs on one host",
    "repo": "Scrapy",
    "path": "Scraping_project/src/stage2/stage2_worker.py",
    "literal": "DEFAULT_STAGE2_BREAKER_FAILURES = 5",
@@ -8725,20 +8702,20 @@
     },
     {
      "id": "non200_status",
-     "cmd": "rust_sitemap crawl: a page that answers 429 or 404 is written with no status_code, asked for once, and its links are not followed",
+     "cmd": "rust_sitemap crawl: every answer but an HTML 200 (429, 404, 500, a JSON 200, a timeout) is written with no status_code and no crawled_at, asked for once, and its links are not followed",
      "ok": true,
      "gate": false,
      "secs": 14.0,
-     "detail": "5 requests; /busy.html (429, Retry-After: 2) asked for 1 time(s); /beyond.html never asked for; busy.html: status_code null; gone.html: status_code null; exit 0 2.0 s after one SIGINT"
+     "detail": "8 requests; asked for: busy.html 1, gone.html 1, err 1, feed 1, hang.html 1 (429 with Retry-After: 2, 404, 500, JSON 200, held 8 s with --timeout 3); /beyond.html never asked for; busy.html: status_code null, crawled_at null; gone.html: status_code null, crawled_at null; err: status_code null, crawled_at null; feed: status_code null, crawled_at null; hang.html: status_code null, crawled_at null; e"
     },
     {
      "id": "quiet_slow_page",
-     "cmd": "rust_sitemap crawl: a page held 15 s is not the end; after 30 s with no Received work item line, one SIGINT writes every page",
+     "cmd": "rust_sitemap crawl: a page held 15 s is not the end; after 60 s with no Received work item line, one SIGINT writes every page",
      "ok": true,
      "gate": false,
      "secs": null,
-     "detail": "3 work-item lines; longest gap between two 15.0 s (slow.html held 15 s); SIGINT 30 s after the last; 3 of 3 pages in sitemap.jsonl, status 200; exit 0 2.0 s after one SIGINT",
-     "quiet_secs": 30
+     "detail": "3 work-item lines; longest gap between two 15.0 s (slow.html held 15 s); SIGINT 60 s after the last; 3 of 3 pages in sitemap.jsonl, status 200; exit 0 2.0 s after one SIGINT",
+     "quiet_secs": 60
     },
     {
      "id": "kill_writes_file",

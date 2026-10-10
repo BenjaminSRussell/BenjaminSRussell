@@ -86,23 +86,24 @@ _FENCE = re.compile(r"^```[^\n]*\n(.*?)^```\s*$", re.S | re.M)
 
 
 def cautions(text: str, max_items: int = 7, max_words: int = 25) -> list[str]:
-    """README-CAUTIONS (review round 9): under each install block's code, at most one prose paragraph (the wheel
-    note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
+    """README-CAUTIONS (review round 9): in each install block, outside its code (review round 11: before it), at
+    most one prose paragraph (the wheel note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
     colon right before the list is its lead-in, not prose."""
     out = []
     for name, body in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
-        fences = list(_FENCE.finditer(body))
-        if not fences:
+        if not _FENCE.search(body):
             continue
-        tail = _COMMENT.sub("", body[fences[-1].end():])
+        # review round 11: the wheel note and the list come before the code (they say what to add to it); the
+        # rule holds for the block's prose wherever it sits
+        tail = _COMMENT.sub("", _FENCE.sub("\n\n", body))
         paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
         lists = [p for p in paras if all(ln.startswith("- ") for ln in p.splitlines())]
         prose = [p for i, p in enumerate(paras) if p not in lists
                  and not (p.endswith(":") and i + 1 < len(paras) and paras[i + 1] in lists)]
         if len(prose) > 1:
-            out.append(f"{name}: {len(prose)} prose paragraphs after the code block (at most 1)")
+            out.append(f"{name}: {len(prose)} prose paragraphs beside the code block (at most 1)")
         if len(lists) > 1:
-            out.append(f"{name}: {len(lists)} lists after the code block (one)")
+            out.append(f"{name}: {len(lists)} lists beside the code block (one)")
         for lst in lists:
             items = lst.splitlines()
             if len(items) > max_items:
@@ -133,8 +134,7 @@ def cautions_scope(text: str, stats: dict) -> list[str]:
         items = [e for e in route_mod.drawn(route, rc) if e.get("kind") == "text" and e.get("item")]
         if not any(e.get("scope") == "release" for e in items):
             continue
-        fences = list(_FENCE.finditer(body))
-        tail = _COMMENT.sub("", body[fences[-1].end():]) if fences else body
+        tail = _COMMENT.sub("", _FENCE.sub("\n\n", body))       # review round 11: the prose around the code
         paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
         for i, p in enumerate(paras):
             if not all(ln.startswith("- ") for ln in p.splitlines()):

@@ -38,7 +38,7 @@ CFG = os.path.join(ROOT, "chart.toml")
 STATS = os.path.join(ROOT, "assets", "stats.json")
 SHEETS = ["hero", "soundings", "approaches", "log", "instruments", "footer"]   # every sheet the build knows
 ALT_MAX_WORDS = 25
-NOTICES_ON_PAGE = 4          # round 4, D8: notices 1–4; no release line
+NOTICES_ON_PAGE = 3          # round 4, D8: notices 1–4; no release line. Review round 11 (the owner): 1–3, rule 4 cut
 
 # decision 9: most specific first; the hero prepends the two phone stills.
 SOURCES = [
@@ -394,7 +394,9 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         parts.append(("built on " if (r.get("head") or {}).get("short") else "Built on ") + ", ".join(deps))
     tests = r.get("test_functions")
     if isinstance(tests, int) and not isinstance(tests, bool):
-        item = _plural(tests, "test")
+        # review round 11 (the data engineer): the unit is named. CI logs count parametrized cases (pytest) and each
+        # test target apart (cargo's lib and bin), so a bare "N tests" read against the linked run looks wrong
+        item = _plural(tests, "test function")
         # review round 7: "N tests" beside "CI passed" is read as N passing tests; say how many the passing
         # workflow's own commands do not select (repos[].ci_selection), when it is any
         sel = r.get("ci_selection") if isinstance(r.get("ci_selection"), dict) else {}
@@ -535,9 +537,11 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
     lines.append("```")
     # the wheel note, then (review round 3) what the release does to a site and to a big one. Review round 9: the
     # cautions as one short list after the wheel note (text_blocks), any other text entry as a paragraph after it
+    # Review round 11 (the student): both come before the commands, as the Scrapy block gives its conditions first:
+    # the wheel note says what `pip install` needs, and two of the items are flags to add to the crawl line
     blocks = [x for x in (keep_together(_wheel_sentence(ed.get("wheels"), rc)),
                           *text_blocks(route, rc, ed, _repo(stats, repo))) if x]
-    return "\n".join(lines) + "".join(f"\n\n{x}" for x in blocks)
+    return "".join(f"{x}\n\n" for x in blocks) + "\n".join(lines)
 
 
 # review round 10: "when … then", not "once … press Ctrl-C once" (STRINGS-TWICE: "for 30 s press ctrl-c once" is the
@@ -582,7 +586,10 @@ def stop_lines(rc: dict | None, gates: dict | None = None, route: dict | None = 
     kill, after = steps.get("kill_writes_file"), steps.get("export_after_kill")
     gate = (gates or {}).get("export_after_kill") or {}
     if kill is not None and not kill.get("ok") and after is not None and after.get("ok") and gate.get("ok"):
-        # review round 7: no colon, so the line is 32 columns and fits a 360 px phone
+        # review round 7: no colon, so the line is 32 columns and fits a 360 px phone. Review round 11 (the student):
+        # a blank line first, so on a phone the stop rule above does not run on into this caption for the export
+        if out:
+            out.append("")
         out.append(f"# {_file_name((gate.get('values') or {}).get('arg:output') or './sitemap.xml')}, even after a kill")
     return out
 

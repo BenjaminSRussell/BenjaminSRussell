@@ -119,7 +119,9 @@ title = "Boring under load."
 # review round 7: the breaker that runs. The old cite (fd33c11, `class CircuitBreaker` in src/common/error_handling.py)
 # was a class nothing called, deleted six days later (1b0f502). His 099dd6c (8 Oct 2026) adds the per-host breakers
 # of stage 2 (`_host_breakers`, stage2_worker.py): after 5 URLs on a host fail every retry, it is left alone 60 s.
-body = "One failing host is set aside for a minute; the rest of the crawl goes on."
+# review round 11 (the owner): the breaker is told once, here, with its numbers (the Scrapy bullet no longer repeats
+# it); the figures are the [[figures]] rows "5 URLs on one host" and "60 s" (block = "notices", checks/figures.py)
+body = "When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on."
 cite = "Scrapy, {month:breaker}: a circuit breaker for each host in stage 2."
 anchors = [{key = "breaker", repo = "Scrapy", text = "_host_breakers", author = "self"}]
 repo = "Scrapy"
@@ -157,19 +159,6 @@ date = "2025-10"
 source = "toml"
 
 [[notices]]
-n = 4
-title = "Parse, don't pattern-match."
-body = "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not."
-# review round 6: the cite is his own commit. The repository's first commits with urllib.parse (9 Nov 2025) are
-# Claude's; `author = "self"` scopes the anchor to his first one, 2be623e (13 Nov 2025, `from urllib.parse import
-# urlparse` in src/analyzers/semantic_analyzer.py), and NOTICE-AUTHOR checks that commit, not the repository's first
-cite = "ideal-url-organizer, {month:urlparse}: URLs split with `urllib.parse`."
-anchors = [{key = "urlparse", repo = "ideal-url-organizer", text = "urllib.parse", author = "self"}]
-repo = "ideal-url-organizer"
-date = "2025-11"
-source = "toml"
-
-[[notices]]
 n = 5
 title = "The surface is part of the system."
 body = "A tool that confuses its operator is already failing."
@@ -183,29 +172,10 @@ source = "toml"
 # at that repository's HEAD by scripts/data/proof.py: {text, repo, path, literal} holds when the file contains the
 # literal; {text, repo, glob, count} when that many files match. checks/figures.py fails a number no holding row
 # covers (FIGURES).
-[[figures]]
-text = "25 ways"
-repo = "ideal-url-organizer"
-glob = "src/organizers/method_*.py"
-count = 25
-# review round 8: one count across the page. The Also line says how the 25 split, and the parts must add up to it
-parts = ["21 from", "4 more"]
-
-# review round 8: the 21 the image's hand-off prints (the same count as the handoff row below), in the Also line
-[[figures]]
-text = "21 from"
-repo = "ideal-url-organizer"
-path = "src/main.py"
-keys = "self.methods"
-count = 21
-
-# review round 8: the four methods that sort the fetched pages (PageContent, from the organizer's own crawler)
-[[figures]]
-text = "4 more"
-repo = "ideal-url-organizer"
-glob = "src/organizers/method_*.py"
-contains = "List[PageContent]"
-count = 4
+# review round 11 (the data engineer): one count of the organizer's sorts on the page, 21, the methods `main.py`
+# runs (`self.methods`; `--method` takes only those). The 25 `method_*.py` files and the "4 more" that sort fetched
+# pages are gone from the Also line: no entry point imports methods 22 to 25. The "21 ways" row below (handoff) holds
+# for both the image and the Also line.
 
 # review round 8: the Also lines' claims about go_go_go and Ai_code_detector, checked at HEAD (no numbers)
 [[figures]]
@@ -374,15 +344,19 @@ host = "uconn.edu"
 count = 134807
 
 # review round 6: the breakers that run are per host, in stage 2 (stage2_worker.py _breaker); the service breakers in
-# utils/retry.py have no caller. The two figures are the defaults the worker reads.
+# utils/retry.py have no caller. The two figures are the defaults the worker reads. Review round 11: they are printed
+# once, in working rule 1's body (`block = "notices"`: checks/figures.py reads the printed rules' bodies too)
 [[figures]]
-text = "5 URLs"
+text = "5 URLs on one host"
+block = "notices"
 repo = "Scrapy"
 path = "Scraping_project/src/stage2/stage2_worker.py"
 literal = "DEFAULT_STAGE2_BREAKER_FAILURES = 5"
+also = [{path = "Scraping_project/src/stage2/stage2_worker.py", literal = "_host_breakers"}]
 
 [[figures]]
 text = "60 s"
+block = "notices"
 repo = "Scrapy"
 path = "Scraping_project/src/stage2/stage2_worker.py"
 literal = "DEFAULT_STAGE2_BREAKER_RECOVERY = 60"
@@ -578,6 +552,27 @@ file = "seeder.rs"
 # review round 9: a verb, as every other row has; F1, the next row, says links are followed. "subdomains in" is cut
 # so the row is two phone lines and one desk line (what a certificate log gives is said by the anchor below, and the
 # README's L2 item names crt.sh)
+# Review round 11 (the student): the command, named where the screenshot carries it. The package is rustmapper, the
+# command 0.1.3 ships is rust_sitemap (`edition.scripts`); "{script}" is filled by route.command_name, as the
+# README's block names it, so it prints rustmapper by itself once a release ships that script. It rests on the
+# release's clap subcommand (`Crawl {` in cli.rs) and probe crawl_help (`<cmd> crawl --help` names --start-url).
+# Without the probe, the old words, with no command.
+text = "`{script} crawl` starts from your URL; by default also from sitemaps, certificate logs and Common Crawl"
+head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
+release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
+           {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
+           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "all"'},
+           {path = "src/cli.rs", block = "Commands", text = "Crawl {"}]
+runs = ["crawl_help"]
+[[route.rustmapper.entry.instead]]
+text = "`{script} crawl` starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl"
+head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
+release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
+           {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
+           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "none"', producer = true},
+           {path = "src/cli.rs", block = "Commands", text = "Crawl {"}]
+runs = ["crawl_help"]
+[[route.rustmapper.entry.instead]]
 text = "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl"
 head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
@@ -713,9 +708,14 @@ loop = true
 # work item the terminal is quiet too (measured: 14.9 s with crt.sh failing fast). "lines stop" says they were coming;
 # "is quiet" did not. Order anchor: initialize before the first `process_incoming_urls(`; a release that starts the
 # shards first leaves H1 unverified.
+# Review round 11 (the data engineer): the line is printed before the task waits for a network permit, up to 30 s
+# (process_url_streaming: `tokio::time::timeout(Duration::from_secs(30), network_permits.acquire_owned())`, the
+# governor's semaphore, fair, so a late item waits behind every earlier one), and only then fetches. The bound is
+# 30 + 20 + 4 + 1 = 55, rounded up: 60. The permit wait is a value anchor (`wait`), read like the --timeout default.
 text = "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s"
-audit = "It sums the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 30. Probe `quiet_slow_page` waited that long"
-release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
+audit = "It sums the wait for a network permit (`src/bfs_crawler.rs` `process_url_streaming`, `timeout(Duration::from_secs(30), network_permits.acquire_owned())`, 30 s; the `Received work item` line is printed before it) + the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 60. Probe `quiet_slow_page` waited that long"
+release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", wait = "network_permits.acquire_owned()"},
+           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"},
            {path = "src/main.rs", text = "crawler.initialize(&seeding_strategy).await?", before = "process_incoming_urls("},
@@ -912,19 +912,24 @@ release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
 # X2, review round 9 (the navigator): what the file cannot tell you. The image names `status_code`; in 0.1.3 only a
 # 200 goes on to parsing (process_url_streaming: `Ok(response) if … == 200`, then `Ok(_) =>` returns
 # `Ok(Vec::new())` before a ParseJob exists), the field is set only from that job, and nothing reads Retry-After or
-# names a 429. So a 404, a 429 or a 503 is written with no status, is not asked for again (the host's failures are
-# reset, frontier.rs record_success) and none of its links are followed. Probe non200_status: busy.html answers 429
-# with Retry-After: 2 and links beyond.html; gone.html is a 404. It retires once a release records the status or
-# asks again (the probe then fails).
+# names a 429. Review round 11 (the data engineer): not only a refusal. CrawlAttemptFact, the only event that sets
+# status_code and crawled_at, is sent from the parser alone; a 200 that is not HTML returns early
+# (`is_html_content_type(ct)`), and a timeout or a lost connection takes `Err(e)`, which handle_crawl_error counts as
+# transient ("false // Don't block host for transient errors"): no failure, no requeue. So every answer but an HTML
+# 200 is a row with status_code and crawled_at null, asked for once, the same as a page never asked for. Probe
+# non200_status (--timeout 3): busy.html 429, gone.html 404, err 500, feed 200 application/json, hang.html held 8 s.
+# It retires once a release records the status or asks again (the probe then fails).
 [[route.rustmapper.entry]]
 id = "X2"
 kind = "text"
 scope = "release"
 item = true
-text = "It gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links."
-audit = "Probe `non200_status`: on the fixture site, busy.html (429, `Retry-After: 2`) was asked for once in 12 s, beyond.html (linked only from it) never, and the rows for busy.html and gone.html (404) have `status_code` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
+text = "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried."
+audit = "Probe `non200_status` (crawled with `--timeout 3`): on the fixture site, busy.html (429, `Retry-After: 2`), gone.html (404), err (500), feed (200, `application/json`) and hang.html (held 8 s) were each asked for once in 12 s, beyond.html (linked only from busy.html) never, and their rows have `status_code` and `crawled_at` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
 release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
            {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},
+           {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "is_html_content_type(ct)"},
+           {path = "src/bfs_crawler.rs", fn = "handle_crawl_error", text = "false // Don't block host for transient errors"},
            {path = "src/bfs_crawler.rs", text = "status_code: job.status_code"},
            {path = "src/bfs_crawler.rs", absent = "Retry-After"}, {path = "src/frontier.rs", absent = "Retry-After"},
            {path = "src/bfs_crawler.rs", absent = "429"}]

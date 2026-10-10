@@ -20,7 +20,7 @@ def check(ctx) -> list[Finding]:
             text = fh.read()
     except OSError:
         return [fail("AUDIT-STALE", "docs/data/AUDIT.md is missing")]
-    if audit_figures.render(text, ctx.cfg or {}) != text:
+    if audit_figures.render(text, ctx.cfg or {}, ctx.stats) != text:   # review round 11: the drawn wordings
         return [fail("AUDIT-STALE", "§7 Printed figures is out of date: run python3 scripts/audit_figures.py",
                      "docs/data/AUDIT.md")]
     return []

@@ -40,7 +40,8 @@ carries an anchor marked `producer = true` that is not an assignment to a field 
 not the code that stores. A `text` entry may also name a `gate` (a HEAD gate in `gates`); the README prints it only
 while that gate holds (render_readme.text_entries). Review round 8: `para = true` starts a new paragraph with it.
 Review round 9: `item = true` makes it an item of the cautions list under the install block; `{quiet}` in a text is
-`quiet_secs` of the release's `arg:timeout` and `const:MAX_FAILURES_THRESHOLD` value anchors, and a probe that
+`quiet_secs` of the release's `arg:timeout` and `const:MAX_FAILURES_THRESHOLD` value anchors (review round 11: and
+the `wait:network_permits.acquire_owned()` anchor, the seconds a tokio timeout gives the permit wait), and a probe that
 records `quiet_secs` must have waited at least that long.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
@@ -62,6 +63,7 @@ STATES = ("runs", "fields differ", "no reader")
 
 _CONST = r"\bconst\s+{name}\s*:\s*[\w:<>]+\s*=\s*([0-9][0-9_]*(?:\.[0-9]+)?)\s*;"
 _FIELD_INIT = r"\b{name}\s*:\s*([0-9][0-9_]*)\b"            # a struct literal's field: `max_inflight: 20,`
+_WAIT = r"timeout\(\s*Duration::from_secs\(\s*([0-9][0-9_]*)\s*\)\s*,\s*{name}"   # tokio: how long that future may wait
 _ARG_DEFAULT = r'default_value\s*=\s*"([^"]*)"(?:(?!#\[arg)[\s\S])*?\b{name}\s*:'   # clap: the arg's default
 
 
@@ -128,7 +130,14 @@ def arg_value(src: str | None, name: str) -> str | None:
     return v.replace("_", "") if re.fullmatch(r"[0-9][0-9_]*", v) else v
 
 
-VALUE_KINDS = {"const": const_value, "field": field_value, "arg": arg_value}
+def wait_value(src: str | None, name: str) -> str | None:
+    """Review round 11: `timeout(Duration::from_secs(30), network_permits.acquire_owned())` -> "30": the seconds a
+    tokio timeout gives that future; None when it is not wrapped so."""
+    m = re.search(_WAIT.format(name=re.escape(name)), src or "")
+    return m.group(1).replace("_", "") if m else None
+
+
+VALUE_KINDS = {"const": const_value, "field": field_value, "arg": arg_value, "wait": wait_value}
 
 
 def check_anchor(read, anchor: dict) -> str | None:
@@ -181,15 +190,16 @@ def anchor_consts(read, anchors: list[dict] | None) -> dict[str, str]:
 
 _CONST_REF = re.compile(r"\{((?:const|field|arg):\w+)\}")
 _QUIET = "{quiet}"
-QUIET_FROM = ("arg:timeout", "const:MAX_FAILURES_THRESHOLD")
+QUIET_FROM = ("arg:timeout", "const:MAX_FAILURES_THRESHOLD", "wait:network_permits.acquire_owned()")
 
 
-def quiet_secs(timeout: int, threshold: int) -> int:
+def quiet_secs(timeout: int, threshold: int, permit: int = 0) -> int:
     """Review round 9: how long a release's `Received work item` lines may normally stop on a live crawl. A fetch runs
     up to the --timeout (reqwest: from connect to the body's end); after a failure the host waits 2^failures s, and it
     is dropped at `threshold` failures, so the longest wait is 2^(threshold - 1); the backoff is counted in whole
-    seconds (1 s more). The sum, rounded up to the next 10: 20 + 4 + 1 -> 30."""
-    raw = int(timeout) + 2 ** max(0, int(threshold) - 1) + 1
+    seconds (1 s more). Review round 11: the line is printed before the task waits for a network permit (`permit`,
+    up to 30 s in 0.1.3), so that wait comes first. The sum, rounded up to the next 10: 30 + 20 + 4 + 1 -> 60."""
+    raw = int(permit) + int(timeout) + 2 ** max(0, int(threshold) - 1) + 1
     return -(-raw // 10) * 10
 
 
@@ -256,7 +266,7 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
     if _QUIET in text:
         got = [consts_r.get(k) for k in QUIET_FROM]
         if all(v is not None and str(v).isdigit() for v in got):
-            quiet = quiet_secs(int(got[0]), int(got[1]))
+            quiet = quiet_secs(int(got[0]), int(got[1]), int(got[2]))
             text = text.replace(_QUIET, str(quiet))
         else:
             mr = mr + [f"release: {{quiet}} needs value anchors {' and '.join(QUIET_FROM)}"]
@@ -388,7 +398,7 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
     for e in route.get("entries") or []:
         cands = [e] + list(e.get("instead") or [])
         reasons: list[str] = []
-        chosen = None
+        chosen, at = None, None
         for i, c in enumerate(cands):
             miss = list(c.get("missing") or [])
             if not (c.get("verified_head") and c.get("verified_release")) and not miss:
@@ -398,7 +408,7 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             if text is None:
                 miss.append("run check: no time for a {secs:…} figure")
             if not miss:
-                chosen = dict(c, text=text)
+                chosen, at = dict(c, text=text), i
                 break
             reasons += [f"[{i}] {m}" if len(cands) > 1 else m for m in miss]
         base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
@@ -415,11 +425,13 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
             out.append({**base, "text": chosen["text"], "file": chosen.get("file") if "file" in chosen else e.get("file"),
                         "verified": True, "missing": [], "retired": not str(chosen["text"]).strip(),
+                        "wording": at,     # review round 11: which wording was drawn (AUDIT §7 follows it)
                         "fails": list(chosen.get("fails") or []),
                         # review round 10: the quiet the drawn wording prints, for the README's stop lines
                         **({"quiet": chosen["quiet"]} if chosen.get("quiet") is not None else {})})
         else:
-            out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})
+            out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons,
+                        "wording": None})
     return out
 
 

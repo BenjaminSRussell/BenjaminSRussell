@@ -155,12 +155,14 @@ class RuleOne(unittest.TestCase):
 
     def test_plain_claims(self):
         cfg, _ = load()
-        bodies = [n["body"] for n in sorted(cfg["notices"], key=lambda n: n["n"])[:4]]
+        bodies = [n["body"] for n in sorted(cfg["notices"], key=lambda n: n["n"])[:3]]
         frame = re.compile(r"^(The|A) \w+ .* is (the one|one|a \w+) ")
         self.assertLessEqual(sum(bool(frame.search(b)) for b in bodies), 1)
         for b in bodies:
             self.assertNotRegex(b, r"you cannot .* you cannot")
-        self.assertEqual(bodies[0], "One failing host is set aside for a minute; the rest of the crawl goes on.")
+        # review r11-1 #2: the rule carries the breaker's numbers; the Scrapy bullet no longer says it
+        self.assertEqual(bodies[0], "When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest "
+                                    "of the crawl goes on.")
         self.assertTrue(bodies[2].startswith("Metrics were exported {days:prometheus} days"), bodies[2])
 
 
@@ -242,7 +244,8 @@ class HandOffCount(unittest.TestCase):
         cfg, stats = load()
         row = next(f for f in stats["figures"] if f.get("handoff"))
         self.assertEqual((row["text"], row["measured"], row["holds"]), ("21 ways", 21, True))
-        self.assertIn("25 ways to sort a pile of URLs", read(README), "the Also line keeps the organizer's own count")
+        # review r11-3 #4: the Also line prints the image's count, not the 25 files
+        self.assertIn("21 ways to sort a pile of URLs", read(README))
 
 
 class Register(unittest.TestCase):
@@ -324,7 +327,7 @@ class CiSelection(unittest.TestCase):
     def test_facts(self):
         stats = {"repos": [{"name": "x", "test_functions": 1920, "ci": {"conclusion": "success", "date": "2026-10-08"},
                             "ci_selection": {"not_selected": 41, "of": 1920}}]}
-        self.assertIn("1,920 tests (CI selects all but 41) · CI passed", rr.facts_block(stats, "x"))
+        self.assertIn("1,920 test functions (CI selects all but 41) · CI passed", rr.facts_block(stats, "x"))
         stats["repos"][0]["ci_selection"] = {"not_selected": 0, "of": 1920}
         self.assertNotIn("selects", rr.facts_block(stats, "x"))
         stats["repos"][0]["ci_selection"] = {"not_selected": 41, "of": 1900}
@@ -391,9 +394,12 @@ class Wording(unittest.TestCase):
         cfg, _ = load()
         s1 = entry(cfg, "S1")
         # review round 9: with a verb, as every other row
-        self.assertEqual(s1["text"], "starts from your URL; by default also from sitemaps, certificate logs and "
-                                     "Common Crawl")
-        self.assertTrue(s1["instead"][0]["text"].startswith("starts from your URL; if asked, also from "))
+        # review round 11 (r11-2 #1): the command it names first, then the old words while the probe is missing
+        self.assertEqual(s1["text"], "`{script} crawl` starts from your URL; by default also from sitemaps, "
+                                     "certificate logs and Common Crawl")
+        self.assertTrue(s1["instead"][0]["text"].startswith("`{script} crawl` starts from your URL; if asked, also from "))
+        self.assertEqual(s1["instead"][1]["text"], "starts from your URL; by default also from sitemaps, certificate "
+                                                   "logs and Common Crawl")
 
 
 class KeepTogether(unittest.TestCase):

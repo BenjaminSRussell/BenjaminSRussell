@@ -44,8 +44,10 @@ _DATE = r"\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}"
 FIXED = [
     ("facts", "On main at `<sha>`", "`repos[].head.short`", "HEAD of the default branch of the clone the counts were "
      "taken from", "test_pipeline facts; README-STALE", (r"On main at `[0-9a-f]{7}`",)),
-    ("facts", "N tests", "`repos[].test_functions`", "test functions at HEAD: Rust `#[test]`-style attributes in every "
-     ".rs file, Python `def test_` in collected files (§2)", "README-STALE", (r"\d[\d,]* tests?\b",)),
+    ("facts", "N test functions", "`repos[].test_functions`", "test functions at HEAD: Rust `#[test]`-style attributes "
+     "in every .rs file, Python `def test_` in collected files (§2). Review round 11: printed with its unit. CI logs "
+     "count parametrized cases (Scrapy 3,075 on 8 Oct 2026) and the lib and bin targets separately (Rust-sitemap "
+     "135 + 160); the page counts functions", "README-STALE", (r"\d[\d,]* test functions?\b",)),
     ("facts", "(CI selects all but N)", "`repos[].ci_selection`", "review round 7: of those tests, the ones the passing "
      "workflow's own commands do not select: Python tests in collected files outside every pytest command's paths, "
      "or deselected by the `-m \"not …\"` of every command whose paths hold them (markers read with ast, at "
@@ -109,41 +111,69 @@ FIXED = [
     ("license", "CC BY 4.0", "`LICENSE-ASSETS.md`", "the license of the profile's images and text, as that file "
      "states it", "README-LICENSE", (r"CC BY 4\.0",)),
 ]
-_REF = __import__("re").compile(r"\{((const|field|arg):(\w+)|release|head|quiet)\}")
+_REF = __import__("re").compile(r"\{((const|field|arg|wait):(\w+)|release|head|quiet)\}")
 
 
-def route_rows(cfg: dict) -> list[dict]:
+def _drawn_index(stats: dict | None, name: str) -> dict[str, int | None]:
+    """Review round 11: {entry id: index of the wording the build resolved and drew (0 the entry's own, i its i-th
+    `instead`), or None when none holds}; {} with no stats (every wording is then listed, as before)."""
+    route = ((stats or {}).get("routes") or {}).get(name)
+    if not isinstance(route, dict):
+        return {}
+    try:
+        from data import route as route_mod
+        return {str(e["id"]): e.get("wording") for e in route_mod.resolve(route, ((stats or {}).get("runcheck") or {}).get(name))}
+    except Exception:
+        return {}
+
+
+def _refs(texts) -> dict[str, tuple[str, str]]:
+    refs: dict[str, tuple[str, str]] = {}
+    for t in texts:
+        for m in _REF.finditer(str(t or "")):
+            refs.setdefault(m.group(1), (m.group(2) or m.group(1), m.group(3) or ""))
+    return refs
+
+
+def route_rows(cfg: dict, stats: dict | None = None) -> list[dict]:
     """Review round 7: one row per route entry whose wording reads a figure from the code, its definition built from
-    the anchor that reads it (any of the entry's wordings), plus the entry's `audit` note."""
+    the anchor that reads it, plus the entry's `audit` note. Review round 11 (the data engineer): "printed" is the
+    wording the build resolved and drew (stats.json `routes`, with the run check); the other wordings' figures are
+    listed after it as drawn instead when their anchors and probes hold. A drawn wording with no figure gets no row
+    (W1 "in batches"); a retired entry (an empty wording drawn) none either. With no stats, every wording counts."""
     out = []
     for name, spec in ((cfg.get("route") or {}).items()):
         if not isinstance(spec, dict):
             continue
+        chosen = _drawn_index(stats, name)
         for e in spec.get("entry") or []:
             cands = [e] + list(e.get("instead") or [])
-            refs: dict[str, tuple[str, str]] = {}
-            for c in cands:
-                for m in _REF.finditer(str(c.get("text") or "")):
-                    refs.setdefault(m.group(1), (m.group(2) or m.group(1), m.group(3) or ""))
+            idx = chosen.get(str(e["id"])) if chosen else None
+            if chosen and idx is not None:
+                drawn_c = [cands[idx]]
+                if not str(cands[idx].get("text") or "").strip():
+                    continue      # retired: nothing printed
+            else:
+                drawn_c = [e] if chosen else cands     # unverified: the entry's own wording; no stats: all
+            refs = _refs(c.get("text") for c in drawn_c)
+            other = {k: v for k, v in _refs(c.get("text") for c in cands).items() if k not in refs}
             if not refs and not (e.get("audit") and str(e.get("kind")) == "text"):
                 continue      # review round 8: a README sentence whose figure is a flag's argument has its own note
             scope = str(e.get("scope") or "both")
-            defs = []
-            for ref, (kind, var) in refs.items():
+
+            def define(ref, kind, var):
                 if kind == "release":
-                    defs.append("`{release}` is `edition.version`, the latest version on PyPI")
-                    continue
+                    return "`{release}` is `edition.version`, the latest version on PyPI"
                 if kind == "head":
-                    defs.append("`{head}` is the sha the route was read at (`routes.%s.head_sha`), short" % name)
-                    continue
+                    return "`{head}` is the sha the route was read at (`routes.%s.head_sha`), short" % name
                 if kind == "quiet":
-                    defs.append("`{quiet}` is computed by `data/route.py` `quiet_secs` from the release's value "
-                                "anchors `arg:timeout` and `const:MAX_FAILURES_THRESHOLD`")
-                    continue
+                    return ("`{quiet}` is computed by `data/route.py` `quiet_secs` from the release's value anchors "
+                            "`wait:network_permits.acquire_owned()`, `arg:timeout` and `const:MAX_FAILURES_THRESHOLD`")
                 rel = next((a for c in cands for a in c.get("release") or [] if a.get(kind) == var), None)
                 hd = next((a for c in cands for a in c.get("head") or [] if a.get(kind) == var), None)
                 what = {"const": f"`const {var}`", "field": f"the `{var}:` value of the struct literal",
-                        "arg": f"the clap `default_value` of `{var}`"}[kind]
+                        "arg": f"the clap `default_value` of `{var}`",
+                        "wait": f"the seconds of the tokio timeout around `{var}`"}[kind]
                 where = []
                 if rel:
                     where.append(f"`{rel['path']}` of the sdist")
@@ -151,13 +181,17 @@ def route_rows(cfg: dict) -> list[dict]:
                     where.append(f"`{hd['path']}` at HEAD")
                 tail = "; the two must agree" if rel and hd and scope != "release" else \
                     " (the release lacks it; main's value)" if hd and not rel else ""
-                defs.append(f"`{{{ref}}}` is {what} in {' and '.join(where)}{tail}")
+                return f"`{{{ref}}}` is {what} in {' and '.join(where)}{tail}"
+            defs = [define(ref, k, v) for ref, (k, v) in refs.items()]
+            if other:
+                defs.append("drawn instead when their anchors and probes hold: "
+                            + "; ".join(define(ref, k, v) for ref, (k, v) in other.items()))
+            note = e.get("audit") if (not chosen or idx in (0, None)) else cands[idx].get("audit")
             kind = str(e.get("kind") or "stop")
             out.append({"where": ("README " if kind == "text" else "image ") + str(e["id"]),
                         "printed": ", ".join(f"`{{{r}}}`" for r in refs) or "the flag's argument",
                         "key": f"`routes.{name}` {e['id']}",
-                        "definition": ("; ".join(defs) + (f". {e['audit']}" if e.get("audit") else "")) if defs
-                                      else str(e.get("audit") or ""),
+                        "definition": ("; ".join(defs) + (f". {note}" if note else "")) if defs else str(note or ""),
                         "check": "ROUTE-UNVERIFIED (value anchors; head and release agree)",
                         "entry": str(e["id"]), "route": name, "hero_keys": (f"routes:{e['id']}",)})
     return out
@@ -175,20 +209,23 @@ def handoff_rows(cfg: dict) -> list[dict]:
         ids = [h["id"] for h in cfg.get("handoffs") or [] if h.get("to") == f.get("repo")]
         out.append({"where": "image R15", "printed": f"sorted {f['text']} by {f['repo']}",
                     "key": f"`[[figures]]` ({f['repo']}, handoff), `handoffs[]`",
-                    "definition": f"at {f['repo']}'s HEAD, {how}{also}; drawn while the hand-off's state is `runs`",
-                    "check": "FIGURES; ROUTE-HANDOFF", "hero_keys": tuple(f"handoffs:{i}" for i in ids)})
+                    "definition": f"at {f['repo']}'s HEAD, {how}{also}; drawn while the hand-off's state is `runs`. "
+                                  "Review round 11: the README's Also line prints the same count, and no other",
+                    "check": "FIGURES; ROUTE-HANDOFF", "hero_keys": tuple(f"handoffs:{i}" for i in ids),
+                    "figure": f["text"]})
     return out
 
 
-def records(cfg: dict) -> list[dict]:
-    """Every register row as a dict: the table's five columns, and what text it covers (`covers`, `hero_keys`)."""
+def records(cfg: dict, stats: dict | None = None) -> list[dict]:
+    """Every register row as a dict: the table's five columns, and what text it covers (`covers`, `hero_keys`).
+    `stats` (review round 11): the route rows follow the wording the build drew."""
     from sheets import route as sheet
     out = []
     for gid, (printed, key, definition, check, keys) in HERO.items():
         learns = sheet.PURPOSE[gid][0]
         out.append({"where": f"image {gid}", "printed": printed, "key": key, "definition": f"{definition} ({learns})",
                     "check": check, "hero_keys": keys})
-    for r in route_rows(cfg) + handoff_rows(cfg):
+    for r in route_rows(cfg, stats) + handoff_rows(cfg):
         gid = r["where"].split()[-1]
         if gid in sheet.PURPOSE and r["where"].startswith("image"):
             r = dict(r, definition=f"{r['definition']} ({sheet.PURPOSE[gid][0]})")
@@ -196,7 +233,8 @@ def records(cfg: dict) -> list[dict]:
     for block, printed, key, definition, check, covers in FIXED:
         out.append({"where": f"README `{block}`", "printed": printed, "key": key, "definition": definition,
                     "check": check, "covers": covers})
-    for nt in sorted(cfg.get("notices") or [], key=lambda n: n.get("n", 0))[:4]:
+    from render_readme import NOTICES_ON_PAGE
+    for nt in sorted(cfg.get("notices") or [], key=lambda n: n.get("n", 0))[:NOTICES_ON_PAGE]:
         for a in nt.get("anchors") or []:
             out.append({"where": f"README rule {nt.get('n')}", "printed": f"`{{month:{a['key']}}}`",
                         "key": f"`rules` ({a['repo']})",
@@ -229,8 +267,8 @@ def records(cfg: dict) -> list[dict]:
     return out
 
 
-def rows(cfg: dict) -> list[list[str]]:
-    return [[r["where"], r["printed"], r["key"], r["definition"], r["check"]] for r in records(cfg)]
+def rows(cfg: dict, stats: dict | None = None) -> list[list[str]]:
+    return [[r["where"], r["printed"], r["key"], r["definition"], r["check"]] for r in records(cfg, stats)]
 
 
 def _rows_retired(cfg: dict) -> list[list[str]]:
@@ -253,15 +291,15 @@ def _rows_retired(cfg: dict) -> list[list[str]]:
     return out
 
 
-def block(cfg: dict) -> str:
+def block(cfg: dict, stats: dict | None = None) -> str:
     lines = [START, "", "| where | printed | key | definition | check |", "|---|---|---|---|---|"]
-    lines += ["| " + " | ".join(c.replace("|", "\\|") for c in r) + " |" for r in rows(cfg)]
+    lines += ["| " + " | ".join(c.replace("|", "\\|") for c in r) + " |" for r in rows(cfg, stats)]
     lines += ["", END]
     return "\n".join(lines)
 
 
-def render(text: str, cfg: dict) -> str:
-    new = block(cfg)
+def render(text: str, cfg: dict, stats: dict | None = None) -> str:
+    new = block(cfg, stats)
     if START in text and END in text:
         return re.sub(re.escape(START) + r".*?" + re.escape(END), lambda m: new, text, flags=re.S)
     return text.rstrip("\n") + "\n\n## 7. Printed figures\n\nGenerated by `scripts/audit_figures.py`; do not edit by hand.\n\n" + new + "\n"
@@ -270,12 +308,20 @@ def render(text: str, cfg: dict) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--stats", default=os.path.join(ROOT, "assets", "stats.json"),
+                    help="review round 11: the route rows follow the wording this build drew")
     a = ap.parse_args(argv)
     with open(CFG, "rb") as fh:
         cfg = tomllib.load(fh)
+    import json
+    try:
+        with open(a.stats, encoding="utf-8") as fh:
+            stats = json.load(fh)
+    except (OSError, ValueError):
+        stats = None
     with open(AUDIT, encoding="utf-8") as fh:
         before = fh.read()
-    after = render(before, cfg)
+    after = render(before, cfg, stats)
     if a.check:
         return 0 if after == before else 1
     if after != before:

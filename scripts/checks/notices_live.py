@@ -1,6 +1,6 @@
 """notices_live — a working rule's cite points at code that is still there (review round 7).
 
-NOTICE-LIVE (fail): a printed rule (the first four) whose anchor text is not in any file at the repository's HEAD
+NOTICE-LIVE (fail): a printed rule (the first three since review round 11) whose anchor text is not in any file at the repository's HEAD
   outside its documentation (`rules[].at_head`, computed by scripts/data/proof.py `live_paths`), or whose record
   was computed without the check. Rule 1 used to cite `class CircuitBreaker` in `src/common/error_handling.py`
   (fd33c11), a class nothing called, deleted six days later; it now cites his per-host breakers (`_host_breakers`,
@@ -13,7 +13,7 @@ from __future__ import annotations
 from check import Finding, fail
 
 TIER = "fast"
-ON_PAGE = 4
+ON_PAGE = 3     # review round 11: rules 1–3
 
 
 def check(ctx) -> list[Finding]:

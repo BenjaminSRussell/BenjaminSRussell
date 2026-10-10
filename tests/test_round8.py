@@ -106,13 +106,16 @@ class OneCount(unittest.TestCase):
     def test_committed(self):
         cfg, stats = load()
         line = also_line(read(README), "ideal-url-organizer")
-        self.assertIn("25 ways to sort a pile of URLs: 21 from the URLs and their crawl records", line)
-        self.assertIn("4 more from the fetched pages", line)
+        # review r11-3 #4: one count on the page, 21, the methods a command runs (main.py self.methods); the 25
+        # files and the 4 that no entry point imports are gone
+        self.assertIn("21 ways to sort a pile of URLs from their crawl records (domain, crawl depth, subdomain, …).", line)
+        self.assertNotIn("25", line)
+        self.assertNotIn("4 more", line)
         recs = {f["text"]: f for f in stats["figures"] if f["repo"] == "ideal-url-organizer"}
-        self.assertEqual((recs["21 from"]["measured"], recs["4 more"]["measured"], recs["25 ways"]["measured"]),
-                         (21, 4, 25))
-        self.assertEqual(recs["21 from"]["measured"], recs["21 ways"]["measured"], "the image and the page agree")
-        self.assertTrue(all(r["holds"] for r in recs.values()))
+        self.assertEqual(set(recs), {"21 ways"})
+        self.assertEqual((recs["21 ways"]["measured"], recs["21 ways"]["holds"]), (21, True))
+        self.assertEqual(strings.count_mismatch(["sorted 21 ways by ideal-url-organizer"], read(README),
+                                                ["ideal-url-organizer"]), [])
 
 
 class PhoneHeading(unittest.TestCase):
@@ -194,7 +197,7 @@ class RuleDays(unittest.TestCase):
                       "dashboard was up 5 days after that.", block)
         self.assertNotIn("before speed", block)
         bodies = {n["n"]: n for n in cfg["notices"]}
-        for n in range(1, 5):          # no body opens on its title's first word unless it carries a figure
+        for n in range(1, 4):          # review r11-1 #1: rules 1-3 (4 cut); no body opens on its title's first word unless it carries a figure
             title, body = bodies[n]["title"].split()[0].lower().strip("."), bodies[n]["body"]
             first = body.split()[0].lower()
             self.assertTrue(first != title or re.search(r"\d|\{days:", body), n)

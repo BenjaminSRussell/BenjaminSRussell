@@ -66,7 +66,9 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "loop, so the only way on is the reader's Ctrl-C", "Q4", "R1-F3 (the line you follow); runcheck ends_by_itself"),
     "R6": ("the crawl is a loop: the rows it spans repeat for every page", "Q1",
            "Rust-sitemap src/bfs_crawler.rs frontier.add_links; Mercator (SRC-173 §3)"),
-    "S1": ("where URLs come from, and what the release contacts by default", "Q5", "stats.json routes.rustmapper S1"),
+    "S1": ("the command you type (review round 11: the package is rustmapper, the command the release ships is "
+           "named apart, and a screenshot carries no code block), where URLs come from, and what the release "
+           "contacts by default", "Q5", "stats.json routes.rustmapper S1; edition.scripts; runcheck crawl_help"),
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
     "F1": ("each page is fetched and its links are queued again, on the domain of the URL you gave, its parent "
            "domains and subdomains included; and (review round 8) how many it fetches at once from one host, the cap "
@@ -83,7 +85,7 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "says it is done, with how long it must stay quiet (review round 9: a clearing mark is only as good as its "
            "number), counted once those lines have started and stop (review round 10: every seeder runs first, in "
            "silence); the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else "
-           "arm, 'Received work item'; main.rs initialize before the shards; {quiet} from the --timeout default and the backoff, route.quiet_secs); runcheck "
+           "arm, 'Received work item'; main.rs initialize before the shards; {quiet} from the permit wait (review round 11), the --timeout default and the backoff, route.quiet_secs); runcheck "
            "ends_by_itself, quiet_after_last_page, quiet_slow_page"),
     "C1": ("the reader's one step, the line that says it is done (`Saved to:`), and what a second Ctrl-C costs: the "
            "tool itself asks for one, and it quits before the file is written (review round 8; after a kill, the "

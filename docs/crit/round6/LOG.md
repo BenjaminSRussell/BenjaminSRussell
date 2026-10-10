@@ -700,3 +700,65 @@ Renders: `scratchpad/r6/build/round-10/` (the standard set, plus the phone sheet
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
   it passes (0 fail, 0 warn), FLAG-WRAP included. README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER,
   README-STALE and AUDIT-STALE are clean.
+
+## Round 11
+
+Reviews: `review-r11-1.md` (the owner) **9 / 10**, `review-r11-2.md` (the phone-first student) **8 / 10**,
+`review-r11-3.md` (the data engineer) **8 / 10**. None meets the goal yet. All three say the image is the right
+picture. What is left: three blocks at the bottom of the page that do not earn their place (review 1), a screenshot
+that gives the install but not the command, and cautions printed after the command they qualify (review 2), and
+figures that hold their definition but not what a reader checks them against (review 3). The reviews do not
+conflict. Review 3 builds on review 1's cuts, and every must-fix is applied.
+
+Renders: `scratchpad/r6/build/round-11/` (the standard set, plus the phone sheets at 308 px and the phone page at
+360, `page-phone-360-*.png`). `stats.json` was re-read from the local trees with `scratchpad/r6/reroute11.py`, and
+the two changed probes were re-run on the installed 0.1.3 binary (`scratchpad/r6/rc11/steps.json`) and merged.
+
+### What was measured first
+
+- **The blank rows (review 3).** `runcheck.py --probe non200_status` on the extended fixture, `--timeout 3`: 8
+  requests; busy.html (429), gone.html (404), err (500), feed (200, `application/json`) and hang.html (held 8 s)
+  were each asked for once, beyond.html never, and all five rows have `status_code` and `crawled_at` null. The
+  sdist agrees: `process_url_streaming` returns early for a non-HTML 200 (`is_html_content_type(ct)`), and
+  `handle_crawl_error` treats a timeout as transient (`false // Don't block host for transient errors`).
+- **The permit wait (review 3).** `bfs_crawler.rs:757` wraps `network_permits.acquire_owned()` in
+  `tokio::time::timeout(Duration::from_secs(30), …)`, after the `Received work item` line. 30 + 20 + 4 + 1 = 55,
+  rounded up to 60. `--probe quiet_slow_page` with `QUIET_BOUND = 60`: slow.html held 15 s, SIGINT 60 s after the
+  last work-item line, 3 of 3 pages written, exit 0.
+- **The command in the image (review 2).** S1 grows as review 2 said: desk 543 to 571 (gate 620), phone 1,087 to
+  1,121 (gate 1,246). `rust_sitemap crawl` is drawn in the mono face (role `machine`), as `Received work item` is.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1: cut rule 4 | `[[notices]]` n = 4 removed; `NOTICES_ON_PAGE`, `checks/notices.py` and `checks/notices_live.py` print and check rules 1 to 3; `rules[]` has no `urlparse` record; AUDIT §2 says why. The `RuleFour` tests now test the `author = "self"` scope on rule 1 (`_host_breakers`). |
+| r1-2: the breaker once, in rule 1 | Rule 1: "When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the crawl goes on." Scrapy bullet 3: "Prometheus metrics on Grafana dashboards. Docker Compose and a Helm chart for Kubernetes." The `[[figures]]` rows are "5 URLs on one host" (adds `_host_breakers`) and "60 s", both `block = "notices"`. FIGURES now reads the printed rules' bodies: a number there needs a holding row, and a notices row must be in a printed rule. Test: "circuit breaker" or "left alone" is in one block of the visible prose. |
+| r1-3: excel-and-vba bare | Moved to the "Also:" line in `<details>`, after Course_crusader. 10 described + 5 bare = 15. |
+| r2-1: the command in the image | S1: "`{script} crawl` starts from your URL; by default also from sitemaps, certificate logs and Common Crawl". `{script}` is the sheet's existing placeholder, filled by `route.command_name(edition.scripts, project)`, the same call as the code block, so it prints `rust_sitemap` now and `rustmapper` once a release ships that script. New release anchor `src/cli.rs` block `Commands` has `Crawl {`, and `runs = ["crawl_help"]`. Without the probe, the two old wordings (no command) are the 3rd and 4th alternatives. |
+| r2-2: conditions before the commands | `install_block` returns the wheel note and "Before you run 0.1.3:" with its seven items, then the fence. README-CAUTIONS reads the block's prose around the code, not after it. |
+| r2-3: the two comments apart | `stop_lines` puts a blank line before `# sitemap.xml, even after a kill` when stop lines are above it. |
+| r3-1: what a blank row means | X2: "Only HTML pages that answer 200 get a `status_code`. An error, a timeout or a non-HTML 200 is left blank, `crawled_at` too, and never retried." (25 words). New release anchors `handle_crawl_error` "false // Don't block host for transient errors" and `process_url_streaming` "is_html_content_type(ct)"; `instead = ""` on `fails = ["non200_status"]` kept. Fixture: `hang.html` and links to `err`, `feed`, `hang.html`; the server answers `/err` 500 and `/feed` JSON 200 and holds `hang.html` 8 s, and logs each request as it arrives. `status_verdict` checks all five rows (`status_code` and `crawled_at` null, asked for once). AUDIT §7 X2 row. |
+| r3-2: the permit wait in the quiet | New value kind `wait` (`route.wait_value`: the seconds of a tokio timeout around a future). H1 anchor `{fn = "process_url_streaming", wait = "network_permits.acquire_owned()"}`; `QUIET_FROM` and `quiet_secs(timeout, threshold, permit)`: 60. Without the anchor, H1 falls back to "…, even after the last page". Image: "…lines stop for 60 s"; code block: "# for 60 s, then Ctrl-C once". `QUIET_BOUND = 60`, `QUIET_LIMIT = 180`. H1's audit note and PURPOSE updated. |
+| r3-3: the unit | "176 test functions" and "1,920 test functions (CI selects all but 41)". AUDIT §7's facts row says the CI logs count parametrized cases (Scrapy 3,075 on 8 Oct 2026) and the lib and bin targets apart (Rust-sitemap 135 + 160), and that the page counts functions. |
+| r3-4: one count of the sorts | Also line: "**ideal-url-organizer** — 21 ways to sort a pile of URLs from their crawl records (domain, crawl depth, subdomain, …)." `[[figures]]` "25 ways", "21 from" and "4 more" removed; the hand-off row "21 ways" covers the Also line too, and AUDIT §7 says so. |
+| r3-5: the register lists what is drawn | `route.resolve` records which wording it drew (`wording`). `audit_figures.route_rows(cfg, stats)` prints the drawn wording's figures and lists the others as "drawn instead when their anchors and probes hold"; a drawn wording with no figure, or a retired one, gets no row. AUDIT-STALE and AUDIT-COVER pass `ctx.stats`; `audit_figures.py` reads `assets/stats.json` (`--stats`). Today F1 prints `{field:max_inflight}` only, and W1 and M1 have no row. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r2-1: a new `{cmd}` placeholder in `scripts/data/route.py` | The sheet already fills `{script}` with `command_name(edition.scripts, project)` after the route is resolved (`sheets/route.py` `plan`). A second name for the same value would be two copies that can drift. Same behaviour, same function. With no scripts the sheet raises before anything is drawn, as it did. |
+| r1-2: the row "5 URLs" | FIGURES also counts number words, and "on one host" carries "one". The row is "5 URLs on one host", with `_host_breakers` added as a literal, so "one host" rests on the per-host breakers in the code too. |
+| r3-5: "drawn instead when …" per wording | The other wordings' figures are listed together after the drawn one; the conditions are their anchors and probes, which the entry's own chart.toml block states. |
+| Owner, outside this repository | Carried: ship 0.1.4 (P1 and its test, the LICENSE `license-files` names, `[project.scripts]` with `rustmapper`, which also turns S1's command into `rustmapper`); record every response's status in 0.1.4 (send `CrawlAttemptFact` from the `Ok(_)` and `Err` branches) so X2 retires and ideal-url-organizer's method 15 counts right; Scrapy's UConn defaults into a named profile; `start.py` accepting `docker compose`; `resume` after a kill; registrable-domain seeding; back-off on 429/503; `cargo audit` and `clippy -Dwarnings` as blocking. New this round: decide at the end of October whether to ship the image with S2 left out if 0.1.4 is not out (review 1); compare `urlsplit(...).hostname` and the port, not raw `netloc`, in ideal-url-organizer's `web_crawler.py:296, :309`, with a test for `:443`, a login and a capital letter (review 1); set the GitHub bio to "Crawl and data infrastructure. Python and Rust." and open the profile once in the GitHub iOS and Android apps to see which edition they show (review 2). |
+
+### Measured state of this build
+
+- Desk sheet 571 high (gate 620); phone 600 × 1,121 (gate 1,246).
+- Page: desk 2,710 px at 1,280 (was 2,737); phone 4,997 CSS px at 390 (was 5,172).
+- `python3 -m unittest`: 424 tests, all pass (18 new in `tests/test_round11.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails. Run alone,
+  it passes (0 fail, 0 warn). README-CAUTIONS, FIGURES, STRINGS-TWICE, AUDIT-COVER, README-STALE and AUDIT-STALE
+  are clean.

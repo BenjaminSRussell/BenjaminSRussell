@@ -105,8 +105,8 @@ class ReleaseLead(unittest.TestCase):
 
     def test_committed(self):
         text = read(README)
-        tail = install(text).split("```", 2)[2]
-        paras = [p for p in tail.split("\n\n") if p.strip()]
+        head = install(text).split("```", 1)[0]          # review round 11: before the code block
+        paras = [p for p in head.split("\n\n") if p.strip()]
         self.assertEqual(paras[1], "Before you run 0.1.3:")
         for it in paras[2].strip().splitlines():
             self.assertFalse(it[2:].startswith("0.1.3"), it)
@@ -138,11 +138,11 @@ class StopLines(unittest.TestCase):
     def test_drawn(self):
         _, stats = load()
         code = self.block(stats)
-        self.assertIn('# 0.1.3 runs until stopped: when\n# "Received work item" stops\n# for 30 s, then Ctrl-C once\n',
+        self.assertIn('# 0.1.3 runs until stopped: when\n# "Received work item" stops\n# for 60 s, then Ctrl-C once\n',
                       code)
         self.assertNotIn("# stop it with one Ctrl-C", code)
         self.assertTrue(all(len(ln) <= readme_check.CODE_COLUMNS for ln in code.splitlines()), code)
-        self.assertIn(rr.STOP_QUIET[0].format(release="0.1.3", quiet=30), install(read(README)))
+        self.assertIn(rr.STOP_QUIET[0].format(release="0.1.3", quiet=60), install(read(README)))
 
     def test_without_the_number(self):
         _, stats = load()
@@ -170,7 +170,9 @@ class Clock(unittest.TestCase):
 
     FILES = {
         "src/bfs_crawler.rs": ('pub async fn start_crawling(&self) { loop { tokio::select! { else => { eprintln!("Crawl '
-                               'complete: frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }'),
+                               'complete: frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }'
+                               ' async fn process_url_streaming(&self) { let _p = tokio::time::timeout('
+                               'Duration::from_secs(30), network_permits.acquire_owned()).await; }'),
         "src/cli.rs": 'Crawl {\n #[arg(short, long, default_value = "20", help = "t")]\n timeout: u64,\n}',
         "src/network.rs": "let client = Client::builder().timeout(Duration::from_secs(timeout_secs));",
         "src/state.rs": ("impl HostState { pub const MAX_FAILURES_THRESHOLD: u32 = 3;\n"
@@ -191,10 +193,10 @@ class Clock(unittest.TestCase):
         self.assertEqual(entry(cfg, "H1")["text"],
                          "{release} never exits by itself; done once `Received work item` lines stop for {quiet} s")
         drawn = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
-        self.assertEqual(drawn["H1"]["quiet"], 30)
+        self.assertEqual(drawn["H1"]["quiet"], 60)     # review round 11: 30 (permit) + 20 + 4 + 1 -> 60
 
     def test_order_anchor(self):
-        self.assertIn("lines stop for 30 s", self.h1(self.FILES)["text"])
+        self.assertIn("lines stop for 60 s", self.h1(self.FILES)["text"])
         flipped = dict(self.FILES, **{"src/main.rs": "shard.process_incoming_urls(&d).await;\n"
                                                      "crawler.initialize(&seeding_strategy).await?;"})
         self.assertEqual(self.h1(flipped)["text"], "{release} never exits by itself, even after the last page",
@@ -206,7 +208,7 @@ class Clock(unittest.TestCase):
         from sheets import route as sheet
         plan = sheet.plan(stats, cfg)
         h1 = next(e for e in plan["steps"] if e["id"] == "H1")
-        self.assertIn("lines stop for 30 s", h1["text"])
+        self.assertIn("lines stop for 60 s", h1["text"])
 
 
 class ScopeLever(unittest.TestCase):
@@ -233,7 +235,7 @@ class ScopeLever(unittest.TestCase):
         return R.resolve(r, {"version": "0.1.3", "ok": True, "steps": []})[0]
 
     def test_committed(self):
-        items = install(read(README)).split("Before you run 0.1.3:", 1)[1].strip().splitlines()
+        items = install(read(README)).split("Before you run 0.1.3:", 1)[1].split("```", 1)[0].strip().splitlines()
         self.assertEqual(len(items), 7)
         self.assertEqual(items[3], "- " + self.WORDS)
         self.assertLessEqual(len(self.WORDS.split()), rr.LIST_MAX_WORDS)

@@ -189,41 +189,43 @@ class HandOff(unittest.TestCase):
 
 
 class RuleFour(unittest.TestCase):
-    """Review r06-1 #6: the rule cites his own commit."""
+    """Review r06-1 #6: a rule cites his own commit. Review r11-1 #1: rule 4 ("Parse, don't pattern-match.") is cut,
+    so the scope is tested on rule 1, whose anchor (`_host_breakers`) is scoped to his commit too."""
 
     def finding(self, rec, anchors=None):
         cfg, stats = load()
         nts = copy.deepcopy(cfg["notices"])
         if anchors is not None:
-            nts[3]["anchors"] = anchors
-        rules = [r for r in stats["rules"] if r["n"] != 4] + [rec]
+            nts[0]["anchors"] = anchors
+        rules = [r for r in stats["rules"] if r["n"] != 1] + [rec]
         ctx = type("C", (), {"stats": dict(stats, rules=rules), "cfg": dict(cfg, notices=nts)})()
         return [f for f in notices.check(ctx) if f.code == "NOTICE-AUTHOR"]
 
     def test_committed(self):
         cfg, stats = load()
-        nt = next(n for n in cfg["notices"] if n["n"] == 4)
+        self.assertFalse(any("urllib.parse" in str(n.get("body", "")) + str(n.get("cite", "")) for n in cfg["notices"]),
+                         "rule 4 is cut (r11-1 #1)")
+        self.assertNotIn("pattern-match", read(README))
+        nt = next(n for n in cfg["notices"] if n["n"] == 1)
         self.assertNotIn("Claude", nt["cite"])
         self.assertFalse(nt.get("names_agent"))
         self.assertEqual(nt["anchors"][0]["author"], "self")
-        rec = next(r for r in stats["rules"] if r["n"] == 4)
-        self.assertEqual((rec["scope"], rec["found"], rec["sha"], rec["date"]), ("self", True, "2be623e", "2025-11-13"))
-        self.assertEqual(proof.fill_cite(nt["cite"], 4, stats["rules"])[0],
-                         "ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.")
+        rec = next(r for r in stats["rules"] if r["n"] == 1)
+        self.assertEqual((rec["scope"], rec["found"], rec["sha"], rec["date"]), ("self", True, "099dd6c", "2026-10-08"))
         self.assertEqual(self.finding(rec), [])
 
     def test_scoped_anchor_fails_without_his_commit(self):
         _, stats = load()
-        rec = dict(next(r for r in stats["rules"] if r["n"] == 4), found=False, sha=None, date=None)
+        rec = dict(next(r for r in stats["rules"] if r["n"] == 1), found=False, sha=None, date=None)
         self.assertEqual(len(self.finding(rec)), 1)
-        rec = {k: v for k, v in next(r for r in stats["rules"] if r["n"] == 4).items() if k != "scope"}
+        rec = {k: v for k, v in next(r for r in stats["rules"] if r["n"] == 1).items() if k != "scope"}
         self.assertEqual(len(self.finding(rec)), 1, "a record computed without the scope does not count")
 
     def test_unscoped_anchor_still_fails_on_an_agent_first(self):
         _, stats = load()
-        rec = {k: v for k, v in next(r for r in stats["rules"] if r["n"] == 4).items() if k != "scope"}
-        self.assertEqual(len(self.finding(rec, [{"key": "urlparse", "repo": "ideal-url-organizer",
-                                                 "text": "urllib.parse"}])), 1)
+        rec = {k: v for k, v in next(r for r in stats["rules"] if r["n"] == 1).items() if k != "scope"}
+        rec = dict(rec, first_is_his=False, first_author="Claude")
+        self.assertEqual(len(self.finding(rec, [{"key": "breaker", "repo": "Scrapy", "text": "_host_breakers"}])), 1)
 
     def test_rule_records_carry_the_scope(self):
         commits = [{"sha": "a" * 40, "date": "2025-11-09", "name": "Claude", "email": "noreply@anthropic.com"},
@@ -295,8 +297,10 @@ class Wording(unittest.TestCase):
         self.assertEqual(cfg["route"]["rustmapper"]["header"], "Crawls a site and writes one line for every URL it finds.")
         self.assertNotIn("above or below", entry(cfg, "F1")["text"])
         s1 = entry(cfg, "S1")
-        self.assertTrue(s1["text"].startswith("starts from your URL; by default also from sitemaps"))   # round 9
+        # round 9; round 11 (r11-2 #1): the command first, filled from edition.scripts
+        self.assertTrue(s1["text"].startswith("`{script} crawl` starts from your URL; by default also from sitemaps"))
         self.assertIn("if asked", s1["instead"][0]["text"])
+        self.assertTrue(s1["instead"][1]["text"].startswith("starts from your URL; by default also from sitemaps"))
         anchor = {"path": "src/ct_log_seeder.rs", "text": 'format!("https://{}/", subdomain)'}
         self.assertIn(anchor, s1["head"])
         self.assertIn(anchor, s1["release"])
@@ -304,15 +308,18 @@ class Wording(unittest.TestCase):
     def test_readme_words(self):
         text = read(README)
         self.assertNotIn("Circuit breakers wrap the HTTP, Delta Lake and Redis services", text)
-        self.assertIn("Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for "
-                      "60 s.", text.replace("\u00a0", " "))
+        # review r11-1 #2: the breaker is told once, in working rule 1, not in the Scrapy bullet as well
+        self.assertNotIn("Each host has its own circuit breaker", text)
+        self.assertIn("When 5 URLs on one host fail every retry, that host is left alone for 60 s; the rest of the "
+                      "crawl goes on.", text.replace("\u00a0", " "))
         self.assertNotIn("costs the caller nothing", text)
         self.assertIn("logged only after the client has its last byte", text)
         self.assertNotIn("concurrent sitemap crawler written in Rust", text)
         cfg, _ = load()
-        for t in ("5 URLs", "60 s"):
+        for t in ("5 URLs on one host", "60 s"):
             row = next(f for f in cfg["figures"] if f["text"] == t)
             self.assertIn("DEFAULT_STAGE2_BREAKER_", row["literal"])
+            self.assertEqual(row["block"], "notices")
 
 
 if __name__ == "__main__":

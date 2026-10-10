@@ -6,6 +6,9 @@ FIGURES (fail): a run of digits or a number word in README.md's visible text out
   names (3d-swift-widget) are not prose. Review round 10 (the owner): a CLAIMS phrase ("sample site": what a
   command crawls) in the visible prose needs a holding row whose text contains it, as a number does; the old Scrapy
   run sentence said `python start.py` "crawls a university's sample site" with no row, and it loads no seeds at all.
+  Review round 11 (the owner): the printed working rules' bodies (chart.toml [[notices]], build-written, so not in
+  the prose above) are read too: a typed number there needs a holding row, and a row marked `block = "notices"`
+  must be in one of them (rule 1 carries the breaker's 5 URLs and 60 s, said nowhere else).
 """
 from __future__ import annotations
 
@@ -49,8 +52,18 @@ def unbacked_claims(readme: str, rows: list[dict]) -> list[str]:
     return out
 
 
-def uncovered(readme: str, rows: list[dict]) -> list[str]:
-    text = prose(readme)
+def notice_bodies(cfg: dict | None) -> str:
+    """The bodies of the rules the page prints, one per line, computed `{days:…}` figures blanked (they have their
+    own rows and NOTICE-DATE)."""
+    from render_readme import NOTICES_ON_PAGE
+    hand = sorted((n for n in (cfg or {}).get("notices") or [] if isinstance(n, dict)), key=lambda n: n.get("n", 0))
+    bodies = [re.sub(r"\{[a-z]+:[^}]*\}", lambda m: " " * len(m.group(0)), str(n.get("body") or ""))
+              for n in hand[:NOTICES_ON_PAGE]]
+    return "\n".join(bodies)
+
+
+def uncovered(readme: str, rows: list[dict], text: str | None = None) -> list[str]:
+    text = prose(readme) if text is None else text
     spans = []
     for r in rows or []:
         if not r.get("holds"):
@@ -76,4 +89,11 @@ def check(ctx) -> list[Finding]:
         out.append(fail("FIGURES", f"{hit} says what a command does with no [[figures]] row behind it", "README.md"))
     for hit in uncovered(ctx.readme or "", rows):
         out.append(fail("FIGURES", f"{hit} is typed into the README with no [[figures]] row behind it", "README.md"))
+    bodies = notice_bodies(ctx.cfg)
+    for hit in uncovered("", rows, bodies):
+        out.append(fail("FIGURES", f"{hit} is typed into a working rule with no [[figures]] row behind it", "chart.toml"))
+    for f in (ctx.cfg or {}).get("figures") or []:
+        if f.get("block") == "notices" and str(f.get("text") or "\0") not in bodies:
+            out.append(fail("FIGURES", f"{f.get('text')!r} is marked for the working rules and no printed rule says it",
+                            "chart.toml"))
     return out

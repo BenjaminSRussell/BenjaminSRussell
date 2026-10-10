@@ -227,7 +227,7 @@ class CiJobs(unittest.TestCase):
         stats = {"repos": [{"name": "x", "head": {"short": "32c2651"}, "test_functions": 3,
                             "ci": {"conclusion": "success", "date": "2026-10-07", "jobs": jobs}}]}
         self.assertEqual(rr.facts_block(stats, "x").replace("\u00a0", " "),
-                         "*On main at `32c2651`: 3 tests · CI passed 7 Oct 2026, Security Audit failed (not blocking)*")
+                         "*On main at `32c2651`: 3 test functions · CI passed 7 Oct 2026, Security Audit failed (not blocking)*")
 
 
 class Audit(unittest.TestCase):
@@ -237,12 +237,15 @@ class Audit(unittest.TestCase):
             cfg = tomllib.load(fh)
         with open(audit_figures.AUDIT, encoding="utf-8") as fh:
             text = fh.read()
-        self.assertEqual(audit_figures.render(text, cfg), text, "run python3 scripts/audit_figures.py")
-        block = audit_figures.block(cfg)
+        with open(os.path.join(ROOT, "assets", "stats.json"), encoding="utf-8") as fh:
+            stats = json.load(fh)
+        # review round 11: the register follows the wordings this build drew (stats.json routes and the run check)
+        self.assertEqual(audit_figures.render(text, cfg, stats), text, "run python3 scripts/audit_figures.py")
+        block = audit_figures.block(cfg, stats)
         for f in cfg["figures"]:
             self.assertIn(f"| sorted {f['text']} by {f['repo']} |" if f.get("handoff") else f"| {f['text']} |", block)
         self.assertIn("{month:breaker}", block)
-        self.assertIn("BATCH_TIMEOUT_MS", block)
+        self.assertNotIn("BATCH_TIMEOUT_MS", block, "W1 is drawn as \"in batches\", with no figure (r11-3 #5)")
         # review round 7: every route entry whose words read a figure has a row
         for gid in ("F1", "H1", "L1", "X1"):
             self.assertIn(f"`routes.rustmapper` {gid}", block, gid)

@@ -146,7 +146,7 @@ class Anchors(unittest.TestCase):
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
         # review round 9: the clearing mark with its number (computed, quiet_secs; probe quiet_slow_page)
-        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` lines stop for 30 s")
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` lines stop for 60 s")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
         self.assertEqual(drawn["C1"]["text"],
@@ -156,7 +156,8 @@ class Anchors(unittest.TestCase):
         self.assertEqual(drawn["F1"]["text"], "fetches up to 20 pages at a time from each host; queues their "
                                               "links to your site, its subdomains and its parent domain")
         self.assertEqual(drawn["F1"]["scope"], "release")
-        self.assertTrue(drawn["S1"]["text"].startswith("starts from your URL; "))     # review round 9: a verb
+        # review round 9: a verb; round 11: after the command it names
+        self.assertTrue(drawn["S1"]["text"].startswith("`{script} crawl` starts from your URL; "))
         # review round 7: the write path in its order, in batches: 50 ms is drain_batch's wait for the first event
         self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, in batches")
         self.assertEqual(m1["ci"], "Test")
@@ -254,7 +255,10 @@ class Quiet(unittest.TestCase):
     def test_h1_takes_the_quiet_words_only_on_the_probe(self):
         spec = {"repo": "x", "entry": [e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "H1"]}
         body = ('pub async fn start_crawling(&self) { loop { tokio::select! { else => { eprintln!("Crawl complete: '
-                'frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }')
+                'frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }'
+                # review round 11: the line is printed before the task waits up to 30 s for a network permit
+                ' async fn process_url_streaming(&self) { let _p = tokio::time::timeout(Duration::from_secs(30), '
+                'network_permits.acquire_owned()).await; }')
         r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body, **self.QUIET_FILES}), None, "0.1.3")
 
         def words(**probes):
@@ -263,7 +267,7 @@ class Quiet(unittest.TestCase):
         # review round 9: the clearing mark with its number, on both quiet probes
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True,
                                quiet_slow_page=True)["text"],
-                         "{release} never exits by itself; done once `Received work item` lines stop for 30 s")
+                         "{release} never exits by itself; done once `Received work item` lines stop for 60 s")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
                          "{release} never exits by itself, even after the last page", "no slow-page probe: no number")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False,
@@ -435,7 +439,8 @@ class Commands(unittest.TestCase):
                                                          # review round 10: the stop rule where the reader acts
                                                          "# 0.1.3 runs until stopped: when",
                                                          '# "Received work item" stops',
-                                                         "# for 30 s, then Ctrl-C once",
+                                                         "# for 60 s, then Ctrl-C once",
+                                                         "",       # review round 11: the two comments apart
                                                          "# sitemap.xml, even after a kill",
                                                          "rust_sitemap export-sitemap"])
         self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))

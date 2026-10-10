@@ -25,7 +25,9 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
                         exit 1 and no sitemap.jsonl (0.1.3's "Press Ctrl+C again to force quit")
     non200_status       (review round 9) a page that answers 429 (Retry-After: 2) and a link that answers 404 are
                         written with no status_code, the 429 page is asked for once in NON200_SECONDS, and the page
-                        only it links to is never asked for: a refusal looks like any other missing page
+                        only it links to is never asked for: a refusal looks like any other missing page. Review
+                        round 11: also a 500, a 200 that is JSON and a page held past --timeout STATUS_TIMEOUT, each
+                        asked for once, with status_code and crawled_at null
     quiet_slow_page     (review round 9) the quiet mark has a number: on a site whose second page is held SLOW_HOLD
                         s, two `Received work item` lines are at least SLOW_HOLD s apart (silence shorter than the
                         bound is not the end), and after QUIET_BOUND s with no such line, one SIGINT writes every page
@@ -87,10 +89,12 @@ WORKERS_SECONDS = 15    # workers_cap: one SIGINT after this long (three pages, 
 SECOND_AFTER = 0.3      # second_ctrl_c: the second SIGINT this long after the first (0.1.3 waits 2 s before saving)
 STATUS_SITE = ROOT / "tests" / "fixtures" / "status-site"   # busy.html answers 429, gone.html is not there (404)
 NON200_SECONDS = 12     # non200_status: one SIGINT after this long (Retry-After: 2 would allow five more asks)
+STATUS_HOLD = 8.0       # non200_status: hang.html is held this long (review round 11) ...
+STATUS_TIMEOUT = 3      # ... and the probe crawls with --timeout this, so the fetch times out
 SLOW_SITE = ROOT / "tests" / "fixtures" / "slow-site"       # slow.html is held SLOW_HOLD s, then links after.html
 SLOW_HOLD = 15.0        # quiet_slow_page: how long the server holds slow.html (under 0.1.3's 20 s --timeout)
-QUIET_BOUND = 30        # quiet_slow_page: the quiet the image prints, chart.toml H1 {quiet} (data/route.py quiet_secs)
-QUIET_LIMIT = 120       # quiet_slow_page: give up waiting for the quiet after this long
+QUIET_BOUND = 60        # quiet_slow_page: the quiet the image prints, chart.toml H1 {quiet} (data/route.py quiet_secs)
+QUIET_LIMIT = 180       # quiet_slow_page: give up waiting for the quiet after this long
 WORK_ITEM = re.compile(r"Received work item: (\S+)")   # the line 0.1.3 prints for every URL it starts (stderr)
 
 
@@ -278,23 +282,43 @@ def probe_second(steps: list, exe: str, name: str, work: Path) -> None:
 
 
 class _Status(_Quiet):
-    """The status fixture: busy.html answers 429 with Retry-After: 2 (and its body, which links beyond.html); every
-    request path is kept, in order (review round 9, non200_status)."""
+    """The status fixture: busy.html answers 429 with Retry-After: 2 (and its body, which links beyond.html); review
+    round 11: /err answers 500, /feed answers 200 as application/json, and hang.html is held STATUS_HOLD s (longer
+    than the probe's --timeout). Every request path is kept, in order, as it arrives (before a held answer)."""
     paths: list = []
 
+    def do_GET(self):  # noqa: N802 - http.server's name
+        path = self.path.split("?")[0]
+        type(self).paths.append((time.monotonic(), path))
+        if path == "/hang.html":
+            time.sleep(STATUS_HOLD)
+        try:
+            super().do_GET()
+        except (BrokenPipeError, ConnectionResetError):   # the crawler gave up on hang.html
+            pass
+
+    def _send(self, code: int, ctype: str, body: bytes, extra: dict | None = None) -> io.BytesIO:
+        self.send_response(code)
+        for k, v in (extra or {}).items():
+            self.send_header(k, v)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
+
     def send_head(self):  # noqa: D401 - http.server's hook: the 429 is sent with the page's own body
-        if self.path.split("?")[0] == "/busy.html":
+        path = self.path.split("?")[0]
+        if path == "/busy.html":
             body = (self.directory and Path(self.directory, "busy.html").read_bytes()) or b""
-            self.send_response(429)
-            self.send_header("Retry-After", "2")
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            return io.BytesIO(body)
+            return self._send(429, "text/html; charset=utf-8", body, {"Retry-After": "2"})
+        if path == "/err":
+            return self._send(500, "text/html; charset=utf-8", b"<!doctype html><title>err</title><p>500</p>")
+        if path == "/feed":
+            return self._send(200, "application/json", b'{"links": ["beyond.html"]}')
         return super().send_head()
 
     def log_request(self, code="-", size="-"):
-        type(self).paths.append((time.monotonic(), self.path.split("?")[0]))
+        pass
 
 
 def serve_status(site: Path) -> tuple[socketserver.TCPServer, int, list]:
@@ -325,16 +349,24 @@ def jsonl_records(path: Path) -> dict[str, dict]:
     return out
 
 
+NON200_PAGES = ("busy.html", "gone.html", "err", "feed", "hang.html")   # every answer but an HTML 200
+
+
 def status_verdict(paths: list[tuple[float, str]], recs: dict[str, dict]) -> tuple[bool, str]:
-    """non200_status: busy.html (429) was asked for once, beyond.html (linked only from it) never, and the rows for
-    busy.html and gone.html (404) are there with no status_code."""
+    """non200_status: each page that does not answer an HTML 200 (busy.html 429, gone.html 404, err 500, feed a JSON
+    200, hang.html past the --timeout) was asked for once, beyond.html (linked only from busy.html) never, and their
+    rows are there with no status_code and no crawled_at: in the file they look like a page never fetched."""
     got = [p for _, p in paths]
-    busy, beyond = got.count("/busy.html"), got.count("/beyond.html")
-    rows = {k: recs.get(k) for k in ("busy.html", "gone.html")}
-    null = all(r is not None and r.get("status_code") is None for r in rows.values())
-    ok = busy == 1 and beyond == 0 and null
-    shown = "; ".join(f"{k}: " + ("no row" if r is None else f"status_code {json.dumps(r.get('status_code'))}") for k, r in rows.items())
-    return ok, (f"{len(got)} requests; /busy.html (429, Retry-After: 2) asked for {busy} time(s); /beyond.html "
+    asked = {k: got.count("/" + k) for k in NON200_PAGES}
+    beyond = got.count("/beyond.html")
+    rows = {k: recs.get(k) for k in NON200_PAGES}
+    blank = all(r is not None and r.get("status_code") is None and r.get("crawled_at") is None for r in rows.values())
+    ok = all(n == 1 for n in asked.values()) and beyond == 0 and blank
+    shown = "; ".join(f"{k}: " + ("no row" if r is None else f"status_code {json.dumps(r.get('status_code'))}, "
+                                  f"crawled_at {json.dumps(r.get('crawled_at'))}") for k, r in rows.items())
+    times = ", ".join(f"{k} {n}" for k, n in asked.items())
+    return ok, (f"{len(got)} requests; asked for: {times} (429 with Retry-After: 2, 404, 500, JSON 200, held "
+                f"{STATUS_HOLD:.0f} s with --timeout {STATUS_TIMEOUT}); /beyond.html "
                 f"{'never asked for' if not beyond else f'asked for {beyond} time(s)'}; {shown}")
 
 
@@ -344,14 +376,14 @@ def probe_status(steps: list, exe: str, name: str, work: Path) -> None:
     try:
         d = work / "d6"
         proc, t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
-                                "--data-dir", str(d)], work, "status.log")
+                                "--timeout", str(STATUS_TIMEOUT), "--data-dir", str(d)], work, "status.log")
         exited, _secs = _stop(proc, signal.SIGINT, NON200_SECONDS)
         took = time.monotonic() - t0
     finally:
         httpd.shutdown()
     ok, detail = status_verdict(list(paths), jsonl_records(d / "sitemap.jsonl"))
-    _step(steps, "non200_status", f"{name} crawl: a page that answers 429 or 404 is written with no status_code, "
-          "asked for once, and its links are not followed", ok, f"{detail}; {exited}", took, gate=False)
+    _step(steps, "non200_status", f"{name} crawl: every answer but an HTML 200 (429, 404, 500, a JSON 200, a "
+          "timeout) is written with no status_code and no crawled_at, asked for once, and its links are not followed", ok, f"{detail}; {exited}", took, gate=False)
 
 
 class _Held(_Quiet):

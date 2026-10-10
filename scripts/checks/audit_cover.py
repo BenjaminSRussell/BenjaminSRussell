@@ -98,7 +98,7 @@ def uncovered_hero(report: dict | None, recs: list[dict]) -> list[str]:
 
 def check(ctx) -> list[Finding]:
     import audit_figures
-    recs = audit_figures.records(ctx.cfg or {})
+    recs = audit_figures.records(ctx.cfg or {}, ctx.stats)
     out: list[Finding] = []
     for hit in uncovered_hero(ctx.report, recs):
         out.append(fail("AUDIT-COVER", f"{hit} prints a figure with no row in AUDIT.md §7", "build report"))

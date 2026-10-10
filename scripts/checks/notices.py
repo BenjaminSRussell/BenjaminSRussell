@@ -1,6 +1,6 @@
 """notices — the working rules' dates are computed from git, and credit only his own code (round 6, review 2).
 
-NOTICE-DATE (fail): a printed rule (the first four) whose cite has a `{month:key}` with no anchor record, or whose
+NOTICE-DATE (fail): a printed rule (the first three since review round 11) whose cite has a `{month:key}` with no anchor record, or whose
   anchor's first commit by an [identity] author was not found; or whose `date` in chart.toml is not the month of
   its first anchor. A month nobody computed is not printed as fact.
 NOTICE-AUTHOR (fail): a printed rule whose anchor was first added by someone else (an agent, usually), unless the
@@ -19,7 +19,7 @@ from check import Finding, fail, info
 from data import proof
 
 TIER = "fast"
-ON_PAGE = 4
+ON_PAGE = 3                     # review round 11: rules 1–3 (render_readme.NOTICES_ON_PAGE)
 CITE_FORM = re.compile(r"[\w.-]+(?: [\w.-]+)*, (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}: \S.*\.")
 
 
