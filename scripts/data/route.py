@@ -27,7 +27,10 @@ entry once it holds (round 6, review 3): the fault is gone, so nothing is drawn 
 `{field:NAME}` and `{arg:NAME}`, as `{const:NAME}` does; `equals` pins the value. Review round 4: a clap default
 may be a string (`default_value = "./sitemap.xml"`), printed without its leading `./`; `block` narrows an anchor to
 the braces after that name (one clap subcommand, `ExportSitemap { … }`), as `fn` does to a function. Entries of
-kind `text` are README sentences, checked the same way and never drawn. The sheet draws verified entries only; check.py
+kind `text` are README sentences, checked the same way and never drawn. Review round 5: `before` makes an order anchor
+(`text` first appears before `before`, in the narrowed body: the WAL's fsync before the redb commit), and a `text`
+entry with `ci = "<job prefix>"` prints only while CI passed at the sha the route was read at with such a job
+(`ci_ok`). The sheet draws verified entries only; check.py
 fails on any other.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
@@ -131,6 +134,14 @@ def check_anchor(read, anchor: dict) -> str | None:
         return f"{where}: no {anchor['text']!r}"
     if "absent" in anchor and str(anchor["absent"]) in src:
         return f"{where}: contains {anchor['absent']!r}"
+    if "before" in anchor:
+        # review round 5: an order anchor; `text` first appears before `before` does (the WAL's fsync before the
+        # redb commit, in one function's body)
+        later = str(anchor["before"])
+        if later not in src:
+            return f"{where}: no {later!r}"
+        if "text" in anchor and src.find(str(anchor["text"])) > src.find(later):
+            return f"{where}: {anchor['text']!r} comes after {later!r}"
     for kind, fn in VALUE_KINDS.items():
         if anchor.get(kind):
             v = fn(src, str(anchor[kind]))
@@ -164,6 +175,8 @@ def _num(v: str) -> str:
     prints as the file's name, "sitemap.xml" (review round 4: where the export writes, relative to where you are)."""
     if v.startswith("./"):
         return v[2:]
+    if re.fullmatch(r"[0-9]+\.0+", v):          # review round 5: `const THROTTLE_THRESHOLD_MS: f64 = 500.0` -> 500
+        v = v.split(".")[0]
     return f"{int(v):,}" if v.isdigit() and len(v) > 4 else v
 
 
@@ -243,6 +256,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
         scope = str(e.get("scope") or "both")
         first = _candidate(e, rh, rr, no_head, no_rel, scope, eid, kind=kind)
         rec = {"id": eid, "kind": kind, "scope": scope, "loop": bool(e.get("loop")), **first}
+        if e.get("ci"):          # review round 5: a README sentence that also rests on CI at HEAD (`ci_ok`)
+            rec["ci"] = str(e["ci"])
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -334,6 +349,8 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
                 break
             reasons += [f"[{i}] {m}" if len(cands) > 1 else m for m in miss]
         base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
+        if e.get("ci"):
+            base["ci"] = e["ci"]
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified
@@ -343,6 +360,21 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
         else:
             out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})
     return out
+
+
+def ci_ok(repo: dict | None, head_sha: str | None, job_prefix: str) -> tuple[bool, str]:
+    """Review round 5: CI ran at the sha the route was read at and passed, with a job whose name starts with
+    `job_prefix` (`Test (ubuntu-latest, stable)` runs `cargo test`). (True, "") or (False, why)."""
+    ci = (repo or {}).get("ci") or {}
+    sha = ((repo or {}).get("head") or {}).get("sha")
+    if ci.get("conclusion") != "success":
+        return False, f"CI {ci.get('conclusion') or 'not recorded'}"
+    if not sha or ci.get("head_sha") != sha or (head_sha and head_sha != sha):
+        return False, f"CI ran at {str(ci.get('head_sha'))[:7]}, the route was read at {str(head_sha or sha)[:7]}"
+    if not any(str(j.get("name") or "").startswith(job_prefix) and j.get("conclusion") == "success"
+               for j in ci.get("jobs") or [] if isinstance(j, dict)):
+        return False, f"no passing CI job named {job_prefix}*"
+    return True, ""
 
 
 def header_ok(route: dict | None, runcheck: dict | None = None) -> tuple[bool, list[str]]:

@@ -158,24 +158,28 @@ to understand what the sheets mean and what the build will refuse.
 
 ## The idea
 
-Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 4): the hero is the way into rustmapper. It answers one sentence: how
+Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 5): the hero is the way into rustmapper. It answers one sentence: how
 you start it, what it does with each page, where a stranger goes wrong and how to get out, and where the output goes
-next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date,
-the stops on the magenta track (what happens there, every row's words at one left edge; on the desk the source file
-stands right-aligned left of the track), the governor as a line under the fetch stop's words, the rows that repeat
-for every page closed by one line back up the left side, the one hazard on that loop with its words (and the line of
-output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C, and after a
-kill the export command as installed and the file it writes) on the next row, the end bar, `data/sitemap.jsonl` with
-its real field names, and a thin line on to ideal-url-organizer, which sorts that file and tests the join. While the
-release never stops by itself the
-track breaks under the loop and starts again just above Ctrl-C, so the shape alone says the only way on is the
-reader's. Code inside a row's words is set in the code face. The title block on the left is his name and what he
-builds. Nothing has a size that depends on data. Each drawn element is a
-`<g id>` with a row in `scripts/sheets/route.py` `PURPOSE` (what a stranger learns, which visitor question, the source).
+next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date
+set right after the command, the stops on the magenta track (what happens there, every row's words at one left edge;
+the track is painted first, so each ring sits on it), the governor as a line under the fetch stop's words with its
+500 ms threshold, the write path (the write-ahead log, fsynced, then redb), the rows that repeat for every page closed
+by one line back up the left side, the one hazard on that loop, which names its release, with its words (and the line
+of output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C once) on
+the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin line on to ideal-url-organizer,
+which sorts that file and tests the join. While the release never stops by itself the track breaks under the loop and
+starts again just above Ctrl-C, so the shape alone says the only way on is the reader's. Code inside a row's words is
+set in the code face, its spaces at the text's word space. What to do after a kill is a comment in the README's code
+block, where the reader types. The title block on the left is his name and what he builds. Nothing has a size that
+depends on data. Each drawn element is a `<g id>` with a row in `scripts/sheets/route.py` `PURPOSE` (what a stranger
+learns, which visitor question, the source).
 
 A stop or trap is drawn only when its anchors hold in the code at HEAD and in the released sdist
-(`scripts/data/route.py`); the install lines only when the weekly run check passed (`scripts/runcheck.py`); the line
-past the end only when the reader's fields are in the writer's struct. `check.py` fails while any entry does not hold.
+(`scripts/data/route.py`): every rustmapper source file it rests on is in that release, and the reader the line past
+the end points to is read at the commit `stats.json` names (`handoffs[].to_sha`). The install lines are drawn only when
+the weekly run check passed (`scripts/runcheck.py`: install, then a crawl of a local three-page site with
+`--seeding-strategy none`, one Ctrl-C, a kill and an export); the line past the end only when the reader's fields are
+in the writer's struct. `check.py` fails while any entry does not hold.
 
 ## Honesty conventions
 

@@ -208,7 +208,10 @@ class Readme(unittest.TestCase):
         ok = {"header_verified": True, "gates": {"no_services": {"ok": True}}}
         s = dict(self.stats, figures=rows, routes={"rustmapper": ok})
         self.assertIn("**rustmapper**", render_readme.pick_block(s, self.cfg))
-        self.assertIn("from one binary with no services to run", render_readme.pick_block(s, self.cfg))
+        self.assertIn("from one binary, with no services to run", render_readme.pick_block(s, self.cfg))
+        # review round 5: the names first, where a scanning reader starts each sentence
+        self.assertTrue(render_readme.pick_block(s, self.cfg).startswith("**rustmapper** "))
+        self.assertIn(". **Scrapy** keeps", render_readme.pick_block(s, self.cfg))
         self.assertNotIn("one command", render_readme.pick_block(s, self.cfg))   # review round 4: it takes three steps
         # review round 4: "no services" only while the release's crawl takes Redis as an opt-in flag
         self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": dict(ok, gates={"no_services": {"ok": False}})}),
@@ -296,13 +299,14 @@ class Readme(unittest.TestCase):
         block = render_readme.survey_block(self.stats, figs, ["Rust-sitemap", "Scrapy"], {"Rust-sitemap": "rustmapper"})
         self.assertTrue(block.startswith("<sub>The [drawing](DESIGN.md) is rustmapper ") and block.endswith(".</sub>"),
                         block)
-        self.assertIn(f"Tests and CI measured {figs['taken']} from {figs['repo_count']} public repositories · "
-                      "regenerated weekly.", block)
-        head = block[5:block.index(" · regenerated weekly.")]
-        # review round 3: three plain sentences; the second says whose reader the hand-off names and at which commit
-        self.assertLessEqual(len(head.split()), 64, "three plain sentences")
-        self.assertIn("(a local 3-page site, `--seeding-strategy none`)", block)
-        self.assertIn("Ctrl\u2011C", block)
+        # review round 5: what a visitor needs: which release is drawn and that it was run; no build process, no
+        # schedule (a generated-by footer), no flags (DESIGN.md has them)
+        self.assertIn("is rustmapper 0.1.3, the release pip installs; its commands were run against a local 3-page "
+                      "site on 10 Oct 2026 (Linux x86_64).", block)
+        for word in ("regenerated", "generated", "weekly", "Tests and CI measured", "public repositories",
+                     "--seeding-strategy", "source file", "the reader it points to"):
+            self.assertNotIn(word, block, word)
+        self.assertLessEqual(len(block.split()), 60, "two facts, not a methods section")
         for figure in ("commits", "all_hands", "calendar_total"):
             if self.stats.get(figure):          # a null figure is not printed anywhere, so there is nothing to look for
                 self.assertNotIn(render_readme.fmt_n(self.stats[figure]), block, figure)
@@ -321,10 +325,8 @@ class Readme(unittest.TestCase):
                 "coauthored_total": {"count": 502, "share": 0.247, "agent": 63, "agent_share": 0.031,
                                      "names": {"Claude Sonnet 5": 45}},
                 "agent_authored": {"total": 297, "names": {"google-labs-jules[bot]": 125, "Claude": 172}}}
-        self.assertEqual(render_readme.survey_block(full),
-                         "<sub>Tests and CI measured 9 Oct 2026 from 21 public repositories · regenerated weekly.</sub>",
-                         "no repository with a facts line: no AI clause")
-        # round 6: with the route, its head and the run check, the line says what the drawing was checked against
+        self.assertEqual(render_readme.survey_block(full), "", "no route and no repository with a facts line: nothing")
+        # round 6: with the route and the run check, the line says which release is drawn and that it was run
         routed = dict(full, edition={"project": "rustmapper", "version": "0.1.3"},
                       routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
                       repos=[{"name": "Rust-sitemap", "head": {"sha": "3" * 40, "short": "32c2651", "date": "2026-10-07"}}],
@@ -332,21 +334,17 @@ class Readme(unittest.TestCase):
                                                "runner": "macOS arm64", "install": "prebuilt wheel",
                                                "steps": [{"id": i, "ok": True} for i in
                                                          ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
-        self.assertTrue(render_readme.survey_block(routed).startswith(
-            "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release. "
-            "Its install, crawl, Ctrl\u2011C, kill and export lines were run on 9 Oct 2026 (macOS arm64). Tests and CI "
-            "measured 9 Oct 2026"))
-        # review round 3: with the hand-off drawn, the line says the reader is the other project's, at its commit
-        handed = dict(routed, routes={"rustmapper": {"repo": "Rust-sitemap", "entries": [
-            {"id": "R13", "kind": "end", "file": "data/sitemap.jsonl"}]}},
-            handoffs=[{"id": "j", "from": "Rust-sitemap", "to": "ideal-url-organizer", "file": "data/sitemap.jsonl",
-                       "state": "runs", "to_sha": "159968a7d4b82bb116c2068489748ae357882e68"}])
-        self.assertIn("in that release; the reader it points to is ideal-url-organizer's, at `159968a`.",
-                      render_readme.survey_block(handed))
-        # review round 2: the crawl says what ran, from the step's own command
+        self.assertEqual(render_readme.survey_block(routed),
+                         "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands "
+                         "were run on 9 Oct 2026 (macOS arm64).</sub>")
+        # a run check of another release, or a failed one: the release only, no run claimed
+        other = dict(routed, runcheck={"rustmapper": dict(routed["runcheck"]["rustmapper"], version="0.1.2")})
+        self.assertEqual(render_readme.survey_block(other),
+                         "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs.</sub>")
+        # review round 2: the crawl says what it ran against, from the step's own command
         step = {"id": "crawl_ctrl_c", "ok": True, "detail": "exit 0; 3 lines; keys present",
                 "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d"}
-        self.assertEqual(render_readme.crawl_words(step), " (a local 3-page site, `--seeding-strategy none`)")
+        self.assertEqual(render_readme.crawl_words(step), " against a local 3-page site")
         self.assertEqual(render_readme.crawl_words(dict(step, cmd="rust_sitemap crawl --start-url https://x.org/")), "")
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
@@ -371,12 +369,11 @@ class Readme(unittest.TestCase):
         self.assertEqual(render_readme.fmt_days(["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-09", "2026-05-20"]),
                          "1–3 and 9 Mar 2026, 20 May 2026")
         # a thin stats.json prints only what it holds; nothing is guessed
-        thin = render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2})
-        self.assertEqual(thin, "<sub>Tests and CI measured 7 Oct 2026 from 2 public repositories · regenerated weekly.</sub>")
+        self.assertEqual(render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2}), "")
         self.assertEqual(render_readme.survey_block({}), "")
-        failed = render_readme.survey_block({"taken": "2026-10-07", "repo_count": 2,
-                                             "provenance": {"mode": "cache-failed", "failed_at": "2026-10-11T06:20:00Z"}})
-        self.assertIn(" · the last run failed on 11 Oct 2026; these figures are from the run before · ", failed)
+        failed = render_readme.survey_block(dict(routed, provenance={"mode": "cache-failed",
+                                                                     "failed_at": "2026-10-11T06:20:00Z"}))
+        self.assertIn(" The last run failed on 11 Oct 2026; these figures are from the run before.</sub>", failed)
 
     def test_facts_block_prints_only_present_keys(self):
         """D4 / F3.3: one plain italic line under a flagship; an absent key is omitted, never estimated."""
@@ -473,7 +470,7 @@ class Readme(unittest.TestCase):
                  "cd Scraping_project", "python start.py",
                  "# or only discovery, on your own site:", "docker-compose run --rm scraper", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) is rustmapper", " · regenerated weekly.",
+                 "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) is rustmapper", "Tests and lines are counted",
                  "<!-- license:start -->", "**This profile** Code MIT"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
@@ -490,6 +487,12 @@ class Readme(unittest.TestCase):
                      # round 6: no command that fails, no last-commit date, no pun on the theme
                      "rustmapper crawl --start-url", "last commit", "Lights before speed", "100M+"):
             self.assertNotIn(gone, text, gone)
+        # review round 5: no generated-by footer anywhere a reader sees ("AI-generated code" is a project's subject)
+        visible = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+        self.assertIsNone(re.search(r"(?<!-)\b(re)?generated\b", visible, re.I), "a generated-by footer")
+        # review round 5: GitHub autolinks a bare URL, so a local address is code, not a link to the visitor's machine
+        self.assertNotIn("http://localhost", visible)
+        self.assertIn("`localhost:3000`", visible)
         body = re.sub(r"<!--\s*picture:hero:start\b.*?picture:hero:end\s*-->", "", text, flags=re.S)   # the hero's alt is the hero builder's
         self.assertNotIn("Scrapy Harbor", body, "D3: the project is Scrapy; 'Scrapy Harbor' was coined for the v8 chart")
 

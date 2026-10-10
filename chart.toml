@@ -36,7 +36,8 @@ footer_line = "The chart ends here. The web doesn't."
 # review round 3: which of the two tools is for which job (README marker `pick`). Printed only while rustmapper's
 # route header holds (it writes one line per page, SitemapNode), every [[figures]] row with use = "pick" holds, and
 # (review round 4: it takes three steps, not one command) the release gate `no_services` holds: Redis is a flag.
-pick = "For the list of a site's URLs, from one binary with no services to run, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**."
+# Review round 5: the names first, where a reader scanning line starts finds them.
+pick = "**rustmapper** gives you a site's list of URLs from one binary, with no services to run. **Scrapy** keeps the pages themselves, deduplicated and summarised, in a pipeline that needs Docker."
 log_footnote = "Heights observed, not predicted."
 
 [copy.review]
@@ -119,9 +120,10 @@ source = "toml"
 n = 2
 title = "Raw before clean."
 body = "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten."
-cite = "Scrapy, {month:delta}, the Delta Lake tables; rustmapper, {month:wal}, the write-ahead log."
-anchors = [{key = "delta", repo = "Scrapy", text = "write_deltalake"},
-           {key = "wal", repo = "Rust-sitemap", text = "[u32 len][u32 crc32c]"}]
+# review round 5: rustmapper's write-ahead log is not cited here: it is truncated after each checkpoint
+# (src/wal.rs checkpoint(), every 64 commits or 64 MiB by default), a durability buffer, not a raw layer
+cite = "Scrapy, {month:delta}, the Delta Lake tables."
+anchors = [{key = "delta", repo = "Scrapy", text = "write_deltalake"}]
 repo = "Scrapy"
 date = "2025-10"
 source = "toml"
@@ -367,6 +369,13 @@ export_defaults = [{path = "src/cli.rs", block = "ExportSitemap", arg = "data_di
                    {path = "src/cli.rs", block = "Crawl", arg = "data_dir", equals = "./data"}]
 no_services = [{path = "src/cli.rs", block = "Crawl", text = 'help = "Enable distributed crawling with Redis")]'},
                {path = "src/cli.rs", block = "Crawl", text = "enable_redis: bool,"}]
+# review round 5: the block's "# sitemap.xml, even after a kill:" comment. The release's export opens the stored state
+# (CrawlerState, written by the writer every 50 ms) and never the WAL, and writes a sitemap; the run check's
+# export_after_kill must have passed and kill_writes_file failed (render_readme.stop_lines).
+export_after_kill = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
+                     {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
+                     {path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new"},
+                     {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
 
 # The route is the run's order: what you type, what happens to each URL, how you stop it, what you get. The rows with
 # `loop = true` repeat for every page, and the image draws one line back from the last of them to the first.
@@ -418,31 +427,40 @@ release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_l
 runs = ["crawl_ctrl_c"]
 # (the release's frontier checks a link against the start URL's domain, which "your URL's" names)
 
+# Review round 5: with its measure, in ink. The release's governor shrinks the fetch permits when the average redb
+# commit time (an EWMA) goes over THROTTLE_THRESHOLD_MS, 500.0 in 0.1.3's main.rs; main has since set it to 2,000 ms
+# through GOVERNOR_THROTTLE_THRESHOLD_MS, so the figure is the release's. Two lines on the phone (647 of 600 units);
+# "when a save averages" is longer still, and "fewer pages" without "at once" reads as fewer pages in all.
 [[route.rustmapper.entry]]
 id = "G1"
 kind = "note"              # it changes how many fetches run at once: a line under F1's words, no mark of its own
+scope = "release"
 loop = true
 file = "governor.rs"
-text = "fetches fewer pages at once when saving falls behind"
-head = [{path = "src/orchestration/governor.rs", text = "THROTTLE_THRESHOLD_MS"},
-        {path = "src/orchestration/governor.rs", text = "add_permits"}]
-release = [{path = "src/main.rs", text = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "add_permits"}]
+text = "fetches fewer pages at once when saves average over {const:THROTTLE_THRESHOLD_MS} ms"
+release = [{path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS"},
+           {path = "src/main.rs", text = "add_permits"}]
 
-# The figure is the constant as the code defines it, in both trees. Review round 3: what a kill leaves, and the
-# command that gets the pages back, are said once, on C1. Review round 4: "to its database" (the redb state the
-# writer commits to, writer_thread.rs; state.rs `use redb`), so C1's export after a kill has something to read.
+# The figure is the constant as the code defines it, in both trees. Review round 5: the write path, in its order.
+# writer_loop appends each batch to the write-ahead log and fsyncs it (sync_all) before it commits the batch to redb
+# (order anchors, `before`); the batch is drained for at most BATCH_TIMEOUT_MS. That is why an export after a kill
+# has something to read.
 [[route.rustmapper.entry]]
 id = "W1"
 kind = "stop"
 loop = true
 file = "writer_thread.rs"
-text = "saved to its database every {const:BATCH_TIMEOUT_MS} ms"
+text = "logged to disk, then saved to redb, every {const:BATCH_TIMEOUT_MS} ms"
 head = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
         {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
-        {path = "src/writer_thread.rs", text = "state.apply_event_batch(&batch)"}, {path = "src/state.rs", text = "use redb::"}]
+        {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.append(&record)", before = "wal_writer.fsync()"},
+        {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.fsync()", before = "state.apply_event_batch(&batch)"},
+        {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
 release = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
            {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
-           {path = "src/writer_thread.rs", text = "state.apply_event_batch(&batch)"}, {path = "src/state.rs", text = "use redb::"}]
+           {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.append(&record)", before = "wal.fsync()"},
+           {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.fsync()", before = "state.apply_event_batch(&batch)"},
+           {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
 
 # One hazard, on the loop. Review round 3: its words are its cause, not its scope. In 0.1.3 the check "frontier
 # empty and no tasks in flight" sits in the `else =>` arm of tokio::select!, which runs only when every branch is
@@ -457,14 +475,14 @@ id = "H1"
 kind = "trap"
 scope = "release"
 loop = true
-text = "never stops by itself; done when `Received work item` lines stop"
+text = "{release} never stops by itself; done when `Received work item` lines stop"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"}]
 runs = ["crawl_ctrl_c", "quiet_after_last_page"]
 fails = ["ends_by_itself"]
 [[route.rustmapper.entry.instead]]
-text = "never stops by itself, even after the last page"
+text = "{release} never stops by itself, even after the last page"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"}]
 runs = ["crawl_ctrl_c"]
@@ -474,35 +492,19 @@ text = ""
 release = [{path = "src/bfs_crawler.rs"}]
 runs = ["ends_by_itself"]
 
-# The reader's one step, and what to do when the process was killed instead (in a container the stop is TERM, then
-# KILL, and 0.1.3 listens for Ctrl-C only): export-sitemap reads the stored state (CrawlerState, saved every 50 ms
-# by the writer), never the WAL. Backticks set code in the code face. Review round 4: the export writes sitemap.xml,
-# not the JSONL (`{arg:output}`, the ExportSitemap --output default, in both trees), and the command is named as the
-# wheel installs it (`{script}`, edition.scripts, filled by the sheet as the README's code block is).
+# The reader's one step. Review round 5: what to do after a kill (in a container the stop is TERM, then KILL, and
+# 0.1.3 listens for Ctrl-C only) is said where the reader types, as a comment in the README's block above the export
+# line, gated by the release gate `export_after_kill` below and the run check (kill_writes_file failed,
+# export_after_kill passed). The image keeps one command, `pip install`.
 [[route.rustmapper.entry]]
 id = "C1"
 kind = "step"
-text = "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, `{script} export-sitemap` writes the pages to `{arg:output}`"
-head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
-        {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'},
-        {path = "src/orchestration/export.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
-        {path = "src/orchestration/export.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
-        {path = "src/cli.rs", text = "ExportSitemap"}, {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
-release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
-           {path = "src/main.rs", text = 'join("sitemap.jsonl")'},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
-           {path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new"},
-           {path = "src/cli.rs", text = "ExportSitemap"}, {path = "src/cli.rs", block = "ExportSitemap", arg = "output"}]
-runs = ["crawl_ctrl_c", "export_after_kill"]
-fails = ["kill_writes_file"]
-[[route.rustmapper.entry.instead]]
 text = "press Ctrl-C once to write `data/sitemap.jsonl`"
 head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
         {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
 release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
            {path = "src/main.rs", text = 'join("sitemap.jsonl")'}]
-runs = ["crawl_ctrl_c", "kill_writes_file"]
+runs = ["crawl_ctrl_c"]
 
 [[route.rustmapper.entry]]
 id = "R13"
@@ -541,6 +543,28 @@ release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "Sit
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
+
+# M1, review round 5: what main has fixed, said in text while the release still has the fault (H1). The regression
+# test for #65 is at HEAD, not ignored, run by `cargo test` in CI, and CI passed at the sha the route was read at
+# with a job named Test* (`ci`, data/route.py ci_ok, checked by render_readme). It retires with H1: once a release
+# ends by itself (probe ends_by_itself), the empty alternative holds. No idle timing is printed: the test runs with
+# 1 s idle flags, and the defaults are 30 and 60 s.
+[[route.rustmapper.entry]]
+id = "M1"
+kind = "text"
+ci = "Test"
+text = "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `{head}`. That fix is not on PyPI yet."
+head = [{path = "tests/crawl_exits_when_idle.rs", text = "fn crawl_exits_after_frontier_drains"},
+        {path = "tests/crawl_exits_when_idle.rs", absent = "#[ignore]"},
+        {path = ".github/workflows/ci.yml", text = "cargo test --all-features"}]
+release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
+           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"}]
+fails = ["ends_by_itself"]
+[[route.rustmapper.entry.instead]]
+text = ""
+head = [{path = "tests/crawl_exits_when_idle.rs"}]
+release = [{path = "src/bfs_crawler.rs"}]
+runs = ["ends_by_itself"]
 
 # ----------------------------------------------------------------- hand-offs (round 6, SPEC §5.4)
 # A join between two of his repositories counts only when code on the receiving side proves it.

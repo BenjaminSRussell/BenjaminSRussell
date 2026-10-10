@@ -8,8 +8,7 @@ ROUTE-ENTRANCE (fail): runcheck.rustmapper missing, failed, for another version 
   than 14 days before `taken`.
 ROUTE-LABEL (fail): a source file drawn on the hero (a `machine` run ending .rs, .py or .toml) that is not the tail of
   a path among its entry's anchors, at HEAD and in the release (only the release for an entry of release scope): the
-  release anchors are files of the sdist, so the data line's "every rustmapper source file it names is in that
-  release" holds. Review round 3: the one exception is the hand-off's reader, which must be that hand-off's `reader`,
+  release anchors are files of the sdist, so every rustmapper source file it names is in that release. Review round 3: the one exception is the hand-off's reader, which must be that hand-off's `reader`,
   read in the receiving repository at its `to_sha`, with state `runs`.
 TYPE-CODE (fail, review round 3): a hero text run outside the code face holding code (`_`, `--`, `.rs`, `.jsonl`,
   export-sitemap): one face for code.
@@ -18,8 +17,17 @@ ROUTE-HANDOFF (info): each hand-off's computed state.
 ROUTE-STRINGS (fail): a text run on the hero whose key is not one of the sources the spec allows, or whose truth is
   not `measured`.
 ROUTE-WORDS (fail): a theme word on the hero or in its alt text (T-WORDS).
-ROUTE-HEIGHT (fail): desk sheet taller than 620, phone taller than 1100 (review round 4: C1 on two lines, H1 with the
-  line that says the crawl is done; today 571 and 1051, and the edition with S2 drawn, once P1 lands, 607 and 1094).
+ROUTE-HEIGHT (fail): desk sheet taller than HEIGHT (review round 5: C1 on one line, the kill clause in the README's
+  block; see HEIGHT for today's heights and those of the edition with S2 drawn, once P1 lands).
+ROUTE-PAINT (fail, review round 5): a ring, bar or word group painted before the track, the loop or the line past the
+  end; SVG paints in document order, and a line drawn last strikes through every ring.
+ROUTE-RELEASE (fail, review round 5): the release label more than RELEASE_GAP_MAX after the end of the install command
+  on its baseline, or, when it drops, not at the rows' left edge on the next line: far from its command it reads as
+  the drawing's date.
+ROUTE-ARROW (fail, review round 5): the loop's arrowhead comes within ring_r + 2 of a ring's centre row.
+ROUTE-CODE-SPACE (fail, review round 5): a code-face run of a row's words that holds a space (code spans set their
+  spaces at the label's word space, as separate runs), or a gap between two code runs of one line wider than 1.3
+  times the label's space.
 ROUTE-LEFT-EDGE (fail, review round 4): the words of every drawn row of the route (stops, the note, the hazard, the
   step) do not start at one x, right of the track; file labels left of the track are not rows' words.
 ROUTE-PHONE-PX (fail): a phone text run under 14 px on a 390 px screen.
@@ -40,7 +48,9 @@ SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "cop
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
-HEIGHT = {"desk": 620, "phone": 1100}   # review round 4: C1 on two lines, H1 with its mark; S2 drawn, see LOG round 4
+HEIGHT = {"desk": 592, "phone": 1066}   # review round 5: today 543 / 1017, with S2 drawn 579 / 1060 (LOG round 5)
+RELEASE_GAP_MAX = 40
+CODE_SPACE_MAX = 1.3
 TWICE_SELF = 4
 SOURCE_FILE = re.compile(r"[\w./-]+\.(rs|py|toml)$")
 PHONE_W, PHONE_SCREEN, MIN_PX = 720, 390, 14.0
@@ -137,6 +147,73 @@ def left_edge(entry: dict, where: str) -> list[Finding]:
     return []
 
 
+def paint_order(svg: str, where: str) -> list[Finding]:
+    """ROUTE-PAINT: every group that is not a line (R5 the track, R6 the loop, R15 the line past the end) comes after
+    all of them in the document, so rings, bars and words are painted on top."""
+    ids = re.findall(r'<g id="hero-([A-Z]\d+)"', svg or "")
+    lines = [i for i, g in enumerate(ids) if g in ("R5", "R6", "R15")]
+    if not lines:
+        return []
+    early = [g for i, g in enumerate(ids) if g not in ("R5", "R6", "R15") and i < max(lines)]
+    return [fail("ROUTE-PAINT", f"{', '.join(early)} painted under a line", where)] if early else []
+
+
+def release_near(entry: dict, where: str) -> list[Finding]:
+    """ROUTE-RELEASE: the release label follows its command (RELEASE_GAP_MAX), or sits under it at the left edge."""
+    rl = (entry.get("route") or {}).get("release_label")
+    if not rl:
+        return []
+    if abs(rl["y"] - rl["cmd_y"]) < 0.5:
+        gap = rl["x"] - rl["cmd_end"]
+        if not 0 < gap <= RELEASE_GAP_MAX:
+            return [fail("ROUTE-RELEASE", f"the release label starts {gap:.0f} after the command (> {RELEASE_GAP_MAX})",
+                         where)]
+        return []
+    steps = (entry.get("route") or {}).get("steps") or []
+    left = min((st["x"] for st in steps), default=rl["x"])
+    if rl["y"] < rl["cmd_y"] or abs(rl["x"] - left) > 0.5:
+        return [fail("ROUTE-RELEASE", f"the release label at ({rl['x']}, {rl['y']}) is neither after nor under the "
+                     "command", where)]
+    return []
+
+
+def arrow_clear(entry: dict, where: str) -> list[Finding]:
+    """ROUTE-ARROW: the loop's arrowhead keeps ring_r + 2 from every ring's centre row."""
+    rep = entry.get("route") or {}
+    a, r = rep.get("loop_arrow"), rep.get("ring_r")
+    if not a or r is None:
+        return []
+    out = []
+    for ring in rep.get("rings") or []:
+        d = 0.0 if a[0] <= ring["cy"] <= a[1] else min(abs(ring["cy"] - a[0]), abs(ring["cy"] - a[1]))
+        if d < r + 2:
+            out.append(fail("ROUTE-ARROW", f"the loop's arrowhead is {d:.1f} from {ring['id']}'s ring (< {r + 2})", where))
+    return out
+
+
+def code_spaces(texts: list[dict], where: str, label_space: float) -> list[Finding]:
+    """ROUTE-CODE-SPACE: in a row's words, a code run holds no space, and two code runs on one line are no further
+    apart than CODE_SPACE_MAX label spaces."""
+    out = []
+    rows: dict[tuple, list[dict]] = {}
+    for t in texts:
+        key = str(t.get("key") or "")
+        if not key.startswith("routes:"):
+            continue
+        if t.get("role") == "machine" and " " in str(t.get("s") or ""):
+            out.append(fail("ROUTE-CODE-SPACE", f"{t.get('s')!r} sets its spaces in the code face", where))
+        rows.setdefault((key, round(float(t.get("y", 0)), 1)), []).append(t)
+    for (key, y), ts in rows.items():
+        ts = sorted(ts, key=lambda t: float(t["x0"]))
+        for a, b in zip(ts, ts[1:]):
+            if a.get("role") == b.get("role") == "machine":
+                gap = float(b["x0"]) - float(a["x1"])
+                if gap > CODE_SPACE_MAX * label_space + 0.5:
+                    out.append(fail("ROUTE-CODE-SPACE", f"{a.get('s')!r} and {b.get('s')!r} are {gap:.1f} apart "
+                                    f"(> {CODE_SPACE_MAX} × {label_space:.1f})", where))
+    return out
+
+
 def check(ctx) -> list[Finding]:
     out: list[Finding] = []
     stats = ctx.stats or {}
@@ -192,12 +269,18 @@ def check(ctx) -> list[Finding]:
         out += left_edge(e, name)
         out += code_face(texts, name)
         out += self_twice(texts, name)
+        out += release_near(e, name)
+        out += arrow_clear(e, name)
+        sp = (e.get("route") or {}).get("label_space")
+        if sp:
+            out += code_spaces(texts, name, float(sp))
         drawn = (e.get("route") or {}).get("drawn") or []
         purpose = e.get("purpose") or {}
         for gid in drawn:
             if gid not in purpose:
                 out.append(fail("ROUTE-PURPOSE", f"element {gid} is drawn but has no PURPOSE row", name))
         svg = ctx.svg_text(name)
+        out += paint_order(svg, name)
         ids = re.findall(r'<g id="hero-([A-Z]\d+)"', svg)
         if sorted(ids) != sorted(drawn):
             out.append(fail("ROUTE-PURPOSE", f"element groups {sorted(ids)} differ from the report {sorted(drawn)}", name))

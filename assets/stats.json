@@ -5634,7 +5634,7 @@
    "url": "",
    "source": "hand",
    "body": "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten.",
-   "cite": "Scrapy, {month:delta}, the Delta Lake tables; rustmapper, {month:wal}, the write-ahead log.",
+   "cite": "Scrapy, {month:delta}, the Delta Lake tables.",
    "n": 2
   },
   {
@@ -7441,9 +7441,9 @@
     {
      "id": "G1",
      "kind": "note",
-     "scope": "both",
+     "scope": "release",
      "loop": true,
-     "text": "fetches fewer pages at once when saving falls behind",
+     "text": "fetches fewer pages at once when saves average over 500 ms",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7451,9 +7451,7 @@
      "runs": [],
      "fails": [],
      "paths": {
-      "head": [
-       "src/orchestration/governor.rs"
-      ],
+      "head": [],
       "release": [
        "src/main.rs"
       ]
@@ -7464,7 +7462,7 @@
      "kind": "stop",
      "scope": "both",
      "loop": true,
-     "text": "saved to its database every 50 ms",
+     "text": "logged to disk, then saved to redb, every 50 ms",
      "file": "writer_thread.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7474,10 +7472,12 @@
      "paths": {
       "head": [
        "src/state.rs",
+       "src/wal.rs",
        "src/writer_thread.rs"
       ],
       "release": [
        "src/state.rs",
+       "src/wal.rs",
        "src/writer_thread.rs"
       ]
      }
@@ -7487,7 +7487,7 @@
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "never stops by itself; done when `Received work item` lines stop",
+     "text": "{release} never stops by itself; done when `Received work item` lines stop",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7507,7 +7507,7 @@
      },
      "instead": [
       {
-       "text": "never stops by itself, even after the last page",
+       "text": "{release} never stops by itself, even after the last page",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -7549,51 +7549,23 @@
      "kind": "step",
      "scope": "both",
      "loop": false,
-     "text": "press Ctrl-C once to write `data/sitemap.jsonl`; after a kill, `{script} export-sitemap` writes the pages to `sitemap.xml`",
+     "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
      "file": null,
      "verified_head": true,
      "verified_release": true,
      "missing": [],
      "runs": [
-      "crawl_ctrl_c",
-      "export_after_kill"
+      "crawl_ctrl_c"
      ],
-     "fails": [
-      "kill_writes_file"
-     ],
+     "fails": [],
      "paths": {
       "head": [
-       "src/cli.rs",
-       "src/orchestration/export.rs",
        "src/orchestration/shutdown.rs"
       ],
       "release": [
-       "src/cli.rs",
        "src/main.rs"
       ]
-     },
-     "instead": [
-      {
-       "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
-       "file": null,
-       "verified_head": true,
-       "verified_release": true,
-       "missing": [],
-       "runs": [
-        "crawl_ctrl_c",
-        "kill_writes_file"
-       ],
-       "fails": [],
-       "paths": {
-        "head": [
-         "src/orchestration/shutdown.rs"
-        ],
-        "release": [
-         "src/main.rs"
-        ]
-       }
-      }
-     ]
+     }
     },
     {
      "id": "R13",
@@ -7678,6 +7650,52 @@
        }
       }
      ]
+    },
+    {
+     "id": "M1",
+     "kind": "text",
+     "scope": "both",
+     "loop": false,
+     "text": "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `{head}`. That fix is not on PyPI yet.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [
+      "ends_by_itself"
+     ],
+     "paths": {
+      "head": [
+       ".github/workflows/ci.yml",
+       "tests/crawl_exits_when_idle.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs"
+      ]
+     },
+     "ci": "Test",
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "ends_by_itself"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "tests/crawl_exits_when_idle.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
     }
    ],
    "gates": {
@@ -7706,6 +7724,14 @@
      "missing": [],
      "scope": "release",
      "values": {}
+    },
+    "export_after_kill": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:output": "./sitemap.xml"
+     }
     }
    },
    "sdist": {
@@ -7837,20 +7863,6 @@
    "date": "2025-10-04",
    "author": "Benjamin Russell",
    "first_sha": "52dcbd8",
-   "first_author": "Benjamin Russell",
-   "first_is_his": true
-  },
-  {
-   "n": 2,
-   "key": "wal",
-   "repo": "Rust-sitemap",
-   "path": null,
-   "text": "[u32 len][u32 crc32c]",
-   "found": true,
-   "sha": "4334458",
-   "date": "2025-11-03",
-   "author": "Benjamin Russell",
-   "first_sha": "4334458",
    "first_author": "Benjamin Russell",
    "first_is_his": true
   },

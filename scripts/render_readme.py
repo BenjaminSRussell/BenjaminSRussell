@@ -450,8 +450,8 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
     # no line over CODE_COLUMNS characters: a 375 px phone shows about 38 columns of GitHub's code font
     rc = (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper")
     lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\", "    --start-url <your-site>"]
-    lines += stop_lines(rc)
     gates = route.get("gates") or {}
+    lines += stop_lines(rc, gates)
     if (gates.get("export_defaults") or {}).get("ok"):
         # review round 4: the release's defaults (cli.rs ExportSitemap and Crawl, value-anchored) are these paths, so
         # the flags go; where it writes is said once, by the image's Ctrl-C row and the sentence under this block
@@ -464,33 +464,58 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
                   f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
     # the wheel note, then (review round 3) what the release does to a site and to a big one, as its own paragraph
-    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), " ".join(text_entries(route, rc, ed))) if x]
+    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), " ".join(text_entries(route, rc, ed, _repo(stats, repo))))
+             if x]
     return "\n".join(lines) + "".join(f"\n\n{x}" for x in paras)
 
 
-def stop_lines(rc: dict | None) -> list[str]:
+def stop_lines(rc: dict | None, gates: dict | None = None) -> list[str]:
     """Review round 4: the pasted crawl never returns, and a Ctrl-C flushes the rest of a paste (termios NOFLSH), so
     the block says how it ends: one comment line while the run check found that the crawl does not end by itself
-    (`ends_by_itself` failed) and that one SIGINT writes the file (`crawl_ctrl_c` passed). Otherwise nothing."""
+    (`ends_by_itself` failed) and that one SIGINT writes the file (`crawl_ctrl_c` passed). Review round 5: the way
+    back after a kill lives here too, above the export line, where the reader types, not in the image: "# sitemap.xml,
+    even after a kill:" while a kill writes no file (`kill_writes_file` failed), the export on what it left wrote the
+    pages (`export_after_kill` passed), and the release's export reads the stored state (release gate
+    `export_after_kill`). Otherwise nothing."""
     steps = {s.get("id"): s for s in (rc or {}).get("steps") or [] if isinstance(s, dict)}
     ends, ctrl = steps.get("ends_by_itself"), steps.get("crawl_ctrl_c")
+    out = []
     if ends is not None and not ends.get("ok") and ctrl is not None and ctrl.get("ok"):
-        return ["# stop it with one Ctrl-C"]
-    return []
+        out.append("# stop it with one Ctrl-C")
+    kill, after = steps.get("kill_writes_file"), steps.get("export_after_kill")
+    gate = (gates or {}).get("export_after_kill") or {}
+    if kill is not None and not kill.get("ok") and after is not None and after.get("ok") and gate.get("ok"):
+        out.append(f"# {_file_name((gate.get('values') or {}).get('arg:output') or './sitemap.xml')}, even after a kill:")
+    return out
 
 
-def text_entries(route: dict | None, rc: dict | None, ed: dict | None) -> list[str]:
+def _file_name(path: str) -> str:
+    """"./sitemap.xml" -> "sitemap.xml": a clap default as the reader would name the file."""
+    return path[2:] if str(path).startswith("./") else str(path)
+
+
+def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None) -> list[str]:
     """Review round 3: the route's `text` entries (how hard it hits a site; the release's single sitemap file), each
     printed only while its anchors hold, through the same engine as the image's rows; a retired one prints nothing,
-    an unverified one nothing (ROUTE-UNVERIFIED fails it)."""
+    an unverified one nothing (ROUTE-UNVERIFIED fails it). Review round 5: an entry with `ci` (what main has fixed)
+    prints only while CI passed at the sha the route was read at, with a job named `ci`* (`route.ci_ok`); `{head}`
+    is that sha, short."""
     try:
         from data import route as route_mod
     except ImportError:
         return []
     out = []
+    head = str((route or {}).get("head_sha") or "")[:7]
     for e in route_mod.drawn(route, rc):
         if e.get("kind") == "text" and str(e.get("text") or "").strip():
-            out.append(str(e["text"]).replace("{release}", str((ed or {}).get("version") or "the release")))
+            if e.get("ci") and not route_mod.ci_ok(repo, (route or {}).get("head_sha"), str(e["ci"]))[0]:
+                continue
+            text = str(e["text"]).replace("{release}", str((ed or {}).get("version") or "the release"))
+            if "{head}" in text:
+                if not head:
+                    continue
+                text = text.replace("{head}", head)
+            out.append(text)
     return out
 
 
@@ -663,97 +688,60 @@ def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | No
             f"authored {listed}")
 
 
-NBH = "\u2011"          # a non-breaking hyphen: "Ctrl‑C" never splits on the phone (review round 2)
-RUN_WORDS = (("install", "install"), ("crawl_ctrl_c", "crawl"), ("crawl_ctrl_c", f"Ctrl{NBH}C"),
-             ("kill_writes_file", "kill"), ("export", "export"))
-_NUM_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine"}
-
-
 def crawl_words(step: dict | None) -> str:
-    """What the run check's crawl was, from its own command and detail: "(a local 3-page site, `--seeding-strategy
-    none`)". Review round 2: the defaults the image describes were not what ran, so the line says what did."""
+    """What the run check's crawl ran against, from its own command and detail: "against a local 3-page site".
+    Review round 5: the flags it ran with are in DESIGN.md, not in the data line."""
     if not isinstance(step, dict):
         return ""
     cmd, detail = str(step.get("cmd") or ""), str(step.get("detail") or "")
-    bits = []
     m = re.search(r"(\d+) lines", detail)
     if re.search(r"127\.0\.0\.1|localhost", cmd):
-        bits.append(f"a local {m.group(1)}-page site" if m else "a local site")
-    f = re.search(r"--seeding-strategy\s+(\S+)", cmd)
-    if f:
-        bits.append(f"`--seeding-strategy {f.group(1)}`")
-    return f" ({', '.join(bits)})" if bits else ""
+        return f" against a local {m.group(1)}-page site" if m else " against a local site"
+    return ""
 
 
 def route_clause(stats: dict, figs: dict) -> str:
-    """Round 6, SPEC §4 block 14, reviews 1 and 2: what the drawing is, and which of its lines were run, when and on
-    what. "The drawing is rustmapper 0.1.3 from PyPI: every file it names is in that release, and its install, crawl
-    (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines ran on 9 Oct 2026
-    (Linux x86_64)." """
+    """Round 6, SPEC §4 block 14; review round 5: which release the drawing is, and that its commands were run, when
+    and on what. "The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run
+    against a local 3-page site on 10 Oct 2026 (Linux x86_64)." The run is said only when the run check passed for
+    that release; how the drawing is checked (its files, its reader's commit, the crawl's flags) is in DESIGN.md."""
     route = (stats.get("routes") or {}).get("rustmapper") or {}
     ed = stats.get("edition") or {}
     if not route or not ed.get("version"):
         return ""
     v = ed["version"]
     project = ed.get("project") or "rustmapper"
-    # review round 3: the drawing names three kinds of path; only rustmapper's own source files are in the release
-    # review round 4: "drawing" links DESIGN.md, how it is built (the license line no longer says it)
-    out = f"The [drawing](DESIGN.md) is {project} {v} from PyPI: every {project} source file it names is in that release"
-    ho = drawn_handoff(stats, route.get("repo") or "Rust-sitemap")
-    if ho and ho.get("to_sha"):
-        out += f"; the reader it points to is {ho.get('to')}'s, at `{str(ho['to_sha'])[:7]}`"
-    out += "."
+    out = f"The [drawing](DESIGN.md) is {project} {v}, the release pip installs"
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
     if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
         steps = {s.get("id"): s for s in rc.get("steps") or []}
-        words = [w + (crawl_words(steps.get(sid)) if w == "crawl" else "") for sid, w in RUN_WORDS if sid in steps]
-        if words:
-            listed = ", ".join(words[:-1]) + (" and " if len(words) > 1 else "") + words[-1]
-            out += f" Its {listed} lines were run on {fmt_date(rc['date'])} ({rc.get('runner')})."
-    return out
-
-
-def drawn_handoff(stats: dict, repo: str) -> dict | None:
-    """The hand-off the hero draws past its end (sheets/route.py `handoff`): from `repo`, writing the end's file,
-    state `runs`."""
-    route = (stats.get("routes") or {}).get("rustmapper") or {}
-    end = next((e for e in route.get("entries") or [] if e.get("kind") == "end"), {})
-    for h in stats.get("handoffs") or []:
-        if h.get("from") == repo and h.get("file") == end.get("file") and h.get("state") == "runs":
-            return h
-    return None
+        out += (f"; its commands were run{crawl_words(steps.get('crawl_ctrl_c'))} on {fmt_date(rc['date'])}"
+                + (f" ({rc['runner']})" if rc.get("runner") else ""))
+    return out + "."
 
 
 def survey_block(stats: dict, figs: dict | None = None, repos: list[str] | None = None,
                  aliases: dict | None = None) -> str:
-    """Round 6, SPEC §4 block 14, review round 2: the data line at the foot, from stats only, in plain sentences.
-    The drawing and what was run (route_clause); then "Tests and CI measured 10 Oct 2026 from 22 public repositories
-    · regenerated weekly."; then (review round 4) what the facts lines' tests and lines include: the commits coding
-    agents authored in each repository with a facts line (`agent_clause`). An item whose key is absent is left out,
-    never estimated."""
+    """Round 6, SPEC §4 block 14; review round 5: the data line at the foot, what a visitor needs and nothing about
+    the build: which release the drawing is and that it was run (route_clause), then what the facts lines' tests and
+    lines include, the commits coding agents authored in each repository with a facts line (`agent_clause`). The
+    facts lines date and pin every count, so no "measured on" or schedule is repeated here. When the last build
+    failed and the figures are the run before's, it says so. An item whose key is absent is left out, never
+    estimated."""
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
-    when = figs.get("taken") or ""
-    repo_count = stats.get("repo_count") or (len(stats["repos"]) if isinstance(stats.get("repos"), list) else 0)
-    lead = "Tests and CI measured" + (f" {when}" if when else "")
-    if repo_count:
-        lead += f" from {repo_count} public repositories"
-    pieces = []
-    if lead != "Tests and CI measured":
-        pieces.append(lead)
-    if prov.get("mode") == "cache-failed":
-        failed = fmt_date(prov.get("failed_at"))
-        pieces.append(f"the last run failed{' on ' + failed if failed else ''}; these figures are from the run before")
-    agents = agent_clause(stats, repos, aliases)
-    if not pieces and not agents:
-        return ""
     sentences = []
     head = route_clause(stats, figs)
     if head:
         sentences.append(head)
-    sentences.append(" · ".join(pieces + ["regenerated weekly"]) + ".")
+    if prov.get("mode") == "cache-failed":
+        failed = fmt_date(prov.get("failed_at"))
+        sentences.append(f"The last run failed{' on ' + failed if failed else ''}; these figures are from the run before.")
+    agents = agent_clause(stats, repos, aliases)
     if agents:
         sentences.append(agents[0].upper() + agents[1:] + ".")
+    if not sentences:
+        return ""
     return "<sub>" + " ".join(sentences) + "</sub>"
 
 

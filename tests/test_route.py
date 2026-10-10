@@ -120,22 +120,26 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13", "L1", "X1"])
+                         ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13", "L1", "X1", "M1"])
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
         drawn = {e["id"]: e for e in R.drawn(route, rc)}
-        for gid in ("S1", "F1", "G1", "W1", "H1", "C1", "R13"):
+        for gid in ("S1", "F1", "G1", "W1", "H1", "C1", "R13", "M1"):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
         self.assertIn("by default", drawn["S1"]["text"])
         # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope; review round 4:
         # with the line of output that says the crawl is done, while the run check saw it go quiet
-        self.assertEqual(drawn["H1"]["text"], "never stops by itself; done when `Received work item` lines stop")
-        # review round 4: after a kill the export writes sitemap.xml (cli.rs --output's default), named as installed
-        self.assertIn("after a kill, `{script} export-sitemap` writes the pages to `sitemap.xml`", drawn["C1"]["text"])
+        # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
+        self.assertEqual(drawn["H1"]["text"], "{release} never stops by itself; done when `Received work item` lines stop")
+        # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
+        self.assertEqual(drawn["C1"]["text"], "press Ctrl-C once to write `data/sitemap.jsonl`")
         self.assertIn("on your URL's domain, above or below it", drawn["F1"]["text"])
-        self.assertEqual(drawn["W1"]["text"], "saved to its database every 50 ms")
+        # review round 5: the write path in its order, and the governor with the release's threshold
+        self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, every 50 ms")
+        self.assertEqual(drawn["G1"]["text"], "fetches fewer pages at once when saves average over 500 ms")
+        self.assertEqual(drawn["M1"]["ci"], "Test")
         self.assertNotIn("kill", drawn["W1"]["text"])
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
 
@@ -228,11 +232,11 @@ class Quiet(unittest.TestCase):
             rc = {"version": "0.1.3", "ok": True, "steps": [{"id": k, "ok": v} for k, v in probes.items()]}
             return {e["id"]: e for e in R.resolve(r, rc)}["H1"]
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
-                         "never stops by itself; done when `Received work item` lines stop")
+                         "{release} never stops by itself; done when `Received work item` lines stop")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False)["text"],
-                         "never stops by itself, even after the last page")
+                         "{release} never stops by itself, even after the last page")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False)["text"],
-                         "never stops by itself, even after the last page", "no quiet probe recorded: the cause alone")
+                         "{release} never stops by itself, even after the last page", "no quiet probe recorded: the cause alone")
         self.assertTrue(words(crawl_ctrl_c=True, ends_by_itself=True, quiet_after_last_page=False)["retired"])
         # a release that no longer prints the line: the quiet wording's anchor fails, the cause alone is drawn
         r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body.replace("Received work item", "item")}),
@@ -240,7 +244,8 @@ class Quiet(unittest.TestCase):
         rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "crawl_ctrl_c", "ok": True},
                                                         {"id": "ends_by_itself", "ok": False},
                                                         {"id": "quiet_after_last_page", "ok": True}]}
-        self.assertEqual({e["id"]: e for e in R.resolve(r, rc)}["H1"]["text"], "never stops by itself, even after the last page")
+        self.assertEqual({e["id"]: e for e in R.resolve(r, rc)}["H1"]["text"],
+                         "{release} never stops by itself, even after the last page")
 
 
 class StringDefaults(unittest.TestCase):
@@ -371,12 +376,14 @@ class Commands(unittest.TestCase):
             s = copy.deepcopy(stats)
             s["edition"]["scripts"] = scripts
             s["runcheck"]["rustmapper"]["scripts"] = scripts
-            # review round 4: the image's one other command (C1, after a kill) is named as the wheel installs it
-            c1 = next(e for e in sheet.plan(s, cfg)["steps"] if e["id"] == "C1")
-            self.assertIn(f"`{want.split()[0]} export-sitemap`", c1["text"])
-            self.assertNotIn("{script}", c1["text"])
+            # review round 5: the image names no command but `pip install`; the block names them as the wheel does
+            for e in sheet.plan(s, cfg)["steps"]:
+                self.assertNotIn("export-sitemap", e["text"], e["id"])
+                self.assertNotIn("{script}", e["text"])
+                self.assertNotIn("{release}", e["text"])
             block = rr.install_block(s, "Rust-sitemap", cfg)
             self.assertIn(want.split()[0] + " crawl \\\n    --start-url <your-site>", block)
+            self.assertIn("# sitemap.xml, even after a kill:\n" + want.split()[0] + " export-sitemap", block)
         s = copy.deepcopy(stats)
         s["edition"]["scripts"] = []
         with self.assertRaises(RuntimeError):
@@ -390,8 +397,20 @@ class Commands(unittest.TestCase):
         code = block.split("```")[1]
         self.assertEqual(code.strip().splitlines()[1:], ["pip install rustmapper", "rust_sitemap crawl \\",
                                                          "    --start-url <your-site>", "# stop it with one Ctrl-C",
+                                                         "# sitemap.xml, even after a kill:",
                                                          "rust_sitemap export-sitemap"])
         self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))
+        # review round 5: the kill comment only while a kill writes no file and the export on what it left worked,
+        # and the release's export reads the stored state (release gate export_after_kill)
+        for sid, ok in (("kill_writes_file", True), ("export_after_kill", False)):
+            s = copy.deepcopy(stats)
+            for st in s["runcheck"]["rustmapper"]["steps"]:
+                if st["id"] == sid:
+                    st["ok"] = ok
+            self.assertNotIn("after a kill", rr.install_block(s, "Rust-sitemap", cfg), sid)
+        s = copy.deepcopy(stats)
+        s["routes"]["rustmapper"]["gates"]["export_after_kill"] = {"ok": False, "missing": ["WalReader"]}
+        self.assertNotIn("after a kill", rr.install_block(s, "Rust-sitemap", cfg))
         s = copy.deepcopy(stats)
         for st in s["runcheck"]["rustmapper"]["steps"]:
             if st["id"] == "ends_by_itself":
@@ -480,7 +499,7 @@ class RoundThree(unittest.TestCase):
         r = R.verify_route(self.h1_spec(), None, rel, None, "0.1.3")
         res = R.resolve(r, self.rc(ends_by_itself=False, crawl_ctrl_c=True))
         self.assertTrue(res[0]["verified"])
-        self.assertEqual(res[0]["text"], "never stops by itself, even after the last page")
+        self.assertEqual(res[0]["text"], "{release} never stops by itself, even after the last page")
         self.assertNotRegex(res[0]["text"], r"limit|depth|same-site|parent")    # no scope given as the cause
         # the completion check moved to a timer (d751cf0) while the probe still fails: H1 does not hold
         r = R.verify_route(self.h1_spec(), None, tree({"src/bfs_crawler.rs": self.TIMER}), None, "0.1.3")
@@ -540,6 +559,86 @@ class RoundThree(unittest.TestCase):
         texts = [{"s": "one line per page", "role": "label", "key": "routes:R0"},
                  {"s": "one line per page: url", "role": "label", "key": "routes:R13"}]
         self.assertEqual([f.code for f in route_check.self_twice(texts, "hero-day")], ["HERO-SELF-TWICE"])
+
+
+class RoundFive(unittest.TestCase):
+    """Review round 5: the write path's order, the governor's threshold, what main has fixed (M1, gated by CI)."""
+    LOOP = ("fn writer_loop(x: u8) { for r in batch { if let Err(e) = wal.append(&record) {} } "
+            "let f = wal.fsync(); match state.apply_event_batch(&batch) { _ => {} } }")
+
+    def test_order_anchor(self):
+        a = {"path": "w.rs", "fn": "writer_loop", "text": "wal.fsync()", "before": "state.apply_event_batch(&batch)"}
+        self.assertIsNone(R.check_anchor(tree({"w.rs": self.LOOP}), a))
+        swapped = ("fn writer_loop(x: u8) { match state.apply_event_batch(&batch) { _ => {} } "
+                   "let f = wal.fsync(); }")
+        self.assertIn("comes after", R.check_anchor(tree({"w.rs": swapped}), a))
+        self.assertIn("no 'state.apply_event_batch(&batch)'",
+                      R.check_anchor(tree({"w.rs": "fn writer_loop() { wal.fsync(); }"}), a))
+
+    def test_committed_w1_rests_on_the_order_in_both_trees(self):
+        w1 = next(e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "W1")
+        for side in ("head", "release"):
+            befores = [(a["text"], a["before"]) for a in w1[side] if "before" in a]
+            self.assertEqual(len(befores), 2, side)
+            self.assertTrue(befores[1][1] == "state.apply_event_batch(&batch)" and "fsync" in befores[1][0], side)
+        self.assertIn("then saved to redb", w1["text"])
+
+    def test_threshold_prints_as_a_whole_number(self):
+        spec = {"repo": "x", "entry": [{"id": "G1", "kind": "note", "scope": "release",
+                                        "text": "fewer at once over {const:THROTTLE_THRESHOLD_MS} ms",
+                                        "release": [{"path": "m.rs", "const": "THROTTLE_THRESHOLD_MS"}]}]}
+        for src, want in (("const THROTTLE_THRESHOLD_MS: f64 = 500.0;", "over 500 ms"),
+                          ("const THROTTLE_THRESHOLD_MS: f64 = 2000.0;", "over 2000 ms"),
+                          ("const THROTTLE_THRESHOLD_MS: f64 = 250.5;", "over 250.5 ms")):
+            r = R.verify_route(spec, None, tree({"m.rs": src}), None, "0.1.3")
+            self.assertIn(want, R.drawn(r)[0]["text"])
+
+    def test_ci_ok(self):
+        sha = "3" * 40
+        repo = {"head": {"sha": sha}, "ci": {"conclusion": "success", "head_sha": sha,
+                                            "jobs": [{"name": "Test (ubuntu-latest, stable)", "conclusion": "success"}]}}
+        self.assertEqual(R.ci_ok(repo, sha, "Test"), (True, ""))
+        self.assertFalse(R.ci_ok(dict(repo, ci=dict(repo["ci"], head_sha="4" * 40)), sha, "Test")[0])
+        self.assertFalse(R.ci_ok(dict(repo, ci=dict(repo["ci"], conclusion="failure")), sha, "Test")[0])
+        self.assertFalse(R.ci_ok(dict(repo, ci=dict(repo["ci"], jobs=[{"name": "Clippy", "conclusion": "success"}])),
+                                 sha, "Test")[0])
+        self.assertFalse(R.ci_ok(repo, "5" * 40, "Test")[0], "the route read another commit than CI ran")
+
+    def test_m1_says_what_main_fixed_only_on_its_evidence(self):
+        with open(STATS, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        cfg = load_cfg()
+        want = ("On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` "
+                "passes in CI at `32c2651`. That fix is not on PyPI yet.")
+        self.assertIn(want, rr.install_block(stats, "Rust-sitemap", cfg))
+        self.assertNotRegex(want, r"\d+ s\b|seconds", "no idle timing: the test runs with 1 s flags")
+        # CI ran at another sha than the route read: not printed
+        s = copy.deepcopy(stats)
+        for r in s["repos"]:
+            if r["name"] == "Rust-sitemap":
+                r["ci"]["head_sha"] = "0" * 40
+        self.assertNotIn("On main", rr.install_block(s, "Rust-sitemap", cfg))
+        # the test file is gone at HEAD: the entry does not hold
+        m1 = next(e for e in cfg["route"]["rustmapper"]["entry"] if e["id"] == "M1")
+        spec = {"repo": "x", "entry": [m1]}
+        rel = tree({"src/bfs_crawler.rs": 'pub async fn start_crawling(&self) { else => { "Crawl complete: frontier empty" } }'})
+        head = tree({".github/workflows/ci.yml": "cargo test --all-features --verbose"})
+        rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "ends_by_itself", "ok": False}]}
+        self.assertEqual([e["id"] for e in R.unverified(R.verify_route(spec, head, rel, None, "0.1.3"), rc)], ["M1"])
+        # a release that ends by itself retires M1 with H1
+        head = tree({".github/workflows/ci.yml": "cargo test --all-features", "tests/crawl_exits_when_idle.rs":
+                     "#[test]\nfn crawl_exits_after_frontier_drains() {}"})
+        r = R.verify_route(spec, head, rel, None, "0.1.3")
+        self.assertEqual([e["id"] for e in R.drawn(r, rc)], ["M1"])
+        done = {"version": "0.1.4", "ok": True, "steps": [{"id": "ends_by_itself", "ok": True}]}
+        r = R.verify_route(spec, head, rel, None, "0.1.4")
+        self.assertEqual((R.drawn(r, done), R.unverified(r, done)), ([], []))
+
+    def test_h1_names_the_release(self):
+        with open(STATS, encoding="utf-8") as fh:
+            stats = json.load(fh)
+        h1 = next(e for e in sheet.plan(stats, load_cfg())["steps"] if e["id"] == "H1")
+        self.assertTrue(h1["text"].startswith(f"{stats['edition']['version']} never stops by itself"), h1["text"])
 
 
 # ================================================================ the sheet half
@@ -754,10 +853,16 @@ class RouteSheet(unittest.TestCase):
             f1 = [t for t in ent["text"] if t["key"] == "routes:F1" and t["x0"] >= G["text_x"] - 1]
             g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
             w1 = [t for t in ent["text"] if t["key"] == "routes:W1" and t["x0"] >= G["text_x"] - 1]
-            self.assertEqual(max(t["y"] for t in g1) - max(t["y"] for t in f1), G["line"], f"{e}: G1 is F1's next line")
+            self.assertEqual(min(t["y"] for t in g1) - max(t["y"] for t in f1), G["line"], f"{e}: G1 is F1's next line")
             self.assertLess(max(t["y"] for t in g1), min(t["y"] for t in w1), e)
+            # review round 5: a measured fact, in ink like its stop, and the number follows the release's constant
             th = tokens.THEMES["night" if "night" in e else "day"]
-            self.assertIn(f'fill="{th.ink2}"', re.search(r'<g id="hero-G1">(.*?)</g>', self.svg(self.out, e), re.S).group(1))
+            svg = self.svg(self.out, e)
+            g1_fill = set(re.findall(r'fill="(#[0-9A-F]{6})"', re.search(r'<g id="hero-G1">(.*?)</g>', svg, re.S).group(1)))
+            f1_fill = set(re.findall(r'fill="(#[0-9A-F]{6})"', re.search(r'<g id="hero-F1">(.*?)</g>', svg, re.S).group(1))) - {th.paper}
+            self.assertEqual(g1_fill, {th.ink}, e)
+            self.assertEqual(g1_fill, f1_fill, e)
+            self.assertIn("500", "".join(t["s"] for t in g1))
 
     def test_one_left_edge_and_desk_files_left_of_the_track(self):   # review round 4: ROUTE-LEFT-EDGE
         for e in EDITIONS:
@@ -767,21 +872,80 @@ class RouteSheet(unittest.TestCase):
             xs = {st["x"] for st in ent["route"]["steps"]}
             self.assertEqual(xs, {G["text_x"]}, e)
             files = [t for t in ent["text"] if t["key"].startswith("routes:") and t["x1"] <= G["track_x"]]
-            if "phone" in e:
-                self.assertEqual(files, [], "the phone carries no file names")
-                continue
-            self.assertTrue(ent["route"]["file_labels"])
-            self.assertEqual(sorted(t["s"] for t in files), ["bfs_crawler.rs", "seeder.rs", "writer_thread.rs"])
-            th = tokens.THEMES["night" if "night" in e else "day"]
-            for t in files:
-                self.assertEqual(t["role"], "machine")
-                self.assertAlmostEqual(t["x1"], G["file_right"], delta=0.6)
-                self.assertGreaterEqual(t["x0"], G["title_x"])
+            # review round 5: seeder.rs one baseline under the role line read as a line of the title, so on today's
+            # stats no desk label is drawn, and the desk teaches what the phone does
+            self.assertEqual(files, [], f"{e}: no file names")
+            self.assertFalse(ent["route"]["file_labels"], e)
         bad = copy.deepcopy(self.report["sheets"]["hero-day"])
         for t in bad["text"]:
             if t["key"] == "routes:W1" and t["x0"] > sheet.L["desk"]["track_x"]:
                 t["x0"] += 30
         self.assertEqual([f.code for f in route_check.left_edge(bad, "hero-day")], ["ROUTE-LEFT-EDGE"])
+
+    def test_lines_are_painted_under_the_marks(self):             # review round 5: ROUTE-PAINT
+        for e in EDITIONS:
+            svg = self.svg(self.out, e)
+            track = svg.index('<g id="hero-R5">')
+            for m in re.finditer(r"<circle", svg):
+                self.assertGreater(m.start(), track, f"{e}: a ring painted under the track")
+            self.assertLess(svg.index('<g id="hero-R6">'), svg.index('<g id="hero-F1">'), e)
+            self.assertEqual(route_check.paint_order(svg, e), [], e)
+            rep = self.report["sheets"][f"hero-{e}"]["route"]
+            self.assertEqual(rep["drawn"][:3], ["T1", "T2", "R0"], "the report keeps the reading order")
+        bad = '<g id="hero-S1"><circle/></g><g id="hero-R5"><path/></g>'
+        self.assertEqual([f.code for f in route_check.paint_order(bad, "x")], ["ROUTE-PAINT"])
+
+    def test_release_label_follows_its_command(self):             # review round 5: ROUTE-RELEASE
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            rl = ent["route"]["release_label"]
+            self.assertEqual(rl["y"], rl["cmd_y"], e)
+            self.assertLessEqual(rl["x"] - rl["cmd_end"], route_check.RELEASE_GAP_MAX, e)
+            self.assertGreater(rl["x"], rl["cmd_end"], e)
+            self.assertEqual(route_check.release_near(ent, e), [])
+        far = {"route": {"release_label": {"cmd_end": 735, "cmd_y": 178, "x": 1062, "y": 178, "w": 162}, "steps": []}}
+        self.assertEqual([f.code for f in route_check.release_near(far, "x")], ["ROUTE-RELEASE"])
+        under = {"route": {"release_label": {"cmd_end": 735, "cmd_y": 178, "x": 484, "y": 206, "w": 162},
+                           "steps": [{"x": 484}]}}
+        self.assertEqual(route_check.release_near(under, "x"), [], "dropped under the command at the left edge")
+
+    def test_loop_arrow_is_on_bare_line(self):                    # review round 5: ROUTE-ARROW
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            rep = ent["route"]
+            a, r = rep["loop_arrow"], rep["ring_r"]
+            for ring in rep["rings"]:
+                self.assertTrue(ring["cy"] < a[0] - r - 2 or ring["cy"] > a[1] + r + 2, f"{e} {ring['id']}")
+            self.assertEqual(route_check.arrow_clear(ent, e), [])
+        near = {"route": {"loop_arrow": [300, 310], "ring_r": 6, "rings": [{"id": "W1", "cy": 314}]}}
+        self.assertEqual([f.code for f in route_check.arrow_clear(near, "x")], ["ROUTE-ARROW"])
+
+    def test_code_spaces_are_word_spaces(self):                   # review round 5: ROUTE-CODE-SPACE
+        for e in EDITIONS:
+            ent = self.report["sheets"][f"hero-{e}"]
+            texts = ent["text"]
+            sp = ent["route"]["label_space"]
+            self.assertEqual(route_check.code_spaces(texts, e, sp), [], e)
+            h1 = sorted([t for t in texts if t["key"] == "routes:H1" and t["role"] == "machine"], key=lambda t: (t["y"], t["x0"]))
+            self.assertEqual([t["s"] for t in h1], ["Received", "work", "item"], e)
+            for a, b in zip(h1, h1[1:]):
+                if a["y"] == b["y"]:
+                    self.assertLessEqual(b["x0"] - a["x1"], 1.3 * sp + 0.5, e)
+            # the code block keeps real spacing for pasting
+        block = rr.install_block(self.stats, "Rust-sitemap", load_cfg())
+        self.assertIn("rust_sitemap crawl \\", block)
+        wide = [{"key": "routes:H1", "role": "machine", "s": "Received work", "x0": 0, "x1": 50, "y": 1}]
+        self.assertEqual([f.code for f in route_check.code_spaces(wide, "x", 4.0)], ["ROUTE-CODE-SPACE"])
+
+    def test_desk_file_labels_need_a_line_under_the_title(self):  # review round 5: proximity, not only overlap
+        saved = copy.deepcopy(sheet.L["desk"])
+        try:
+            sheet.L["desk"]["head_y"] = saved["head_y"] + 80        # the rows a line and more below the role line
+            n, rep, _out = _build(self.tmp, "farlabels", _write(self.tmp, self.stats, "farlabels"), editions=["day"])
+        finally:
+            sheet.L["desk"].clear()
+            sheet.L["desk"].update(saved)
+        self.assertTrue(rep["sheets"]["hero-day"]["route"]["file_labels"], "far enough from the title: drawn")
 
     def test_desk_files_all_or_none(self):                        # review round 4: a label that would touch the title
         s = copy.deepcopy(self.stats)
@@ -800,9 +964,8 @@ class RouteSheet(unittest.TestCase):
             self.assertEqual(route_check.code_face(texts, e), [])
             self.assertEqual(route_check.self_twice(texts, e), [])
             mono = [t["s"] for t in texts if t["role"] == "machine" and t["key"] == "routes:C1"]
-            # review round 4: the export is named as installed (edition.scripts) and writes cli.rs's default output
-            self.assertEqual(mono, ["data/sitemap.jsonl", f"{self.stats['edition']['scripts'][0]} export-sitemap",
-                                    "sitemap.xml"], e)
+            # review round 5: C1 names the file one Ctrl-C writes; the export after a kill is in the README's block
+            self.assertEqual(mono, ["data/sitemap.jsonl"], e)
             ho = [t["s"] for t in texts if t["key"].startswith("handoffs:")]
             self.assertTrue(ho[0].startswith("sorted by ideal-url-organizer"), ho)   # review round 4: what it does
 

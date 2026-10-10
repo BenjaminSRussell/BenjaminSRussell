@@ -10,10 +10,10 @@ chart.toml [copy] / [identity].
 
 Left column, the title block: the name and the role line, nothing else (review round 2: the project's name is the
 route's header, and the counts and CI live in the text). Right, the route: the project's name and one sentence, the
-start bar, the install line with the release, the image's one command, then the stops (a ring on the magenta
-track; review round 4: every row's words start at one left edge, and on the desk each stop's source file stands
-right-aligned in the empty column left of the track), the governor as a line under the fetch stop's words (no mark of
-its own), the hazard (its words ringed by a dotted danger line in the accent, review round 3; with the line of output
+start bar, the install line with the release right after it (review round 5), the image's one command, then the
+stops (a ring on the magenta track, painted over it; review round 4: every row's words start at one left edge; a desk
+file label left of the track only when every one keeps a line clear of the title block, which today none does), the
+governor as a line under the fetch stop's words with its threshold (no mark of its own), the hazard (its words ringed by a dotted danger line in the accent, review round 3; with the line of output
 that says the crawl is done) and the way out, the end bar, the file you get and its real field names, and a thin
 line on to the one other project of his that reads that file, says what it does with it, and tests the join. Everything a reader copies or looks up (the crawl command, the install time, the CI) is in
 the README, once.
@@ -34,6 +34,7 @@ Every glyph goes through typeset (ctx.k); every stroke width through chartlib.st
 from __future__ import annotations
 
 import datetime as dt
+import re
 
 import chartlib as c
 import edition as E
@@ -67,16 +68,17 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
     "F1": ("each page is fetched and its links are queued again, on the domain of the URL you gave, its parent "
            "domains and subdomains included", "Q1", "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain)"),
-    "G1": ("the crawl slows when it cannot save what it found, not when the network is slow: a note on the fetch "
-           "stop, since it changes how many fetches run", "Q1", "stats.json routes.rustmapper G1"),
-    "W1": ("what it has found is saved to its database as it goes, every 50 ms, so an export after a kill has "
-           "something to read", "Q5", "stats.json routes.rustmapper W1 (writer_thread.rs BATCH_TIMEOUT_MS; redb)"),
-    "H1": ("the one catch: the release does not stop by itself, and the line of its own output that says it is done; "
-           "the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
+    "G1": ("the crawl slows when it cannot save what it found, not when the network is slow, past a stated "
+           "threshold: backpressure from the store to the fetchers, a note on the fetch stop", "Q1",
+           "stats.json routes.rustmapper G1 (0.1.3 main.rs THROTTLE_THRESHOLD_MS, commit EWMA)"),
+    "W1": ("what it has found is written to a log on disk, fsynced, then committed to redb, every 50 ms, so an export "
+           "after a kill has something to read", "Q5",
+           "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; BATCH_TIMEOUT_MS; redb)"),
+    "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
+           "says it is done; the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
            "'Received work item'); runcheck ends_by_itself, quiet_after_last_page"),
-    "C1": ("the reader's one step: Ctrl-C once writes the file; after a kill, the command, as installed, that writes "
-           "sitemap.xml from what was saved", "Q5",
-           "stats.json routes.rustmapper C1; edition.scripts; runcheck crawl_ctrl_c, kill_writes_file, export_after_kill"),
+    "C1": ("the reader's one step: Ctrl-C once writes the file (after a kill, the README's block says what to run)",
+           "Q5", "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
     "R15": ("his projects are one body of work: this output is sorted by another, and that join is tested", "Q2",
@@ -98,7 +100,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
      "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
     ("The governor is a note under fetch",
-     "the governor's words are the last line of the fetch stop's row, in the secondary ink, with no mark on the track",
+     "the governor's words are the last line of the fetch stop's row, in ink with its threshold (review round 5), "
+     "with no mark on the track",
      "it changes how many fetches run at once (governor THROTTLE_THRESHOLD_MS, add_permits), so it qualifies that "
      "stop; on a metro map a short tick is a station, which it is not (review round 4)"),
     ("Fixed marks, no sizes",
@@ -127,17 +130,25 @@ BREAKS: list[tuple[str, str, str]] = [
     ("Phone drops file names",
      "on the phone the stops carry their rules only",
      "720 px leaves 600 px for text at the 26 px floor"),
-    ("Desk file names left of the track",
-     "on the desk every row's words start at x 484, as on the phone, and each stop's source file is set in the code "
-     "face, muted, right-aligned to x 424 on the row's first baseline; if one would touch the title block, none is "
-     "drawn",
-     "with each rule after its own file name the rows started at four different x's and read as a rendering bug "
-     "(review round 4); the column under the role line was empty"),
-    ("Release label on the install line, phone too",
-     "on the phone the release label is set right-aligned on the install line, as on the desk, not in the platform "
-     "note",
-     "the note with the release in front is 648 px at 26 px, over the 600 px measure; its third line took the phone "
-     "sheet past 1200"),
+    ("Desk file names left of the track, only clear of the title",
+     "on the desk every row's words start at x 484, as on the phone; a stop's source file may stand right-aligned to "
+     "x 424 on its first baseline only if every label keeps clear of the title block's boxes and its cap top is a "
+     "line (28) under the role line's last baseline; otherwise none is drawn, and today none is",
+     "with each rule after its own file name the rows started at four different x's (review round 4); one baseline "
+     "under PYTHON AND RUST, seeder.rs read as a line of the title (review round 5)"),
+    ("Release label right after the install command",
+     "the release label starts 32 after the end of `pip install rustmapper`, on its baseline, in muted caps, desk and "
+     "phone; if it would pass the measure it goes under the command at the left edge, never to the right edge",
+     "right-aligned at x 1224 on the desk it read as the drawing's date, a year old (review round 5); in the platform "
+     "note it took the phone sheet past 1200 (review round 2)"),
+    ("Lines painted first",
+     "the track, the loop and the line past the end are the first groups in the document; rings, bars and words "
+     "follow, so each ring is paper on the line",
+     "SVG paints in document order; drawn last, the track struck through every ring (review round 5)"),
+    ("Code spaces at the word space",
+     "inside a row's code spans the words are set in the code face and the spaces in the label face",
+     "a mono space is 2.8 times the label's, and `Received work item` read as three loose words (review round 5); "
+     "the README's code block keeps real spacing for pasting"),
     ("No motion, no still editions",
      "the four editions are day, night, phone-day and phone-night; nothing moves",
      "nothing in the subject moves on a period"),
@@ -165,6 +176,8 @@ L = {
 }
 TRACK = {"desk": 1.6, "phone": 1.0}
 FILE_CLEAR = 4           # review round 4: a desk file label keeps this far from the title block's boxes
+LINES = ("R5", "R6", "R15")   # review round 5: painted first, under the marks
+RELEASE_GAP = 32         # review round 5: the release label starts this far after the end of the install command
 
 
 def _date(iso: str, caps: bool = True) -> str:
@@ -240,8 +253,10 @@ def plan(data: dict, cfg: dict, project: str = PROJECT) -> dict:
         "install": f"pip install {ed.get('project') or project}" if ok and ed.get("version") else None,
         "release": f"{ed['version']} · {_date(ed['date'])}" if ok and ed.get("version") and ed.get("date") else None,
         # review round 4: a command in a row's words is named as the wheel installs it, as in the README's block
-        "steps": [dict(e, text=str(e["text"]).replace("{script}", cmd)) for e in entries
-                  if e["kind"] in ("stop", "step", "note", "trap")],
+        # review round 5: the hazard names its release (`{release}`), so the loudest line carries its scope
+        "steps": [dict(e, text=str(e["text"]).replace("{script}", cmd).replace("{release}", str(ed.get("version") or
+                                                                                              "the release")))
+                  for e in entries if e["kind"] in ("stop", "step", "note", "trap")],
         "end": next((e for e in entries if e["kind"] == "end"), None),
         "handoff": None,
         "unverified": [e["id"] for e in R.unverified(route, rc)],
@@ -311,13 +326,21 @@ def _build(ctx) -> str:
                 out.append((piece, code))
         return out
 
+    def code_words(piece):
+        """Review round 5: a code span's words in the code face, its spaces at the label's word space (a mono space
+        is 2.8 times as wide and split `Received work item` into three loose words). ["Received", " ", "work", …]"""
+        return [w for w in re.split(r"( +)", piece) if w]
+
     def fit(text, role="label"):
         """Width for line breaking, measured in the day cut: night's Light cuts are narrower, so a line that fits
-        by day fits by night, and both editions break at the same words. Code spans measure in the code face."""
+        by day fits by night, and both editions break at the same words. Code spans measure in the code face, their
+        spaces in the label face."""
         total = 0.0
         for piece, code in segments(text):
             if code and role == "label":
-                total += k.text_width(piece, "machine", edition=day_ed, scale=sc, size=label_size)
+                for wd in code_words(piece):
+                    total += (k.text_width(wd, "label", edition=day_ed, scale=sc) if wd.isspace() else
+                              k.text_width(wd, "machine", edition=day_ed, scale=sc, size=label_size))
             else:
                 total += k.text_width(piece, role, edition=day_ed, scale=sc)
         return total
@@ -398,8 +421,12 @@ def _build(ctx) -> str:
         x0 = x
         for piece, code in segments(text):
             if code:
-                lbl(piece, x, y, gid, key, role="machine", fill=fill, size=label_size)
-                x += width(piece, "machine", size=label_size)
+                for wd in code_words(piece):
+                    if wd.isspace():
+                        x += width(wd)
+                        continue
+                    lbl(wd, x, y, gid, key, role="machine", fill=fill, size=label_size)
+                    x += width(wd, "machine", size=label_size)
             else:
                 lbl(piece, x, y, gid, key, fill=fill)
                 x += width(piece)
@@ -464,11 +491,22 @@ def _build(ctx) -> str:
     mark("bar", "R1", (X - bw / 2, bar_top, X + bw / 2, bar_top + bh))
     y = bar_top + G["r2_gap"]
     last = bar_top
+    release_at = None
     if p["install"]:
         lbl(p["install"], TX, y, "R2", "edition:project", role="machine")
-        if p["release"]:
-            lbl(p["release"], RIGHT, y, "R2", "edition:version", fill=theme.muted, caps=True, anchor="end")
         last = y
+        if p["release"]:
+            # review round 5: the release's date follows its command, so it reads as the release's age and not as the
+            # drawing's date; when it does not fit the measure it goes under the command, never to the right edge
+            cmd_end = TX + width(p["install"], "machine")
+            rx_ = cmd_end + RELEASE_GAP
+            ry_ = y
+            if rx_ + width(p["release"], caps=True) > RIGHT:
+                rx_, ry_ = TX, y + LH
+                last = ry_
+            lbl(p["release"], rx_, ry_, "R2", "edition:version", fill=theme.muted, caps=True)
+            release_at = {"cmd_end": round(cmd_end, 1), "cmd_y": round(y, 1), "x": round(rx_, 1), "y": round(ry_, 1),
+                          "w": round(width(p["release"], caps=True), 1)}
     y = last + G["entry_gap"]
     track_top = bar_top + bh
     step_report = []
@@ -487,7 +525,7 @@ def _build(ctx) -> str:
         if host is not None:
             lines = wrap(e["text"], RIGHT - host["x"])
             for i, ln in enumerate(lines):
-                say(ln, host["x"], host["last"] + LH * (i + 1), gid, f"routes:{gid}", fill=theme.ink2)
+                say(ln, host["x"], host["last"] + LH * (i + 1), gid, f"routes:{gid}", fill=theme.ink)
             host["last"] += LH * len(lines)
             host["notes"] = host.get("notes", []) + [gid]
             step_report.append({"id": gid, "kind": kind, "y": round(host["last"] - LH * (len(lines) - 1), 1),
@@ -503,7 +541,7 @@ def _build(ctx) -> str:
         if kind in ("stop", "step"):
             put(gid, f'<circle cx="{E.fmt(X)}" cy="{E.fmt(cy)}" r="{r}" fill="{theme.paper}" {c.stroke("PEN", theme.ink)}/>')
             mark("ring", gid, (X - r - 1, cy - r - 1, X + r + 1, cy + r + 1))
-        ink = theme.ink2 if kind == "note" else theme.ink
+        ink = theme.ink          # review round 5: the governor note is a measured fact, in ink like its stop
         # review round 4: one left edge for every row's words, the phone's and the desk's; the desk's file labels
         # stand in the empty column left of the track, right-aligned, on the row's first baseline
         rx = TX
@@ -539,25 +577,35 @@ def _build(ctx) -> str:
             if x0 < G["title_x"] or any(box[0] < b[2] and b[0] < box[2] and box[1] < b[3] and b[1] < box[3]
                                         for b in title_boxes):
                 fits = False
+            # review round 5: proximity, not only overlap. A label whose cap top is within one line of the title
+            # block's last baseline reads as a line of the title (seeder.rs under PYTHON AND RUST)
+            if fy - f_asc < title_last + G["line"]:
+                fits = False
         if fits:
             for name, fy, fgid in files:
                 lbl(name, G["file_right"], fy, fgid, f"routes:{fgid}", role="machine", fill=theme.muted, anchor="end")
             labels_drawn = True
     # ---- the loop: one line back up the left side, from under the last repeating row to the first one's ring
     y_bot = None
+    arrow_at = None
     if loop_rows and loop_rows[0]["kind"] in ("stop", "step"):
         gx = X - G["loop_out"]
         y_top = loop_rows[0]["cy"]
         y_bot = loop_rows[-1]["last"] + G["loop_dy"]
         r = G["ring_r"]
         aw, al = G["loop_arrow"]
-        ya = (y_top + y_bot) / 2 - al / 2          # the arrowhead, pointing up, halfway along the way back
+        # review round 5: the arrowhead, pointing up, on bare line halfway between the first two rings of the loop
+        # (halfway along the bracket it sat 3 px from W1's ring and read as a mark on that row)
+        rings = [rw["cy"] for rw in loop_rows if rw["kind"] in ("stop", "step")]
+        mid = (rings[0] + rings[1]) / 2 if len(rings) > 1 else (y_top + y_bot) / 2
+        ya = mid - al / 2
         loop_svg = (f'<path d="M{E.fmt(X)} {E.fmt(y_bot)}H{E.fmt(gx)}V{E.fmt(y_top)}H{E.fmt(X - r - 1)}" fill="none" '
                     f'{c.stroke("LINE", theme.flare, caps="butt")}/>'
                     f'<path d="M{E.fmt(gx - aw / 2)} {E.fmt(ya + al)}H{E.fmt(gx + aw / 2)}L{E.fmt(gx)} {E.fmt(ya)}Z" '
                     f'fill="{theme.flare}"/>')
         put("R6", loop_svg)
         mark("line", "R6", (gx - aw / 2, y_top - 1.5, X, y_bot + 1.5))
+        arrow_at = [round(ya, 1), round(ya + al, 1)]
     for row in rows:            # the hazard's words, ringed by the danger line
         if row["kind"] == "trap":
             _danger(row)
@@ -617,13 +665,19 @@ def _build(ctx) -> str:
     # ================================================================ assemble: one <g id> per element
     h = int(E.I(last + G["foot"]))          # the sheet ends a fixed distance under its last line (SPEC §2.3)
     ctx.extra["height"] = h
-    body = "".join(f'<g id="{gid}">{"".join(groups[gid])}</g>' for gid in order)
+    # review round 5: SVG paints in document order, so the lines go first and every ring, bar and word sits on top
+    # of them (a track drawn last struck through each ring); `drawn` keeps the reading order
+    paint = [g for g in order if g in LINES] + [g for g in order if g not in LINES]
+    body = "".join(f'<g id="{gid}">{"".join(groups[gid])}</g>' for gid in paint)
     rep = ctx.extra
     rep["route"] = {"drawn": order, "unverified": p["unverified"], "entrance": p["entrance"],
                     "entrance_why": p["entrance_why"], "steps": step_report, "marks": marks,
                     "last_baseline": round(last, 1), "height": h,
                     "track": [[round(a_, 1), round(b_, 1)] for a_, b_ in segs], "gap": bool(len(segs) > 1),
-                    "file_labels": labels_drawn}
+                    "file_labels": labels_drawn, "paint": paint, "release_label": release_at,
+                    "loop_arrow": arrow_at, "rings": [{"id": m["id"], "cy": round((m["box"][1] + m["box"][3]) / 2, 1)}
+                                                      for m in marks if m["kind"] == "ring"],
+                    "ring_r": G["ring_r"], "label_space": round(width(" "), 2)}
     return E.svg(ed, w, h, body, k.glyph_defs(), sheet=NAME)
 
 

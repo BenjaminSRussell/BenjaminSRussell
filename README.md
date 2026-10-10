@@ -25,7 +25,7 @@
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <!-- pick:start -->
-For the list of a site's URLs, from one binary with no services to run, **rustmapper**; to keep the pages themselves, deduplicated and summarised, in a pipeline that needs Docker, **Scrapy**.
+**rustmapper** gives you a site's list of URLs from one binary, with no services to run. **Scrapy** keeps the pages themselves, deduplicated and summarised, in a pipeline that needs Docker.
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
@@ -42,12 +42,13 @@ pip install rustmapper
 rust_sitemap crawl \
     --start-url <your-site>
 # stop it with one Ctrl-C
+# sitemap.xml, even after a kill:
 rust_sitemap export-sitemap
 ```
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
-It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
+It sends up to 20 requests at a time to one host, 256 in all, with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file. On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `32c2651`. That fix is not on PyPI yet.
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -74,7 +75,7 @@ docker-compose run --rm scraper \
     -a start_urls=<url>
 ```
 
-Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by file name.
+Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file name.
 
 - A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
@@ -113,7 +114,7 @@ Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by fi
 
 <!-- notices:start -->
 1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: a circuit breaker in the error handler.*
-2. **Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables; rustmapper, Nov 2025, the write-ahead log.*
+2. **Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables.*
 3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
 4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025; Claude's commit used it first.*
 <!-- notices:end -->
@@ -122,7 +123,7 @@ Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRu
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3 from PyPI: every rustmapper source file it names is in that release; the reader it points to is ideal-url-organizer's, at `159968a`. Its install, crawl (a local 3-page site, `--seeding-strategy none`), Ctrl‑C, kill and export lines were run on 10 Oct 2026 (Linux x86_64). Tests and CI measured 10 Oct 2026 from 22 public repositories · regenerated weekly. Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
+<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

@@ -85,8 +85,27 @@ class Rules(unittest.TestCase):
         self.assertEqual(fails, [])
         block = rr.notices_block(cfg, stats)
         self.assertIn("*Scrapy, Sep 2025: a circuit breaker in the error handler.*", block)
-        self.assertIn("rustmapper, Nov 2025, the write-ahead log", block)
+        self.assertIn("*Scrapy, Oct 2025, the Delta Lake tables.*", block)
+        self.assertNotIn("write-ahead", block)
         self.assertNotIn("?", block.replace("don't", ""))
+
+    def test_notice_anchors_rule_two_is_not_the_wal(self):
+        """NOTICE-ANCHORS, review round 5: rule 2 says the raw layer is appended to and never overwritten. rustmapper's
+        write-ahead log is truncated after each checkpoint (src/wal.rs checkpoint(), every 64 commits or 64 MiB), a
+        durability buffer, so no rule 2 anchor may point at it, and no rule 2 record may remain in stats.json."""
+        with open(os.path.join(ROOT, "chart.toml"), "rb") as fh:
+            cfg = tomllib.load(fh)
+        with open(os.path.join(ROOT, "assets", "stats.json"), encoding="utf-8") as fh:
+            stats = json.load(fh)
+        two = next(n for n in cfg["notices"] if n["n"] == 2)
+        self.assertIn("never overwritten", two["body"])
+        for a in two.get("anchors") or []:
+            self.assertNotEqual(a.get("key"), "wal", a)
+            self.assertFalse(str(a.get("path") or "").endswith("wal.rs"), a)
+            self.assertNotIn("crc32c", str(a.get("text")), a)          # the WAL's record framing, [u32 len][u32 crc32c]
+            self.assertNotEqual(a.get("repo"), "Rust-sitemap", a)
+        self.assertNotIn("write-ahead", two["cite"])
+        self.assertEqual([r["key"] for r in stats["rules"] if r["n"] == 2], ["delta"])
 
 
 class Figures(unittest.TestCase):

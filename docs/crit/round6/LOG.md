@@ -278,3 +278,72 @@ from `stats-r4-all.json`).
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
   it passes (0 fail, 0 warn). ROUTE-LEFT-EDGE, ROUTE-HEIGHT, ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE,
   FIGURES, README-STALE, README-CODE-WIDTH and AUDIT-STALE are clean.
+
+## Round 5
+
+Reviews: `review-r05-1.md` (the owner's test) **7 / 10**, `review-r05-2.md` (the staff engineer screening for data
+infrastructure) **7 / 10**, `review-r05-3.md` (the information designer) **7 / 10**. None meets the goal. Where they
+conflict, review 1 (the owner's lens) wins.
+
+Renders: `scratchpad/r6/build/round-05/` (the standard set, plus `once-p1-lands/`, the same sheet with S2 drawn, from
+`stats-r5-all.json`). Routes re-verified from the local trees with `scratchpad/r6/reroute5.py` (Rust-sitemap clone at
+`32c2651`, the 0.1.3 sdist, ideal-url-organizer at `159968a`; it refuses a tree at another commit than `stats.json`
+names). It also drops rule 2's `wal` record from `rules` and takes the notices' cites from chart.toml, as
+`build_stats.py` would.
+
+### What was measured first
+
+- **The track over the rings.** In round 4's SVGs every stop group came before `hero-R5` and `hero-R6`, so the track
+  was painted over each ring. After the fix, the rendered pixel at each ring's centre equals paper on all eight rings,
+  desk and phone, day and night (ΔE 0.0; `scratchpad/r6/ringpx.py build/round-05`).
+- **The write path, in order.** In `writer_loop`, in both trees, the WAL append comes before its `fsync()`, and the
+  fsync before `state.apply_event_batch(&batch)` (sdist `src/writer_thread.rs:122, 136, 167`; HEAD `:136, 150, 181`).
+  `WalWriter::fsync` calls `sync_all()` (sdist `src/wal.rs:198-200`, HEAD `:287-289`).
+- **The governor's threshold.** 0.1.3 `src/main.rs:90` `const THROTTLE_THRESHOLD_MS: f64 = 500.0`, compared with the
+  commit EWMA at `:113`. HEAD reads `GOVERNOR_THROTTLE_THRESHOLD_MS` (`src/orchestration/governor.rs:16`), so the
+  figure is the release's.
+- **What main fixed.** `tests/crawl_exits_when_idle.rs` at `32c2651` holds `fn crawl_exits_after_frontier_drains`
+  under `#[test]`, with no `#[ignore]`; `ci.yml:76` runs `cargo test --all-features`; `repos[Rust-sitemap].ci` is a
+  success at `head_sha` = `head.sha`, with the job `Test (ubuntu-latest, stable)`. The test runs with 1 s idle flags,
+  so no timing is printed.
+- **Widths.** G1 with its measure is 647 units on the phone (measure 600) and 473 on the desk; review 2's fallback
+  ("when a save averages") is 665, longer still. The phone sets G1 on two lines.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-2 + r3-4: cut the desk file labels | The all-or-none test gains a proximity rule: a label is drawn only if its cap top (baseline less the code face's ascent) is at least `G["line"]` (28) under the title block's last baseline. `seeder.rs` fails it, so none is drawn and the desk teaches what the phone does. Tests: no file names on any edition today, `file_labels` false; with the rows moved 80 lower, they are drawn. |
+| r1-3 + r3-7: the release date next to its command | The release label starts at `TX + width(install) + 32`, anchored start, on the command's baseline, muted caps, desk and phone (desk x 767–929; phone 463–674). If it would pass the measure it drops under the command at the left edge, never to the right edge. New ROUTE-RELEASE (fast tier): the gap is at most 40, or the label sits under the command at the rows' left edge. |
+| r1-4 + r3-8: the kill recovery into the code block | C1 is "press Ctrl-C once to write `data/sitemap.jsonl`" (one line on both sheets), resting on its two shutdown anchors and `crawl_ctrl_c`. The block gains `# sitemap.xml, even after a kill:` above `rust_sitemap export-sitemap` (33 columns), printed only while `kill_writes_file` failed, `export_after_kill` passed and the new release gate `export_after_kill` holds (the release's export opens `CrawlerState`, never `WalReader`, and builds a `SitemapWriter`; the file name is `ExportSitemap --output`'s default). Tests for each condition. |
+| r1-5 + r3-9: the data line | "The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499." The source-file and reader-sha clause, the `--seeding-strategy` aside, "Tests and CI measured … from 22 public repositories" and "regenerated weekly" are gone; DESIGN.md's paragraph now carries how the drawing is checked (its files in the release, the reader's commit, the crawl's flags). A cache-failed build still says so. Phone: 6 lines, was 10. Test: no "generated" or "regenerated" in visible README text ("AI-generated code", a project's subject, is allowed by the hyphen). |
+| r1-6 + r2-5: names first in the pick sentence | Review 1's words: "**rustmapper** gives you a site's list of URLs from one binary, with no services to run. **Scrapy** keeps the pages themselves, deduplicated and summarised, in a pipeline that needs Docker." Same gates. |
+| r2-1 + r3-3: rule 2 loses the WAL | Cite "*Scrapy, Oct 2025, the Delta Lake tables.*"; the `wal` anchor and its `rules` record are gone. NOTICE-ANCHORS test: no rule 2 anchor is in Rust-sitemap, ends in `wal.rs` or names the WAL's record framing, and `rules` holds only `delta` for rule 2. |
+| r2-2 + r3-2: the trap names its release, and what main fixed | (a) H1 "`{release}` never stops by itself; done when `Received work item` lines stop", filled from `edition.version` by the sheet; the fallback takes the same prefix. Desk one line, phone two. (b) New text entry M1, printed after the load and 50,000 sentence: "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `32c2651`. That fix is not on PyPI yet." Head anchors (the test function, no `#[ignore]`, `cargo test` in `ci.yml`), release anchors (the `else =>` arm and its message), probe `ends_by_itself` failed, and the new `ci` key: printed only while `route.ci_ok` holds (success, `ci.head_sha` = `head.sha` = the route's sha, a passing job named `Test*`). An empty alternative on `ends_by_itself` passing retires it with H1. No idle timing. Tests: not printed when CI ran at another sha; unverified without the test file; retired by a release that ends. |
+| r2-3: W1 names the write path | "logged to disk, then saved to redb, every 50 ms". New order anchor (`before`) in `data/route.py`: in `writer_loop`, append before fsync, fsync before `apply_event_batch`, both trees; `WalWriter::fsync` holds `sync_all()`; `BATCH_TIMEOUT_MS` and `use redb::` kept. Tests: the order anchor fails when the commit comes first. |
+| r2-4: G1 at full weight with its measure | "fetches fewer pages at once when saves average over 500 ms", release scope, `{const:THROTTLE_THRESHOLD_MS}` from the sdist's `src/main.rs` (`500.0` prints as 500; test), in ink like F1, still F1's last line with no mark. Tests: G1's fill is `ink` and equals F1's; the number follows the constant. Two lines on the phone (above). |
+| r2-6: Grafana's address | "Grafana opens on `localhost:3000`." The FIGURES row still matches inside the code span. Test: no `http://localhost` in visible README text. |
+| r3-1: the track under the rings | The SVG body paints R5, R6 and R15 first, then the rest; `rep.route.drawn` keeps the reading order. New ROUTE-PAINT (fast tier): no group other than a line comes before the last line group. Test: every `<circle>` follows `hero-R5` on every edition; measured ΔE 0 at every ring (above). |
+| r3-5: code spaces at the word space | Inside a row's backticked span, each word is set in the code face and each space in the label face (212/1000 em, not 600). `Received work item` is three code runs 4.0 apart at 19 units, not 11.4; H1's desk line is about 15 shorter, the field list about 30. New ROUTE-CODE-SPACE (fast tier): no code run of a row holds a space, and two code runs on one line are at most 1.3 label spaces apart. The README's code block keeps real spacing. |
+| r3-6: the loop's arrowhead | The arrowhead sits halfway between the first two rings of the loop (desk 277–287, between F1 at 250 and W1 at 314; with S2 drawn, 263–273 between S2 and F1), not at the bracket's midpoint beside W1's ring. New ROUTE-ARROW (fast tier): the arrowhead keeps `ring_r + 2` from every ring's centre row. |
+| — | ROUTE-HEIGHT rebaselined: desk ≤ 592 (620 − 28), phone ≤ 1066. Today 543 / 1017; with S2 drawn 579 / 1060. Not phone −68: G1 with its measure takes a second phone line (+34). PURPOSE, BREAKS, the route docstrings, DESIGN.md's paragraph (`tokens.py`) and AUDIT.md (routes row, §7 register) describe the sheet as drawn now. |
+
+### Fixes declined, and why
+
+| Must-fix | Why not |
+|---|---|
+| r1-1(a): ship 0.1.4 (P1 robots 4xx, the MIT `LICENSE` that `license-files` names, `[project.scripts]`, wheels) | Work in Rust-sitemap and a PyPI release under the owner's account, outside this repository and this session's credentials. Unchanged from round 4: ROUTE-UNVERIFIED still fails on S2 and LICENSE-FLAGSHIP warns, as they should. When 0.1.4 ends by itself, H1, M1, the gap and the kill comment retire, and the gate goes green with no edit here. The image does not go to `main` before then. |
+| r1-1(b): Rust-sitemap's About text and `README.md:25` | Also the owner's: another repository, edited under his account (`gh repo edit` and a commit to its default branch), and this session commits only to `v12/purpose` here. The text for him, as review 1 gives it: About "Crawls a site and writes one line for every page it reaches."; `README.md:25` "`pip install rustmapper` (0.1.3, macOS arm64 wheel or a source build) installs the `rust_sitemap` command. The Python library is on main and ships in the next release."; and the examples' alias `rustmapper` → `rust_sitemap` while 0.1.3 is current. |
+| r2-4 against r3 (G1 "the lighter ink is right") | The owner's lens does not speak to the ink; review 1 calls the governor "the one design idea that's mine and unusual". With its 500 ms it is a measured fact a screener can check, not a qualifier, so it takes F1's ink. It keeps review 3's point that it is no stop: no ring, F1's row. |
+| r2 owner note: rename Rust-sitemap to rustmapper, pin it first | Not ranked, and the owner's: a rename in another repository. Recorded for him. |
+| r2 table "Desk file labels: keep" | Conflicts with r1-2 (owner lens) and r3-4: cut. |
+
+### Measured state of this build
+
+- Desk sheet 543 high (579 with S2 drawn; gate 592); phone 1017 (1060; gate 1066).
+- `python3 -m unittest`: 286 tests, all pass.
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail, 0 warn). ROUTE-PAINT, ROUTE-RELEASE, ROUTE-ARROW, ROUTE-CODE-SPACE, ROUTE-LEFT-EDGE, ROUTE-HEIGHT,
+  ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE, FIGURES, README-STALE, README-CODE-WIDTH, NOTICE-DATE and
+  AUDIT-STALE are clean.

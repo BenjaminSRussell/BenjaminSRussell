@@ -154,7 +154,7 @@
                                       "missing": {"type": "array", "items": {"type": "string"}},
                                       "runs": {"type": "array", "items": {"type": "string"}},
                                       "fails": {"type": "array", "items": {"type": "string"}},
-                                      "paths": {"type": "object"},
+                                      "paths": {"type": "object"}, "ci": {"type": "string"},
                                       "instead": {"type": "array", "items": {"type": "object",
                                         "required": ["text", "verified_head", "verified_release", "missing"]}}}}}}}},
     "handoffs": {"type": "array", "items": {"type": "object", "required": ["id", "from", "to", "state"],
