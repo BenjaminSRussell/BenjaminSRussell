@@ -80,8 +80,10 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; drain_batch recv_deadline, "
            "try_recv; redb)"),
     "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
-           "says it is done; the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
-           "'Received work item'); runcheck ends_by_itself, quiet_after_last_page"),
+           "says it is done, with how long it must stay quiet (review round 9: a clearing mark is only as good as its "
+           "number); the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
+           "'Received work item'; {quiet} from the --timeout default and the backoff, route.quiet_secs); runcheck "
+           "ends_by_itself, quiet_after_last_page, quiet_slow_page"),
     "C1": ("the reader's one step, the line that says it is done (`Saved to:`), and what a second Ctrl-C costs: the "
            "tool itself asks for one, and it quits before the file is written (review round 8; after a kill, the "
            "README's block says what to run)",
@@ -717,9 +719,9 @@ def alt(data, cfg) -> str:
     try:
         p = plan(data, cfg)
     except Exception:
-        return "How to start Ben Russell's crawler rustmapper, what it does with each page, and how to stop it."
+        return "How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it."
     end = (p["end"] or {}).get("file")
-    first = f"How to start Ben Russell's crawler {p['project']}, what it does with each page, and how to stop it."
+    first = f"How to install Ben Russell's crawler {p['project']}, what it does with each page, and how to stop it."
     if not end:
         return first
     loops = any(e.get("loop") for e in p["steps"])

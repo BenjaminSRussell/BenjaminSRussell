@@ -481,13 +481,16 @@ header = "Crawls a site and writes one line for every URL it finds."
 header_head = [{path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
 header_release = [{path = "src/main.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
 header_runs = ["crawl_ctrl_c"]
+# review round 9: the line that introduces the cautions under the install block (the `item` text entries); it goes
+# when no item is left
+list_lead = "Before you run it:"
 
 # README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
 # P1 test (a site whose robots.txt is a 404 is crawled) and the P2 test (--duration stops a stalled crawl) are at HEAD.
 [route.rustmapper.gates]
 cargo = [{path = "tests/robots_4xx_allows_crawl.rs"}, {path = "tests/duration_stops_stalled_crawl.rs"}]
-# review round 3: "the Python API built with maturin is on main" is said only while main has it
-python_api = [{path = "python/rustmapper/__init__.py"}, {path = "pyproject.toml", text = 'bindings = "pyo3"'}]
+# review round 9: the python_api gate is gone with the sentence it held ("the Python API … is on main and not yet
+# released"); the README speaks of the module only once a wheel ships it (edition.modules)
 
 # Review round 4: README lines that rest on the release (the sdist pip builds). `export_defaults`: the install block
 # drops `--data-dir ./data --output sitemap.xml` from its export line while these are the release's defaults, and
@@ -522,13 +525,16 @@ file = "seeder.rs"
 # every URL it indexed under the domain
 # review round 7: the aside set off by commas, and "looked up rather than followed" (each seeder queries a file or
 # an index; none follows a link)
-text = "your URL and, by default, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl"
+# review round 9: a verb, as every other row has; F1, the next row, says links are followed. "subdomains in" is cut
+# so the row is two phone lines and one desk line (what a certificate log gives is said by the anchor below, and the
+# README's L2 item names crt.sh)
+text = "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl"
 head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
            {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
            {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "all"'}]
 [[route.rustmapper.entry.instead]]
-text = "your URL and, if asked, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl"
+text = "starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl"
 head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
            {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
@@ -646,11 +652,22 @@ scope = "release"
 loop = true
 # Review round 7: "exits", not "stops": the crawl does stop, the process does not exit (the probes' own verb), and
 # "stops printing" says where the lines are (an eprintln!, so the terminal)
-text = "{release} never exits by itself; done when it stops printing `Received work item`"
+# Review round 9 (the navigator): a clearing mark needs its number. {quiet} is computed (data/route.py quiet_secs):
+# the release's --timeout default (20 s; reqwest applies it from connect to the body's end, network.rs), plus the
+# longest backoff before a host is dropped, 2^(MAX_FAILURES_THRESHOLD - 1) = 4 s (state.rs record_failure, counted in
+# whole seconds, so 1 s more), rounded up to the next 10: 30. Probe quiet_slow_page: a page held 15 s leaves two
+# work-item lines 15 s apart, and after 30 s with none, one SIGINT writes every page.
+text = "{release} never exits by itself; done once `Received work item` is quiet for {quiet} s"
+audit = "It sums the `--timeout` default (`src/cli.rs`, 20 s, set on the reqwest client in `src/network.rs`) + 2^(`MAX_FAILURES_THRESHOLD` - 1) s, the longest backoff before a host is dropped (`src/state.rs` `record_failure`, 4 s) + 1 s (the backoff is counted in whole seconds), rounded up to the next 10: 30. Probe `quiet_slow_page` waited that long"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
-           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"}]
-runs = ["crawl_ctrl_c", "quiet_after_last_page"]
+           {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"},
+           {path = "src/cli.rs", block = "Crawl", arg = "timeout"},
+           {path = "src/network.rs", text = ".timeout(Duration::from_secs(timeout_secs))"},
+           {path = "src/state.rs", const = "MAX_FAILURES_THRESHOLD"},
+           {path = "src/state.rs", fn = "record_failure", text = "2_u32.pow(self.failures.min(8))"},
+           {path = "src/state.rs", fn = "is_permanently_failed", text = "self.failures >= Self::MAX_FAILURES_THRESHOLD"}]
+runs = ["crawl_ctrl_c", "quiet_after_last_page", "quiet_slow_page"]
 fails = ["ends_by_itself"]
 [[route.rustmapper.entry.instead]]
 text = "{release} never exits by itself, even after the last page"
@@ -703,60 +720,79 @@ release = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "sr
            {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
 runs = ["crawl_ctrl_c"]
 
-# Review round 3 (the developer choosing a crawler): two sentences under the install block, checked by the same
-# engine and never drawn (kind "text"). L1, the release pip installs: how hard it hits a site. HostState::new gives
-# each host 20 requests in flight and no delay; --workers defaults to 256 in all (main has since raised it to 512).
-# Review round 6: 0.1.3 never reads a Crawl-delay (robots.rs has no parser; frontier.rs always stores
-# crawl_delay_secs: None; the setter `host_state.crawl_delay_secs = delay` is never given a value), and it asks for
-# robots.txt at https://<host>/robots.txt only, so on a plain-http site it reads no rules. Probe robots_read (a
-# local http site whose robots.txt disallows /secret.html) failed: no GET /robots.txt, /secret.html fetched.
+# Review round 3 (the developer choosing a crawler): sentences under the install block, checked by the same engine
+# and never drawn (kind "text"). Review round 9: the cautions are one short list under the wheel note (`item = true`,
+# introduced by the route's `list_lead`), each a problem with its lever where it has one, at most 25 words an item;
+# an entry that retires drops its item, and with none left the lead-in goes too (render_readme.text_blocks).
+#
+# L1, the release pip installs: how hard it hits a site. HostState::new gives each host 20 requests in flight and no
+# delay (the per-host 20 is said once, by F1 in the image); --workers defaults to 256 in all (main has since raised it
+# to 512). The lever: --workers becomes max_workers, and the crawl loop takes new work only while fewer tasks than
+# that are in flight (bfs_crawler.rs:283, :430). Probe workers_cap: the fixture site, each answer held 1 s, has two
+# requests open at once by default and one with `--workers 1`. The printed 1 is the probe's own argument.
 [[route.rustmapper.entry]]
 id = "L1"
 kind = "text"
 scope = "release"
-# Review round 8: the per-host 20 is said once, by F1 in the image; this sentence keeps the total and the pace
-text = "It sends its requests with no pause between them, at most {arg:workers} at a time across all hosts. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
-audit = "\"No pause\": `crawl_delay_secs: 0` in the struct literal, no Crawl-delay parser in `src/robots.rs`, and probe `robots_read` (a local http site; the closest two fetches 1 ms apart, no `GET /robots.txt`)"
+item = true
+text = "It sends requests with no pause between them, up to {arg:workers} at a time across all hosts. `--workers 1` sends one at a time."
+audit = "\"No pause\": `crawl_delay_secs: 0` in the struct literal, no Crawl-delay parser in `src/robots.rs`, and probe `robots_read` (a local http site; the closest two fetches 1 ms apart, no `GET /robots.txt`). `--workers 1` is the argument probe `workers_cap` crawled with (at most one request open at once on the fixture server, two with the default)"
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
-           {path = "src/robots.rs", absent = "fn parse_crawl_delay"},
-           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'},
-           {path = "src/cli.rs", arg = "workers"}]
+           {path = "src/robots.rs", absent = "fn parse_crawl_delay"}, {path = "src/cli.rs", arg = "workers", equals = "256"},
+           {path = "src/main.rs", text = "max_workers: u32::try_from(workers)"},
+           {path = "src/bfs_crawler.rs", text = "let max_concurrent = self.config.max_workers"},
+           {path = "src/bfs_crawler.rs", text = "in_flight_tasks.len() < max_concurrent"}]
+runs = ["workers_cap"]
+[[route.rustmapper.entry.instead]]
+# a release that parses Crawl-delay: said only once a probe has seen the pause (crawl_delay_obeyed, not written yet,
+# so this wording is never printed on the parser's existence alone)
+text = "It sends requests with no pause unless the site's `robots.txt` sets a `Crawl-delay`, up to {arg:workers} at a time across all hosts. `--workers 1` sends one at a time."
+release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/robots.rs", text = "fn parse_crawl_delay"},
+           {path = "src/cli.rs", arg = "workers"}, {path = "src/main.rs", text = "max_workers: u32::try_from(workers)"},
+           {path = "src/bfs_crawler.rs", text = "in_flight_tasks.len() < max_concurrent"}]
+runs = ["workers_cap", "crawl_delay_obeyed"]
+
+# L4 (review round 6, its own item since round 9): 0.1.3 never reads a Crawl-delay (robots.rs has no parser;
+# frontier.rs always stores crawl_delay_secs: None; the setter `host_state.crawl_delay_secs = delay` is never given a
+# value), and it asks for robots.txt at https://<host>/robots.txt only, so on a plain-http site it reads no rules.
+# Probe robots_read (a local http site whose robots.txt disallows /secret.html) failed: no GET /robots.txt,
+# /secret.html fetched.
+[[route.rustmapper.entry]]
+id = "L4"
+kind = "text"
+scope = "release"
+item = true
+text = "{release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
+release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"},
+           {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'}]
 fails = ["robots_read"]
 [[route.rustmapper.entry.instead]]
 # a release that reads robots.txt over http (probe robots_read passed) but still has no Crawl-delay parser
-text = "It sends its requests with no pause between them, at most {arg:workers} at a time across all hosts. {release} ignores `Crawl-delay`."
-release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
-           {path = "src/robots.rs", absent = "fn parse_crawl_delay"}, {path = "src/cli.rs", arg = "workers"}]
+text = "{release} ignores `Crawl-delay`."
+release = [{path = "src/robots.rs", absent = "fn parse_crawl_delay"}]
 runs = ["robots_read"]
 [[route.rustmapper.entry.instead]]
-# a release that parses Crawl-delay: the old sentence, said only once a probe has seen the pause (crawl_delay_obeyed,
-# not written yet, so this wording is never printed on the parser's existence alone)
-text = "It sends its requests with no pause between them unless the site's `robots.txt` sets a `Crawl-delay`, at most {arg:workers} at a time across all hosts."
-release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/robots.rs", text = "fn parse_crawl_delay"},
-           {path = "src/cli.rs", arg = "workers"}]
+# a release that reads robots.txt over http and parses Crawl-delay: L1's alternative says the pause, this one retires
+text = ""
+release = [{path = "src/robots.rs", text = "fn parse_crawl_delay"}]
 runs = ["robots_read", "crawl_delay_obeyed"]
 
-# Review round 8 (the developer choosing a crawler): the two levers for the two warnings above, the release's own
-# flags. --workers becomes max_workers, and the crawl loop takes new work only while fewer tasks than that are in
-# flight (bfs_crawler.rs:283, :430); --seeding-strategy none turns every seeder off (bfs_crawler.rs:189-192). Probe
-# workers_cap: the fixture site, each answer held 1 s, has two requests open at once by default and one with
-# `--workers 1`. The printed 1 is the probe's own argument.
+# L2 (review round 8): who else hears about the crawl, and the lever. By default the release asks crt.sh
+# (ct_log_seeder.rs, the query URL) and Common Crawl's index (common_crawl_seeder.rs) about the start URL's domain;
+# --seeding-strategy none turns every seeder off (bfs_crawler.rs:189-192), so it starts from your URL alone.
 [[route.rustmapper.entry]]
 id = "L2"
 kind = "text"
 scope = "release"
-text = "`--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain."
-audit = "`--workers 1` is the argument probe `workers_cap` crawled with (at most one request open at once on the fixture server, two with the default); the flag sets `max_workers`, and the crawl loop takes new work only while fewer tasks than that are in flight"
-release = [{path = "src/cli.rs", arg = "workers", equals = "256"},
-           {path = "src/main.rs", text = "max_workers: u32::try_from(workers)"},
-           {path = "src/bfs_crawler.rs", text = "let max_concurrent = self.config.max_workers"},
-           {path = "src/bfs_crawler.rs", text = "in_flight_tasks.len() < max_concurrent"},
-           {path = "src/cli.rs", arg = "seeding_strategy", equals = "all"},
+item = true
+text = "By default it asks crt.sh and Common Crawl about your domain. `--seeding-strategy none` asks no one."
+release = [{path = "src/cli.rs", arg = "seeding_strategy", equals = "all"},
+           {path = "src/ct_log_seeder.rs", text = '"https://crt.sh/?q=%.{}'},
+           {path = "src/common_crawl_seeder.rs", text = '"https://index.commoncrawl.org/{}-index?url=*.{}'},
            {path = "src/bfs_crawler.rs", text = 'let enable_all = strategies.contains(&"all");'},
            {path = "src/bfs_crawler.rs", text = 'let enable_sitemap = enable_all || strategies.contains(&"sitemap");'},
            {path = "src/bfs_crawler.rs", text = 'let enable_ct = enable_all || strategies.contains(&"ct");'},
            {path = "src/bfs_crawler.rs", text = 'let enable_commoncrawl = enable_all || strategies.contains(&"commoncrawl");'}]
-runs = ["workers_cap"]
 
 # Review round 8: what it cannot see. 0.1.3 parses the HTML it is sent (scraper, html5ever) and has no browser or
 # JavaScript engine among its dependencies, so a page built by JavaScript yields only the links in its HTML. go_go_go's
@@ -765,8 +801,8 @@ runs = ["workers_cap"]
 id = "L3"
 kind = "text"
 scope = "release"
-para = true
-text = "It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome."
+item = true
+text = "It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome."
 release = [{path = "Cargo.toml", text = 'scraper = "'}, {path = "Cargo.toml", absent = "chromiumoxide"},
            {path = "Cargo.toml", absent = "headless_chrome"}, {path = "Cargo.toml", absent = "fantoccini"},
            {path = "Cargo.toml", absent = "deno_core"}, {path = "Cargo.toml", absent = "rusty_v8"}]
@@ -777,8 +813,9 @@ release = [{path = "Cargo.toml", text = 'scraper = "'}, {path = "Cargo.toml", ab
 id = "X1"
 kind = "text"
 scope = "release"
+item = true
 from_head = true
-text = "{release} writes one `sitemap.xml` however many pages it found; the sitemap format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
+text = "{release} writes one `sitemap.xml` however many pages it found; the format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
 audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at"
 head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
 release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
@@ -786,6 +823,31 @@ release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "Sit
 [[route.rustmapper.entry.instead]]
 text = ""
 release = [{path = "src/sitemap_writer.rs", text = "SitemapIndexWriter"}]
+
+# X2, review round 9 (the navigator): what the file cannot tell you. The image names `status_code`; in 0.1.3 only a
+# 200 goes on to parsing (process_url_streaming: `Ok(response) if … == 200`, then `Ok(_) =>` returns
+# `Ok(Vec::new())` before a ParseJob exists), the field is set only from that job, and nothing reads Retry-After or
+# names a 429. So a 404, a 429 or a 503 is written with no status, is not asked for again (the host's failures are
+# reset, frontier.rs record_success) and none of its links are followed. Probe non200_status: busy.html answers 429
+# with Retry-After: 2 and links beyond.html; gone.html is a 404. It retires once a release records the status or
+# asks again (the probe then fails).
+[[route.rustmapper.entry]]
+id = "X2"
+kind = "text"
+scope = "release"
+item = true
+text = "{release} gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links."
+audit = "Probe `non200_status`: on the fixture site, busy.html (429, `Retry-After: 2`) was asked for once in 12 s, beyond.html (linked only from it) never, and the rows for busy.html and gone.html (404) have `status_code` null. 503 is not served by the probe; it takes the same `Ok(_) =>` branch as every answer but 200"
+release = [{path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "Ok(response) if response.status().as_u16() == 200", before = "Ok(_) =>"},
+           {path = "src/bfs_crawler.rs", fn = "process_url_streaming", text = "result: Ok(Vec::new())"},
+           {path = "src/bfs_crawler.rs", text = "status_code: job.status_code"},
+           {path = "src/bfs_crawler.rs", absent = "Retry-After"}, {path = "src/frontier.rs", absent = "Retry-After"},
+           {path = "src/bfs_crawler.rs", absent = "429"}]
+runs = ["non200_status"]
+[[route.rustmapper.entry.instead]]
+text = ""
+release = [{path = "src/bfs_crawler.rs"}]
+fails = ["non200_status"]
 
 # M1, review round 5: what main has fixed, said in text while the release still has the fault (H1). The regression
 # test for #65 is at HEAD, not ignored, run by `cargo test` in CI, and CI passed at the sha the route was read at

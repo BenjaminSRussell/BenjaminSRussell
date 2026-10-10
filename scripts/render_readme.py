@@ -377,6 +377,9 @@ def built_on(r: dict, cfg: dict | None = None, names: tuple[str, ...] = ()) -> l
     return [n for n in deps if not HELPER_CRATE.search(n)][:5]     # rkyv_derive is rkyv; tokio-macros is tokio
 
 
+FACTS_LINK = {"Rust-sitemap": "rustmapper"}     # review round 9: the facts line carries the project's link
+
+
 def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
     """D4 / F3.3: one plain italic line under a flagship, from the D2 keys (docs/data/AUDIT.md):
     `Built on …` (chart.toml [facts] built_on, else the manifest's first five), `N tests` from `test_functions`
@@ -406,6 +409,11 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         word = CI_WORDS.get(str(ci["conclusion"]).lower(), str(ci["conclusion"]).replace("_", " "))
         when = fmt_date(ci.get("date") or ci.get("at") or ci.get("run_at") or ci.get("updated_at"))
         item = f"CI {word}" + (f" {when}" if when else "")
+        # review round 9: what the passing run holds the code to (repos[].ci.gates, read from the workflow at the
+        # commit it ran on): a step in a job that may fail without failing the run is not named
+        gates = ci.get("gates")
+        if str(ci["conclusion"]).lower() == "success" and isinstance(gates, list) and gates:
+            item += ": " + ", ".join(str(g) for g in gates)
         failed = [str(j.get("name")) for j in ci.get("jobs") or [] if str(j.get("conclusion")) == "failure"]
         if failed and str(ci["conclusion"]).lower() == "success":     # a job that may fail without failing the run
             item += f", {', '.join(failed)} failed (not blocking)"
@@ -432,6 +440,14 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         return ""
     # review round 2: the counts are main's, not the release's; say which snapshot they are
     head = (r.get("head") or {}).get("short")
+    # review round 9: a flagship with no sentence of its own (rustmapper: the image and the pick sentence introduce
+    # it) has its link at the head of the facts line, "**[rustmapper](…)** · *on main at …*"
+    link = FACTS_LINK.get(name)
+    if link:
+        login = stats.get("login") or "BenjaminSRussell"
+        lead = f"on main at `{head}`: " if head else ""
+        return (f"**[{link}](https://github.com/{login}/{name})** · *" + lead
+                + keep_together(" · ".join(p.replace("*", r"\*") for p in parts)) + "*")
     lead = f"On main at `{head}`: " if head else ""
     return "*" + lead + keep_together(" · ".join(p.replace("*", r"\*") for p in parts)) + "*"
 
@@ -517,11 +533,11 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         lines += ["", "# newer than the release:", "cargo install --git \\",
                   f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
-    # the wheel note, then (review round 3) what the release does to a site and to a big one, as its own paragraph
-    # review round 8: an entry marked `para` starts a paragraph (what it does to a site; what it sees and writes)
-    paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), *text_paragraphs(route, rc, ed, _repo(stats, repo)))
-             if x]
-    return "\n".join(lines) + "".join(f"\n\n{keep_together(x)}" for x in paras)
+    # the wheel note, then (review round 3) what the release does to a site and to a big one. Review round 9: the
+    # cautions as one short list after the wheel note (text_blocks), any other text entry as a paragraph after it
+    blocks = [x for x in (keep_together(_wheel_sentence(ed.get("wheels"), rc)),
+                          *text_blocks(route, rc, ed, _repo(stats, repo))) if x]
+    return "\n".join(lines) + "".join(f"\n\n{x}" for x in blocks)
 
 
 def stop_lines(rc: dict | None, gates: dict | None = None) -> list[str]:
@@ -550,14 +566,40 @@ def _file_name(path: str) -> str:
     return path[2:] if str(path).startswith("./") else str(path)
 
 
-def text_paragraphs(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None) -> list[str]:
-    """The text entries joined into paragraphs: a new one at each entry marked `para` (review round 8)."""
+LIST_MAX_ITEMS = 6          # review round 9: one short list (Microsoft's style guide: 2 to 7 items)
+LIST_MAX_WORDS = 25         # review round 9: each item at most this many words
+
+
+def text_paragraphs(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,
+                    items: bool | None = None) -> list[str]:
+    """The text entries joined into paragraphs: a new one at each entry marked `para` (review round 8). `items`
+    True keeps only the list's entries (one string each), False only the others, None all."""
     out: list[list[str]] = [[]]
-    for text, para in text_entries(route, rc, ed, repo, with_para=True):
+    for text, para, item in text_entries(route, rc, ed, repo, with_para=True):
+        if items is not None and item != items:
+            continue
+        if item and items:
+            out.append([text])
+            continue
         if para and out[-1]:
             out.append([])
         out[-1].append(text)
     return [" ".join(p) for p in out if p]
+
+
+def text_blocks(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None) -> list[str]:
+    """Review round 9: what goes under the wheel note. The entries marked `item` (the cautions: what it does to a
+    site, what it cannot see, what the file leaves out) as one Markdown list introduced by the route's `list_lead`;
+    an item that retires drops out, and with none left the lead-in goes too. Then any other text entry (M1, what
+    main has fixed) as a paragraph."""
+    items = text_paragraphs(route, rc, ed, repo, items=True)
+    out = []
+    if items:
+        lead = str((route or {}).get("list_lead") or "").strip()
+        body = "\n".join(f"- {keep_together(t)}" for t in items)
+        out.append(f"{lead}\n\n{body}" if lead else body)
+    out += [keep_together(p) for p in text_paragraphs(route, rc, ed, repo, items=False)]
+    return out
 
 
 def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dict | None = None,
@@ -585,7 +627,7 @@ def text_entries(route: dict | None, rc: dict | None, ed: dict | None, repo: dic
                 if not head:
                     continue
                 text = text.replace("{head}", head)
-            out.append((text, bool(e.get("para"))) if with_para else text)
+            out.append((text, bool(e.get("para")), bool(e.get("item"))) if with_para else text)
     return out
 
 
@@ -631,24 +673,17 @@ def pick_block(stats: dict, cfg: dict) -> str:
 
 
 def about_block(stats: dict, name: str) -> str:
-    """Review round 3: what rustmapper is, and what `pip install` gives you. The 0.1.3 wheel holds only the
-    `rust_sitemap` binary (edition.modules is empty), so the Python API is called main's, and only while main has it
-    (gate `python_api`). With a module in the wheel, it is a CLI and a Python API."""
+    """Review round 3: what `pip install` gives you. Review round 9: nothing while the release's wheel holds only the
+    `rust_sitemap` binary (edition.modules empty). A sentence about an API that is on main and not released is the
+    owner's to-do list, not something a visitor can use, and the code block under it shows what pip gives. The
+    project's link heads the facts line instead (FACTS_LINK). Once a wheel ships the `rustmapper` module, one fact a
+    visitor can act on."""
     if name != "Rust-sitemap":
         return ""
-    login = stats.get("login") or "BenjaminSRussell"
-    # review round 6: one description per screen. The image's header and the pick sentence introduce the tool, and
-    # the facts line says Rust, so this sentence says only what pip gives you
-    link = f"**[rustmapper](https://github.com/{login}/{name})**"
-    ed = stats.get("edition") or {}
-    mods = ed.get("modules")
-    route = next((r for r in (stats.get("routes") or {}).values() if isinstance(r, dict) and r.get("repo") == name), {})
-    api_on_main = ((route.get("gates") or {}).get("python_api") or {}).get("ok")
+    mods = (stats.get("edition") or {}).get("modules")
     if isinstance(mods, list) and "rustmapper" in mods:
-        return link + ": `pip install` gives you its command line and a Python API, built with maturin."
-    if isinstance(mods, list) and api_on_main:
-        return link + ": `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released."
-    return link + ": `pip install` gives you its command line."
+        return "`import rustmapper` works after `pip install`."
+    return ""
 
 
 def about_repos(text: str) -> list[str]:

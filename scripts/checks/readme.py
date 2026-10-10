@@ -4,7 +4,9 @@ The hero's picture block is required; any other sheet's block is checked only wh
 it (round 4, D1: the page is the hero and written text; the supporting sheets are off the page). Each
 block has exactly one start and one end marker and a <picture> that opens and closes inside it; no
 picture block inside <details>; <details> balanced; the license block present when LICENSE and
-LICENSE-ASSETS.md exist; LICENSE-FLAGSHIP warns for a flagship GitHub detects no license for; render_readme --check clean (the committed README is what the renderer
+LICENSE-ASSETS.md exist; LICENSE-FLAGSHIP warns for a flagship GitHub detects no license for; CI-GATES (review round
+9) warns for a flagship whose passing CI has no gate list; README-CAUTIONS, README-CD and README-TODO (review round 9:
+the cautions as one short list, a `cd` that agrees with its sentence, no to-do sentence); render_readme --check clean (the committed README is what the renderer
 would write). Round 6, review 1: no line of a fenced code block is over CODE_COLUMNS characters (a longer line hides
 its end, which is where the warnings were), except a line that is one unbreakable URL. Review round 7, measured on
 10 Oct 2026 in the page renders (scratchpad/r6/build/round-06, GitHub's markdown CSS: `pre` at 85 % of 16 px in
@@ -67,6 +69,80 @@ def license_flagship(text: str, stats: dict) -> list[Finding]:
     return out
 
 
+def ci_gates_missing(text: str, stats: dict) -> list[Finding]:
+    """CI-GATES (warn, review round 9): a flagship whose facts line says "CI passed" with no gate list: the workflow
+    at the run's commit was not read (no clone, no file by that name), so "passed" is not defined on the page."""
+    out = []
+    for name in re.findall(r"<!--\s*facts:([\w.-]+):start\b", text):
+        r = next((x for x in stats.get("repos") or [] if x.get("name") == name), None)
+        ci = (r or {}).get("ci")
+        if isinstance(ci, dict) and ci.get("conclusion") == "success" and not isinstance(ci.get("gates"), list):
+            out.append(warn("CI-GATES", f"{name}: CI passed, and the checks it blocks on were not read", "stats.json"))
+    return out
+
+
+_COMMENT = re.compile(r"<!--.*?-->", re.S)
+_FENCE = re.compile(r"^```[^\n]*\n(.*?)^```\s*$", re.S | re.M)
+
+
+def cautions(text: str, max_items: int = 6, max_words: int = 25) -> list[str]:
+    """README-CAUTIONS (review round 9): under each install block's code, at most one prose paragraph (the wheel
+    note), then at most one list of at most `max_items` items, each at most `max_words` words; a line ending in a
+    colon right before the list is its lead-in, not prose."""
+    out = []
+    for name, body in re.findall(r"<!--\s*install:([\w.-]+):start[^>]*-->(.*?)<!--\s*install:\1:end\s*-->", text, re.S):
+        fences = list(_FENCE.finditer(body))
+        if not fences:
+            continue
+        tail = _COMMENT.sub("", body[fences[-1].end():])
+        paras = [p.strip() for p in re.split(r"\n\s*\n", tail) if p.strip()]
+        lists = [p for p in paras if all(ln.startswith("- ") for ln in p.splitlines())]
+        prose = [p for i, p in enumerate(paras) if p not in lists
+                 and not (p.endswith(":") and i + 1 < len(paras) and paras[i + 1] in lists)]
+        if len(prose) > 1:
+            out.append(f"{name}: {len(prose)} prose paragraphs after the code block (at most 1)")
+        if len(lists) > 1:
+            out.append(f"{name}: {len(lists)} lists after the code block (one)")
+        for lst in lists:
+            items = lst.splitlines()
+            if len(items) > max_items:
+                out.append(f"{name}: {len(items)} items in the list (at most {max_items})")
+            for it in items:
+                n = len(it[2:].split())
+                if n > max_words:
+                    out.append(f"{name}: an item is {n} words (at most {max_words}): {it[2:60]!r}")
+    return out
+
+
+def cd_agrees(text: str) -> list[str]:
+    """README-CD (review round 9): a code block whose first line is `cd <path>` may not follow a sentence that says
+    to run it "in" the folder it cds into (the reader would already be there, and the cd fails)."""
+    out = []
+    for m in _FENCE.finditer(text):
+        first = m.group(1).splitlines()[0].strip() if m.group(1).strip() else ""
+        cd = re.match(r"^cd\s+(\S+)$", first)
+        if not cd:
+            continue
+        folder = cd.group(1).rstrip("/").split("/")[-1]
+        before = [p for p in re.split(r"\n\s*\n", _COMMENT.sub("", text[:m.start()])) if p.strip()]
+        para = before[-1] if before else ""
+        if re.search(rf"\bin `?{re.escape(folder)}`?(?![\w/])", para) and not re.search(
+                rf"\binside `?{re.escape(folder)}`?", para):
+            out.append(f"the sentence before `{first}` says to run it in {folder}")
+    return out
+
+
+def not_released(text: str) -> list[str]:
+    """README-TODO (review round 9): no visible sentence says "not yet released" or "not released" unless it also
+    names a command or a flag the reader can use (a code span); a to-do is the owner's, not the visitor's."""
+    vis = _FENCE.sub("", _COMMENT.sub("", text))
+    out = []
+    for sent in re.split(r"(?<=[.!?])\s+", vis):
+        if re.search(r"\bnot (?:yet )?released\b", sent, re.I) and "`" not in sent:
+            out.append(sent.strip()[:120])
+    return out
+
+
 def check(ctx) -> list[Finding]:
     out: list[Finding] = []
     text = ctx.readme or ""
@@ -107,6 +183,19 @@ def check(ctx) -> list[Finding]:
         if not m or "Code MIT" not in m.group(1):
             out.append(fail("README-LICENSE", "LICENSE files exist but the License bullet is not rendered", "README.md"))
     out += license_flagship(text, ctx.stats or {})
+    out += ci_gates_missing(text, ctx.stats or {})
+    try:
+        import render_readme as _rr
+        lim = (_rr.LIST_MAX_ITEMS, _rr.LIST_MAX_WORDS)
+    except Exception:
+        lim = (6, 25)
+    for msg in cautions(text, *lim):
+        out.append(fail("README-CAUTIONS", msg, "README.md"))
+    for msg in cd_agrees(text):
+        out.append(fail("README-CD", msg, "README.md"))
+    for msg in not_released(text):
+        out.append(fail("README-TODO", f"{msg!r}: says what is not released and gives the reader nothing to use",
+                        "README.md"))
     try:
         import render_readme as rr
         cfg, stats = rr.load()

@@ -23,11 +23,18 @@ behaviour happened, and a route entry in chart.toml names the probes it rests on
                         requests open at once (the index's two links), with `--workers 1` never more than one
     second_ctrl_c       (review round 8) a second SIGINT SECOND_AFTER s after the first quits before the export:
                         exit 1 and no sitemap.jsonl (0.1.3's "Press Ctrl+C again to force quit")
+    non200_status       (review round 9) a page that answers 429 (Retry-After: 2) and a link that answers 404 are
+                        written with no status_code, the 429 page is asked for once in NON200_SECONDS, and the page
+                        only it links to is never asked for: a refusal looks like any other missing page
+    quiet_slow_page     (review round 9) the quiet mark has a number: on a site whose second page is held SLOW_HOLD
+                        s, two `Received work item` lines are at least SLOW_HOLD s apart (silence shorter than the
+                        bound is not the end), and after QUIET_BOUND s with no such line, one SIGINT writes every page
 
 Only the robots probe, against a binary already installed (it needs no install):
 
     python3 scripts/runcheck.py --probe robots_read --exe <venv>/bin/rust_sitemap --version 0.1.3 --out steps.json
     python3 scripts/runcheck.py --probe workers_cap,second_ctrl_c --exe … --version 0.1.3 --out steps.json
+    python3 scripts/runcheck.py --probe non200_status,quiet_slow_page --exe … --version 0.1.3 --out steps.json
 
 Every step carries `secs`, its wall time from time.monotonic(). The install is timed cold INSTALL_RUNS times (each
 in a fresh venv with an empty CARGO_HOME, so cargo downloads every crate inside the timed step); its `secs` is the
@@ -48,6 +55,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import http.server
+import io
 import json
 import os
 import platform
@@ -77,6 +85,12 @@ QUIET_SECONDS = 100     # quiet_after_last_page: the last work-item line at leas
 WORKERS_DELAY = 1.0     # workers_cap: each answer is held this long, so two requests in flight overlap on the server
 WORKERS_SECONDS = 15    # workers_cap: one SIGINT after this long (three pages, one at a time, take about 3 s)
 SECOND_AFTER = 0.3      # second_ctrl_c: the second SIGINT this long after the first (0.1.3 waits 2 s before saving)
+STATUS_SITE = ROOT / "tests" / "fixtures" / "status-site"   # busy.html answers 429, gone.html is not there (404)
+NON200_SECONDS = 12     # non200_status: one SIGINT after this long (Retry-After: 2 would allow five more asks)
+SLOW_SITE = ROOT / "tests" / "fixtures" / "slow-site"       # slow.html is held SLOW_HOLD s, then links after.html
+SLOW_HOLD = 15.0        # quiet_slow_page: how long the server holds slow.html (under 0.1.3's 20 s --timeout)
+QUIET_BOUND = 30        # quiet_slow_page: the quiet the image prints, chart.toml H1 {quiet} (data/route.py quiet_secs)
+QUIET_LIMIT = 120       # quiet_slow_page: give up waiting for the quiet after this long
 WORK_ITEM = re.compile(r"Received work item: (\S+)")   # the line 0.1.3 prints for every URL it starts (stderr)
 
 
@@ -263,7 +277,145 @@ def probe_second(steps: list, exe: str, name: str, work: Path) -> None:
           "writing sitemap.jsonl", ok, detail, gate=False)
 
 
-PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second}
+class _Status(_Quiet):
+    """The status fixture: busy.html answers 429 with Retry-After: 2 (and its body, which links beyond.html); every
+    request path is kept, in order (review round 9, non200_status)."""
+    paths: list = []
+
+    def send_head(self):  # noqa: D401 - http.server's hook: the 429 is sent with the page's own body
+        if self.path.split("?")[0] == "/busy.html":
+            body = (self.directory and Path(self.directory, "busy.html").read_bytes()) or b""
+            self.send_response(429)
+            self.send_header("Retry-After", "2")
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            return io.BytesIO(body)
+        return super().send_head()
+
+    def log_request(self, code="-", size="-"):
+        type(self).paths.append((time.monotonic(), self.path.split("?")[0]))
+
+
+def serve_status(site: Path) -> tuple[socketserver.TCPServer, int, list]:
+    paths: list = []
+    cls = type("_StatusSite", (_Status,), {"paths": paths})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
+    httpd.daemon_threads = True
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, httpd.server_address[1], paths
+
+
+def jsonl_records(path: Path) -> dict[str, dict]:
+    """sitemap.jsonl as {page name: record} ("index.html" for the site's root)."""
+    out: dict[str, dict] = {}
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return out
+    for line in text.splitlines():
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        url = str(rec.get("url", "")).split("?")[0]
+        tail = url.split("://", 1)[-1].split("/", 1)
+        out[(tail[1] if len(tail) > 1 else "") or "index.html"] = rec
+    return out
+
+
+def status_verdict(paths: list[tuple[float, str]], recs: dict[str, dict]) -> tuple[bool, str]:
+    """non200_status: busy.html (429) was asked for once, beyond.html (linked only from it) never, and the rows for
+    busy.html and gone.html (404) are there with no status_code."""
+    got = [p for _, p in paths]
+    busy, beyond = got.count("/busy.html"), got.count("/beyond.html")
+    rows = {k: recs.get(k) for k in ("busy.html", "gone.html")}
+    null = all(r is not None and r.get("status_code") is None for r in rows.values())
+    ok = busy == 1 and beyond == 0 and null
+    shown = "; ".join(f"{k}: " + ("no row" if r is None else f"status_code {json.dumps(r.get('status_code'))}") for k, r in rows.items())
+    return ok, (f"{len(got)} requests; /busy.html (429, Retry-After: 2) asked for {busy} time(s); /beyond.html "
+                f"{'never asked for' if not beyond else f'asked for {beyond} time(s)'}; {shown}")
+
+
+def probe_status(steps: list, exe: str, name: str, work: Path) -> None:
+    """non200_status: crawl the status fixture, one SIGINT after NON200_SECONDS, read the server's log and the file."""
+    httpd, port, paths = serve_status(STATUS_SITE)
+    try:
+        d = work / "d6"
+        proc, t0 = _crawl(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/", "--seeding-strategy", "none",
+                                "--data-dir", str(d)], work, "status.log")
+        exited, _secs = _stop(proc, signal.SIGINT, NON200_SECONDS)
+        took = time.monotonic() - t0
+    finally:
+        httpd.shutdown()
+    ok, detail = status_verdict(list(paths), jsonl_records(d / "sitemap.jsonl"))
+    _step(steps, "non200_status", f"{name} crawl: a page that answers 429 or 404 is written with no status_code, "
+          "asked for once, and its links are not followed", ok, f"{detail}; {exited}", took, gate=False)
+
+
+class _Held(_Quiet):
+    """The slow fixture: slow.html is held SLOW_HOLD s before it is sent (review round 9, quiet_slow_page)."""
+    hold: float = SLOW_HOLD
+
+    def do_GET(self):  # noqa: N802 - http.server's name
+        if self.path.split("?")[0] == "/slow.html":
+            time.sleep(type(self).hold)
+        super().do_GET()
+
+
+def serve_held(site: Path, hold: float = SLOW_HOLD) -> tuple[socketserver.TCPServer, int]:
+    cls = type("_HeldSite", (_Held,), {"hold": hold})
+    handler = lambda *a, **k: cls(*a, directory=str(site), **k)  # noqa: E731
+    httpd = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
+    httpd.daemon_threads = True
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, httpd.server_address[1]
+
+
+def slow_verdict(stamps: list[tuple[float, str]], t_sig: float | None, recs: dict[str, dict],
+                 hold: float = SLOW_HOLD, quiet: float = QUIET_BOUND) -> tuple[bool, str]:
+    """quiet_slow_page: some two consecutive work-item lines are at least `hold` s apart (less 0.5 s for the
+    clock), the SIGINT came at least `quiet` s after the last one, and the file then has all three pages, status
+    200."""
+    if t_sig is None:
+        return False, "the crawl exited by itself, or never went quiet; no SIGINT was sent after the quiet"
+    ts = sorted(t for t, _ in stamps)
+    gap = max((b - a for a, b in zip(ts, ts[1:])), default=0.0)
+    after = t_sig - ts[-1] if ts else 0.0
+    pages = ("index.html", "slow.html", "after.html")
+    good = [p for p in pages if (recs.get(p) or {}).get("status_code") == 200]
+    ok = gap >= hold - 0.5 and after >= quiet and len(good) == len(pages)
+    return ok, (f"{len(ts)} work-item lines; longest gap between two {gap:.1f} s (slow.html held {hold:.0f} s); "
+                f"SIGINT {after:.0f} s after the last; {len(good)} of {len(pages)} pages in sitemap.jsonl, status 200")
+
+
+def probe_slow(steps: list, exe: str, name: str, work: Path) -> None:
+    """quiet_slow_page: crawl the slow fixture; once no work-item line has come for QUIET_BOUND s, one SIGINT."""
+    httpd, port = serve_held(SLOW_SITE)
+    t_sig = None
+    try:
+        d = work / "d7"
+        proc, t0, stamps = _crawl_stamped(exe, ["crawl", "--start-url", f"http://127.0.0.1:{port}/",
+                                                "--seeding-strategy", "none", "--data-dir", str(d)], work, "slow.log")
+        while time.monotonic() - t0 < QUIET_LIMIT and proc.poll() is None:
+            time.sleep(0.5)
+            now = time.monotonic()
+            if stamps and now - t0 > SLOW_HOLD and now - max(t for t, _ in stamps) >= QUIET_BOUND:
+                t_sig = now
+                break
+        exited, _secs = _stop(proc, signal.SIGINT, 0)
+    finally:
+        httpd.shutdown()
+    ok, detail = slow_verdict(list(stamps), t_sig, jsonl_records(d / "sitemap.jsonl"))
+    _step(steps, "quiet_slow_page", f"{name} crawl: a page held {SLOW_HOLD:.0f} s is not the end; after "
+          f"{QUIET_BOUND} s with no Received work item line, one SIGINT writes every page", ok, f"{detail}; {exited}",
+          gate=False)
+    steps[-1]["quiet_secs"] = QUIET_BOUND
+
+
+PROBES = {"robots_read": probe_robots, "workers_cap": probe_workers, "second_ctrl_c": probe_second,
+          "non200_status": probe_status, "quiet_slow_page": probe_slow}
 
 
 def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
@@ -516,6 +668,10 @@ def run(version: str, scripts: list[str], work: Path, python: str, install_runs:
             # review round 8: does --workers hold it to that many requests, and what does a second Ctrl-C do?
             probe_workers(steps, exe, name, work)
             probe_second(steps, exe, name, work)
+
+            # review round 9: what the file says about a page that refused, and how long the quiet mark is
+            probe_status(steps, exe, name, work)
+            probe_slow(steps, exe, name, work)
 
             # probes: a kill, then export-sitemap and resume on what it left
             d3 = work / "d3"

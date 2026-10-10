@@ -122,28 +122,31 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L2", "L3", "X1", "M1"])   # r7: G1 in F1; r8: L2, L3
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L3", "X1", "X2", "M1"])
+        # r7: G1 in F1; r8: L2, L3; r9: L4 (the robots clause, its own item), X2 (what the file cannot say)
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
         drawn = {e["id"]: e for e in R.drawn(route, rc)}
-        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "L2", "L3", "X1"):
+        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "L4", "L2", "L3", "X1", "X2"):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # review round 6: main's idle test runs with --ignore-robots, so M1 is retired (not printed, not unverified)
         m1 = next(e for e in R.resolve(route, rc) if e["id"] == "M1")
         self.assertTrue(m1["verified"] and m1["retired"], m1)
         self.assertEqual(m1.get("gate"), "cargo")
         # review round 6: L1 says what 0.1.3 does with robots.txt, on the probe that watched it (robots_read failed)
-        self.assertIn("ignores `Crawl-delay`, and asks for `robots.txt` only over https", drawn["L1"]["text"])
+        # review round 9: that clause is L4, its own item
+        self.assertIn("ignores `Crawl-delay`, and asks for `robots.txt` only over https", drawn["L4"]["text"])
         self.assertNotIn("unless", drawn["L1"]["text"])
-        self.assertEqual(drawn["L1"]["fails"], ["robots_read"])
+        self.assertEqual(drawn["L4"]["fails"], ["robots_read"])
         # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
         self.assertIn("by default", drawn["S1"]["text"])
         # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope; review round 4:
         # with the line of output that says the crawl is done, while the run check saw it go quiet
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
         # review round 7: "exits", not "stops": the crawl stops, the process does not exit
-        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done when it stops printing `Received work item`")
+        # review round 9: the clearing mark with its number (computed, quiet_secs; probe quiet_slow_page)
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done once `Received work item` is quiet for 30 s")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         # review round 8: with its caution and the line that says it is done (probe second_ctrl_c passed)
         self.assertEqual(drawn["C1"]["text"],
@@ -153,7 +156,7 @@ class Anchors(unittest.TestCase):
         self.assertEqual(drawn["F1"]["text"], "fetches up to 20 pages at a time from each host; queues their "
                                               "links to your site, its subdomains and its parent domain")
         self.assertEqual(drawn["F1"]["scope"], "release")
-        self.assertIn("URLs looked up rather than followed", drawn["S1"]["text"])
+        self.assertTrue(drawn["S1"]["text"].startswith("starts from your URL; "))     # review round 9: a verb
         # review round 7: the write path in its order, in batches: 50 ms is drain_batch's wait for the first event
         self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, in batches")
         self.assertEqual(m1["ci"], "Test")
@@ -239,28 +242,41 @@ class Quiet(unittest.TestCase):
         self.assertFalse(runcheck.quiet_verdict([], 160.0, 0)[0])
         self.assertTrue(runcheck.WORK_ITEM.search("Crawler: Received work item: http://x/ (depth 0)"))
 
+    QUIET_FILES = {
+        "src/cli.rs": 'Crawl {\n #[arg(short, long, default_value = "20", help = "t")]\n timeout: u64,\n}',
+        "src/network.rs": "let client = Client::builder().timeout(Duration::from_secs(timeout_secs));",
+        "src/state.rs": ("impl HostState { pub const MAX_FAILURES_THRESHOLD: u32 = 3;\n"
+                         "pub fn is_permanently_failed(&self) -> bool { self.failures >= Self::MAX_FAILURES_THRESHOLD }\n"
+                         "pub fn record_failure(&mut self) { let b = (2_u32.pow(self.failures.min(8))).min(300); } }")}
+
     def test_h1_takes_the_quiet_words_only_on_the_probe(self):
         spec = {"repo": "x", "entry": [e for e in load_cfg()["route"]["rustmapper"]["entry"] if e["id"] == "H1"]}
         body = ('pub async fn start_crawling(&self) { loop { tokio::select! { else => { eprintln!("Crawl complete: '
                 'frontier empty"); } } eprintln!("Crawler: Received work item: {}", u); } }')
-        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body}), None, "0.1.3")
+        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body, **self.QUIET_FILES}), None, "0.1.3")
 
         def words(**probes):
             rc = {"version": "0.1.3", "ok": True, "steps": [{"id": k, "ok": v} for k, v in probes.items()]}
             return {e["id"]: e for e in R.resolve(r, rc)}["H1"]
+        # review round 9: the clearing mark with its number, on both quiet probes
+        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True,
+                               quiet_slow_page=True)["text"],
+                         "{release} never exits by itself; done once `Received work item` is quiet for 30 s")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
-                         "{release} never exits by itself; done when it stops printing `Received work item`")
-        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False)["text"],
+                         "{release} never exits by itself, even after the last page", "no slow-page probe: no number")
+        self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False,
+                               quiet_slow_page=True)["text"],
                          "{release} never exits by itself, even after the last page")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False)["text"],
                          "{release} never exits by itself, even after the last page", "no quiet probe recorded: the cause alone")
         self.assertTrue(words(crawl_ctrl_c=True, ends_by_itself=True, quiet_after_last_page=False)["retired"])
         # a release that no longer prints the line: the quiet wording's anchor fails, the cause alone is drawn
-        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body.replace("Received work item", "item")}),
-                           None, "0.1.3")
+        r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body.replace("Received work item", "item"),
+                                             **self.QUIET_FILES}), None, "0.1.3")
         rc = {"version": "0.1.3", "ok": True, "steps": [{"id": "crawl_ctrl_c", "ok": True},
                                                         {"id": "ends_by_itself", "ok": False},
-                                                        {"id": "quiet_after_last_page", "ok": True}]}
+                                                        {"id": "quiet_after_last_page", "ok": True},
+                                                        {"id": "quiet_slow_page", "ok": True}]}
         self.assertEqual({e["id"]: e for e in R.resolve(r, rc)}["H1"]["text"],
                          "{release} never exits by itself, even after the last page")
 
@@ -785,6 +801,8 @@ class RouteSheet(unittest.TestCase):
         self.assertIn("rustmapper", alt)
         self.assertIn("data/sitemap.jsonl", alt)
         self.assertIn("Ctrl-C", alt)
+        # review round 9: the image's one command is the install; the crawl command lives in the code block
+        self.assertTrue(alt.startswith("How to install "), alt)
 
     def test_no_theme_words(self):                                # T-WORDS
         for rep in (self.report, self.freport):

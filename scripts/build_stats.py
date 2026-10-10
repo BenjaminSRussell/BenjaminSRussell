@@ -457,6 +457,11 @@ def main(mode: str | None = None, out: str = STATS_PATH, workdir: str | None = N
                 if name in git_dirs and (rec.get("ci") or {}).get("workflow"):
                     rec["ci_selection"] = tree_mod.ci_selection_at_head(
                         git_dirs[name], name, tree_mod.lines_config(cfg), rec["ci"]["workflow"], rec.get("test_functions"))
+                    # review round 9: which checks the passing run blocks on, read from the workflow at its commit
+                    gates = tree_mod.ci_gates_at(git_dirs[name], rec["ci"].get("head_sha"), rec["ci"]["workflow"],
+                                                 rec["ci"].get("jobs"))
+                    if gates is not None:
+                        rec["ci"] = dict(rec["ci"], gates=gates)
             records.append(rec)
         if not records:
             raise SystemExit("no history and no cache: nothing ships")

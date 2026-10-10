@@ -567,3 +567,71 @@ new probes merged from `scratchpad/r6/rc8/steps.json`).
   POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
   it passes (0 fail, 0 warn). STRINGS-COUNT, ROUTE-HEAD-GAP, NOTICE-CITE, NOTICE-DATE (with the day counts),
   AUDIT-COVER, FIGURES (22 rows, all hold), STRINGS-TWICE, README-STALE and AUDIT-STALE are clean.
+
+## Round 9
+
+Reviews: `review-r09-1.md` (the owner's test) **8 / 10**, `review-r09-2.md` (the deck officer and yacht navigator)
+**8 / 10**, `review-r09-3.md` (the staff engineer screening for data infrastructure) **8 / 10**. None meets the goal.
+All three say the image does what the owner asked; what holds the page back is the text around it. Where the
+reviews conflict, review 1 (the owner's lens) wins. Review 3 backs review 1 on every shared item.
+
+Renders: `scratchpad/r6/build/round-09/` (the standard set, plus the phone sheets at 308 px and the phone page at
+360, `page-phone-360-*.png`). The page renders now use GitHub's `sub` rule (`line-height: 0`, `bottom: -.25em`),
+so the data and licence lines sit at the body's 24 px pitch, as on GitHub, not at the 27 px the old harness drew.
+`stats.json` was re-read from the local trees with `scratchpad/r6/reroute9.py` (as reroute8, plus `repos[].ci.gates`
+and the two new probes, merged from `scratchpad/r6/rc9/steps.json`).
+
+### What was measured first
+
+- **A 429 in 0.1.3 (review 2's finding 1 holds).** `--probe non200_status`, run on the 0.1.3 binary the run check
+  installed: `busy.html` answers 429 with `Retry-After: 2` and links to `beyond.html`, and `gone.html` is a 404. In
+  12 s: 5 requests, `busy.html` asked for once, `beyond.html` never, and both rows have `status_code` null. The code
+  says why (sdist `bfs_crawler.rs` `process_url_streaming`): only `Ok(response) if … == 200` goes on to parsing;
+  `Ok(_) =>` returns `Ok(Vec::new())`. The field is set only from the parse job, and neither file reads `Retry-After`.
+- **How long the quiet runs.** A fetch can take up to `--timeout`, which defaults to 20 s (`cli.rs`; set on the
+  reqwest client in `network.rs`). After a failure the host waits 2^failures s and is dropped at
+  `MAX_FAILURES_THRESHOLD` = 3, so the longest wait is 4 s, counted in whole seconds. A host's first robots.txt
+  fetch runs in the background and does not hold its URLs ("Proceed with crawling - don't block on robots.txt",
+  `frontier.rs`), so it adds nothing. 20 + 4 + 1 = 25, rounded up to 30. `--probe quiet_slow_page`: `slow.html` is
+  held 15 s. Two `Received work item` lines came 15.0 s apart, and 30 s after the last one, one SIGINT wrote all
+  three pages with status 200.
+- **What CI blocks on.** At `96e7a1a`, Scrapy's `main.yml` runs ruff, mypy, bandit and pytest as plain steps in
+  `test`, and pytest again in `entrypoint-smoke`. At `32c2651`, Rust-sitemap's `ci.yml` makes only `cargo test`
+  (Test), `pytest` (Python wrapper) and `cargo fmt --all -- --check` (Format) able to fail the run. Clippy ends in
+  `|| true`. Security Audit is `continue-on-error` at both the job and the step. Benchmark ends in `|| echo`.
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1 + r3-3: the cautions as one short list | Under the wheel note: "Before you run it:" (`[route.rustmapper] list_lead`) and the text entries marked `item = true`, one Markdown item each (`render_readme.text_blocks`). L1 now carries its lever: "It sends requests with no pause between them, up to 256 at a time across all hosts. `--workers 1` sends one at a time." (`runs = ["workers_cap"]`, L2's workers anchors). The robots clause is its own entry, L4, on `robots_read` (failed), with the same alternatives as before. L2: "By default it asks crt.sh and Common Crawl about your domain. `--seeding-strategy none` asks no one." It has new anchors on `ct_log_seeder.rs` `"https://crt.sh/?q=%.{}` and the Common Crawl index URL. L3: "It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome." X1 as before. A retired entry drops its item, and with no item left the lead-in goes too. New README-CAUTIONS (fast): at most one prose paragraph after the code block, one list, at most 6 items, each at most 25 words. On the 390 phone the three paragraphs (about 21 lines) become six short items. |
+| r1-2 + r3-5: no to-do line; the link heads the facts line | The about line ("the Python API, built with maturin, is on main and not yet released") is gone, and so is its gate `python_api`. The facts line reads "**[rustmapper](…)** · *on main at `32c2651`: built on … · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust*" (`FACTS_LINK`). Once a wheel ships the module, the about block prints "`import rustmapper` works after `pip install`." New README-TODO (fast): no visible sentence says "not (yet) released" without a code span the reader can use. |
+| r1-3 + r3-1: the Scrapy run sentence agrees with its `cd` | "Run these from the folder you cloned [Scrapy](…) into; `start.py` runs only inside `Scraping_project`. `python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). The last command runs only discovery, on your site." New README-CD (fast): a block whose first line is `cd <path>` may not follow a sentence that says to run it "in" that folder. |
+| r3-2: what Scrapy does before how to run it | Scrapy now reads: sentence, facts line, the three bullets (Delta Lake raw layer; MinHash and stage 4; Prometheus, breakers, Compose and Helm), then the run sentence, the code block and the Grafana note. The order test has "- Raw pages land in Delta Lake" between the facts block and "Run these from". No words were added. |
+| r1-4 + r3-6: S1 with a verb | "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl"; the `instead` reads "if asked, also from …". It is two lines on the phone (was three) and one on the desk (was two). Heights: desk 571 → 543, phone 1,121 → 1,087. |
+| r2-1: what `sitemap.jsonl` cannot tell you | New text entry X2, release scope, the last item: "0.1.3 gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links." (24 words). Anchors: `process_url_streaming` `Ok(response) if response.status().as_u16() == 200` before `Ok(_) =>`, and `result: Ok(Vec::new())`; `status_code: job.status_code`; no `Retry-After` in `bfs_crawler.rs` or `frontier.rs`; no `429` in `bfs_crawler.rs`. `runs = ["non200_status"]`, and an empty `instead` on `fails = ["non200_status"]` retires it. New gate-false probe `non200_status` (`tests/fixtures/status-site/`). AUDIT §7 row and §2 text-entry note. |
+| r2-2: H1's clearing mark has its number | "{release} never exits by itself; done once `Received work item` is quiet for {quiet} s". `{quiet}` comes from `data/route.py` `quiet_secs` on the release's value anchors `arg:timeout` (`cli.rs` block Crawl) and `const:MAX_FAILURES_THRESHOLD`. Order and meaning anchors: `network.rs` `.timeout(Duration::from_secs(timeout_secs))`, `record_failure` `2_u32.pow(self.failures.min(8))` and `is_permanently_failed`. Today the value is 30. A probe that records `quiet_secs` must have waited at least that long (`run_missing`), or H1 falls back to "…, even after the last page". New probe `quiet_slow_page`, added to H1's `runs`. Desk one line, phone two. PURPOSE H1 updated. AUDIT §7 defines `{quiet}`. |
+| r2-3: the alt text | "How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl." (25 words). T-ALT asserts "How to install". |
+| r3-4: the facts lines name the CI gates | New `repos[].ci.gates` (`data/tree.py` `ci_gates_at`, called by `build_stats.py`; schema; AUDIT §2 row and §7 row). It reads the workflow named `ci.workflow` at `ci.head_sha` with a line reader. A step counts only when its job passed in that run, neither it nor its job has `continue-on-error: true`, it does not end in `\|\| true`, `\|\| :` or `\|\| echo`, and it does not follow a `set +e`. Prints "CI passed 8 Oct 2026: tests, ruff, mypy, bandit" (Scrapy) and "CI passed 7 Oct 2026: tests, rustfmt" (rustmapper). With no workflow read, the old wording stays and CI-GATES warns. Fixture tests: a `ci.yml` with clippy `\|\| true`, bench `\|\| echo` and a continue-on-error audit gives `["tests", "rustfmt"]`, and a Scrapy-like file gives four gates. |
+| r3-7: the review renders use GitHub's `sub` rule | `scratchpad/r6/tools/preview*.mjs` and `scratchpad/tools/preview*.mjs`: `sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}`. Measured on `page-phone-6.png`: the data line's pitch is now 48 px at 2x, the same as the body text. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r1-1: the lead-in "Before you point it at a site you don't run:" | The list also holds what it cannot see (L3), the single sitemap file (X1) and what the file leaves out (X2). None of those is about someone else's site, and a lead-in should introduce every item. The page prints "Before you run it:". |
+| r1-1: "list ≤ 5 items" | The list has six items, because X2 (review 2) is the sixth. The cap is 6, inside the 2 to 7 of the Microsoft guide that review 1 cites. Every item stays under 25 words. Merging X2 into X1 would have broken that limit, and dropping X1 would cut a true caution, which review 1 said none should be. |
+| r1-4: S1 "…, subdomains in certificate logs and Common Crawl" | At that length the phone row stays three lines (balanced wrap, measured 1,121), not the two review 1 expected. "subdomains in" is cut: "…, certificate logs and Common Crawl". That gives two phone lines and one desk line. The L2 item names crt.sh for anyone who wants the source. |
+| r2-1: X2's words ("records a status only for a page that answers 200: …") | That wording is 32 words. As a list item it is "gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links" (24 words). It names the field the image shows. |
+| r2-2: "widen the quiet_after_last_page probe" | It is a separate probe, `quiet_slow_page`, with its own fixture (`tests/fixtures/slow-site/`). `quiet_after_last_page` reads the `ends_by_itself` run, whose three-page fixture the entrance steps and `check_jsonl` share, and a held page there would slow every entrance check. H1 needs both probes. |
+| r2-2: "change H1 and its first instead" | Only H1's own wording changes. The first `instead` is the fallback for a run check without the slow-page probe. If it carried a quiet mark with no number, it would bring back exactly what review 2 asked to remove, so it keeps the cause alone. |
+| Owner, outside this repository (rounds 4 to 9) | Carried: fix P1, ship 0.1.4, commit Rust-sitemap's LICENSE, let `start.py` accept `docker compose`, fix `resume` after a kill. New this round: seed crt.sh and Common Crawl with `get_registrable_domain`, not `get_root_domain` (review 1); record every response's status and back off on 429/503 the way the seeders do (review 2); `cargo update` for the 24 advisories OSV lists, a blocking `cargo audit`, `clippy -Dwarnings`, and deleting the Benchmark job (review 3). With those done, the facts line prints "tests, rustfmt, clippy, cargo audit" by itself. Also new: `check_archived_root` in WAL replay, and the `crc32c` comment in `wal.rs` (review 3). |
+
+### Measured state of this build
+
+- Desk sheet 543 high (gate 620); phone 600 × 1,087 (gate 1,246). With S2 drawn: desk 579, phone 1,164.
+- `python3 -m unittest`: 385 tests, all pass (21 new in `tests/test_round9.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors. The render tier is skipped while fast fails; run alone
+  it passes (0 fail, 0 warn). README-CAUTIONS, README-CD, README-TODO, CI-GATES, STRINGS-TWICE, STRINGS-COUNT,
+  FIGURES, AUDIT-COVER, README-STALE and AUDIT-STALE are clean.

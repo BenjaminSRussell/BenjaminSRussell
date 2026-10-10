@@ -377,7 +377,8 @@ class Wording(unittest.TestCase):
     def test_h1_exits(self):
         cfg, _ = load()
         h1 = entry(cfg, "H1")
-        self.assertEqual(h1["text"], "{release} never exits by itself; done when it stops printing `Received work item`")
+        # review round 9: the clearing mark with its number
+        self.assertEqual(h1["text"], "{release} never exits by itself; done once `Received work item` is quiet for {quiet} s")
         self.assertEqual(h1["instead"][0]["text"], "{release} never exits by itself, even after the last page")
 
     def test_one_spelling(self):
@@ -389,9 +390,10 @@ class Wording(unittest.TestCase):
     def test_s1(self):
         cfg, _ = load()
         s1 = entry(cfg, "S1")
-        self.assertEqual(s1["text"], "your URL and, by default, URLs looked up rather than followed: sitemaps, "
-                                     "subdomains in certificate logs, Common Crawl")
-        self.assertTrue(s1["instead"][0]["text"].startswith("your URL and, if asked, URLs looked up rather than followed: "))
+        # review round 9: with a verb, as every other row
+        self.assertEqual(s1["text"], "starts from your URL; by default also from sitemaps, certificate logs and "
+                                     "Common Crawl")
+        self.assertTrue(s1["instead"][0]["text"].startswith("starts from your URL; if asked, also from "))
 
 
 class KeepTogether(unittest.TestCase):

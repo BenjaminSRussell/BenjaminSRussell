@@ -260,7 +260,7 @@ class PerHostCap(unittest.TestCase):
         drawn = {e["id"]: e for e in R.drawn(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"])}
         self.assertIn("each host", drawn["F1"]["text"])
         self.assertNotIn("to one host", drawn["L1"]["text"], "the per-host 20 is said once, in the image")
-        self.assertIn("at most 256 at a time across all hosts", drawn["L1"]["text"])
+        self.assertIn("up to 256 at a time across all hosts", drawn["L1"]["text"])
         self.assertIn("from one host", sheet.PURPOSE["F1"][0])
 
 
@@ -326,14 +326,15 @@ class Levers(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         rc = copy.deepcopy(stats["runcheck"]["rustmapper"])
         printed = " ".join(rr.text_entries(route, rc, stats["edition"]))
-        self.assertIn("`--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL",
-                      printed)
+        # review round 9: each lever beside its problem, in the list
+        self.assertIn("`--workers 1` sends one at a time.", printed)
+        self.assertIn("`--seeding-strategy none` asks no one.", printed)
         next(s for s in rc["steps"] if s["id"] == "workers_cap")["ok"] = False
         self.assertNotIn("--workers 1", " ".join(rr.text_entries(route, rc, stats["edition"])))
 
     def test_register(self):
         cfg, stats = load()
-        row = next(r for r in audit_figures.records(cfg) if r.get("entry") == "L2")
+        row = next(r for r in audit_figures.records(cfg) if r.get("entry") == "L1")    # round 9: the lever is in L1
         self.assertIn("workers_cap", row["definition"])
         self.assertEqual(audit_cover.uncovered_readme(read(README), audit_figures.records(cfg), stats, cfg), [])
 
@@ -352,8 +353,9 @@ class WhatItSees(unittest.TestCase):
 
     def test_committed_paragraphs(self):
         text = read(README)
-        self.assertRegex(text, r"\n\nIt reads links from the HTML a server sends; no JavaScript runs\. go_go_go can "
-                               r"render pages in headless Chrome\. 0\.1\.3 writes one `sitemap\.xml`")
+        # review round 9: items of the cautions list
+        self.assertRegex(text, r"\n- It reads links from the HTML a server sends, and no JavaScript runs\. go_go_go can "
+                               r"render pages in headless Chrome\.\n- 0\.1\.3 writes one `sitemap\.xml`")
 
 
 class Compose(unittest.TestCase):
@@ -361,9 +363,9 @@ class Compose(unittest.TestCase):
 
     def test_committed(self):
         text = read(README)
-        self.assertIn("It needs Docker and the `docker-compose` command: Docker Desktop has it; on Linux, where "
-                      "Docker's Compose plugin answers only to `docker compose`, install Compose standalone as well.",
-                      text)
+        # review round 9: the same instruction in 9 words
+        self.assertIn("It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install "
+                      "Compose standalone).", text)
         self.assertNotIn("alias", text, "a shell alias is not found by shutil.which")
         _, stats = load()
         row = next(f for f in stats["figures"] if f["text"] == "the `docker-compose` command")

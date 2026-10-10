@@ -7,7 +7,7 @@
 <source media="(max-width: 1199px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
 <source media="(max-width: 1199px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to start Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to install Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
 </a>
 <!-- picture:hero:end -->
@@ -29,11 +29,10 @@
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)**: `pip install` gives you its command line; the Python API, built with maturin, is on main and not yet released.
 <!-- about:Rust-sitemap:end -->
 
 <!-- facts:Rust-sitemap:start -->
-*On main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026: tests, rustfmt · 16k lines of Rust*
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
@@ -48,9 +47,14 @@ rust_sitemap export-sitemap
 
 Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
-It sends its requests with no pause between them, at most 256 at a time across all hosts. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read. `--workers 1` holds it to one request at a time; `--seeding-strategy none` starts from your URL and its links alone and asks no outside service about your domain.
+Before you run it:
 
-It reads links from the HTML a server sends; no JavaScript runs. go_go_go can render pages in headless Chrome. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
+- It sends requests with no pause between them, up to 256 at a time across all hosts. `--workers 1` sends one at a time.
+- 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.
+- By default it asks crt.sh and Common Crawl about your domain. `--seeding-strategy none` asks no one.
+- It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.
+- 0.1.3 writes one `sitemap.xml` however many pages it found; the format allows 50,000 URLs per file.
+- 0.1.3 gives no `status_code` to a page that answers 404, 429 or 503, never asks for it again, and follows none of its links.
 <!-- install:Rust-sitemap:end -->
 
 <!-- handoffs:start -->
@@ -59,10 +63,14 @@ It reads links from the HTML a server sends; no JavaScript runs. go_go_go can re
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system on top of the Scrapy framework, in four stages: discovery, analysis, summaries, large documents.
 
 <!-- facts:Scrapy:start -->
-*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests (CI selects all but 41) · CI passed 8 Oct 2026 · MIT license · 69k lines of Python*
+*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests (CI selects all but 41) · CI passed 8 Oct 2026: tests, ruff, mypy, bandit · MIT license · 69k lines of Python*
 <!-- facts:Scrapy:end -->
 
-Run these from a clone of [Scrapy](https://github.com/BenjaminSRussell/Scrapy), in `Scraping_project` (`start.py` runs only there). `python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command: Docker Desktop has it; on Linux, where Docker's Compose plugin answers only to `docker compose`, install Compose standalone as well. The last command runs only discovery, on your site.
+- Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
+- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
+- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
+
+Run these from the folder you cloned [Scrapy](https://github.com/BenjaminSRussell/Scrapy) into; `start.py` runs only inside `Scraping_project`. `python start.py` runs all four stages and crawls a university's sample site. It needs Docker and the `docker-compose` command (Docker Desktop has it; on Linux, install Compose standalone). The last command runs only discovery, on your site.
 
 ```sh
 cd Scrapy/Scraping_project
@@ -74,10 +82,6 @@ docker-compose run --rm \
 ```
 
 Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file name.
-
-- Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
 
 <a name="also"></a>
 **Also**

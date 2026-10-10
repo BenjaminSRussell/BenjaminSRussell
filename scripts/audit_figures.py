@@ -57,6 +57,13 @@ FIXED = [
      "branch, as the workflow defines it: a job marked continue-on-error does not fail the run, and its failure is "
      "printed as \"<job> failed (not blocking)\"; `ci.jobs` names each job and its runs-on labels", "README-STALE",
      (r"CI (?:passed|failed|cancelled|timed out|skipped|needs attention) " + _DATE,)),
+    ("facts", ": tests, rustfmt, …", "`repos[].ci.gates`", "review round 9: the checks the passing run blocks on, read "
+     "from the workflow file (found by its `name:`) at the commit CI ran on (`ci.head_sha`, data/tree.py `ci_gates`). "
+     "A step counts when its job passed in that run (`ci.jobs`), neither it nor its job has `continue-on-error: "
+     "true`, and its command starts `cargo test` or `pytest` (tests), `cargo fmt … --check` (rustfmt), `cargo "
+     "clippy`, `cargo audit`, `ruff`, `mypy` or `bandit` without ending in `|| true`, `|| :` or `|| echo …` or "
+     "following a `set +e`. Rust-sitemap's clippy (`|| true`), audit (continue-on-error) and benchmark (`|| echo`) "
+     "do not count", "CI-GATES; README-STALE", (r"CI passed " + _DATE + r": [a-z ,]+",)),
     ("facts", "MIT license", "`repos[].license`", "the SPDX id GitHub's license detection gives the repository (REST "
      "`license.spdx_id`); printed only when it is not null or NOASSERTION", "LICENSE-FLAGSHIP; README-STALE", ()),
     ("facts", "Nk lines of <language>", "`repos[].lines`, `main_language`", "newlines of source files at HEAD, "
@@ -95,7 +102,7 @@ FIXED = [
     ("license", "CC BY 4.0", "`LICENSE-ASSETS.md`", "the license of the profile's images and text, as that file "
      "states it", "README-LICENSE", (r"CC BY 4\.0",)),
 ]
-_REF = __import__("re").compile(r"\{((const|field|arg):(\w+)|release|head)\}")
+_REF = __import__("re").compile(r"\{((const|field|arg):(\w+)|release|head|quiet)\}")
 
 
 def route_rows(cfg: dict) -> list[dict]:
@@ -121,6 +128,10 @@ def route_rows(cfg: dict) -> list[dict]:
                     continue
                 if kind == "head":
                     defs.append("`{head}` is the sha the route was read at (`routes.%s.head_sha`), short" % name)
+                    continue
+                if kind == "quiet":
+                    defs.append("`{quiet}` is computed by `data/route.py` `quiet_secs` from the release's value "
+                                "anchors `arg:timeout` and `const:MAX_FAILURES_THRESHOLD`")
                     continue
                 rel = next((a for c in cands for a in c.get("release") or [] if a.get(kind) == var), None)
                 hd = next((a for c in cands for a in c.get("head") or [] if a.get(kind) == var), None)

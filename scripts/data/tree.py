@@ -300,7 +300,7 @@ def _steps(text: str) -> list[dict]:
             cur, step_indent = None, None
         if cur is not None:
             k = _KEY.match(ln)
-            if k and k.group(1) in ("run", "working-directory"):
+            if k and k.group(1) in ("run", "working-directory", "continue-on-error"):
                 val = k.group(2).strip()
                 if k.group(1) == "run" and val in ("|", ">", "|-", ">-"):
                     ind = len(ln) - len(ln.lstrip()) + (2 if ln.lstrip().startswith("- ") else 0)
@@ -445,6 +445,125 @@ def ci_selection(paths: list[str], read, repo: str, lines_cfg: dict | None, work
     total = outside + deselected + ignored
     return {"not_selected": total, "outside": outside, "deselected": deselected, "ignored": ignored,
             "commands": cmds, "cargo_test": cargo, "of": test_functions}
+
+
+# ---------------------------------------------------------------- review round 9: what CI holds the code to
+
+# A step is a gate when its run starts one of these checks, neither it nor its job has `continue-on-error: true`, and
+# the command does not end in `|| true`, `|| :` or `|| echo …` (nor follows a `set +e`). Printed in this order.
+GATE_CHECKS = (
+    ("tests", re.compile(r"^(?:python3?\s+-m\s+)?pytest\b|^cargo\s+test\b")),
+    ("rustfmt", re.compile(r"^cargo\s+fmt\b.*\s--check\b")),
+    ("clippy", re.compile(r"^cargo\s+clippy\b")),
+    ("cargo audit", re.compile(r"^cargo\s+audit\b")),
+    ("ruff", re.compile(r"^(?:python3?\s+-m\s+)?ruff\b")),
+    ("mypy", re.compile(r"^(?:python3?\s+-m\s+)?mypy\b")),
+    ("bandit", re.compile(r"^(?:python3?\s+-m\s+)?bandit\b")),
+)
+SOFT_END = re.compile(r"\|\|\s*(?:true|:|echo\b.*)\s*$")
+_TRUE = re.compile(r"^\s*(?:-\s+)?continue-on-error:\s*['\"]?true['\"]?\s*(?:#.*)?$")
+
+
+def workflow_jobs(text: str) -> list[dict]:
+    """The jobs of a workflow, read line by line (no YAML library): [{key, name, soft, steps: [{run, soft}]}], where
+    `soft` is a `continue-on-error: true` on the job or the step."""
+    lines = (text or "").splitlines()
+    at = next((i for i, ln in enumerate(lines) if re.match(r"^jobs:\s*(?:#.*)?$", ln)), None)
+    if at is None:
+        return []
+
+    def indent(ln):
+        return len(ln) - len(ln.lstrip())
+
+    def live(ln):
+        return ln.strip() and not ln.lstrip().startswith("#")
+
+    body = [ln for ln in lines[at + 1:]]
+    first = next((ln for ln in body if live(ln)), None)
+    if first is None or indent(first) == 0:
+        return []
+    ji = indent(first)
+    jobs, cur = [], None
+    for ln in body:
+        if live(ln) and indent(ln) < ji:
+            break
+        m = re.match(rf"^ {{{ji}}}([\w-]+):\s*(?:#.*)?$", ln)
+        if m:
+            cur = {"key": m.group(1), "lines": []}
+            jobs.append(cur)
+        elif cur is not None:
+            cur["lines"].append(ln)
+    out = []
+    for j in jobs:
+        child = next((indent(ln) for ln in j["lines"] if live(ln)), None)
+        top = [ln for ln in j["lines"] if live(ln) and indent(ln) == child]
+        name = next((m.group(1).strip().strip("'\"") for ln in top if (m := re.match(r"^\s*name:\s*(.*?)\s*(?:#.*)?$", ln))),
+                    None)
+        steps = []
+        for st in _steps("\n".join(j["lines"])):
+            steps.append({"run": str(st.get("run") or ""), "soft": str(st.get("continue-on-error") or "").split("#")[0]
+                          .strip().strip("'\"").lower() == "true"})
+        out.append({"key": j["key"], "name": name or j["key"], "soft": any(_TRUE.match(ln) for ln in top),
+                    "steps": steps})
+    return out
+
+
+def run_gates(run: str) -> list[str]:
+    """The checks a step's run starts as blocking commands (backslash lines joined, comments dropped)."""
+    text = re.sub(r"\\\n\s*", " ", "\n".join(l for l in str(run or "").splitlines() if not l.strip().startswith("#")))
+    found, soft = [], False
+    for line in text.splitlines():
+        line = line.strip()
+        if re.match(r"^set\s+\+e\b", line):
+            soft = True
+        elif re.match(r"^set\s+-e\b", line):
+            soft = False
+        for part in re.split(r"\s*(?:&&|;)\s*", line):
+            part = part.strip()
+            for gate, rx in GATE_CHECKS:
+                if rx.search(part) and not soft and not SOFT_END.search(line):
+                    found.append(gate)
+    return found
+
+
+def ci_gates(workflow_text: str | None, jobs: list[dict] | None) -> list[str] | None:
+    """Review round 9: the checks the passing run holds the code to: a gate step (GATE_CHECKS) in a job that is not
+    `continue-on-error` and that passed in the run (`repos[].ci.jobs`, matched by its name or key as a prefix: a
+    matrix job is "test (3.12)"). None without a workflow; [] when nothing blocks."""
+    if not workflow_text:
+        return None
+    passed = [str(j.get("name") or "") for j in jobs or [] if isinstance(j, dict) and j.get("conclusion") == "success"]
+    got: set[str] = set()
+    for job in workflow_jobs(workflow_text):
+        if job["soft"]:
+            continue
+        label = re.sub(r"\s*\$\{\{.*?\}\}\s*", " ", job["name"]).strip()
+        if not any(n == label or n.startswith(label + " ") or n.startswith(label + "(") or n == job["key"]
+                   or n.startswith(job["key"] + " (") for n in passed):
+            continue
+        for st in job["steps"]:
+            if not st["soft"]:
+                got.update(run_gates(st["run"]))
+    return [g for g, _ in GATE_CHECKS if g in got]
+
+
+def ci_gates_at(git_dir: str, sha: str | None, workflow_title: str | None, jobs: list[dict] | None) -> list[str] | None:
+    """ci_gates on the workflow (found by its `name:`) at the commit CI ran on; None when it is not there."""
+    if not sha or not workflow_title:
+        return None
+    try:
+        paths = _git(git_dir, "ls-tree", "-r", "--name-only", sha).split("\n")
+    except RuntimeError:
+        return None
+    for p in paths:
+        if WORKFLOW.match(p or ""):
+            try:
+                text = _git(git_dir, "show", f"{sha}:{p}")
+            except RuntimeError:
+                continue
+            if workflow_name(text) == workflow_title:
+                return ci_gates(text, jobs)
+    return None
 
 
 def ci_selection_at_head(git_dir: str, repo: str, lines_cfg: dict | None, workflow_title: str | None,

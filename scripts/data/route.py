@@ -39,6 +39,9 @@ Review round 6: a string in a file shows a setter exists, not that anything call
 carries an anchor marked `producer = true` that is not an assignment to a field (SETTER): the code that decides,
 not the code that stores. A `text` entry may also name a `gate` (a HEAD gate in `gates`); the README prints it only
 while that gate holds (render_readme.text_entries). Review round 8: `para = true` starts a new paragraph with it.
+Review round 9: `item = true` makes it an item of the cautions list under the install block; `{quiet}` in a text is
+`quiet_secs` of the release's `arg:timeout` and `const:MAX_FAILURES_THRESHOLD` value anchors, and a probe that
+records `quiet_secs` must have waited at least that long.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
 """
@@ -177,6 +180,17 @@ def anchor_consts(read, anchors: list[dict] | None) -> dict[str, str]:
 
 
 _CONST_REF = re.compile(r"\{((?:const|field|arg):\w+)\}")
+_QUIET = "{quiet}"
+QUIET_FROM = ("arg:timeout", "const:MAX_FAILURES_THRESHOLD")
+
+
+def quiet_secs(timeout: int, threshold: int) -> int:
+    """Review round 9: how long a release's `Received work item` lines may normally stop on a live crawl. A fetch runs
+    up to the --timeout (reqwest: from connect to the body's end); after a failure the host waits 2^failures s, and it
+    is dropped at `threshold` failures, so the longest wait is 2^(threshold - 1); the backoff is counted in whole
+    seconds (1 s more). The sum, rounded up to the next 10: 20 + 4 + 1 -> 30."""
+    raw = int(timeout) + 2 ** max(0, int(threshold) - 1) + 1
+    return -(-raw // 10) * 10
 
 
 def _num(v: str) -> str:
@@ -238,6 +252,14 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
             mh = mh + [f"head {name} = {vh}, release {name} = {vr}: the figure differs"]
             continue
         text = text.replace(f"{{{ref}}}", _num(vr))
+    quiet = None
+    if _QUIET in text:
+        got = [consts_r.get(k) for k in QUIET_FROM]
+        if all(v is not None and str(v).isdigit() for v in got):
+            quiet = quiet_secs(int(got[0]), int(got[1]))
+            text = text.replace(_QUIET, str(quiet))
+        else:
+            mr = mr + [f"release: {{quiet}} needs value anchors {' and '.join(QUIET_FROM)}"]
     # an end's `file` is what the run writes (data/sitemap.jsonl), not a source file: it is not a label
     # review round 6: a condition needs a probe or the code that decides it, never a setter alone
     cond = CONDITIONAL.search(text)
@@ -245,7 +267,8 @@ def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: st
         mr = mr + [f"{cond.group(1)!r} states a condition, and no probe and no producer anchor stands behind it"]
     label = (e.get("file") or file) if kind in ("end", "export") else \
         label_for(e.get("file") or file, e.get("head"), e.get("release"), scope)
-    return {"text": text, "file": label, "verified_head": not mh, "verified_release": not mr,
+    rec_q = {"quiet": quiet} if quiet is not None else {}
+    return {"text": text, "file": label, "verified_head": not mh, "verified_release": not mr, **rec_q,
             "missing": mh + mr, "runs": [str(x) for x in e.get("runs") or []],
             "fails": [str(x) for x in e.get("fails") or []],
             "paths": {"head": sorted({str(a.get("path")) for a in e.get("head") or []}),
@@ -281,6 +304,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
             rec["gate"] = str(e["gate"])
         if e.get("para"):        # review round 8: a README sentence that starts a new paragraph
             rec["para"] = True
+        if e.get("item"):        # review round 9: a README caution, one item of the list under the install block
+            rec["item"] = True
         alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid, e.get("file"), kind) for a in e.get("instead") or []]
         if alts:
             rec["instead"] = alts
@@ -300,7 +325,8 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
         raise ValueError(f"route ids not unique: {ids}")
     return {"repo": spec.get("repo"), "head_sha": head_sha, "release": release, "header": spec.get("header"),
             "header_verified": not header_missing, "header_missing": header_missing,
-            "header_runs": [str(x) for x in spec.get("header_runs") or []], "entries": entries, "gates": gates}
+            "header_runs": [str(x) for x in spec.get("header_runs") or []], "entries": entries, "gates": gates,
+            **({"list_lead": str(spec["list_lead"])} if spec.get("list_lead") else {})}
 
 
 # ---------------------------------------------------------------- the run check's probes
@@ -328,6 +354,10 @@ def run_missing(cand: dict, steps: dict[str, dict] | None) -> list[str]:
             out.append(f"run check: no step {sid}")
         elif bool(st.get("ok")) != want:
             out.append(f"run check: {sid} {'failed' if want else 'passed'} ({str(st.get('detail') or '')[:120]})")
+        elif want and cand.get("quiet") is not None and st.get("quiet_secs") is not None \
+                and float(st["quiet_secs"]) < float(cand["quiet"]):
+            # review round 9: the probe waited less than the quiet the text prints
+            out.append(f"run check: {sid} waited {st['quiet_secs']} s of quiet, the text says {cand['quiet']} s")
     return out
 
 
@@ -378,6 +408,8 @@ def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
             base["gate"] = e["gate"]
         if e.get("para"):
             base["para"] = True
+        if e.get("item"):
+            base["item"] = True
         if chosen is not None:
             # an alternative with no words retires the entry: the fault it named is gone (round 6, review 3: once a
             # release ends by itself, there is no hazard to draw), so it is neither drawn nor unverified

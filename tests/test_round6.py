@@ -100,16 +100,18 @@ class LoadSentence(unittest.TestCase):
         cfg, stats = load()
         text = " ".join(rr.text_entries(stats["routes"]["rustmapper"], stats["runcheck"]["rustmapper"], stats["edition"],
                                         rr._repo(stats, "Rust-sitemap")))
-        # review round 8: the per-host 20 is said by F1 in the image; L1 keeps the total and the pace
-        self.assertIn("It sends its requests with no pause between them, at most 256 at a time across all hosts. 0.1.3 "
-                      "ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules "
-                      "are not read.", text)
+        # review round 8: the per-host 20 is said by F1 in the image; L1 keeps the total and the pace. Review round 9:
+        # L1 with its lever, the robots clause its own item (L4)
+        self.assertIn("It sends requests with no pause between them, up to 256 at a time across all hosts. "
+                      "`--workers 1` sends one at a time.", text)
+        self.assertIn("0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's "
+                      "rules are not read.", text)
         self.assertNotIn("unless", text)
         self.assertNotIn("On main", text, "M1 waits on the cargo gate (review r06-1 #1)")
 
     def test_l1_follows_the_probe_and_the_parser(self):
         cfg, _ = load()
-        spec = {"repo": "x", "entry": [entry(cfg, "L1")]}
+        spec = {"repo": "x", "entry": [entry(cfg, "L4")]}      # review round 9: the robots clause is L4
         base = {"src/state.rs": "HostState { max_inflight: 20, crawl_delay_secs: 0 }",
                 "src/cli.rs": '#[arg(long, default_value = "256")]\n    workers: usize,',
                 "src/robots.rs": 'pub async fn fetch_robots_txt(h: &H, d: &str) { let u = format!("https://{}/robots.txt", d); }'}
@@ -122,7 +124,7 @@ class LoadSentence(unittest.TestCase):
         parsed = dict(base, **{"src/robots.rs": base["src/robots.rs"] + "\npub fn parse_crawl_delay_secs(b: &str) {}"})
         r = R.verify_route(spec, None, tree(parsed), None, "0.1.4")
         self.assertEqual(R.drawn(r, read), [], "the old wording needs a probe that saw the pause")
-        self.assertEqual([e["id"] for e in R.unverified(r, read)], ["L1"])
+        self.assertEqual([e["id"] for e in R.unverified(r, read)], ["L4"])
 
     def test_robots_verdict(self):
         ok, detail = runcheck.robots_verdict([(0.0, "/"), (0.001, "/open.html"), (0.002, "/secret.html")])
@@ -293,7 +295,7 @@ class Wording(unittest.TestCase):
         self.assertEqual(cfg["route"]["rustmapper"]["header"], "Crawls a site and writes one line for every URL it finds.")
         self.assertNotIn("above or below", entry(cfg, "F1")["text"])
         s1 = entry(cfg, "S1")
-        self.assertIn("URLs looked up rather than followed", s1["text"])     # review round 7
+        self.assertTrue(s1["text"].startswith("starts from your URL; by default also from sitemaps"))   # round 9
         self.assertIn("if asked", s1["instead"][0]["text"])
         anchor = {"path": "src/ct_log_seeder.rs", "text": 'format!("https://{}/", subdomain)'}
         self.assertIn(anchor, s1["head"])

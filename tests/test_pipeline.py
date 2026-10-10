@@ -223,17 +223,14 @@ class Readme(unittest.TestCase):
                                                   self.cfg), "")
         self.assertEqual(render_readme.pick_block(dict(s, figures=[dict(rows[0], holds=False)] + rows[1:]), self.cfg), "")
         self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": {"header_verified": False}}), self.cfg), "")
-        # about: the 0.1.3 wheel has no module, so the Python API is main's while main has it
-        gates = {"rustmapper": {"repo": "Rust-sitemap", "gates": {"python_api": {"ok": True}}}}
-        s = dict(self.stats, edition={"version": "0.1.3", "modules": []}, routes=gates)
-        self.assertIn("is on main and not yet released", render_readme.about_block(s, "Rust-sitemap"))
+        # about (review round 9): nothing while the wheel has no module (the "not yet released" line was the owner's
+        # to-do list); one fact a visitor can use once a wheel ships `rustmapper`
+        s = dict(self.stats, edition={"version": "0.1.3", "modules": []})
+        self.assertEqual(render_readme.about_block(s, "Rust-sitemap"), "")
         s = dict(s, edition={"version": "0.1.4", "modules": ["rustmapper"]})
-        self.assertIn("its command line and a Python API, built with maturin", render_readme.about_block(s, "Rust-sitemap"))
+        self.assertEqual(render_readme.about_block(s, "Rust-sitemap"), "`import rustmapper` works after `pip install`.")
         s = dict(s, edition={"version": "0.1.3"})          # never read: no claim either way
-        self.assertTrue(render_readme.about_block(s, "Rust-sitemap").endswith("gives you its command line."))
-        # review round 6: one description per screen; the image's header and the pick sentence introduce the tool
-        for ed_ in ({"version": "0.1.3", "modules": []}, {"version": "0.1.4", "modules": ["rustmapper"]}, {}):
-            self.assertNotIn("sitemap crawler written in Rust", render_readme.about_block(dict(s, edition=ed_), "Rust-sitemap"))
+        self.assertEqual(render_readme.about_block(s, "Rust-sitemap"), "")
         # license: printed only when GitHub detects one; null warns
         base = {"repos": [{"name": "Rust-sitemap", "test_functions": 3, "license": None}]}
         self.assertNotIn("MIT", render_readme.facts_block(base, "Rust-sitemap"))
@@ -432,7 +429,9 @@ class Readme(unittest.TestCase):
                          "case and -/_ ignored, a -binary build matches, an absent name is skipped")
         helpers = {"repos": [{"name": "Rust-sitemap", "manifest": {"files": ["Cargo.toml"], "deps": [
             "clap", "rkyv", "rkyv_derive", "redb", "serde-derive", "reqwest", "tokio_macros", "tokio-macros", "tokio", "url"]}}]}
-        self.assertEqual(render_readme.facts_block(helpers, "Rust-sitemap"), "*Built on clap, rkyv, redb, reqwest, tokio*")
+        # review round 9: rustmapper's facts line carries its link at the head
+        self.assertEqual(render_readme.facts_block(helpers, "Rust-sitemap"), "**[rustmapper](https://github.com/"
+                         "BenjaminSRussell/Rust-sitemap)** · *Built on clap, rkyv, redb, reqwest, tokio*")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "manifest": {"deps": ["derive", "macros"]}}]}, "x"),
                          "*Built on derive, macros*", "a crate named only 'derive' is not a helper")
         # every name chart.toml lists is in the committed manifest, so the configured line prints in full
@@ -443,11 +442,13 @@ class Readme(unittest.TestCase):
             for name in wanted:
                 self.assertTrue(render_readme._in_manifest(name, deps), f"{repo}: {name} is not in its manifest")
             head = r["head"]["short"]
-            self.assertTrue(render_readme.facts_block(self.stats, repo, self.cfg).startswith(
-                f"*On main at `{head}`: built on " + ", ".join(wanted) + " · "), "review round 2: the snapshot is named")
+            line = render_readme.facts_block(self.stats, repo, self.cfg)
+            line = line.split(" · *", 1)[1] if repo in render_readme.FACTS_LINK else line[1:]   # round 9: the link
+            self.assertTrue(line.lower().startswith(
+                f"on main at `{head}`: built on " + ", ".join(wanted).lower() + " · "), "review round 2: the snapshot is named")
         for name in ("Scrapy", "Rust-sitemap"):     # the committed stats.json: each printed figure is the file's own
             r, live = render_readme._repo(self.stats, name), render_readme.facts_block(self.stats, name, self.cfg)
-            self.assertTrue(live.startswith("*") and live.endswith("*") and "<sub>" not in live, live)
+            self.assertTrue((live.startswith("*") or live.startswith("**[")) and live.endswith("*") and "<sub>" not in live, live)
             self.assertNotIn("test file", live)
             self.assertNotIn("last worked", live)
             if isinstance(r.get("test_functions"), int):
@@ -459,7 +460,8 @@ class Readme(unittest.TestCase):
         tmpl = ("<!-- facts:Rust-sitemap:start -->\nold\n<!-- facts:Rust-sitemap:end -->\n"
                 "<!-- facts:Scrapy:start -->\n<!-- facts:Scrapy:end -->\n<!-- facts:nowhere:start -->x<!-- facts:nowhere:end -->\n")
         once = render_readme.main(tmpl, self.cfg, full, use_sheet_alts=False)
-        self.assertIn("<!-- facts:Rust-sitemap:start -->\n*Built on tokio, redb, rkyv, reqwest, clap · 115 tests", once)
+        self.assertIn("<!-- facts:Rust-sitemap:start -->\n**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · "
+                      "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests", once)
         self.assertIn("<!-- facts:Scrapy:start -->\n*CI failed", once)
         self.assertIn("<!-- facts:nowhere:start -->\n<!-- facts:nowhere:end -->", once, "an unknown repository prints nothing")
         self.assertEqual(render_readme.main(once, self.cfg, full, use_sheet_alts=False), once)
@@ -488,11 +490,12 @@ class Readme(unittest.TestCase):
         order = ["<!-- picture:hero:end -->", "<!-- position:start", '<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>',
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
                  "<!-- pick:start -->",
-                 "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)**: `pip install` gives you",
-                 "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
-                 "pip install rustmapper", "Prebuilt for Apple silicon",
+                 "<!-- facts:Rust-sitemap:start -->", "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** · *on main",
+                 "<!-- install:Rust-sitemap:start -->",
+                 "pip install rustmapper", "Prebuilt for Apple silicon", "Before you run it:\n\n- It sends requests",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system",
-                 "<!-- facts:Scrapy:start -->", "Run these from a clone of [Scrapy]", "cd Scrapy/Scraping_project",
+                 "<!-- facts:Scrapy:start -->", "- Raw pages land in Delta Lake",
+                 "Run these from the folder you cloned [Scrapy]", "cd Scrapy/Scraping_project",
                  "\npython start.py", "docker-compose run --rm \\", "scraper scrapy crawl scout", "**Also**",
                  "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
