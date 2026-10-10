@@ -5,13 +5,22 @@
     head_of(git_dir) -> {sha, short, date}                                    repos[].head
     struct_fields(src, struct) -> list[str]                                   `pub <name>:` lines of a Rust struct
     list_literal(src, name) -> list[str]                                      a Python list assigned to `name`
+    resolve(route, runcheck) -> list[dict]                                    each entry as the image may draw it
     command_name(scripts) -> str                                              the command the image prints
     wheel_words(wheels) -> str                                                the platform note, or ""
 
 An anchor is `{path}` (the file exists), `{path, text}` (the file contains the literal) or `{path, absent}` (the
 file does not contain it). An entry is verified only when every `head` anchor holds in the repository at its HEAD
 and every `release` anchor holds in the released sdist: what the image draws is true of the code a visitor reads
-and of the release pip installs. The sheet draws verified entries only; check.py fails on any other.
+and of the release pip installs. An entry with `scope = "release"` describes the release only (what pip installs,
+e.g. a default that HEAD has since changed); it needs release anchors and no head anchors.
+
+Round 6, review 1: a string in a file shows the code exists, not that it works. An entry may also name run-check
+probes (scripts/runcheck.py step ids): `runs` must have passed, `fails` must have failed, in the run check of the
+released version. An entry may list alternatives under `instead`, each with its own text, anchors and probes; the
+first candidate (the entry itself, then each alternative in order) whose anchors and probes all hold is the one
+drawn. `{secs:<step>}` in a text is that step's measured wall time. The sheet draws verified entries only; check.py
+fails on any other.
 
 `read_*` are callables path -> str | None, so the tests run on fixture trees and the build on clones.
 """
@@ -22,7 +31,7 @@ import fnmatch
 import re
 import subprocess
 
-KINDS = ("stop", "trap", "end", "export")
+KINDS = ("stop", "step", "note", "trap", "end", "export")
 STATES = ("runs", "fields differ", "no reader")
 
 
@@ -47,6 +56,20 @@ def check_anchors(read, anchors: list[dict] | None, where: str) -> list[str]:
     return [f"{where} {r}" for a in anchors or [] if (r := check_anchor(read, a))]
 
 
+def _candidate(e: dict, rh, rr, no_head: list, no_rel: list, scope: str, eid: str) -> dict:
+    """One candidate wording of an entry, with its anchors checked on both sides."""
+    if not e.get("release") or (scope != "release" and not e.get("head")):
+        raise ValueError(f"route entry {eid}: needs release anchors" + ("" if scope == "release" else " and head anchors"))
+    if scope == "release":
+        mh = check_anchors(rh, e.get("head"), "head") if e.get("head") and not no_head else []
+    else:
+        mh = no_head or check_anchors(rh, e.get("head"), "head")
+    mr = no_rel or check_anchors(rr, e.get("release"), "release")
+    return {"text": str(e["text"]), "file": e.get("file") or None, "verified_head": not mh, "verified_release": not mr,
+            "missing": mh + mr, "runs": [str(x) for x in e.get("runs") or []],
+            "fails": [str(x) for x in e.get("fails") or []]}
+
+
 def verify_route(spec: dict, read_head, read_release, head_sha: str | None, release: str | None) -> dict:
     """chart.toml [route.<name>] -> {repo, head_sha, release, header, header_verified, entries[]}.
 
@@ -58,19 +81,22 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
     rh, rr = reader(read_head, "head"), reader(read_release, "release")
     no_head = [] if read_head is not None else ["head: no clone of the repository this run"]
     no_rel = [] if read_release is not None else ["release: no sdist this run"]
-    header_missing = (no_head or check_anchors(rh, spec.get("header_anchors"), "head")) + \
-        (no_rel or check_anchors(rr, spec.get("header_anchors"), "release"))
+    hh = spec.get("header_head", spec.get("header_anchors"))
+    hr = spec.get("header_release", spec.get("header_anchors"))
+    header_missing = (no_head or check_anchors(rh, hh, "head")) + (no_rel or check_anchors(rr, hr, "release"))
     entries = []
     for e in spec.get("entry") or []:
         kind = str(e.get("kind") or "stop")
+        eid = str(e.get("id"))
         if kind not in KINDS:
-            raise ValueError(f"route entry {e.get('id')}: kind {kind!r} not in {KINDS}")
-        if not e.get("head") or not e.get("release"):
-            raise ValueError(f"route entry {e.get('id')}: needs head and release anchors")
-        mh = no_head or check_anchors(rh, e.get("head"), "head")
-        mr = no_rel or check_anchors(rr, e.get("release"), "release")
-        entries.append({"id": str(e["id"]), "kind": kind, "file": e.get("file") or None, "text": str(e["text"]),
-                        "verified_head": not mh, "verified_release": not mr, "missing": mh + mr})
+            raise ValueError(f"route entry {eid}: kind {kind!r} not in {KINDS}")
+        scope = str(e.get("scope") or "both")
+        first = _candidate(e, rh, rr, no_head, no_rel, scope, eid)
+        rec = {"id": eid, "kind": kind, "scope": scope, "loop": bool(e.get("loop")), **first}
+        alts = [_candidate(a, rh, rr, no_head, no_rel, scope, eid) for a in e.get("instead") or []]
+        if alts:
+            rec["instead"] = alts
+        entries.append(rec)
     gates = {}
     for gname, anchors in (spec.get("gates") or {}).items():   # HEAD-only conditions for README lines (SPEC §4.5)
         miss = no_head or check_anchors(rh, anchors, "head")
@@ -79,17 +105,104 @@ def verify_route(spec: dict, read_head, read_release, head_sha: str | None, rele
     if len(set(ids)) != len(ids):
         raise ValueError(f"route ids not unique: {ids}")
     return {"repo": spec.get("repo"), "head_sha": head_sha, "release": release, "header": spec.get("header"),
-            "header_verified": not header_missing, "header_missing": header_missing, "entries": entries,
-            "gates": gates}
+            "header_verified": not header_missing, "header_missing": header_missing,
+            "header_runs": [str(x) for x in spec.get("header_runs") or []], "entries": entries, "gates": gates}
 
 
-def drawn(route: dict | None) -> list[dict]:
-    """The entries the image may draw: verified at HEAD and in the release."""
-    return [e for e in (route or {}).get("entries") or [] if e.get("verified_head") and e.get("verified_release")]
+# ---------------------------------------------------------------- the run check's probes
+
+def steps_of(runcheck: dict | None, release: str | None = None) -> dict[str, dict] | None:
+    """{step id: step} from the run check, or None when there is none (or it tested another version)."""
+    if not isinstance(runcheck, dict):
+        return None
+    if release is not None and str(runcheck.get("version")) != str(release):
+        return None
+    return {str(s["id"]): s for s in runcheck.get("steps") or [] if isinstance(s, dict) and s.get("id")}
 
 
-def unverified(route: dict | None) -> list[dict]:
-    return [e for e in (route or {}).get("entries") or [] if not (e.get("verified_head") and e.get("verified_release"))]
+def run_missing(cand: dict, steps: dict[str, dict] | None) -> list[str]:
+    """Why a candidate's probes do not hold: [] when every `runs` step passed and every `fails` step failed."""
+    need = [(sid, True) for sid in cand.get("runs") or []] + [(sid, False) for sid in cand.get("fails") or []]
+    if not need:
+        return []
+    if steps is None:
+        return ["run check: none recorded for this release"]
+    out = []
+    for sid, want in need:
+        st = steps.get(sid)
+        if st is None:
+            out.append(f"run check: no step {sid}")
+        elif bool(st.get("ok")) != want:
+            out.append(f"run check: {sid} {'failed' if want else 'passed'} ({str(st.get('detail') or '')[:120]})")
+    return out
+
+
+_SECS = re.compile(r"\{secs:([\w-]+)\}")
+
+
+def fill_secs(text: str, steps: dict[str, dict] | None) -> str | None:
+    """`{secs:<step>}` -> that step's wall time in whole seconds; None when a step or its time is missing."""
+    bad = False
+
+    def sub(m):
+        nonlocal bad
+        st = (steps or {}).get(m.group(1)) or {}
+        if st.get("secs") is None:
+            bad = True
+            return m.group(0)
+        return f"{float(st['secs']):.0f}"
+    out = _SECS.sub(sub, text)
+    return None if bad else out
+
+
+def resolve(route: dict | None, runcheck: dict | None = None) -> list[dict]:
+    """Each entry as the image may draw it: the first candidate whose anchors and probes all hold, with
+    `verified` true; or, when none holds, the entry's own wording with `verified` false and every reason."""
+    route = route or {}
+    steps = steps_of(runcheck, route.get("release"))
+    out = []
+    for e in route.get("entries") or []:
+        cands = [e] + list(e.get("instead") or [])
+        reasons: list[str] = []
+        chosen = None
+        for i, c in enumerate(cands):
+            miss = list(c.get("missing") or [])
+            if not (c.get("verified_head") and c.get("verified_release")) and not miss:
+                miss = ["anchors do not hold"]
+            miss += run_missing(c, steps)
+            text = fill_secs(str(c.get("text") or ""), steps)
+            if text is None:
+                miss.append("run check: no time for a {secs:…} figure")
+            if not miss:
+                chosen = dict(c, text=text)
+                break
+            reasons += [f"[{i}] {m}" if len(cands) > 1 else m for m in miss]
+        base = {"id": e.get("id"), "kind": e.get("kind"), "scope": e.get("scope", "both"), "loop": bool(e.get("loop"))}
+        if chosen is not None:
+            out.append({**base, "text": chosen["text"], "file": chosen.get("file") or e.get("file"),
+                        "verified": True, "missing": []})
+        else:
+            out.append({**base, "text": e.get("text"), "file": e.get("file"), "verified": False, "missing": reasons})
+    return out
+
+
+def header_ok(route: dict | None, runcheck: dict | None = None) -> tuple[bool, list[str]]:
+    route = route or {}
+    miss = list(route.get("header_missing") or [])
+    if not route.get("header_verified") and not miss:
+        miss = ["anchors do not hold"]
+    miss += run_missing({"runs": route.get("header_runs") or []}, steps_of(runcheck, route.get("release")))
+    return not miss, miss
+
+
+def drawn(route: dict | None, runcheck: dict | None = None) -> list[dict]:
+    """The entries the image may draw: anchors hold (at HEAD and in the release, or in the release for a release-only
+    entry) and the run-check probes they name came out as stated."""
+    return [e for e in resolve(route, runcheck) if e["verified"]]
+
+
+def unverified(route: dict | None, runcheck: dict | None = None) -> list[dict]:
+    return [e for e in resolve(route, runcheck) if not e["verified"]]
 
 
 # ---------------------------------------------------------------- the hand-offs

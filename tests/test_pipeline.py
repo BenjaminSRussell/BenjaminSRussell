@@ -246,7 +246,7 @@ class Readme(unittest.TestCase):
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
         figs = render_readme.figures(self.stats, self.cfg)
         block = render_readme.survey_block(self.stats, figs)
-        self.assertTrue(block.startswith("<sub>The drawing is checked against rustmapper's code at `")
+        self.assertTrue(block.startswith("<sub>The drawing describes rustmapper ")
                         and block.endswith(" · regenerated weekly.</sub>"), block)
         self.assertIn(f"Test counts and CI results measured {figs['taken']} from clones of {figs['repo_count']} public "
                       "repositories", block)
@@ -276,11 +276,14 @@ class Readme(unittest.TestCase):
                       routes={"rustmapper": {"repo": "Rust-sitemap", "entries": []}},
                       repos=[{"name": "Rust-sitemap", "head": {"sha": "3" * 40, "short": "32c2651", "date": "2026-10-07"}}],
                       runcheck={"rustmapper": {"ok": True, "date": "2026-10-09", "version": "0.1.3",
-                                               "runner": "macOS arm64", "install": "prebuilt wheel"}})
+                                               "runner": "macOS arm64", "install": "prebuilt wheel",
+                                               "steps": [{"id": i, "ok": True} for i in
+                                                         ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
         self.assertTrue(render_readme.survey_block(routed).startswith(
-            "<sub>The drawing is checked against rustmapper's code at `32c2651` and its 0.1.3 release on PyPI: a stop or "
-            "a trap is drawn only while the code it describes is found in both, and the install lines last ran "
-            "9 Oct 2026 on macOS arm64, from the prebuilt wheel. Test counts and CI results measured 9 Oct 2026"))
+            "<sub>The drawing describes rustmapper 0.1.3, the release pip installs: every line on it names code found "
+            "there, and each line about the design also at `32c2651` on main; its install, crawl, Ctrl-C, kill and "
+            "export lines were run against 0.1.3 on 9 Oct 2026 on macOS arm64. Test counts and CI results measured "
+            "9 Oct 2026"))
         self.assertNotIn("2,032", render_readme.survey_block(full), "no commit total")
         clause = render_readme.agent_clause
         no_share = dict(full, coauthored_total={"count": 502, "agent": 63})
@@ -391,12 +394,12 @@ class Readme(unittest.TestCase):
         order = ["<!-- picture:hero:end -->", "<!-- position:start", '<a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>',
                  "<!-- contact:start", "**Ben Russell builds**", "**Languages**", "**Stack**",
                  "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler",
-                 "<!-- n:edition_version -->", "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
-                 "pip install rustmapper", "Prebuilt wheel for Apple silicon", "- The throttle watches the database",
+                 "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
+                 "pip install rustmapper", "Prebuilt wheel for Apple silicon",
                  "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "cd Scraping_project", "scrapy crawl scout", "**Also**", "<summary>15 more repositories", "**Working rules**",
+                 "<!-- facts:Scrapy:start -->", "# start.py must run from here", "cd Scraping_project", "scrapy crawl scout", "**Also**", "<summary>15 more repositories", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>The drawing is checked against", " · regenerated weekly.</sub>",
+                 "<!-- survey:start -->", "<sub>The drawing describes rustmapper", " · regenerated weekly.</sub>",
                  "<!-- license:start -->", "**License**", "[DESIGN.md](DESIGN.md)"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")

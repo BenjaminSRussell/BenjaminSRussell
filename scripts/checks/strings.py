@@ -3,7 +3,11 @@ README.md and chart.toml (T10 check 6 + STANDARDS 1); and, since v10 (round 4, D
 is printed), no text run on the hero whose report `truth` is anything but measured.
 
 Figures inside `<!-- n:key -->…<!-- /n -->` markers are build-written and exempt ("Oct 2024" is
-banned as a hand-typed figure, not as a date)."""
+banned as a hand-typed figure, not as a date).
+
+STRINGS-TWICE (round 6, review 1: one home per fact): no run of more than TWICE_WORDS words appears both in the
+hero's text and in README.md's visible text (the alt text, which repeats the image for screen readers by design, and
+HTML comments are left out). The image keeps what a list cannot show; the text keeps what you copy or look up."""
 from __future__ import annotations
 
 import os
@@ -56,6 +60,37 @@ def unmeasured(report: dict | None) -> list[Finding]:
     return out
 
 
+TWICE_WORDS = 4
+_WORD = re.compile(r"[a-z0-9][a-z0-9_.'/-]*[a-z0-9]|[a-z0-9]")
+
+
+def _words(text: str) -> list[str]:
+    return _WORD.findall(str(text or "").lower())
+
+
+def readme_visible(readme: str) -> str:
+    """README text a reader sees: comments, tags (with their alt and href attributes) and link targets removed."""
+    t = re.sub(r"<!--.*?-->", " ", readme or "", flags=re.S)
+    t = re.sub(r"<[^>]+>", " ", t)
+    t = re.sub(r"\]\([^)]*\)", "] ", t)
+    return t.replace("`", " ").replace("*", " ")
+
+
+def twice(hero_text: list[str], readme: str, n: int = TWICE_WORDS + 1) -> list[str]:
+    """The runs of `n` words found both in the hero's text runs (each run, and each element's runs joined in order)
+    and in README.md's visible text."""
+    page = _words(readme_visible(readme))
+    grams = {tuple(page[i:i + n]) for i in range(len(page) - n + 1)}
+    hits = []
+    for chunk in hero_text:
+        w = _words(chunk)
+        for i in range(len(w) - n + 1):
+            g = tuple(w[i:i + n])
+            if g in grams and " ".join(g) not in hits:
+                hits.append(" ".join(g))
+    return hits
+
+
 def scan(text: str, where: str, code: str = "STRINGS-BANNED") -> list[Finding]:
     out = []
     for label, pat in PATTERNS:
@@ -75,6 +110,13 @@ def check(ctx) -> list[Finding]:
         out += scan(manifest, f"{name} text manifest", "STRINGS-MANIFEST")
         out += scan(str(e.get("alt", "")), f"{name} alt", "STRINGS-ALT")
     out += unmeasured(ctx.report)
+    if ctx.readme:
+        for name, e in (ctx.report or {}).get("sheets", {}).items():
+            if not name.startswith("hero-"):
+                continue
+            runs = [str(t.get("s", "")) for t in e.get("text", []) if isinstance(t, dict)]
+            for hit in twice(runs + [" ".join(runs)], ctx.readme):
+                out.append(fail("STRINGS-TWICE", f"{hit!r} is in the image and in the README: say it once", name))
     if ctx.readme:
         readme = _N_SPAN.sub("", ctx.readme)
         readme = _MARKER.sub("", readme)

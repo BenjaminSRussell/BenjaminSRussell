@@ -126,7 +126,7 @@ source = "toml"
 [[notices]]
 n = 4
 title = "Parse, don't pattern-match."
-body = ""
+body = "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not."
 cite = "ideal-url-organizer, Nov 2025."
 repo = "ideal-url-organizer"
 date = "2025-11"
@@ -152,7 +152,7 @@ log = "Ship's log on ruled paper: one rustmapper crawl, computed from settings, 
 instruments = "Equipment list: languages, stores and queues, deck; the date each was first fitted. Bold: underway this quarter; the rest when asked."
 footer = "Limit of survey: a dotted line, hatched ground beyond, a sailboat anchored short of the edge. The chart ends here; the web doesn't."
 alt_poem = [
-  "It ends at data/sitemap.jsonl; two traps are marked.",
+  "It loops until one Ctrl-C writes data/sitemap.jsonl.",
   "Every week sounded.",
   "The soundings fill in behind the vessel.",
   "Types once; only the cursor keeps time.",
@@ -271,26 +271,37 @@ built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]
 repo = "Rust-sitemap"
 project = "rustmapper"
 header = "Crawls a site and writes one line for every page it reaches."
-header_anchors = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
+# the sentence rests on the code that writes the file, at HEAD and in the release, and on the run check's crawl
+header_head = [{path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
+header_release = [{path = "src/main.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
+header_runs = ["crawl_ctrl_c"]
 
 # README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
 # P1 test (a site whose robots.txt is a 404 is crawled) and the P2 test (--duration stops a stalled crawl) are at HEAD.
 [route.rustmapper.gates]
 cargo = [{path = "tests/robots_4xx_allows_crawl.rs"}, {path = "tests/duration_stops_stalled_crawl.rs"}]
 
+# The route is the run's order: what you type, what happens to each URL, how you stop it, what you get. The rows with
+# `loop = true` repeat for every page, and the image draws one line back from the last of them to the first.
+# `runs` / `fails` name run-check probes (scripts/runcheck.py) that must have passed / failed for the release.
+
 [[route.rustmapper.entry]]
 id = "S1"
 kind = "stop"
-file = "*_seeder.rs"
-text = "start URL, plus seeds from sitemaps, CT logs, Common Crawl"
-head = [{path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"}, {path = "src/common_crawl_seeder.rs"},
-        {path = "src/cli.rs", text = "seeding_strategy"}]
-release = [{path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"}, {path = "src/common_crawl_seeder.rs"},
-           {path = "src/cli.rs", text = "seeding_strategy"}]
+scope = "release"          # the default is the release's: 0.1.3 seeds from all three, HEAD from none
+file = "seeder.rs"
+text = "start URL; by default also seeds from sitemaps, CT logs, Common Crawl"
+release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
+           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "all"'}]
+[[route.rustmapper.entry.instead]]
+text = "start URL; seeds from sitemaps, CT logs, Common Crawl if asked"
+release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
+           {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "none"'}]
 
 [[route.rustmapper.entry]]
 id = "S2"
 kind = "stop"
+loop = true                # the queue: the loop's way back ends here once this stop is drawn
 file = "frontier.rs"
 text = "one queue per host, paced by that host's robots.txt"
 # the test file is P1 (SPEC §1): at 32c2651 a site whose robots.txt answers 404 is never crawled
@@ -299,36 +310,76 @@ head = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robo
 release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/robots.rs", text = "fn fetch_robots_txt"}]
 
 [[route.rustmapper.entry]]
+id = "F1"
+kind = "stop"
+loop = true
+file = "bfs_crawler.rs"
+text = "fetch a page; same-site links go back on the queue"
+head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
+        {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("}]
+release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
+           {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("}]
+runs = ["crawl_ctrl_c"]
+
+[[route.rustmapper.entry]]
+id = "G1"
+kind = "note"              # it acts on the fetches from the side (semaphore permits), so no ring on the line
+loop = true
+file = "governor.rs"
+text = "fewer requests in flight when redb commits slow down"
+head = [{path = "src/orchestration/governor.rs", text = "THROTTLE_THRESHOLD_MS"},
+        {path = "src/orchestration/governor.rs", text = "add_permits"}]
+release = [{path = "src/main.rs", text = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "add_permits"}]
+
+[[route.rustmapper.entry]]
+id = "W1"
+kind = "stop"
+loop = true
+file = "wal.rs"
+text = "logged before stored: after a kill, export-sitemap still writes sitemap.xml"
+head = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"},
+        {path = "src/writer_thread.rs", text = "WAL write must succeed before DB commit"}, {path = "src/cli.rs", text = "ExportSitemap"}]
+release = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"},
+           {path = "src/writer_thread.rs", text = "WAL write must succeed before DB commit"}, {path = "src/cli.rs", text = "ExportSitemap"}]
+runs = ["export_after_kill"]
+
+# One hazard, on the loop, with its way out on the next row (C1). The words are the release's: 0.1.3 has no page or
+# depth limit (HEAD has --max-urls), and its crawl did not exit by itself on a three-page site (probe ends_by_itself).
+[[route.rustmapper.entry]]
 id = "H1"
 kind = "trap"
-text = "subdomains are in scope and there is no depth limit"
-head = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/cli.rs", absent = "max_depth"}]
-release = [{path = "src/url_utils.rs", text = "pub fn is_same_domain"}, {path = "src/cli.rs", absent = "max_depth"}]
+scope = "release"
+loop = true
+text = "never ends by itself: no page or depth limit, and the parent domain counts as same-site"
+release = [{path = "src/url_utils.rs", text = "base_domain.ends_with(url_domain)"}, {path = "src/cli.rs", absent = "max_urls"},
+           {path = "src/cli.rs", absent = "max_depth"}]
+fails = ["ends_by_itself"]
+[[route.rustmapper.entry.instead]]
+text = "no depth limit, and the parent domain counts as same-site: stop it with --max-urls N"
+release = [{path = "src/url_utils.rs", text = "base_domain.ends_with(url_domain)"}, {path = "src/cli.rs", text = "max_urls"},
+           {path = "src/cli.rs", absent = "max_depth"}]
+[[route.rustmapper.entry.instead]]
+text = "no page or depth limit, and the parent domain counts as same-site; a 3-page crawl ended in {secs:ends_by_itself} s"
+release = [{path = "src/url_utils.rs", text = "base_domain.ends_with(url_domain)"}, {path = "src/cli.rs", absent = "max_depth"}]
+runs = ["ends_by_itself"]
 
 [[route.rustmapper.entry]]
-id = "S3"
-kind = "stop"
-file = "governor.rs"
-text = "fewer fetch workers when redb commits lag"
-head = [{path = "src/orchestration/governor.rs", text = "THROTTLE_THRESHOLD_MS"}]
-release = [{path = "src/main.rs", text = "THROTTLE_THRESHOLD_MS"}]
-
-[[route.rustmapper.entry]]
-id = "S4"
-kind = "stop"
-file = "wal.rs"
-text = "logged before stored; resume picks up after a kill"
-head = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"}, {path = "src/cli.rs", text = "Resume {"}]
-release = [{path = "src/wal.rs", text = "[u32 len][u32 crc32c][u128 seqno][payload]"}, {path = "src/cli.rs", text = "Resume {"}]
-
-[[route.rustmapper.entry]]
-id = "H2"
-kind = "trap"
-text = "written when the crawl stops: press Ctrl-C once, not twice"
+id = "C1"
+kind = "step"
+text = "press Ctrl-C once: that writes the file; a second press, or a kill, quits without it"
 head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
         {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
 release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
            {path = "src/main.rs", text = 'join("sitemap.jsonl")'}]
+runs = ["crawl_ctrl_c"]
+fails = ["kill_writes_file"]
+[[route.rustmapper.entry.instead]]
+text = "press Ctrl-C once: that writes the file; a second press quits without it"
+head = [{path = "src/orchestration/shutdown.rs", text = "Force quit requested, exiting immediately"},
+        {path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}]
+release = [{path = "src/main.rs", text = "Force quit requested, exiting immediately"},
+           {path = "src/main.rs", text = 'join("sitemap.jsonl")'}]
+runs = ["crawl_ctrl_c"]
 
 [[route.rustmapper.entry]]
 id = "R13"
@@ -339,14 +390,7 @@ head = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "src/s
         {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
 release = [{path = "src/state.rs", text = "pub struct SitemapNode"}, {path = "src/state.rs", text = "pub depth: u32"},
            {path = "src/state.rs", text = "pub status_code: Option<u16>"}, {path = "src/state.rs", text = "pub title: Option<String>"}]
-
-[[route.rustmapper.entry]]
-id = "R14"
-kind = "export"
-file = "sitemap.xml"
-text = "export-sitemap"
-head = [{path = "src/cli.rs", text = "ExportSitemap"}]
-release = [{path = "src/cli.rs", text = "ExportSitemap"}]
+runs = ["crawl_ctrl_c"]
 
 # ----------------------------------------------------------------- hand-offs (round 6, SPEC §5.4)
 # A join between two of his repositories counts only when code on the receiving side proves it.
@@ -363,7 +407,8 @@ reader_list = "URL_RECORD_FIELDS"
 test = "tests/test_import_rust_sitemapper.py"
 url = "https://github.com/BenjaminSRussell/ideal-url-organizer"
 # README sentences (marker `handoffs`): {to}, {url}, {reader}, {file} are filled from the computed record
-says_runs = "Its `{file}` is read by [{to}]({url}) (`{reader}`, with a test)."
+# the image draws this join (R15) while its state is `runs`, so the README says nothing (one home per fact)
+says_runs = ""
 says_not = ""
 
 [[handoffs]]
@@ -376,4 +421,4 @@ writer = "python/rustmapper/export_parquet.py"
 mentions = ["rustmapper", "Rust-sitemap"]
 url = "https://github.com/BenjaminSRussell/Scrapy"
 says_runs = "Its Delta export for Scrapy's `stage1_discovery` table is read by [Scrapy]({url}) (`{reader}`)."
-says_not = "Its Delta export for Scrapy's `stage1_discovery` table is not read by Scrapy yet."
+says_not = ""     # an unbuilt join is a to-do, not something a visitor needs (round 6, review 1)

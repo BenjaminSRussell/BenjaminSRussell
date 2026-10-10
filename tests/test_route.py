@@ -49,7 +49,8 @@ def tree(files: dict[str, str]):
 
 
 def all_verified(stats: dict) -> dict:
-    """The committed stats with every route entry verified (what the sheet draws once P1 lands)."""
+    """The committed stats with every route entry's anchors holding (what the sheet draws once P1 lands). The
+    run-check probes stay as measured."""
     s = copy.deepcopy(stats)
     for e in s["routes"]["rustmapper"]["entries"]:
         e.update(verified_head=True, verified_release=True, missing=[])
@@ -118,11 +119,78 @@ class Anchors(unittest.TestCase):
             stats = json.load(fh)
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
-        self.assertEqual([e["id"] for e in route["entries"]], ["S1", "S2", "H1", "S3", "S4", "H2", "R13", "R14"])
+        self.assertEqual([e["id"] for e in route["entries"]], ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13"])
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
-        for gid in ("S1", "H1", "S3", "S4", "H2", "R13", "R14"):
-            self.assertTrue(by[gid]["verified_head"] and by[gid]["verified_release"], by[gid])
+        rc = stats["runcheck"]["rustmapper"]
+        drawn = {e["id"]: e for e in R.drawn(route, rc)}
+        for gid in ("S1", "F1", "G1", "W1", "H1", "C1", "R13"):
+            self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
+        # the release's words: seeds by default, never ends by itself, a kill writes nothing (run check, 0.1.3)
+        self.assertIn("by default", drawn["S1"]["text"])
+        self.assertTrue(drawn["H1"]["text"].startswith("never ends by itself"))
+        self.assertIn("or a kill", drawn["C1"]["text"])
+        self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
+
+
+class Probes(unittest.TestCase):
+    """Round 6, review 1: an entry rests on running the tool, not only on finding strings."""
+    SPEC = {"repo": "x", "entry": [
+        {"id": "H1", "kind": "trap", "scope": "release", "text": "never ends by itself",
+         "release": [{"path": "src/cli.rs", "absent": "max_urls"}], "fails": ["ends_by_itself"],
+         "instead": [{"text": "stop it with --max-urls N", "release": [{"path": "src/cli.rs", "text": "max_urls"}]},
+                     {"text": "a 3-page crawl ended in {secs:ends_by_itself} s", "release": [{"path": "src/cli.rs"}],
+                      "runs": ["ends_by_itself"]}]},
+        {"id": "W1", "kind": "stop", "text": "export after a kill", "head": [{"path": "src/wal.rs"}],
+         "release": [{"path": "src/wal.rs"}], "runs": ["export_after_kill"]},
+    ]}
+
+    @staticmethod
+    def rc(**probes):
+        return {"version": "0.1.3", "ok": True,
+                "steps": [{"id": k, "ok": v, "gate": False, "secs": 91.4} for k, v in probes.items()]}
+
+    def route(self, cli="fn main() {}"):
+        files = {"src/cli.rs": cli, "src/wal.rs": "wal"}
+        return R.verify_route(self.SPEC, tree(files), tree(files), "abc", "0.1.3")
+
+    def test_release_scope_needs_no_head(self):
+        e = self.route()["entries"][0]
+        self.assertTrue(e["verified_head"] and e["verified_release"])
+        self.assertEqual(e["scope"], "release")
+
+    def test_probe_picks_the_words(self):
+        r = self.route()
+        by = {e["id"]: e for e in R.resolve(r, self.rc(ends_by_itself=False, export_after_kill=True))}
+        self.assertEqual(by["H1"]["text"], "never ends by itself")
+        self.assertTrue(by["W1"]["verified"])
+        by = {e["id"]: e for e in R.resolve(r, self.rc(ends_by_itself=True, export_after_kill=True))}
+        self.assertEqual(by["H1"]["text"], "a 3-page crawl ended in 91 s")
+        by = {e["id"]: e for e in R.resolve(self.route("max_urls: Option<usize>"), self.rc(ends_by_itself=False))}
+        self.assertEqual(by["H1"]["text"], "stop it with --max-urls N")
+
+    def test_a_failed_probe_is_not_drawn(self):
+        r = self.route()
+        un = {e["id"]: e for e in R.unverified(r, self.rc(ends_by_itself=False, export_after_kill=False))}
+        self.assertIn("W1", un)
+        self.assertIn("export_after_kill failed", " ".join(un["W1"]["missing"]))
+        self.assertEqual([e["id"] for e in R.unverified(r, None)], ["H1", "W1"])     # no run check: nothing rests on faith
+        other = dict(self.rc(ends_by_itself=False, export_after_kill=True), version="0.1.2")
+        self.assertEqual([e["id"] for e in R.unverified(r, other)], ["H1", "W1"])    # a run of another release
+
+    def test_runcheck_gate_ignores_probes(self):
+        import runcheck
+        steps = []
+        runcheck._step(steps, "install", "pip install", True, secs=180.0)
+        runcheck._step(steps, "ends_by_itself", "crawl alone", False, gate=False)
+        self.assertEqual(steps[0]["secs"], 180.0)
+        self.assertFalse(steps[1]["gate"])
+        self.assertEqual(sheet.install_words({"runner": "Linux x86_64", "install": "sdist (built with Rust)",
+                                              "steps": steps}), "3 min on Linux x86_64: pip builds it from source")
+        self.assertEqual(sheet.install_words({"runner": "macOS arm64", "install": "prebuilt wheel",
+                                              "steps": [{"id": "install", "ok": True, "secs": 8.6}]}),
+                         "9 s on macOS arm64: prebuilt wheel")
+        self.assertIsNone(sheet.install_words({"runner": "x", "steps": [{"id": "install", "ok": True}]}))
 
 
 class Commands(unittest.TestCase):
@@ -140,7 +208,8 @@ class Commands(unittest.TestCase):
             s["edition"]["scripts"] = scripts
             s["runcheck"]["rustmapper"]["scripts"] = scripts
             self.assertEqual(sheet.plan(s, cfg)["command"], want)
-            self.assertIn(want.split()[0] + " crawl --start-url <your-site>", rr.install_block(s, "Rust-sitemap", cfg))
+            block = rr.install_block(s, "Rust-sitemap", cfg)
+            self.assertIn(want.split()[0] + " crawl \\\n    --start-url <your-site>", block)
         s = copy.deepcopy(stats)
         s["edition"]["scripts"] = []
         with self.assertRaises(RuntimeError):
@@ -293,7 +362,7 @@ class RouteSheet(unittest.TestCase):
             groups = re.findall(r'<g id="hero-([A-Z]\d+)"', svg)
             self.assertEqual(len(groups), len(set(groups)), f"{e}: an element id repeats")
             self.assertTrue(set(groups) <= ids, f"{e}: drawn without a PURPOSE row: {set(groups) - ids}")
-            want = ids - {"R14"} if "phone" in e else ids
+            want = ids
             self.assertEqual(set(groups), want, f"{e}: PURPOSE rows without an element: {want - set(groups)}")
             # every visible mark sits inside an element group
             body = svg.split("<defs>", 1)[-1].split("</defs>", 1)[-1]
@@ -310,10 +379,7 @@ class RouteSheet(unittest.TestCase):
         self.assertNotEqual(alt.split()[0].lower(), "the")
         self.assertIn("rustmapper", alt)
         self.assertIn("data/sitemap.jsonl", alt)
-        traps = sum(1 for e in self.stats["routes"]["rustmapper"]["entries"]
-                    if e["kind"] == "trap" and e["verified_head"] and e["verified_release"])
-        self.assertIn({1: "one trap is", 2: "two traps are"}.get(traps, f"{traps} traps"), alt)
-        self.assertEqual(alt.rsplit(". ", 1)[-1], self.cfg["alt"]["alt_poem"][0])
+        self.assertIn("Ctrl-C", alt)
 
     def test_no_theme_words(self):                                # T-WORDS
         for rep in (self.report, self.freport):
@@ -348,7 +414,7 @@ class RouteSheet(unittest.TestCase):
         for e in EDITIONS:
             svg = self.svg(self.fout, e)
             th = tokens.THEMES["night" if "night" in e else "day"]
-            for gid in ("H1", "H2"):
+            for gid in ("H1",):
                 g = re.search(rf'<g id="hero-{gid}">(.*?)</g>(?=<g id="hero-)', svg, re.S).group(1)
                 self.assertIn(f'stroke="{th.accent}"', g)
                 self.assertNotIn(f'fill="{th.accent}"', g)
@@ -390,7 +456,7 @@ class RouteSheet(unittest.TestCase):
         n, rep, _out = _build(self.tmp, "live", _write(self.tmp, live, "live"))
         self.assertEqual(n, 0, rep["problems"])
         texts = " ".join(t["s"] for t in rep["sheets"]["hero-day"]["text"])
-        self.assertIn(f"1 OF {live['repo_count']} PUBLIC REPOSITORIES", texts)
+        self.assertIn(f"1 OF {live['repo_count']}", texts)
         self.assertNotIn("CI ON MAIN", texts)
 
 

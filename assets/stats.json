@@ -1,7 +1,7 @@
 {
  "schema": 2,
- "updated_at": "2026-10-09T22:50:12Z",
- "taken": "2026-10-09",
+ "updated_at": "2026-10-10T00:02:26Z",
+ "taken": "2026-10-10",
  "run_id": "local",
  "provenance": {
   "mode": "cache",
@@ -5357,6 +5357,7 @@
    "title": "Parse, don't pattern-match.",
    "url": "",
    "source": "hand",
+   "body": "A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not.",
    "cite": "ideal-url-organizer, Nov 2025.",
    "n": 4
   },
@@ -6402,7 +6403,7 @@
  },
  "all_hands": 2339,
  "first_commit": "2025-09-25",
- "days_surveyed": 379,
+ "days_surveyed": 380,
  "hours": [
   3,
   3,
@@ -6449,8 +6450,8 @@
   "prior_hour": 12,
   "annual_change": null,
   "basis_days": [
-   138,
-   17
+   137,
+   18
   ],
   "min_basis_days": 60
  },
@@ -7034,80 +7035,177 @@
    "header": "Crawls a site and writes one line for every page it reaches.",
    "header_verified": true,
    "header_missing": [],
+   "header_runs": [
+    "crawl_ctrl_c"
+   ],
    "entries": [
     {
      "id": "S1",
      "kind": "stop",
-     "file": "*_seeder.rs",
-     "text": "start URL, plus seeds from sitemaps, CT logs, Common Crawl",
+     "scope": "release",
+     "loop": false,
+     "text": "start URL; by default also seeds from sitemaps, CT logs, Common Crawl",
+     "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
-     "missing": []
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "instead": [
+      {
+       "text": "start URL; seeds from sitemaps, CT logs, Common Crawl if asked",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/cli.rs: no 'default_value = \"none\"'"
+       ],
+       "runs": [],
+       "fails": []
+      }
+     ]
     },
     {
      "id": "S2",
      "kind": "stop",
-     "file": "frontier.rs",
+     "scope": "both",
+     "loop": true,
      "text": "one queue per host, paced by that host's robots.txt",
+     "file": "frontier.rs",
      "verified_head": false,
      "verified_release": true,
      "missing": [
       "head tests/robots_4xx_allows_crawl.rs: file missing"
-     ]
+     ],
+     "runs": [],
+     "fails": []
+    },
+    {
+     "id": "F1",
+     "kind": "stop",
+     "scope": "both",
+     "loop": true,
+     "text": "fetch a page; same-site links go back on the queue",
+     "file": "bfs_crawler.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
+     "fails": []
+    },
+    {
+     "id": "G1",
+     "kind": "note",
+     "scope": "both",
+     "loop": true,
+     "text": "fewer requests in flight when redb commits slow down",
+     "file": "governor.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": []
+    },
+    {
+     "id": "W1",
+     "kind": "stop",
+     "scope": "both",
+     "loop": true,
+     "text": "logged before stored: after a kill, export-sitemap still writes sitemap.xml",
+     "file": "wal.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "export_after_kill"
+     ],
+     "fails": []
     },
     {
      "id": "H1",
      "kind": "trap",
+     "scope": "release",
+     "loop": true,
+     "text": "never ends by itself: no page or depth limit, and the parent domain counts as same-site",
      "file": null,
-     "text": "subdomains are in scope and there is no depth limit",
      "verified_head": true,
      "verified_release": true,
-     "missing": []
+     "missing": [],
+     "runs": [],
+     "fails": [
+      "ends_by_itself"
+     ],
+     "instead": [
+      {
+       "text": "no depth limit, and the parent domain counts as same-site: stop it with --max-urls N",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/cli.rs: no 'max_urls'"
+       ],
+       "runs": [],
+       "fails": []
+      },
+      {
+       "text": "no page or depth limit, and the parent domain counts as same-site; a 3-page crawl ended in {secs:ends_by_itself} s",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "ends_by_itself"
+       ],
+       "fails": []
+      }
+     ]
     },
     {
-     "id": "S3",
-     "kind": "stop",
-     "file": "governor.rs",
-     "text": "fewer fetch workers when redb commits lag",
-     "verified_head": true,
-     "verified_release": true,
-     "missing": []
-    },
-    {
-     "id": "S4",
-     "kind": "stop",
-     "file": "wal.rs",
-     "text": "logged before stored; resume picks up after a kill",
-     "verified_head": true,
-     "verified_release": true,
-     "missing": []
-    },
-    {
-     "id": "H2",
-     "kind": "trap",
+     "id": "C1",
+     "kind": "step",
+     "scope": "both",
+     "loop": false,
+     "text": "press Ctrl-C once: that writes the file; a second press, or a kill, quits without it",
      "file": null,
-     "text": "written when the crawl stops: press Ctrl-C once, not twice",
      "verified_head": true,
      "verified_release": true,
-     "missing": []
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
+     "fails": [
+      "kill_writes_file"
+     ],
+     "instead": [
+      {
+       "text": "press Ctrl-C once: that writes the file; a second press quits without it",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": []
+      }
+     ]
     },
     {
      "id": "R13",
      "kind": "end",
-     "file": "data/sitemap.jsonl",
+     "scope": "both",
+     "loop": false,
      "text": "one line per page: url, depth, status_code, title, …",
+     "file": "data/sitemap.jsonl",
      "verified_head": true,
      "verified_release": true,
-     "missing": []
-    },
-    {
-     "id": "R14",
-     "kind": "export",
-     "file": "sitemap.xml",
-     "text": "export-sitemap",
-     "verified_head": true,
-     "verified_release": true,
-     "missing": []
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
+     "fails": []
     }
    ],
    "gates": {
@@ -7233,39 +7331,92 @@
    "install": "sdist (built with Rust)",
    "steps": [
     {
+     "id": "venv",
      "cmd": "python3.13 -m venv v",
      "ok": true,
+     "gate": true,
+     "secs": 3.1,
      "detail": ""
     },
     {
+     "id": "install",
      "cmd": "v/bin/pip install --no-cache-dir rustmapper==0.1.3",
      "ok": true,
+     "gate": true,
+     "secs": 179.8,
      "detail": "sdist (built with Rust); Successfully installed rustmapper-0.1.3"
     },
     {
+     "id": "help",
      "cmd": "rust_sitemap --help",
      "ok": true,
+     "gate": true,
+     "secs": null,
      "detail": ""
     },
     {
+     "id": "crawl_help",
      "cmd": "rust_sitemap crawl --help mentions --start-url",
      "ok": true,
+     "gate": true,
+     "secs": null,
      "detail": ""
     },
     {
+     "id": "export_help",
      "cmd": "rust_sitemap export-sitemap --help",
      "ok": true,
+     "gate": true,
+     "secs": null,
      "detail": ""
     },
     {
+     "id": "crawl_ctrl_c",
      "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d (no robots.txt; one SIGINT after 45 s)",
      "ok": true,
-     "detail": "exit 0 after one SIGINT; 3 lines; keys url, depth, status_code, title present; status 200"
+     "gate": true,
+     "secs": 2.0,
+     "detail": "exit 0 2.0 s after one SIGINT; 3 lines; keys url, depth, status_code, title present; status 200"
     },
     {
+     "id": "export",
      "cmd": "rust_sitemap export-sitemap --data-dir d --output s.xml",
      "ok": true,
+     "gate": true,
+     "secs": 0.0,
      "detail": "3 <loc>"
+    },
+    {
+     "id": "ends_by_itself",
+     "cmd": "rust_sitemap crawl with no signal exits by itself within 150 s",
+     "ok": false,
+     "gate": false,
+     "secs": 150,
+     "detail": "still running at 150 s; stopped with one SIGINT"
+    },
+    {
+     "id": "kill_writes_file",
+     "cmd": "rust_sitemap crawl sent SIGTERM after 5 s writes sitemap.jsonl",
+     "ok": false,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "exit -15 0.0 s after one SIGTERM; sitemap.jsonl was not written"
+    },
+    {
+     "id": "export_after_kill",
+     "cmd": "rust_sitemap export-sitemap --data-dir d3 --output k.xml",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "3 <loc>"
+    },
+    {
+     "id": "resume_after_kill",
+     "cmd": "rust_sitemap resume --data-dir d3 after the kill writes every page",
+     "ok": false,
+     "gate": false,
+     "secs": null,
+     "detail": "exited by itself (exit 1) before the SIGINT; sitemap.jsonl was not written; Error: Crawler(\"Database creation error: Database already open. Cannot acquire lock.\")"
     }
    ],
    "ok": true

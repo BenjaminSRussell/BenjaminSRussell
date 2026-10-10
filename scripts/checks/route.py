@@ -1,8 +1,9 @@
 """route — the hero claims only what rustmapper does (round 6, SPEC §7).
 
-ROUTE-UNVERIFIED (fail): an entry of routes.<name> whose anchors do not hold at HEAD or in the release; it names the
-  entry and the missing string. The sheet leaves such an entry out, and the gate refuses to ship the gap.
-ROUTE-HEADER (fail): the project sentence's anchors do not hold.
+ROUTE-UNVERIFIED (fail): an entry of routes.<name> none of whose wordings holds: its anchors at HEAD or in the release,
+  or the run-check probes it names (`runs` passed, `fails` failed); it names the entry and every reason. The sheet
+  leaves such an entry out, and the gate refuses to ship the gap.
+ROUTE-HEADER (fail): the project sentence's anchors or its run-check steps do not hold.
 ROUTE-ENTRANCE (fail): runcheck.rustmapper missing, failed, for another version than edition.version, or dated more
   than 14 days before `taken`.
 ROUTE-CI (warn): the flagship has no CI record, so the title block's CI line is left out.
@@ -20,11 +21,12 @@ import datetime as dt
 import re
 
 from check import Finding, fail, info, warn
+from data import route as R
 
 TIER = "fast"
 PROJECT = "rustmapper"
 MAX_AGE = 14
-SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "copy", "identity")
+SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "copy", "identity", "runcheck")
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
@@ -49,21 +51,20 @@ def check(ctx) -> list[Finding]:
     route = (stats.get("routes") or {}).get(PROJECT)
     if not isinstance(route, dict):
         return [fail("ROUTE-MISSING", f"stats.json has no routes.{PROJECT}: run build_stats.py")]
-    for e in route.get("entries") or []:
-        if not (e.get("verified_head") and e.get("verified_release")):
-            out.append(fail("ROUTE-UNVERIFIED", f"{e.get('id')} {e.get('text')!r} is not drawn: "
-                            + "; ".join(e.get("missing") or ["no reason recorded"]), "stats.json routes"))
-    if route.get("header") and not route.get("header_verified", False):
-        out.append(fail("ROUTE-HEADER", "the project sentence's anchors do not hold: "
-                        + "; ".join(route.get("header_missing") or []), "stats.json routes"))
     rc = (stats.get("runcheck") or {}).get(PROJECT)
+    for e in R.unverified(route, rc):
+        out.append(fail("ROUTE-UNVERIFIED", f"{e.get('id')} {e.get('text')!r} is not drawn: "
+                        + "; ".join(e.get("missing") or ["no reason recorded"]), "stats.json routes"))
+    hok, hmiss = R.header_ok(route, rc)
+    if route.get("header") and not hok:
+        out.append(fail("ROUTE-HEADER", "the project sentence does not hold: " + "; ".join(hmiss), "stats.json routes"))
     ed = stats.get("edition") or {}
     if not isinstance(rc, dict):
         out.append(fail("ROUTE-ENTRANCE", "no run check recorded (scripts/runcheck.py, the workflow's runcheck job)"))
     else:
         taken, when = _iso(stats.get("taken")), _iso(rc.get("date"))
         if not rc.get("ok"):
-            bad = [s.get("cmd") for s in rc.get("steps") or [] if not s.get("ok")]
+            bad = [s.get("cmd") for s in rc.get("steps") or [] if not s.get("ok") and s.get("gate", True)]
             out.append(fail("ROUTE-ENTRANCE", f"the run check failed: {'; '.join(bad) or 'no step passed'}"))
         if str(rc.get("version")) != str(ed.get("version")):
             out.append(fail("ROUTE-ENTRANCE", f"the run check tested {rc.get('version')}; the release is {ed.get('version')}"))

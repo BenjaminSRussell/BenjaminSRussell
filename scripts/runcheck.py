@@ -3,9 +3,19 @@
 
 Installs the released rustmapper into a clean venv, runs every executable the wheel ships, crawls a local
 site that has no robots.txt, sends one SIGINT, and checks the file the crawl writes and the sitemap it
-exports. Standard library only. Writes runcheck.json:
+exports. Those are the entrance steps (`gate: true`); `ok` is true only when every one of them passed.
 
-    {date, runner, python, version, scripts, install, steps: [{cmd, ok, detail}], ok}
+Then it probes four behaviours a stranger meets in the first minute (`gate: false`; `ok` says whether the
+behaviour happened, and a route entry in chart.toml names the probes it rests on with `runs` / `fails`):
+
+    ends_by_itself      a crawl with no signal exits by itself within ENDS_SECONDS, with every page written
+    kill_writes_file    a crawl sent SIGTERM (what `kill`, `timeout` and `docker stop` send) writes sitemap.jsonl
+    export_after_kill   after that kill, export-sitemap still writes a sitemap.xml with every page
+    resume_after_kill   after that kill, `resume` runs and writes every page
+
+Every step carries `secs`, its wall time from time.monotonic(). Standard library only. Writes runcheck.json:
+
+    {date, runner, python, version, scripts, install, steps: [{id, cmd, ok, gate, secs, detail}], ok}
 
 The weekly workflow runs it on macos-14 (Apple silicon, the only platform with a prebuilt wheel) and hands
 the file to build_stats (`--runcheck`). Run it anywhere else and `runner`/`install` say so: on Linux pip
@@ -38,14 +48,27 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "tests" / "fixtures" / "route-site"
 PAGES = ("index.html", "a.html", "b.html")
 KEYS = ("url", "depth", "status_code", "title")
-CRAWL_SECONDS = 45
-EXIT_SECONDS = 60
+CRAWL_SECONDS = 45      # the entrance crawl: one SIGINT after this long (three pages take well under a second)
+EXIT_SECONDS = 60       # how long a stopped crawl may take to exit
+ENDS_SECONDS = 150      # ends_by_itself: how long a crawl with no signal is given to exit by itself
+KILL_SECONDS = 5        # kill_writes_file: SIGTERM after this long
+RESUME_SECONDS = 20     # resume_after_kill: one SIGINT after this long, if it is still running
 
 
-def _step(steps: list, cmd: str, ok: bool, detail: str = "") -> bool:
-    steps.append({"cmd": cmd, "ok": bool(ok), "detail": detail[:400]})
-    print(("ok   " if ok else "FAIL ") + cmd + (f"  ({detail[:160]})" if detail else ""), flush=True)
+def _step(steps: list, sid: str, cmd: str, ok: bool, detail: str = "", secs: float | None = None,
+          gate: bool = True) -> bool:
+    steps.append({"id": sid, "cmd": cmd, "ok": bool(ok), "gate": gate,
+                  "secs": None if secs is None else round(secs, 1), "detail": detail[:400]})
+    tag = ("ok   " if ok else "FAIL ") if gate else ("yes  " if ok else "no   ")
+    print(tag + cmd + (f"  [{secs:.1f} s]" if secs is not None else "") + (f"  ({detail[:160]})" if detail else ""),
+          flush=True)
     return ok
+
+
+def _timed(argv: list[str], timeout: int = 900, cwd: Path | None = None) -> tuple[subprocess.CompletedProcess, float]:
+    t0 = time.monotonic()
+    p = _run(argv, timeout, cwd)
+    return p, time.monotonic() - t0
 
 
 def _run(argv: list[str], timeout: int = 900, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -98,60 +121,127 @@ def check_jsonl(path: Path, port: int) -> tuple[bool, str]:
     return True, f"{len(seen)} lines; keys {', '.join(KEYS)} present; status 200"
 
 
+def _crawl(exe: str, args: list[str], work: Path, logname: str) -> tuple[subprocess.Popen, float]:
+    log = open(work / logname, "w")
+    proc = subprocess.Popen([exe, *args], stdout=log, stderr=subprocess.STDOUT, cwd=work)
+    proc._log = log  # type: ignore[attr-defined]
+    return proc, time.monotonic()
+
+
+def _stop(proc: subprocess.Popen, sig: int, after: float) -> tuple[str, float | None]:
+    """Wait `after` seconds, send `sig` if it is still running, wait for the exit. Returns (what happened,
+    seconds from the signal to the exit; None when it had exited before the signal)."""
+    name = {signal.SIGINT: "SIGINT", signal.SIGTERM: "SIGTERM"}.get(sig, str(sig))
+    try:
+        proc.wait(after)
+        what, secs = f"exited by itself (exit {proc.returncode}) before the {name}", None
+    except subprocess.TimeoutExpired:
+        t0 = time.monotonic()
+        proc.send_signal(sig)
+        try:
+            proc.wait(EXIT_SECONDS)
+            secs = time.monotonic() - t0
+            what = f"exit {proc.returncode} {secs:.1f} s after one {name}"
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            what, secs = f"still running {EXIT_SECONDS} s after one {name}; killed", None
+    proc._log.close()  # type: ignore[attr-defined]
+    return what, secs
+
+
+def _tail(path: Path) -> str:
+    try:
+        lines = [x for x in path.read_text(encoding="utf-8", errors="replace").splitlines() if x.strip()]
+    except OSError:
+        return ""
+    return lines[-1][:200] if lines else ""
+
+
+def _export(steps: list, sid: str, exe: str, name: str, data: Path, work: Path, out: str, gate: bool) -> bool:
+    xml = work / out
+    e, secs = _timed([exe, "export-sitemap", "--data-dir", str(data), "--output", str(xml)], 120, cwd=work)
+    locs = xml.read_text(encoding="utf-8", errors="replace").count("<loc>") if xml.is_file() else 0
+    detail = f"{locs} <loc>" + ("" if e.returncode == 0 else f"; exit {e.returncode}: {(e.stderr or e.stdout).strip()[-160:]}")
+    what = f"{name} export-sitemap --data-dir {data.name} --output {out}"
+    return _step(steps, sid, what, e.returncode == 0 and locs == len(PAGES), detail, secs, gate=gate)
+
+
 def run(version: str, scripts: list[str], work: Path, python: str) -> dict:
     steps: list[dict] = []
     venv = work / "v"
     bindir = venv / ("Scripts" if os.name == "nt" else "bin")
     install = ""
-    ok = _step(steps, f"{Path(python).name} -m venv v", _run([python, "-m", "venv", str(venv)]).returncode == 0)
+    p, secs = _timed([python, "-m", "venv", str(venv)])
+    ok = _step(steps, "venv", f"{Path(python).name} -m venv v", p.returncode == 0, secs=secs)
     if ok:
-        p = _run([str(bindir / "pip"), "install", "--disable-pip-version-check", "--no-cache-dir",
-                  f"rustmapper=={version}"],
-                 timeout=1800)
+        p, secs = _timed([str(bindir / "pip"), "install", "--disable-pip-version-check", "--no-cache-dir",
+                          f"rustmapper=={version}"], timeout=1800)
         out = p.stdout + p.stderr
         # --no-cache-dir: a wheel pip built from the sdist last time must not pass as a prebuilt one
         install = "sdist (built with Rust)" if re.search(r"Building wheel|maturin", out) else "prebuilt wheel"
         tail = out.strip().splitlines()[-1] if out.strip() else ""
-        ok = _step(steps, f"v/bin/pip install --no-cache-dir rustmapper=={version}", p.returncode == 0, f"{install}; {tail}")
+        ok = _step(steps, "install", f"v/bin/pip install --no-cache-dir rustmapper=={version}", p.returncode == 0,
+                   f"{install}; {tail}", secs)
     for exe in scripts if ok else []:
         path = bindir / exe
-        ok &= _step(steps, f"{exe} --help", path.exists() and _run([str(path), "--help"], 60).returncode == 0)
+        ok &= _step(steps, "help", f"{exe} --help", path.exists() and _run([str(path), "--help"], 60).returncode == 0)
         h = _run([str(path), "crawl", "--help"], 60) if path.exists() else None
-        ok &= _step(steps, f"{exe} crawl --help mentions --start-url",
+        ok &= _step(steps, "crawl_help", f"{exe} crawl --help mentions --start-url",
                     bool(h) and h.returncode == 0 and "--start-url" in h.stdout)
-        ok &= _step(steps, f"{exe} export-sitemap --help",
+        ok &= _step(steps, "export_help", f"{exe} export-sitemap --help",
                     path.exists() and _run([str(path), "export-sitemap", "--help"], 60).returncode == 0)
     if ok and scripts:
         exe = str(bindir / scripts[0])
         name = scripts[0]
         httpd, port = serve(SITE)
-        data = work / "d"
+        url = f"http://127.0.0.1:{port}/"
         try:
-            log = open(work / "crawl.log", "w")
-            proc = subprocess.Popen([exe, "crawl", "--start-url", f"http://127.0.0.1:{port}/",
-                                     "--seeding-strategy", "none", "--data-dir", str(data)],
-                                    stdout=log, stderr=subprocess.STDOUT, cwd=work)
-            time.sleep(CRAWL_SECONDS)
-            if proc.poll() is None:
-                proc.send_signal(signal.SIGINT)
-            try:
-                proc.wait(EXIT_SECONDS)
-                exited = f"exit {proc.returncode} after one SIGINT"
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                exited = f"still running {EXIT_SECONDS} s after one SIGINT; killed"
-            log.close()
+            # the entrance: crawl, one SIGINT, the file and the sitemap
+            data = work / "d"
+            proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(data)],
+                              work, "crawl.log")
+            exited, secs = _stop(proc, signal.SIGINT, CRAWL_SECONDS)
             good, detail = check_jsonl(data / "sitemap.jsonl", port)
-            ok &= _step(steps, f"{name} crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none "
-                               f"--data-dir d (no robots.txt; one SIGINT after {CRAWL_SECONDS} s)",
-                        good, f"{exited}; {detail}")
+            ok &= _step(steps, "crawl_ctrl_c", f"{name} crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy "
+                        f"none --data-dir d (no robots.txt; one SIGINT after {CRAWL_SECONDS} s)",
+                        good, f"{exited}; {detail}", secs)
+            ok &= _export(steps, "export", exe, name, data, work, "s.xml", True)
+
+            # probe: does a crawl end by itself once the pages run out?
+            d2 = work / "d2"
+            proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(d2)],
+                              work, "ends.log")
+            try:
+                proc.wait(ENDS_SECONDS)
+                took = time.monotonic() - t0
+                good, detail = check_jsonl(d2 / "sitemap.jsonl", port)
+                _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
+                      proc.returncode == 0 and good, f"exit {proc.returncode} after {took:.1f} s; {detail}", took,
+                      gate=False)
+            except subprocess.TimeoutExpired:
+                _stop(proc, signal.SIGINT, 0)
+                _step(steps, "ends_by_itself", f"{name} crawl with no signal exits by itself within {ENDS_SECONDS} s",
+                      False, f"still running at {ENDS_SECONDS} s; stopped with one SIGINT", ENDS_SECONDS, gate=False)
+
+            # probes: a kill, then export-sitemap and resume on what it left
+            d3 = work / "d3"
+            proc, t0 = _crawl(exe, ["crawl", "--start-url", url, "--seeding-strategy", "none", "--data-dir", str(d3)],
+                              work, "kill.log")
+            exited, secs = _stop(proc, signal.SIGTERM, KILL_SECONDS)
+            good, detail = check_jsonl(d3 / "sitemap.jsonl", port)
+            _step(steps, "kill_writes_file", f"{name} crawl sent SIGTERM after {KILL_SECONDS} s writes sitemap.jsonl",
+                  good, f"{exited}; {detail}", secs, gate=False)
+            _export(steps, "export_after_kill", exe, name, d3, work, "k.xml", False)
+            (d3 / "sitemap.jsonl").unlink(missing_ok=True)
+            proc, t0 = _crawl(exe, ["resume", "--data-dir", str(d3)], work, "resume.log")
+            exited, secs = _stop(proc, signal.SIGINT, RESUME_SECONDS)
+            good, detail = check_jsonl(d3 / "sitemap.jsonl", port)
+            tail = _tail(work / "resume.log")
+            _step(steps, "resume_after_kill", f"{name} resume --data-dir d3 after the kill writes every page",
+                  good, f"{exited}; {detail}" + (f"; {tail}" if tail and not good else ""), secs, gate=False)
         finally:
             httpd.shutdown()
-        xml = work / "s.xml"
-        e = _run([exe, "export-sitemap", "--data-dir", str(data), "--output", str(xml)], 120, cwd=work)
-        locs = xml.read_text(encoding="utf-8", errors="replace").count("<loc>") if xml.is_file() else 0
-        ok &= _step(steps, f"{name} export-sitemap --data-dir d --output s.xml",
-                    e.returncode == 0 and locs == len(PAGES), f"{locs} <loc>")
     return {
         "date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
         "runner": f"{ {'Darwin': 'macOS'}.get(platform.system(), platform.system())} {platform.machine()}",
@@ -161,7 +251,7 @@ def run(version: str, scripts: list[str], work: Path, python: str) -> dict:
         "scripts": list(scripts),
         "install": install,
         "steps": steps,
-        "ok": bool(ok and steps and all(s["ok"] for s in steps)),
+        "ok": bool(ok and steps and all(s["ok"] for s in steps if s.get("gate", True))),
     }
 
 

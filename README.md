@@ -6,7 +6,7 @@
 <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-night.svg">
 <source media="(max-width: 767px)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-phone-day.svg">
 <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-night.svg">
-<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to start Ben Russell's crawler rustmapper and what happens to a URL inside it. It ends at data/sitemap.jsonl; two traps are marked.">
+<img src="https://raw.githubusercontent.com/BenjaminSRussell/BenjaminSRussell/chart/assets/v9/hero-day.svg" width="100%" alt="How to start Ben Russell's crawler rustmapper, what it does with each page, and how to stop it. It loops until one Ctrl-C writes data/sitemap.jsonl.">
 </picture>
 <!-- picture:hero:end -->
 
@@ -22,7 +22,7 @@
 **Languages** Python, Rust; Swift, C, TypeScript, Go.<br>
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
-**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin. <!-- n:edition_version -->0.1.3<!-- /n --> on [PyPI](https://pypi.org/project/rustmapper/), <!-- n:edition_date -->8 Nov 2025<!-- /n -->.
+**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)** is a concurrent sitemap crawler written in Rust, with a CLI and a Python package built with maturin.
 
 <!-- facts:Rust-sitemap:start -->
 *Built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
@@ -31,19 +31,17 @@
 <!-- install:Rust-sitemap:start -->
 ```sh
 pip install rustmapper
-rust_sitemap crawl --start-url <your-site>
-rust_sitemap export-sitemap --data-dir ./data \
+rust_sitemap crawl \
+    --start-url <your-site>
+rust_sitemap export-sitemap \
+    --data-dir ./data \
     --output sitemap.xml
 ```
 
 Prebuilt wheel for Apple silicon on CPython 3.13; elsewhere `pip` builds from source and needs a Rust toolchain.
 <!-- install:Rust-sitemap:end -->
 
-- The throttle watches the database, not the network: a governor reads redb commit latency every 250 ms and grows or shrinks the worker pool, so the crawl slows when it cannot persist what it found.
-- Can seed from sitemaps, Certificate Transparency logs and the Common Crawl index (`--seeding-strategy`): what a site says about itself, every host that ever held a certificate, and every URL someone once linked.
-
 <!-- handoffs:start -->
-Its `data/sitemap.jsonl` is read by [ideal-url-organizer](https://github.com/BenjaminSRussell/ideal-url-organizer) (`scripts/import_rust_sitemapper.py`, with a test). Its Delta export for Scrapy's `stage1_discovery` table is not read by Scrapy yet.
 <!-- handoffs:end -->
 
 **[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
@@ -53,9 +51,13 @@ Its `data/sitemap.jsonl` is read by [ideal-url-organizer](https://github.com/Ben
 <!-- facts:Scrapy:end -->
 
 ```sh
-cd Scraping_project     # from the clone root, start.py fails
-python start.py         # the whole pipeline; needs docker and docker-compose
-scrapy crawl scout -a allowed_domains=<domain> \
+# start.py must run from here
+cd Scraping_project
+# the whole pipeline; needs docker
+# and docker-compose
+python start.py
+scrapy crawl scout \
+    -a allowed_domains=<domain> \
     -a start_urls=<url>
 ```
 
@@ -100,14 +102,14 @@ Grafana opens on http://localhost:3000. Spiders run by name (`scout`), not by fi
 1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: breakers on the Delta Lake, Redis and HTTP services.*
 2. **Keep the log. Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Sep 2025, the Delta Lake tables; rustmapper, Oct 2025, the write-ahead log.*
 3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Sep 2025: Prometheus and Grafana.*
-4. **Parse, don't pattern-match.** *ideal-url-organizer, Nov 2025.*
+4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The drawing is checked against rustmapper's code at `32c2651` and its 0.1.3 release on PyPI: a stop or a trap is drawn only while the code it describes is found in both, and the install lines last ran 9 Oct 2026 on Linux x86_64, where pip builds the release from source. Test counts and CI results measured 9 Oct 2026 from clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
+<sub>The drawing describes rustmapper 0.1.3, the release pip installs: every line on it names code found there, and each line about the design also at `32c2651` on main; its install, crawl, Ctrl-C, kill and export lines were run against 0.1.3 on 9 Oct 2026 on Linux x86_64. Test counts and CI results measured 10 Oct 2026 from clones of 21 public repositories · 3 % of my commits carry an AI co-author trailer; 297 more were written by coding agents (Claude, jules) and are not counted as mine · regenerated weekly.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

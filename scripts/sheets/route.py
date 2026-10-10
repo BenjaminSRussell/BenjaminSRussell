@@ -1,21 +1,24 @@
-"""route.py — the hero (round 6, SPEC.md): the way into rustmapper.
+"""route.py — the hero (round 6, SPEC.md, review round 1): the way into rustmapper.
 
-The image answers one sentence: how you start rustmapper, what happens to a URL inside it in order, where a stranger
-goes wrong, and where the output goes next. Vertical position is the order a URL goes through the tool. Nothing on
-the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a hatch block, a line), and
-every word comes from `stats.json` (routes, handoffs, edition, repos[].ci, repos[].head, runcheck, repo_count, taken)
+The image answers one sentence: how you start rustmapper, what it does with each page, where a stranger goes wrong
+and how to get out, and where the output goes next. Vertical position is the order of a run: what you type, what
+happens to each URL, how you stop it, what you get. The rows that repeat for every page are closed by one line back
+up the left side: the crawl is a loop, and the one hazard sits on that loop, with its way out on the next row.
+Nothing on the sheet has a size that depends on data: every shape is a fixed mark (a bar, a ring, a tick, a hatch
+block, a line), and every word comes from `stats.json` (routes, handoffs, edition, repos[].ci, runcheck, repo_count)
 or from chart.toml [copy] / [identity].
 
-Left column, the title block: the name, the role line, then what was selected and how fresh it is (one of N public
-repositories, the code's sha and date, the project's CI on main, the date the build read it all). Right, the route:
-the project's name and one sentence, the start bar, the install line and the command the wheel actually installs,
-the platform note, then the stops (a ring on the magenta track, the file name, what happens there) and the traps
-(a hatched block on the left of the track) in order, the end bar, the file you get and its real field names, the
-second output, and a thin line on to the one other project of his that reads that file and tests the join.
+Left column, the title block: the name, the role line, then one muted line: which project, out of how many, and its
+CI on main. Right, the route: the project's name and one sentence, the start bar, the install line with the release
+and the time the run check's install took, the command the wheel actually installs, then the stops (a ring on the
+magenta track), the side note (a tick, no ring: it acts on the fetches from outside), the hazard (a hatched block on
+the loop's way back) and the way out, the end bar, the file you get and its real field names, and a thin line on to
+the one other project of his that reads that file and tests the join.
 
-A route entry is drawn only when routes.<name> says it holds at HEAD and in the release (scripts/data/route.py);
-the install lines only when the run check passed (SPEC §6); the line past the end only when the hand-off's state
-is `runs`. Nothing else is drawn: no border, no axis, no tint, no motion, no legend.
+A route entry is drawn only when routes.<name> says its anchors hold and the run-check probes it names came out as
+stated (scripts/data/route.py `resolve`); the install lines only when the run check passed (SPEC §6); the line past
+the end only when the hand-off's state is `runs`. Nothing else is drawn: no border, no axis, no tint, no motion, no
+legend.
 
 Every glyph goes through typeset (ctx.k); every stroke width through chartlib.stroke.
 """
@@ -39,29 +42,31 @@ RUNCHECK_MAX_AGE = 14    # days before `taken` a passing run check still counts 
 PURPOSE: dict[str, tuple[str, str, str]] = {
     "T1": ("whose page this is", "Q1", "chart.toml [identity]"),
     "T2": ("what he builds, in the first two words", "Q1", "chart.toml [copy] role_line"),
-    "T3": ("this is one chosen project of several, listed below the image", "Q2", "stats.json repo_count"),
-    "T4": ("which version of the code the drawing was checked against, and how recent it is", "Q3",
-           "stats.json repos[Rust-sitemap].head"),
-    "T5": ("the project's own tests pass on main, and when that was measured", "Q3", "stats.json repos[Rust-sitemap].ci"),
-    "T6": ("when the build read all of this, so a stale pass cannot look current", "Q3", "stats.json taken"),
+    "T3": ("which project this is, that it is one of several listed below, and that its tests pass on main", "Q3",
+           "stats.json repo_count, repos[Rust-sitemap].ci"),
     "R0": ("which project, and what it does, before any detail", "Q2", "stats.json routes.rustmapper.header"),
     "R1": ("where you begin", "Q4", "R1-I5 (the entrance is a fixed point)"),
-    "R2": ("the line that gets it, and that the release is older than the code drawn below", "Q4",
+    "R2": ("the line that gets it, and how old the release is", "Q4",
            "stats.json edition.version, edition.date; runcheck.rustmapper"),
+    "R4": ("what the install costs: how long it took in the run check, and on what", "Q4",
+           "stats.json runcheck.rustmapper steps[install].secs, runner, install"),
     "R3": ("the command that actually runs after pip", "Q4", "stats.json edition.scripts; runcheck.rustmapper"),
-    "R4": ("whether pip will just work on their machine", "Q5", "stats.json edition.wheels"),
-    "R5": ("there is one way through, read top to bottom", "Q4", "R1-F3 (the line you follow)"),
-    "S1": ("where URLs come from, and that he doesn't rely on links alone", "Q1", "stats.json routes.rustmapper S1"),
+    "R5": ("one way through, in the order of a run", "Q4", "R1-F3 (the line you follow)"),
+    "R6": ("the crawl is a loop: the rows it spans repeat for every page", "Q1",
+           "Rust-sitemap src/bfs_crawler.rs frontier.add_links; Mercator (SRC-173 §3)"),
+    "S1": ("where URLs come from, and what the release contacts by default", "Q5", "stats.json routes.rustmapper S1"),
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
-    "H1": ("pointed at a big site, it crawls every subdomain to the bottom", "Q5", "stats.json routes.rustmapper H1"),
-    "S3": ("the crawl slows when it cannot save what it found, not when the network is slow", "Q1",
-           "stats.json routes.rustmapper S3"),
-    "S4": ("a crash doesn't lose the crawl, and there is a resume command", "Q1", "stats.json routes.rustmapper S4"),
-    "H2": ("the output file exists only once the crawl stops; a second Ctrl-C exits without it", "Q5",
-           "stats.json routes.rustmapper H2"),
+    "F1": ("each page is fetched and its same-site links are queued again", "Q1", "stats.json routes.rustmapper F1"),
+    "G1": ("the crawl slows when it cannot save what it found, not when the network is slow", "Q1",
+           "stats.json routes.rustmapper G1"),
+    "W1": ("a kill does not lose the pages, and the command that gets them back", "Q5",
+           "stats.json routes.rustmapper W1; runcheck export_after_kill"),
+    "H1": ("pointed at a real site, it does not stop, and it goes wider than the start host", "Q5",
+           "stats.json routes.rustmapper H1; runcheck ends_by_itself"),
+    "C1": ("how to stop it so the file is written, and what loses it", "Q5",
+           "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c, kill_writes_file"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
-    "R14": ("the second output, and the command for it", "Q4", "stats.json routes.rustmapper R14; edition.scripts"),
     "R15": ("his projects are one body of work: this output feeds another, and that join is tested", "Q2",
             "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]"),
 }
@@ -70,14 +75,19 @@ BREAKS: list[tuple[str, str, str]] = [
     ("Caps lines in role `label`",
      "the role line and the title block are set through role `label` in capitals with explicit tracking "
      "(desk 1.6, phone 1.0); no run uses `label-caps`",
-     "check_type allows one label-caps run per sheet; the title block has six caps lines"),
+     "check_type allows one label-caps run per sheet; the title block has three caps lines"),
     ("Name at 88 on the desk",
      "the desk name is set at 88 (phone 132)",
      "the title column is 56 to 410 px, and the name at 141 would be over 500 px wide"),
-    ("Order is position",
-     "the route runs top to bottom in the order a URL goes through rustmapper: seeds, frontier, governor, write-ahead "
-     "log, output; each trap sits at the stop where it bites",
-     "the order of the tool's own pipeline (SPEC §2.2) is the one thing a list cannot show next to the traps"),
+    ("Order is position; the loop is a line",
+     "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
+     "page (fetch, the governor beside it, the log), closed by one line back up the left side; the hazard sits on "
+     "that line and its way out on the next row",
+     "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
+     "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
+    ("The governor has a tick, not a ring",
+     "the governor's row is marked by a short tick off the line and set in the secondary ink",
+     "it is not a step a URL passes through: it adds and removes semaphore permits from the side (governor.rs)"),
     ("Fixed marks, no sizes",
      "every bar, ring, hatch block and line has a fixed size; only the number of lines of text moves anything",
      "the owner could not tell what the old islands' sizes meant (9 Oct 2026); here nothing has a size to read"),
@@ -91,8 +101,8 @@ BREAKS: list[tuple[str, str, str]] = [
     ("Phone role line at 204",
      "on the phone the role line sits at 204 (SPEC: 196) and everything under it 8 lower",
      "at 196 its text box meets the descent of the name set at 132 (the bounds check measures the font's boxes)"),
-    ("Phone drops file names and the export line",
-     "on the phone the stops carry their rules only and the export command is left to the code block under the image",
+    ("Phone drops file names",
+     "on the phone the stops carry their rules only",
      "720 px leaves 600 px for text at the 26 px floor"),
     ("Release label on the install line, phone too",
      "on the phone the release label is set right-aligned on the install line, as on the desk, not in the platform "
@@ -110,17 +120,19 @@ MONTHS_MIXED = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 # ---------------------------------------------------------------- layout (sheet units, SPEC §2.3)
 L = {
     "desk": {"title_x": 56, "title_w": 354, "name_size": 88, "name_track": -1.5, "name_y": 128, "role_y": 182,
-             "role_pitch": 28, "fine_y": 262, "fine_pitch": 28, "track_x": 456, "text_x": 484, "rule_x": 640,
-             "right": 1224, "head_y": 84, "sent_gap": 34, "line": 28, "bar_gap": 30, "bar_w": 24, "bar_h": 4,
-             "r2_gap": 30, "entry_gap": 42, "pitch": 36, "end_gap": 30, "r13_gap": 30, "ring_r": 6, "ring_dy": 6,
-             "hatch": (432, 450, 13, 1), "after_end": 26, "tip": 8, "label_gap": 14, "arrow_w": 10, "lang_gap": 16,
-             "rule_after_file": 20, "foot": 36},
+             "role_pitch": 28, "fine_gap": 52, "fine_pitch": 28, "track_x": 456, "text_x": 484, "rule_x": 640,
+             "right": 1224, "head_y": 84, "head_after_title": None, "sent_gap": 34, "line": 28, "bar_gap": 30,
+             "bar_w": 24, "bar_h": 4, "r2_gap": 30, "entry_gap": 42, "pitch": 36, "end_gap": 30, "r13_gap": 30,
+             "ring_r": 6, "ring_dy": 6, "hatch": (432, 450, 13, 1), "loop_out": 14, "loop_hatch": (414, 432),
+             "loop_dy": 13, "loop_arrow": (8, 10), "tick": (3, 15), "after_end": 26, "tip": 8, "label_gap": 14,
+             "arrow_w": 10, "rule_after_file": 20, "foot": 36},
     "phone": {"title_x": 40, "title_w": 640, "name_size": 132, "name_track": -2.0, "name_y": 140, "role_y": 204,
-              "role_pitch": 34, "fine_y": 284, "fine_pitch": 34, "track_x": 56, "text_x": 88, "rule_x": None,
-              "right": 688, "head_y": 420, "sent_gap": 40, "line": 34, "bar_gap": 28, "bar_w": 24, "bar_h": 4,
-              "r2_gap": 38, "entry_gap": 46, "pitch": 46, "end_gap": 24, "r13_gap": 38, "ring_r": 8, "ring_dy": 9,
-              "hatch": (26, 48, 17, 1), "after_end": 24, "tip": 8, "label_gap": 14, "arrow_w": 12, "lang_gap": 16,
-              "rule_after_file": None, "foot": 30},
+              "role_pitch": 34, "fine_gap": 46, "fine_pitch": 34, "track_x": 56, "text_x": 88, "rule_x": None,
+              "right": 688, "head_y": None, "head_after_title": 60, "sent_gap": 40, "line": 34, "bar_gap": 28,
+              "bar_w": 24, "bar_h": 4, "r2_gap": 38, "entry_gap": 46, "pitch": 43, "end_gap": 24, "r13_gap": 38,
+              "ring_r": 8, "ring_dy": 9, "hatch": (26, 48, 17, 1), "loop_out": 18, "loop_hatch": (8, 30),
+              "loop_dy": 15, "loop_arrow": (10, 12), "tick": (4, 20), "after_end": 24, "tip": 8, "label_gap": 14,
+              "arrow_w": 12, "rule_after_file": None, "foot": 30},
 }
 TRACK = {"desk": 1.6, "phone": 1.0}
 
@@ -152,6 +164,21 @@ def ci_words(ci: dict | None) -> str | None:
     return f"CI ON MAIN {word} {_date(ci['date'])}"
 
 
+def install_words(rc: dict | None) -> str | None:
+    """What the install cost in the run check: "3 min on Linux x86_64: pip builds it from source", or
+    "9 s on macOS arm64: prebuilt wheel". None when the install step carries no time."""
+    if not isinstance(rc, dict):
+        return None
+    st = next((x for x in rc.get("steps") or [] if x.get("id") == "install" and x.get("ok")), None)
+    if not st or st.get("secs") is None or not rc.get("runner"):
+        return None
+    secs = float(st["secs"])
+    t = f"{round(secs / 60)} min" if secs >= 90 else f"{max(1, round(secs))} s"
+    how = {"sdist (built with Rust)": "pip builds it from source",
+           "prebuilt wheel": "prebuilt wheel"}.get(str(rc.get("install") or ""))
+    return f"{t} on {rc['runner']}" + (f": {how}" if how else "")
+
+
 def entrance_ok(data: dict, project: str = PROJECT) -> tuple[bool, str]:
     """(True, "") when runcheck.<project> passed for the current release within RUNCHECK_MAX_AGE days of `taken`."""
     rc = (data.get("runcheck") or {}).get(project)
@@ -159,7 +186,7 @@ def entrance_ok(data: dict, project: str = PROJECT) -> tuple[bool, str]:
     if not isinstance(rc, dict):
         return False, "no run check recorded"
     if not rc.get("ok"):
-        bad = next((s.get("cmd") for s in rc.get("steps") or [] if not s.get("ok")), "a step")
+        bad = next((s.get("cmd") for s in rc.get("steps") or [] if not s.get("ok") and s.get("gate", True)), "a step")
         return False, f"the run check failed at: {bad}"
     if str(rc.get("version")) != str(ed.get("version")):
         return False, f"the run check tested {rc.get('version')}, the release is {ed.get('version')}"
@@ -187,31 +214,28 @@ def plan(data: dict, cfg: dict, project: str = PROJECT) -> dict:
     repo = _repo(data, repo_name)
     ed = data.get("edition") or {}
     aliases = (cfg.get("hero") or {}).get("aliases") or {}
-    entries = R.drawn(route)
+    rc = (data.get("runcheck") or {}).get(project)
+    entries = R.drawn(route, rc)
     ok, why = entrance_ok(data, project)
     cmd = R.command_name(ed.get("scripts"), project) if ok else None
-    head = repo.get("head") or {}
+    header_ok, _ = R.header_ok(route, rc)
     p = {
         "project": aliases.get(repo_name, project),
         "repo": repo_name,
-        "language": repo.get("main_language"),
-        "header": route.get("header") if route.get("header_verified") else None,
+        "header": route.get("header") if header_ok else None,
         "role": [s.strip() for s in str((cfg.get("copy") or {}).get("role_line") or "").split("·") if s.strip()],
         "repo_count": data.get("repo_count") or len(data.get("repos") or []),
-        "head": head if head.get("short") and head.get("date") else None,
         "ci": ci_words(repo.get("ci")),
-        "taken": str(data.get("taken") or "")[:10],
         "entrance": ok, "entrance_why": why,
         "install": f"pip install {ed.get('project') or project}" if ok and ed.get("version") else None,
         "release": f"{ed['version']} · {_date(ed['date'])}" if ok and ed.get("version") and ed.get("date") else None,
+        "install_cost": install_words(rc) if ok else None,
         "command": f"{cmd} crawl --start-url <site>" if cmd else None,
         "cmd": cmd,
-        "wheels": R.wheel_words(ed.get("wheels")) if ed.get("version") else "",
-        "steps": [e for e in entries if e["kind"] in ("stop", "trap")],
+        "steps": [e for e in entries if e["kind"] in ("stop", "step", "note", "trap")],
         "end": next((e for e in entries if e["kind"] == "end"), None),
-        "export": next((e for e in entries if e["kind"] == "export"), None),
         "handoff": None,
-        "unverified": [e["id"] for e in R.unverified(route)],
+        "unverified": [e["id"] for e in R.unverified(route, rc)],
     }
     end = p["end"]
     if end:
@@ -269,9 +293,14 @@ def _build(ctx) -> str:
         return k.text_width(str(text), role, edition=day_ed, scale=sc)
 
     def wrap(text, max_w, role="label", seps=("; ", ": ", " · ", ", ")):
-        """Lines that fit `max_w`, broken at the strongest separator first (a semicolon, a colon, a middle dot, a
-        comma), so a name like "Common Crawl" or "Python 3.13" is never split; words only as a last resort. A
-        middle dot at a break is dropped; other punctuation stays at the end of its line."""
+        """Lines that fit `max_w`: broken at the strongest separator (a semicolon, a colon, a middle dot, a comma),
+        so a name like "Common Crawl" or "Python 3.13" is not split, unless breaking at words takes fewer lines
+        (a 26 px phone line holds about 48 characters, and every extra line costs the phone sheet 34 units)."""
+        by_sep = _wrap_sep(text, max_w, role, seps)
+        by_word = _wrap_sep(text, max_w, role, ())
+        return by_word if len(by_word) < len(by_sep) else by_sep
+
+    def _wrap_sep(text, max_w, role, seps):
         text = str(text)
         if fit(text, role) <= max_w:
             return [text]
@@ -289,7 +318,7 @@ def _build(ctx) -> str:
                 elif fit(piece, role) <= max_w:
                     lines.append(piece)
                 else:
-                    lines.extend(wrap(piece, max_w, role, seps[i + 1:]))
+                    lines.extend(_wrap_sep(piece, max_w, role, seps[i + 1:]))
             return lines
         lines, cur = [], []
         for word in text.split():
@@ -311,7 +340,20 @@ def _build(ctx) -> str:
         k.exclude(f"{kind}:{gid}", box[0], box[1], box[2] - box[0], box[3] - box[1])
         marks.append({"kind": kind, "id": gid, "box": [round(v, 1) for v in box]})
 
-    # ================================================================ the title block (T1–T6)
+    def _hatch(gid, x0, x1, base):
+        """Three 45° strokes in the accent colour, clipped to a block beside the row's first baseline."""
+        _, _, up, dn = G["hatch"]
+        y0, y1 = base - up, base + dn
+        clip = f"hatch-{gid}"
+        span = (x1 - x0) + (y1 - y0)
+        strokes = [f"M{E.fmt(x0 + span * (q + 1) / 4 - (y1 - y0))} {E.fmt(y1)}L{E.fmt(x0 + span * (q + 1) / 4)} {E.fmt(y0)}"
+                   for q in range(3)]
+        put(gid, f'<clipPath id="{clip}"><rect x="{x0}" y="{E.fmt(y0)}" width="{x1 - x0}" height="{E.fmt(y1 - y0)}"/>'
+                 f'</clipPath><path d="{"".join(strokes)}" fill="none" clip-path="url(#{clip})" '
+                 f'{c.stroke("LINE", theme.accent, caps="butt")}/>')
+        mark("hatch", gid, (x0, y0, x1, y1))
+
+    # ================================================================ the title block (T1–T3)
     tx = G["title_x"]
     nsz, ntr = G["name_size"], G["name_track"]
     ben = k.text("Ben", tx, G["name_y"], "display", size=nsz, tracking=ntr, edition=ed, scale=sc, truth="measured",
@@ -320,45 +362,36 @@ def _build(ctx) -> str:
     russ = k.text("Russell", tx + wb, G["name_y"], "display", size=nsz, tracking=ntr, edition=ed, scale=sc,
                   truth="measured", key="identity:name")
     put("T1", ben + russ)
+    title_last = G["name_y"]
     for i, line in enumerate(p["role"]):
-        lbl(line, tx, G["role_y"] + G["role_pitch"] * i, "T2", "copy:role_line", caps=True)
-    fy = G["fine_y"]
-    fine = []
-    if not phone:
-        fine.append(("T3", [("label", f"1 OF {p['repo_count']} PUBLIC REPOSITORIES", "repo_count")]))
-    if p["head"]:
-        fine.append(("T4", [("label", "CODE ", "repos:head"), ("machine", p["head"]["short"], "repos:head"),
-                            ("label", f" · {_date(p['head']['date'])}", "repos:head")]))
+        title_last = G["role_y"] + G["role_pitch"] * i
+        lbl(line, tx, title_last, "T2", "copy:role_line", caps=True)
+    # T3: one muted line, the same words on desk and phone: which project, out of how many, and its CI on main.
+    # Pieces join with " · " and break between pieces only, measured in the day cut.
+    pieces = [(p["project"], "routes:project"), (f"1 of {p['repo_count']}", "repo_count")]
     if p["ci"]:
-        fine.append(("T5", [("label", p["ci"], "repos:ci")]))
-    if phone:      # one line for T3 and T6: what was selected, and as of when
-        fine.append(("T3+T6", None))
-    else:
-        fine.append(("T6", [("label", f"AS OF {_date(p['taken'])}", "taken")]))
-    for gid, parts in fine:
+        pieces.append((p["ci"], "repos:ci"))
+    sep = " · "
+    lines_t3: list[list[tuple[str, str]]] = [[]]
+    for text, key in pieces:
+        trial = sep.join(t for t, _ in lines_t3[-1] + [(text, key)])
+        if lines_t3[-1] and k.text_width(trial.upper(), "label", edition=day_ed, scale=sc, tracking=track) > G["title_w"]:
+            lines_t3.append([])
+        lines_t3[-1].append((text, key))
+    fy = title_last + G["fine_gap"]
+    for li, line in enumerate(lines_t3):
         x = tx
-        if gid == "T3+T6":
-            t3 = f"1 OF {p['repo_count']} REPOSITORIES"
-            lbl(t3 + " · ", x, fy, "T3", "repo_count", fill=theme.muted, caps=True)
-            x += width(t3 + " · ", caps=True)
-            lbl(f"AS OF {_date(p['taken'])}", x, fy, "T6", "taken", fill=theme.muted, caps=True)
-        else:
-            for role, text, key in parts:
-                if role == "machine":
-                    lbl(text, x, fy, gid, key, role="machine", fill=theme.muted)
-                    x += width(text, "machine")
-                else:
-                    lbl(text, x, fy, gid, key, fill=theme.muted, caps=True)
-                    x += width(text, caps=True)
+        for j, (text, key) in enumerate(line):
+            run = (sep if j else "") + text
+            lbl(run, x, fy, "T3", key, fill=theme.muted, caps=True)
+            x += width(run, caps=True)
+        title_last = fy
         fy += G["fine_pitch"]
 
     # ================================================================ the route (R0–R15)
     X, TX, RIGHT, LH = G["track_x"], G["text_x"], G["right"], G["line"]
-    y = G["head_y"]
+    y = G["head_y"] if G["head_y"] is not None else title_last + G["head_after_title"]
     lbl(p["project"], TX, y, "R0", "routes:project", role="project")
-    if p["language"]:
-        lw = width(p["project"], "project")
-        lbl(p["language"], TX + lw + G["lang_gap"], y, "R0", "repos:main_language", fill=theme.muted, caps=True)
     y += G["sent_gap"]
     last = y - G["sent_gap"]
     if p["header"]:
@@ -377,57 +410,73 @@ def _build(ctx) -> str:
             lbl(p["release"], RIGHT, y, "R2", "edition:version", fill=theme.muted, caps=True, anchor="end")
         last = y
         y += LH
+        if p["install_cost"]:
+            for line in wrap(p["install_cost"], RIGHT - TX):
+                lbl(line, TX, y, "R4", "runcheck:install", fill=theme.muted)
+                last = y
+                y += LH
     if p["command"]:
         lbl(p["command"], TX, y, "R3", "edition:scripts", role="machine")
         last = y
         y += LH
-    note = p["wheels"]
-    if note:
-        for line in wrap(note, RIGHT - TX):
-            lbl(line, TX, y, "R4", "edition:wheels", fill=theme.muted)
-            last = y
-            y += LH
     y = last + G["entry_gap"]
     track_top = bar_top + bh
     step_report = []
+    loop_rows: list[dict] = []
     for e in p["steps"]:
         gid = e["id"]
-        if e["kind"] == "stop":
-            cy = y - G["ring_dy"]
-            r = G["ring_r"]
+        kind = e["kind"]
+        r = G["ring_r"]
+        cy = y - G["ring_dy"]
+        if kind in ("stop", "step"):
             put(gid, f'<circle cx="{E.fmt(X)}" cy="{E.fmt(cy)}" r="{r}" fill="{theme.paper}" {c.stroke("PEN", theme.ink)}/>')
             mark("ring", gid, (X - r - 1, cy - r - 1, X + r + 1, cy + r + 1))
-            if phone or not G["rule_x"]:
-                lines = wrap(e["text"], RIGHT - TX)
-                for i, line in enumerate(lines):
-                    lbl(line, TX, y + LH * i, gid, f"routes:{gid}")
-            else:
-                if e.get("file"):
-                    lbl(e["file"], TX, y, gid, f"routes:{gid}", role="machine", fill=theme.ink2)
-                rx = max(G["rule_x"], TX + (width(e["file"], "machine") + 20 if e.get("file") else 0))
-                lines = wrap(e["text"], RIGHT - rx)
-                for i, line in enumerate(lines):
-                    lbl(line, rx, y + LH * i, gid, f"routes:{gid}")
-        else:   # a trap: the hatch block on the left of the track, the words in ink
-            x0, x1, up, dn = G["hatch"]
-            y0, y1 = y - up, y + dn
-            clip = f"hatch-{gid}"
-            strokes = []
-            span = (x1 - x0) + (y1 - y0)
-            for q in range(3):
-                off = span * (q + 1) / 4
-                # 45° strokes, lower-left to upper-right, clipped to the block
-                strokes.append(f"M{E.fmt(x0 + off - (y1 - y0))} {E.fmt(y1)}L{E.fmt(x0 + off)} {E.fmt(y0)}")
-            put(gid, f'<clipPath id="{clip}"><rect x="{x0}" y="{E.fmt(y0)}" width="{x1 - x0}" height="{E.fmt(y1 - y0)}"/>'
-                     f'</clipPath><path d="{"".join(strokes)}" fill="none" clip-path="url(#{clip})" '
-                     f'{c.stroke("LINE", theme.accent, caps="butt")}/>')
-            mark("hatch", gid, (x0, y0, x1, y1))
+        elif kind == "note":   # a short tick off the line: it acts on the run from the side
+            t0, t1 = G["tick"]
+            put(gid, f'<path d="M{E.fmt(X + t0)} {E.fmt(cy)}H{E.fmt(X + t1)}" fill="none" '
+                     f'{c.stroke("LINE", theme.ink2, caps="butt")}/>')
+            mark("tick", gid, (X + t0, cy - 1.5, X + t1, cy + 1.5))
+        ink = theme.ink2 if kind == "note" else theme.ink
+        if kind in ("stop", "note") and not phone and G["rule_x"]:
+            if e.get("file"):
+                lbl(e["file"], TX, y, gid, f"routes:{gid}", role="machine", fill=theme.ink2)
+            rx = max(G["rule_x"], TX + (width(e["file"], "machine") + 20 if e.get("file") else 0))
+            lines = wrap(e["text"], RIGHT - rx)
+            for i, line in enumerate(lines):
+                lbl(line, rx, y + LH * i, gid, f"routes:{gid}", fill=ink)
+        else:
             lines = wrap(e["text"], RIGHT - TX)
             for i, line in enumerate(lines):
-                lbl(line, TX, y + LH * i, gid, f"routes:{gid}")
-        step_report.append({"id": gid, "kind": e["kind"], "y": round(y, 1), "lines": len(lines)})
-        last = y + LH * (len(lines) - 1)
+                lbl(line, TX, y + LH * i, gid, f"routes:{gid}", fill=ink)
+        row = {"id": gid, "kind": kind, "y": y, "cy": cy, "last": y + LH * (len(lines) - 1), "loop": e.get("loop")}
+        if e.get("loop"):
+            loop_rows.append(row)
+        step_report.append({"id": gid, "kind": kind, "y": round(y, 1), "lines": len(lines), "loop": bool(e.get("loop"))})
+        last = row["last"]
         y = last + G["pitch"]
+    # ---- the loop: one line back up the left side, from under the last repeating row to the first one's ring
+    if loop_rows and loop_rows[0]["kind"] in ("stop", "step"):
+        gx = X - G["loop_out"]
+        y_top = loop_rows[0]["cy"]
+        y_bot = loop_rows[-1]["last"] + G["loop_dy"]
+        r = G["ring_r"]
+        aw, al = G["loop_arrow"]
+        ya = (y_top + y_bot) / 2 - al / 2          # the arrowhead, pointing up, halfway along the way back
+        loop_svg = (f'<path d="M{E.fmt(X)} {E.fmt(y_bot)}H{E.fmt(gx)}V{E.fmt(y_top)}H{E.fmt(X - r - 1)}" fill="none" '
+                    f'{c.stroke("LINE", theme.flare, caps="butt")}/>'
+                    f'<path d="M{E.fmt(gx - aw / 2)} {E.fmt(ya + al)}H{E.fmt(gx + aw / 2)}L{E.fmt(gx)} {E.fmt(ya)}Z" '
+                    f'fill="{theme.flare}"/>')
+        put("R6", loop_svg)
+        mark("line", "R6", (gx - aw / 2, y_top - 1.5, X, y_bot + 1.5))
+        # the hazard on the loop: its hatch block sits beside the way back, on its own row
+        for row in loop_rows:
+            if row["kind"] == "trap":
+                hx0, hx1 = G["loop_hatch"]
+                _hatch(row["id"], hx0, hx1, row["y"])
+    for row in step_report:     # a trap off the loop keeps its block left of the track
+        if row["kind"] == "trap" and not row["loop"]:
+            x0, x1, _, _ = G["hatch"]
+            _hatch(row["id"], x0, x1, row["y"])
     end_top = last + G["end_gap"]
     put("R5", f'<path d="M{E.fmt(X)} {E.fmt(track_top)}V{E.fmt(end_top)}" fill="none" '
               f'{c.stroke("BRUSH", theme.flare, caps="butt")}/>')
@@ -447,11 +496,6 @@ def _build(ctx) -> str:
             lbl(end["file"], TX, y, "R13", "routes:R13", role="machine")
             rx = TX + width(end["file"], "machine") + G["rule_after_file"]
             lbl(end["text"], rx, y, "R13", "routes:R13")
-        last = y
-        y += LH
-    ex = p["export"]
-    if ex and not phone and p["cmd"]:
-        lbl(f"{p['cmd']} {ex['text']} → {ex['file']}", TX, y, "R14", "routes:R14", role="machine", fill=theme.ink2)
         last = y
         y += LH
     ho = p["handoff"]
@@ -496,14 +540,16 @@ def alt(data, cfg) -> str:
     try:
         p = plan(data, cfg)
     except Exception:
-        return "How to start Ben Russell's crawler rustmapper and what happens to a URL inside it."
-    traps = sum(1 for e in p["steps"] if e["kind"] == "trap")
+        return "How to start Ben Russell's crawler rustmapper, what it does with each page, and how to stop it."
     end = (p["end"] or {}).get("file")
-    first = f"How to start Ben Russell's crawler {p['project']} and what happens to a URL inside it."
+    first = f"How to start Ben Russell's crawler {p['project']}, what it does with each page, and how to stop it."
     if not end:
         return first
-    n = {0: "no traps are", 1: "one trap is", 2: "two traps are", 3: "three traps are"}.get(traps, f"{traps} traps are")
-    return f"{first} It ends at {end}; {n} marked."
+    loops = any(e.get("loop") for e in p["steps"])
+    stop = next((e for e in p["steps"] if e["id"] == "C1"), None)
+    if stop and loops:
+        return f"{first} It loops until one Ctrl-C writes {end}."
+    return f"{first} It ends at {end}."
 
 
 # ---------------------------------------------------------------- build-report hook

@@ -5,7 +5,9 @@ it (round 4, D1: the page is the hero and written text; the supporting sheets ar
 block has exactly one start and one end marker and a <picture> that opens and closes inside it; no
 picture block inside <details>; <details> balanced; the license block present when LICENSE and
 LICENSE-ASSETS.md exist; render_readme --check clean (the committed README is what the renderer
-would write)."""
+would write). Round 6, review 1: no line of a fenced code block is over CODE_COLUMNS characters (a 375 px phone
+shows about 38 columns of GitHub's code font; a longer line hides its end, which is where the warnings were), except a
+line that is one unbreakable URL."""
 from __future__ import annotations
 
 import os
@@ -15,6 +17,20 @@ from check import Finding, fail, warn
 
 TIER = "fast"
 REQUIRED = ("hero",)
+CODE_COLUMNS = 38
+_FENCE = re.compile(r"^```[^\n]*\n(.*?)^```", re.S | re.M)
+
+
+def code_too_wide(text: str, limit: int = CODE_COLUMNS) -> list[tuple[int, str]]:
+    """(line number, line) for every fenced-block line over `limit` characters that is not one bare URL."""
+    out = []
+    for m in _FENCE.finditer(text or ""):
+        first = text.count("\n", 0, m.start(1)) + 1
+        for i, ln in enumerate(m.group(1).splitlines()):
+            bare = ln.strip()
+            if len(ln) > limit and not (re.fullmatch(r"https?://\S+", bare)):
+                out.append((first + i, ln))
+    return out
 
 
 def page_sheets(text: str) -> list[str]:
@@ -50,6 +66,9 @@ def check(ctx) -> list[Finding]:
             out.append(fail("README-PICTURE-FOLDED", f"a picture block opens inside <details> at line {i}", "README.md"))
     if depth != 0:
         out.append(fail("README-DETAILS", f"<details> left open ({depth})", "README.md"))
+    for line_no, ln in code_too_wide(text):
+        out.append(fail("README-CODE-WIDTH", f"line {line_no} of a code block is {len(ln)} characters (> {CODE_COLUMNS}): "
+                        f"{ln.strip()[:60]!r}", "README.md"))
     root = getattr(ctx, "root", ".")
     if all(os.path.exists(os.path.join(root, f)) for f in ("LICENSE", "LICENSE-ASSETS.md")):
         m = re.search(r"<!--\s*license:start\b[^>]*-->(.*?)<!--\s*license:end\s*-->", text, re.S)

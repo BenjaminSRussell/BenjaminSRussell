@@ -401,11 +401,13 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         cmd = route_mod.command_name(ed.get("scripts"), ed.get("project") or "rustmapper")
     except Exception:
         return ""
-    lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl --start-url <your-site>",
-             f"{cmd} export-sitemap --data-dir ./data \\", "    --output sitemap.xml"]   # short lines: a phone shows ~40 columns
+    # no line over CODE_COLUMNS characters: a 375 px phone shows about 38 columns of GitHub's code font
+    lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\", "    --start-url <your-site>",
+             f"{cmd} export-sitemap \\", "    --data-dir ./data \\", "    --output sitemap.xml"]
     gate = ((route.get("gates") or {}).get("cargo") or {})
     if gate.get("ok"):
-        lines += ["", "# newer than the release:", f"cargo install --git https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
+        lines += ["", "# newer than the release:", "cargo install --git \\",
+                  f"    https://github.com/{stats.get('login') or 'BenjaminSRussell'}/{repo}"]
     lines.append("```")
     note = _wheel_sentence(ed.get("wheels"))
     return "\n".join(lines) + (f"\n\n{note}" if note else "")
@@ -528,23 +530,29 @@ def agent_clause(stats: dict) -> str:
     return "; ".join(p for p in (first, second) if p)
 
 
-RUNNER_WORDS = {"prebuilt wheel": "from the prebuilt wheel", "sdist (built with Rust)": "where pip builds the release from source"}
+RUN_WORDS = (("install", "install"), ("crawl_ctrl_c", "crawl"), ("crawl_ctrl_c", "Ctrl-C"), ("kill_writes_file", "kill"),
+             ("export", "export"))
 
 
 def route_clause(stats: dict, figs: dict) -> str:
-    """Round 6, SPEC §4 block 14: what the drawing was checked against, and when the install lines last ran."""
+    """Round 6, SPEC §4 block 14 and review 1: what the drawing describes, what it was checked against, and which of
+    its lines were run, against which release, when and on what."""
     route = (stats.get("routes") or {}).get("rustmapper") or {}
     repo = next((r for r in stats.get("repos") or [] if r.get("name") == route.get("repo")), {})
     head = repo.get("head") or {}
     ed = stats.get("edition") or {}
     if not route or not head.get("short") or not ed.get("version"):
         return ""
-    out = (f"The drawing is checked against {ed.get('project') or 'rustmapper'}'s code at `{head['short']}` and its "
-           f"{ed['version']} release on PyPI: a stop or a trap is drawn only while the code it describes is found in both")
+    v = ed["version"]
+    out = (f"The drawing describes {ed.get('project') or 'rustmapper'} {v}, the release pip installs: every line on it "
+           f"names code found there, and each line about the design also at `{head['short']}` on main")
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
-    if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(ed.get("version")):
-        how = RUNNER_WORDS.get(str(rc.get("install") or ""), "")
-        out += f", and the install lines last ran {fmt_date(rc['date'])} on {rc.get('runner')}" + (f", {how}" if how else "")
+    if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
+        ids = {s.get("id") for s in rc.get("steps") or []}
+        words = [w for sid, w in RUN_WORDS if sid in ids]
+        if words:
+            listed = ", ".join(words[:-1]) + (" and " if len(words) > 1 else "") + words[-1]
+            out += f"; its {listed} lines were run against {v} on {fmt_date(rc['date'])} on {rc.get('runner')}"
     return out + "."
 
 
