@@ -421,3 +421,77 @@ history clones and re-checks every `[[figures]]` row. Render set: `scratchpad/r6
   it passes (0 fail, 0 warn), HERO-COLUMN-PX included. ROUTE-PHONE-PX, ROUTE-HEIGHT, ROUTE-RELEASE, ROUTE-PAINT,
   ROUTE-ARROW, ROUTE-CODE-SPACE, ROUTE-LEFT-EDGE, ROUTE-LABEL, TYPE-CODE, HERO-SELF-TWICE, STRINGS-TWICE, FIGURES,
   NOTICE-DATE, NOTICE-AUTHOR, README-STALE and AUDIT-STALE are clean.
+
+## Round 7
+
+Reviews: `review-r07-1.md` (the owner's test) **8 / 10**, `review-r07-2.md` (the data engineer) **7 / 10**,
+`review-r07-3.md` (the copy editor) **7 / 10**. None meets the goal. Where they conflict, review 1 (the owner's lens)
+wins.
+
+Renders: `scratchpad/r6/build/round-07/` (the standard set; the phone sheets also at 308 px; the phone page at 390 and
+at 360, `page-phone-360-*.png`). `stats.json` re-read from the local trees with `scratchpad/r6/reroute7.py` (as
+reroute6, plus every rule's liveness at HEAD and `repos[].ci_selection` for the two flagships; it refuses a tree at
+another commit than `stats.json` names).
+
+### What was measured first
+
+- **The writer.** `drain_batch` (sdist `writer_thread.rs:246-276`, HEAD `:258-289`) blocks in `recv_deadline` only
+  until the first event, at most `BATCH_TIMEOUT_MS` (50), then drains with `try_recv` up to `MAX_BATCH_SIZE` and
+  returns. `writer_loop` never sleeps on the constant. Review 2 is right: 50 ms is the idle wait.
+- **The hand-off.** `ideal-url-organizer` at `159968a`: `self.methods` in `src/main.py` has 21 keys (ast);
+  `scripts/import_rust_sitemapper.py:143` runs `[str(run_sh), "--all"]`; `run.sh:42-43` maps `--all` to
+  `src/main.py --full`. The 25 `method_*.py` files include four that take `PageContent`.
+- **Rule 1.** `git log --reverse -S_host_breakers` on `Scrapy.git`: first commit `099dd6c`, 8 Oct 2026, his. Plain
+  `git grep "class CircuitBreaker" HEAD` still finds the old anchor at HEAD (Claude's uncalled class in
+  `utils/retry.py`, and `CircuitBreakerOpen`), so a liveness check on the old text would have passed; the first
+  files of rules 2 and 3 (`tools/export_to_datalake.py`, `src/common/prometheus_exporter.py`) were deleted in his
+  own rebuild, `1b0f502`, 5 Oct 2025, while the practice continued in other files.
+- **Scrapy's CI.** `main.yml` runs `python -m pytest tests/ -m "not slow and not kafka and not performance"` in
+  `Scraping_project`, and `tests/unit/test_docker_entrypoints.py` in a smoke job. Of the 1,920 test functions counted:
+  16 are in collected files outside `Scraping_project/tests` (`temp_scripts/`, …), 25 are deselected by the markers
+  (ast, function, class and module level). 21 `skipif`, 21 `pytest.skip()` and 18 `importorskip` are decided at run
+  time. Rust-sitemap: `cargo test --all-features` and `pytest -q python/tests`, nothing left out.
+- **Languages.** `main_language` over the 21 public repositories without the profile: Python 10, Swift 3,
+  JavaScript 2, TypeScript 2, Rust 2, C 1, Go 1. REST's `language` was read for 4 of 22 this run, and agrees.
+- **Widths.** In round 6's renders 32 code columns fit at 360 px and 36 at 390. After the fixes the desk sheet is
+  571 high (unchanged), the phone sheet 600 × 1,135 (was 1,169: G1's line is gone and W1 is one line).
+
+### Fixes applied
+
+| Must-fix | What changed |
+|---|---|
+| r1-1 + r2-3: code blocks fit 360 px | `checks/readme.py` `CODE_COLUMNS = 32`, the measurement (viewport, GitHub's `pre` CSS, the cut column) in the docstring. rustmapper: "# sitemap.xml, even after a kill" (32, no colon; `render_readme.stop_lines`). Scrapy: the comments move into one sentence before the block, "Run these from a clone of [Scrapy](…), in `Scraping_project` (`start.py` runs only there). `python start.py` runs all four stages; it needs docker and docker-compose and crawls a university's sample site. The last command runs only discovery, on your site." The block is six lines, longest 31. New THIS-REPO fail: no visible "this repository". |
+| r1-2: Languages from the data | Inline marker `<!-- n:languages -->` filled by `render_readme.languages_line`: `[copy] languages_lead = ["Python", "Rust"]`, then every other `main_language` (profile out) by repository count, then lines: "Python, Rust; Swift, JavaScript, TypeScript, C, Go". §7 row. |
+| r1-3: F1 and G1 one clause each | G1 retired; F1 is "fetches pages, fewer at once when saves average over 500 ms; queues their links to your site, its subdomains and its parent domain", scope `release`, its release anchors the union with G1's three `main.rs` anchors (the comparison marked `producer`), the 500 still `{const:THROTTLE_THRESHOLD_MS}`. PURPOSE, BREAKS and DESIGN.md say "a clause of fetch". Desk two lines, phone four, as before. Test: no step renders under another. |
+| r1-4 + r3-3: rule 1, liveness, plain rules | Rule 1 anchor `{key = "breaker", repo = "Scrapy", text = "_host_breakers", author = "self"}`, cite "*Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*" (`[[figures]]` row "stage 2"). New NOTICE-LIVE (`checks/notices_live.py`): each printed rule's anchor text must be in a non-documentation file at HEAD (`rules[].at_head`, `head_paths`, `proof.live_paths`). Bodies: 1 "One failing host is set aside for a minute; the rest of the crawl goes on."; 2 "Next month's question can't be known today, so the raw layer is appended to and never overwritten."; 3 "Dashboards go in version one." Test: at most one "The/A X … is …" frame, no "you cannot … you cannot". |
+| r2-1: W1 without 50 ms | First wording "… every {const:BATCH_TIMEOUT_MS} ms", holding only with `writer_loop` sleeping on the constant (it does not); then "logged to disk, then saved to redb, in batches" on `fn = "drain_batch"` anchors `recv_deadline(deadline)` and `try_recv()` in both trees, order anchors kept. PURPOSE, AUDIT routes row and §7 say batches. Fixture tests for both wordings. |
+| r2-2: R15 "sorted 21 ways" | New `[[figures]]` kind: `keys = "self.methods"`, `count = 21` (ast, `proof.dict_keys`), `also` literals for the importer's `--all` call and `run.sh`'s `--all)` → `main.py --full`, `handoff = true`. `handoff_words` reads only that row; the Also line keeps "25 ways" from the glob row. Tests: 2-key fixture prints "2 ways"; no `--all` call, "sorted by". |
+| r2-4: the register | `audit_figures.records`: a row for every route entry whose wording reads a figure (F1, W1, H1, L1, X1, M1; definition from the anchor and the entry's `audit` note: L1's "no pause" from probe `robots_read`, X1's 50,000 from the sitemaps.org protocol), R15 from the handoff row, and rows for `ci_selection`, `license`, Languages, co-signed, "CC BY 4.0". New AUDIT-COVER (`checks/audit_cover.py`, fast): any digit in the hero's text manifest or the README's visible text without a row fails. Today none. |
+| r2-5: Scrapy's test count | `tree.ci_selection` (line-level workflow read, no YAML dependency; ast markers) writes `repos[].ci_selection`, wired into `build_stats.py`; the facts line prints "1,920 tests (CI selects all but 41)". See declined for 63. |
+| r2-6 + r3-7: the data line | "The [drawing](DESIGN.md) shows rustmapper 0.1.3, …", "71 of the Scrapy repository's 499" (`[copy] repo_words`), "and co-signed 1 and 30 of his own" from `repos[].coauthored.agent`, printed only when every listed repository has the count. |
+| r3-1: his Scrapy, not the framework | Link line "rustmapper · PyPI · Scrapy · Email". Pick: "His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker." Lead: "**[Scrapy](…)** is his crawl system on top of the Scrapy framework, in four stages: discovery, analysis, summaries, large documents." (`[[figures]]` "four stages", 4 `stage[0-9]/__init__.py`). Bullet 1 cut. Test: the first unlinked "Scrapy" follows "His". |
+| r3-2: H1 "exits" | "{release} never exits by itself; done when it stops printing `Received work item`"; fallback "… never exits by itself, even after the last page". Desk one line, phone two (no height added). |
+| r3-4: dates and units on one line | `fmt_date` joins with U+00A0; `keep_together` joins dates, "3 min", "60 s", "50,000 characters" and "16k lines of Rust" in the facts, install, rules and data blocks (code spans untouched); the two hand-typed ones in the Scrapy bullets typed with U+00A0. FIGURES and STRINGS normalize U+00A0. Test over the visible text. |
+| r3-5: one spelling | "summarized" in the pick text and its `[[figures]]` row; test against -ise forms. |
+| r3-6: S1 | "your URL and, by default, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl"; fallback "… and, if asked, …". Anchors unchanged; desk two lines, phone three. |
+
+### Fixes declined, or changed, and why
+
+| Must-fix | Why |
+|---|---|
+| r2-5: "CI runs all but 63" | Printed "CI selects all but 41". The 38 skip marks are all `skipif` (ast count, on tests the markers do not deselect); a `skipif` (and `pytest.skip()`, `importorskip`) is decided on the CI machine, so counting it as not run would state a figure nobody measured. The 41 is what the workflow's own commands leave out: 25 deselected by `-m`, plus 16 tests in collected files outside `tests/`, which the reviewer's count (1,904) did not include. "Selects" is pytest's own word. |
+| r1-2: an AUDIT row saying Linguist bytes | `main_language` is not Linguist's figure; it is the language with most newlines at HEAD (`tree.py`). The row says so and that REST's `language`, where read (4 of 22), agrees. |
+| r1-4: "today NOTICE-LIVE fails rule 1" | A plain liveness check would pass the old anchor (the text is still at HEAD in an uncalled class); a "same file" check fails rules 2 and 3, whose first files he rebuilt on 5 Oct 2025. NOTICE-LIVE asks that the code is still there, docs excluded; the re-anchoring to `_host_breakers` is what fixes rule 1. |
+| r1-1: the Scrapy sentence's wording | "runs the whole pipeline" became "runs all four stages" (review 3: "pipeline" names the framework's item pipelines), and "From a clone of …" became "Run these from a clone of …", a sentence rather than a fragment. |
+| r2-6: "co-signed … of mine" | "of his own": the page speaks of him in the third person. |
+| r3 note 1: `Crawl-` / `delay` | Left, as the reviewer advised: U+2011 would break copy and search for a robots.txt directive. |
+| Owner, outside this repository (rounds 4 to 7) | Fix P1, take `--ignore-robots` out of the idle test, ship 0.1.4; Rust-sitemap's About text and `README.md:25`; the GitHub bio; review 3's rename of the Scrapy repository. The image does not go to `main` until 0.1.4. |
+
+### Measured state of this build
+
+- Desk sheet 571 high (gate 620); phone 600 × 1,135 (gate 1,246).
+- `python3 -m unittest`: 337 tests, all pass (27 new in `tests/test_round7.py`).
+- `check.py --tier fast,render`: fast 1 fail (ROUTE-UNVERIFIED S2, P1 not at HEAD), 3 warnings (log.shards,
+  POSITION-EMPTY, LICENSE-FLAGSHIP Rust-sitemap), 0 errors; the render tier is skipped while fast fails, and run alone
+  it passes (0 fail, 0 warn). AUDIT-COVER, NOTICE-LIVE, THIS-REPO, README-CODE-WIDTH (32), FIGURES, STRINGS-TWICE,
+  NOTICE-DATE, NOTICE-AUTHOR, README-STALE and AUDIT-STALE are clean.

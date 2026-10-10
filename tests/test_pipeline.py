@@ -26,6 +26,11 @@ CFG = os.path.join(ROOT, "chart.toml")
 STATS = os.path.join(ROOT, "assets", "stats.json")
 
 
+def sp(s):
+    """Review round 7: the README joins dates and units with U+00A0; compare with plain spaces."""
+    return s.replace("\u00a0", " ") if isinstance(s, str) else s
+
+
 class BuildAssets(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="v9-")
@@ -211,7 +216,7 @@ class Readme(unittest.TestCase):
         self.assertIn("from one binary, with no services to run", render_readme.pick_block(s, self.cfg))
         # review round 5: the names first, where a scanning reader starts each sentence
         self.assertTrue(render_readme.pick_block(s, self.cfg).startswith("**rustmapper** "))
-        self.assertIn(". **Scrapy** keeps", render_readme.pick_block(s, self.cfg))
+        self.assertIn(". His **Scrapy** repository keeps", render_readme.pick_block(s, self.cfg))
         self.assertNotIn("one command", render_readme.pick_block(s, self.cfg))   # review round 4: it takes three steps
         # review round 4: "no services" only while the release's crawl takes Redis as an opt-in flag
         self.assertEqual(render_readme.pick_block(dict(s, routes={"rustmapper": dict(ok, gates={"no_services": {"ok": False}})}),
@@ -300,13 +305,13 @@ class Readme(unittest.TestCase):
         """D5 / F3.4: measured when, from how many clones, my commits on their default branches, the bulk-edit days
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
         figs = render_readme.figures(self.stats, self.cfg)
-        block = render_readme.survey_block(self.stats, figs, ["Rust-sitemap", "Scrapy"], {"Rust-sitemap": "rustmapper"})
-        self.assertTrue(block.startswith("<sub>The [drawing](DESIGN.md) is rustmapper ") and block.endswith(".</sub>"),
+        block = sp(render_readme.survey_block(self.stats, figs, ["Rust-sitemap", "Scrapy"], {"Rust-sitemap": "rustmapper"}))
+        self.assertTrue(block.startswith("<sub>The [drawing](DESIGN.md) shows rustmapper ") and block.endswith(".</sub>"),
                         block)
         # review round 5: what a visitor needs: which release is drawn and that it was run; no build process, no
         # schedule (a generated-by footer), no flags (DESIGN.md has them)
         # review round 6: the run's one flag that changes what the printed command does is named, in words
-        self.assertIn("is rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a "
+        self.assertIn("shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a "
                       "local 3-page site on 10 Oct 2026 (Linux x86_64).", block)
         for word in ("regenerated", "generated", "weekly", "Tests and CI measured", "public repositories",
                      "--seeding-strategy", "source file", "the reader it points to"):
@@ -323,7 +328,8 @@ class Readme(unittest.TestCase):
         self.assertNotIn("co-author trailer", block)
         self.assertNotIn("not counted as his", block)
         self.assertIn("Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) "
-                      "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>", block)
+                      "authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499, and co-signed 1 and 30 of his "
+                      "own.</sub>", block)
         # F3.4's own example, from a fixture carrying the keys the data builder adds
         full = {"taken": "2026-10-09", "repo_count": 21, "commits": 2032,
                 "sweep_dates": ["2025-11-10", "2025-11-09", "2026-10-07", "2026-10-01"],
@@ -339,13 +345,13 @@ class Readme(unittest.TestCase):
                                                "runner": "macOS arm64", "install": "prebuilt wheel",
                                                "steps": [{"id": i, "ok": True} for i in
                                                          ("install", "crawl_ctrl_c", "kill_writes_file", "export")]}})
-        self.assertEqual(render_readme.survey_block(routed),
-                         "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands "
+        self.assertEqual(sp(render_readme.survey_block(routed)),
+                         "<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands "
                          "were run on 9 Oct 2026 (macOS arm64).</sub>")
         # a run check of another release, or a failed one: the release only, no run claimed
         other = dict(routed, runcheck={"rustmapper": dict(routed["runcheck"]["rustmapper"], version="0.1.2")})
-        self.assertEqual(render_readme.survey_block(other),
-                         "<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs.</sub>")
+        self.assertEqual(sp(render_readme.survey_block(other)),
+                         "<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs.</sub>")
         # review round 2: the crawl says what it ran against, from the step's own command
         step = {"id": "crawl_ctrl_c", "ok": True, "detail": "exit 0; 3 lines; keys present",
                 "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d"}
@@ -390,8 +396,8 @@ class Readme(unittest.TestCase):
         # a thin stats.json prints only what it holds; nothing is guessed
         self.assertEqual(render_readme.survey_block({"taken": "2026-10-07", "commits": 12, "repo_count": 2}), "")
         self.assertEqual(render_readme.survey_block({}), "")
-        failed = render_readme.survey_block(dict(routed, provenance={"mode": "cache-failed",
-                                                                     "failed_at": "2026-10-11T06:20:00Z"}))
+        failed = sp(render_readme.survey_block(dict(routed, provenance={"mode": "cache-failed",
+                                                                     "failed_at": "2026-10-11T06:20:00Z"})))
         self.assertIn(" The last run failed on 11 Oct 2026; these figures are from the run before.</sub>", failed)
 
     def test_facts_block_prints_only_present_keys(self):
@@ -404,10 +410,10 @@ class Readme(unittest.TestCase):
                           {"name": "Scrapy", "tests": 257, "workflows": 5,
                            "ci": {"workflow": "CI/CD", "conclusion": "failure", "date": "2026-10-08", "stale": True},
                            "lines": {"Python": 69120, "Rust": 1003}, "main_language": "Python", "last_ns": None}]}
-        self.assertEqual(render_readme.facts_block(full, "rustmapper", self.cfg),
+        self.assertEqual(sp(render_readme.facts_block(full, "rustmapper", self.cfg)),
                          "*Built on tokio, redb, rkyv, reqwest, clap · 115 tests · CI passed 7 Oct 2026 · 16k lines of Rust*")
         # no test_functions, no tests item (a file count reads wrong for inline Rust tests); stale CI says so; null last_ns omitted
-        self.assertEqual(render_readme.facts_block(full, "Scrapy"),
+        self.assertEqual(sp(render_readme.facts_block(full, "Scrapy")),
                          "*CI failed 8 Oct 2026 (last known run) · 69k lines of Python*")
         self.assertEqual(render_readme.facts_block(full, "nowhere"), "")
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "Scrapy", "commits": 900, "tests": 257}]}, "Scrapy"), "",
@@ -416,8 +422,8 @@ class Readme(unittest.TestCase):
         self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "workflows": 2}]}, "x"), "*2 CI workflows*",
                          "workflows without a CI result")
         lang = {"repos": [{"name": "x", "lines": {"Python": 900, "Rust": 2000}, "main_language": "Python"}]}
-        self.assertEqual(render_readme.facts_block(lang, "x"), "*900 lines of Python*", "main_language wins over the largest")
-        self.assertEqual(render_readme.facts_block({"repos": [{"name": "x", "lines": {"Python": 900, "Rust": 2000}}]}, "x"),
+        self.assertEqual(sp(render_readme.facts_block(lang, "x")), "*900 lines of Python*", "main_language wins over the largest")
+        self.assertEqual(sp(render_readme.facts_block({"repos": [{"name": "x", "lines": {"Python": 900, "Rust": 2000}}]}, "x")),
                          "*2k lines of Rust*")
         # Built on: chart.toml [facts] built_on in its order, only where the manifest has it; else the first five non-helpers
         cfg = {"facts": {"built_on": {"Scrapy": ["deltalake", "Redis", "psycopg2", "prometheus_client", "not-in-manifest"]}}}
@@ -445,7 +451,8 @@ class Readme(unittest.TestCase):
             self.assertNotIn("test file", live)
             self.assertNotIn("last worked", live)
             if isinstance(r.get("test_functions"), int):
-                self.assertIn(f" · {render_readme._plural(r['test_functions'], 'test')} · ", live, name)
+                self.assertRegex(live, re.escape(f" · {render_readme._plural(r['test_functions'], 'test')}") +
+                                 r"( \(CI selects all but [\d,]+\))? · ", name)
             if (r.get("ci") or {}).get("conclusion") == "success":
                 self.assertIn(f"CI passed {render_readme.fmt_date(r['ci']['date'])}", live)
             self.assertNotIn("last commit", live)     # round 6: the code date on the hero answers "alive"
@@ -484,12 +491,12 @@ class Readme(unittest.TestCase):
                  "**[rustmapper](https://github.com/BenjaminSRussell/Rust-sitemap)**: `pip install` gives you",
                  "<!-- facts:Rust-sitemap:start -->", "<!-- install:Rust-sitemap:start -->",
                  "pip install rustmapper", "Prebuilt for Apple silicon",
-                 "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage",
-                 "<!-- facts:Scrapy:start -->", "# in a clone of this repository;", "# start.py runs only from here",
-                 "cd Scraping_project", "python start.py",
-                 "# or only discovery, on your own site:", "docker-compose run --rm scraper", "scrapy crawl scout", "**Also**", "more repositories:", "**Working rules**",
+                 "<!-- handoffs:start -->", "**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system",
+                 "<!-- facts:Scrapy:start -->", "Run these from a clone of [Scrapy]", "cd Scrapy/Scraping_project",
+                 "\npython start.py", "docker-compose run --rm \\", "scraper scrapy crawl scout", "**Also**",
+                 "more repositories:", "**Working rules**",
                  "<!-- notices:start -->", "4. **Parse, don't pattern-match.**", "Found a mistake? [Open an issue]",
-                 "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) is rustmapper", "Tests and lines are counted",
+                 "<!-- survey:start -->", "<sub>The [drawing](DESIGN.md) shows rustmapper", "Tests and lines are counted",
                  "<!-- license:start -->", "**This profile** Code MIT"]
         positions = [text.index(m) for m in order]
         self.assertEqual(positions, sorted(positions), "the page's blocks are out of D8's order")
@@ -519,13 +526,13 @@ class Readme(unittest.TestCase):
         live = render_readme.figures(self.stats, self.cfg)     # whatever stats.json holds today
         self.assertRegex(live["commits"], r"^\d{1,3}(,\d{3})*$")
         self.assertTrue(int(live["repo_count"]) > 0)
-        self.assertRegex(live["taken"], r"^\d{1,2} [A-Z][a-z]{2} \d{4}$")
+        self.assertRegex(sp(live["taken"]), r"^\d{1,2} [A-Z][a-z]{2} \d{4}$")
         v1 = render_readme.figures({"commits": 1828, "repos": [{}] * 21, "since": "Oct 2024", "updated": "2026-10-07",
                                     "seeded": True}, self.cfg)
-        self.assertEqual((v1["commits"], v1["repo_count"], v1["account_since"], v1["taken"]), ("1,828", "21", "Oct 2024", "7 Oct 2026"))
+        self.assertEqual(tuple(sp(v1[k]) for k in ("commits", "repo_count", "account_since", "taken")), ("1,828", "21", "Oct 2024", "7 Oct 2026"))
         v2 = render_readme.figures({"repo_count": 24, "commits": 1700, "account_since": "2024-10-03",
                                     "taken": "2026-10-07", "updated_at": "2026-10-07T06:34:12Z"}, self.cfg)
-        self.assertEqual((v2["commits"], v2["repo_count"], v2["account_since"], v2["taken"], v2["taken_time"]),
+        self.assertEqual(tuple(sp(v2[k]) for k in ("commits", "repo_count", "account_since", "taken", "taken_time")),
                          ("1,700", "24", "Oct 2024", "7 Oct 2026", "06:34 UTC"))
 
     def test_alts_within_budget(self):

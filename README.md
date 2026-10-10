@@ -15,17 +15,17 @@
 <p align="center">
   <!-- position:start — chart.toml [position] text; "" omits the slot -->
 <!-- position:end -->
-  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>&nbsp;· <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy</b></a>&nbsp;· <a href="https://pypi.org/project/rustmapper/">PyPI</a>&nbsp;· <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
+  <a href="https://github.com/BenjaminSRussell/Rust-sitemap"><b>rustmapper</b></a>&nbsp;· <a href="https://pypi.org/project/rustmapper/">PyPI</a>&nbsp;· <a href="https://github.com/BenjaminSRussell/Scrapy"><b>Scrapy</b></a>&nbsp;· <a href="mailto:benjamin.sheldon.russell@gmail.com">Email</a>
   <!-- contact:start — set linkedin / resume in chart.toml [contact]; "" drops the slot -->
 <!-- contact:end -->
 </p>
 
 **Ben Russell builds** web crawlers, discovery pipelines, raw-first storage, and the dashboards that watch them.<br>
-**Languages** Python, Rust; Swift, C, TypeScript, Go.<br>
+**Languages** <!-- n:languages -->Python, Rust; Swift, JavaScript, TypeScript, C, Go<!-- /n -->.<br>
 **Stack** Delta Lake, PostgreSQL, Redis, Parquet · Docker, Kubernetes, Prometheus, Grafana, GitHub Actions · tokio, redb, maturin.
 
 <!-- pick:start -->
-**rustmapper** gives you a site's list of URLs from one binary, with no services to run. **Scrapy** keeps the pages themselves, deduplicated and summarised, in a pipeline that needs Docker.
+**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker.
 <!-- pick:end -->
 
 <!-- about:Rust-sitemap:start -->
@@ -33,7 +33,7 @@
 <!-- about:Rust-sitemap:end -->
 
 <!-- facts:Rust-sitemap:start -->
-*On main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
+*On main at `32c2651`: built on tokio, redb, rkyv, reqwest, clap · 176 tests · CI passed 7 Oct 2026 · 16k lines of Rust*
 <!-- facts:Rust-sitemap:end -->
 
 <!-- install:Rust-sitemap:start -->
@@ -42,11 +42,11 @@ pip install rustmapper
 rust_sitemap crawl \
     --start-url <your-site>
 # stop it with one Ctrl-C
-# sitemap.xml, even after a kill:
+# sitemap.xml, even after a kill
 rust_sitemap export-sitemap
 ```
 
-Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
+Prebuilt for Apple silicon on CPython 3.13; elsewhere `pip` builds it from source, which needs a Rust toolchain (3 min from a cold cache on a 4-core Linux x86_64 machine).
 
 It sends up to 20 requests at a time to one host, 256 in all, with no pause between them. 0.1.3 ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read. 0.1.3 writes one `sitemap.xml` however many pages it found; the sitemap format allows 50,000 URLs per file.
 <!-- install:Rust-sitemap:end -->
@@ -54,33 +54,28 @@ It sends up to 20 requests at a time to one host, 256 in all, with no pause betw
 <!-- handoffs:start -->
 <!-- handoffs:end -->
 
-**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is a multi-stage crawl platform built on the Scrapy framework.
+**[Scrapy](https://github.com/BenjaminSRussell/Scrapy)** is his crawl system on top of the Scrapy framework, in four stages: discovery, analysis, summaries, large documents.
 
 <!-- facts:Scrapy:start -->
-*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests · CI passed 8 Oct 2026 · MIT license · 69k lines of Python*
+*On main at `96e7a1a`: built on deltalake, redis, psycopg2, prometheus-client, datasketch · 1,920 tests (CI selects all but 41) · CI passed 8 Oct 2026 · MIT license · 69k lines of Python*
 <!-- facts:Scrapy:end -->
 
+Run these from a clone of [Scrapy](https://github.com/BenjaminSRussell/Scrapy), in `Scraping_project` (`start.py` runs only there). `python start.py` runs all four stages; it needs docker and docker-compose and crawls a university's sample site. The last command runs only discovery, on your site.
+
 ```sh
-# in a clone of this repository;
-# start.py runs only from here
-cd Scraping_project
-# the whole pipeline (needs docker
-# and docker-compose); it crawls a
-# university's sample site
+cd Scrapy/Scraping_project
 python start.py
-# or only discovery, on your own site:
-docker-compose run --rm scraper \
-    scrapy crawl scout \
-    -a allowed_domains=<domain> \
-    -a start_urls=<url>
+docker-compose run --rm \
+  scraper scrapy crawl scout \
+  -a allowed_domains=<domain> \
+  -a start_urls=<url>
 ```
 
 Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file name.
 
-- A scout spider goes first; analysis and summarization workers follow, each its own stage.
 - Raw pages land in Delta Lake and stay raw: typed Arrow schemas per table, schema evolution by merge, partitions by domain, OPTIMIZE and VACUUM from a maintenance queue. Metrics in PostgreSQL, queues in Redis.
-- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
-- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
+- Near-duplicates are dropped by URL hash and MinHash. Pages get an extractive summary in stage 3; documents over 50,000 characters go to stage 4, where bart-large-cnn runs on the worker itself, so nothing is sent to an external API.
+- Prometheus metrics on Grafana dashboards. Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for 60 s. Docker Compose and a Helm chart for Kubernetes.
 
 <a name="also"></a>
 **Also**
@@ -113,17 +108,17 @@ Grafana opens on `localhost:3000`. Spiders run by name (`scout`), not by file na
 **Working rules**
 
 <!-- notices:start -->
-1. **Boring under load.** The system worth having is the one still running after you have stopped watching it. *Scrapy, Sep 2025: a circuit breaker in the error handler.*
-2. **Raw before clean.** The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables.*
-3. **Dashboards before speed.** A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
-4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*
+1. **Boring under load.** One failing host is set aside for a minute; the rest of the crawl goes on. *Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*
+2. **Raw before clean.** Next month's question can't be known today, so the raw layer is appended to and never overwritten. *Scrapy, Oct 2025, the Delta Lake tables.*
+3. **Dashboards before speed.** Dashboards go in version one. *Scrapy, Oct 2025: Prometheus metrics, then Grafana dashboards.*
+4. **Parse, don't pattern-match.** A regex for a URL breaks on the first port or login inside it; `urllib.parse` does not. *ideal-url-organizer, Nov 2025: URLs split with `urllib.parse`.*
 <!-- notices:end -->
 
 Found a mistake? [Open an issue](https://github.com/BenjaminSRussell/BenjaminSRussell/issues/new).
 
 <a name="data"></a>
 <!-- survey:start -->
-<sub>The [drawing](DESIGN.md) is rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of Scrapy's 499.</sub>
+<sub>The [drawing](DESIGN.md) shows rustmapper 0.1.3, the release pip installs; its commands were run, with seeding off, against a local 3-page site on 10 Oct 2026 (Linux x86_64). Tests and lines are counted per repository, whoever wrote them: coding agents (Claude, jules) authored 45 of rustmapper's 146 commits and 71 of the Scrapy repository's 499, and co-signed 1 and 30 of his own.</sub>
 <!-- survey:end -->
 
 <!-- license:start -->

@@ -37,7 +37,14 @@ footer_line = "The chart ends here. The web doesn't."
 # route header holds (it writes one line per page, SitemapNode), every [[figures]] row with use = "pick" holds, and
 # (review round 4: it takes three steps, not one command) the release gate `no_services` holds: Redis is a flag.
 # Review round 5: the names first, where a reader scanning line starts finds them.
-pick = "**rustmapper** gives you a site's list of URLs from one binary, with no services to run. **Scrapy** keeps the pages themselves, deduplicated and summarised, in a pipeline that needs Docker."
+# Review round 7: "His **Scrapy** repository", not the Scrapy framework (64.7k stars, `Scrapy` on PyPI); no
+# "pipeline", which names the framework's item pipelines; American spelling, as the rest of the page.
+pick = "**rustmapper** gives you a site's list of URLs from one binary, with no services to run. His **Scrapy** repository keeps the pages themselves, deduplicated and summarized, and needs Docker."
+# Review round 7: the Languages line's first two (what the page is about); the rest is every other main_language of
+# his public repositories, ordered by how many repositories, then lines (render_readme.languages_block)
+languages_lead = ["Python", "Rust"]
+# Review round 7: how the data line names a repository whose name is also a well-known project's
+repo_words = {Scrapy = "the Scrapy repository"}
 log_footnote = "Heights observed, not predicted."
 
 [copy.review]
@@ -109,17 +116,21 @@ name = "COMMON CRAWL"
 [[notices]]
 n = 1
 title = "Boring under load."
-body = "The system worth having is the one still running after you have stopped watching it."
-cite = "Scrapy, {month:breaker}: a circuit breaker in the error handler."
-anchors = [{key = "breaker", repo = "Scrapy", text = "class CircuitBreaker"}]
+# review round 7: the breaker that runs. The old cite (fd33c11, `class CircuitBreaker` in src/common/error_handling.py)
+# was a class nothing called, deleted six days later (1b0f502). His 099dd6c (8 Oct 2026) adds the per-host breakers
+# of stage 2 (`_host_breakers`, stage2_worker.py): after 5 URLs on a host fail every retry, it is left alone 60 s.
+body = "One failing host is set aside for a minute; the rest of the crawl goes on."
+cite = "Scrapy, {month:breaker}: a circuit breaker for each host in stage 2."
+anchors = [{key = "breaker", repo = "Scrapy", text = "_host_breakers", author = "self"}]
 repo = "Scrapy"
-date = "2025-09"
+date = "2026-10"
 source = "toml"
 
 [[notices]]
 n = 2
 title = "Raw before clean."
-body = "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten."
+# review round 7: plain claims, one frame at most (the old three read as one poster template)
+body = "Next month's question can't be known today, so the raw layer is appended to and never overwritten."
 # review round 5: rustmapper's write-ahead log is not cited here: it is truncated after each checkpoint
 # (src/wal.rs checkpoint(), every 64 commits or 64 MiB by default), a durability buffer, not a raw layer
 cite = "Scrapy, {month:delta}, the Delta Lake tables."
@@ -131,7 +142,7 @@ source = "toml"
 [[notices]]
 n = 3
 title = "Dashboards before speed."
-body = "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one."
+body = "Dashboards go in version one."
 cite = "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards."
 anchors = [{key = "prometheus", repo = "Scrapy", text = "prometheus_client"},
            {key = "grafana", repo = "Scrapy", text = '"panels"'}]
@@ -172,6 +183,34 @@ repo = "ideal-url-organizer"
 glob = "src/organizers/method_*.py"
 count = 25
 
+# Review round 7: what the hand-off does with rustmapper's file. The importer converts it to URLRecords and runs
+# `./run.sh --all`, which runs `src/main.py --full`, which runs the methods in `self.methods` (21 today; methods
+# 22-25 take PageContent from the organizer's own crawler). `keys` counts the keys of the dict literal assigned to
+# that name (ast); `also` are literals that must hold too. `handoff = true`: the image's hand-off label reads it.
+[[figures]]
+text = "21 ways"
+handoff = true
+repo = "ideal-url-organizer"
+path = "src/main.py"
+keys = "self.methods"
+count = 21
+also = [{path = "scripts/import_rust_sitemapper.py", literal = '[str(run_sh), "--all"]'},
+        {path = "run.sh", literal = "--all)\n        python3 \"$PROJECT_DIR/src/main.py\" --full"}]
+
+# review round 7: the Scrapy block's lead names its stages (Scrapy README: discovery, analysis, summaries, large docs)
+[[figures]]
+text = "four stages"
+repo = "Scrapy"
+glob = "Scraping_project/src/stage[0-9]/__init__.py"   # one package per stage
+count = 4
+
+# review round 7: rule 1's cite, "a circuit breaker for each host in stage 2"
+[[figures]]
+text = "stage 2"
+repo = "Scrapy"
+path = "Scraping_project/src/stage2/stage2_worker.py"
+literal = "_host_breakers"
+
 [[figures]]
 text = "stage 3"
 repo = "Scrapy"
@@ -198,7 +237,7 @@ path = "Scraping_project/src/stage3/stage3_worker.py"
 literal = "MinHashLSH"
 
 [[figures]]
-text = "summarised"
+text = "summarized"
 use = "pick"
 repo = "Scrapy"
 path = "Scraping_project/src/stage3/stage3_worker.py"
@@ -386,7 +425,7 @@ export_defaults = [{path = "src/cli.rs", block = "ExportSitemap", arg = "data_di
 no_services = [{path = "src/cli.rs", block = "Crawl", text = 'help = "Enable distributed crawling with Redis")]'},
                {path = "src/cli.rs", block = "Crawl", text = "enable_redis: bool,"}]
 # review round 5: the block's "# sitemap.xml, even after a kill:" comment. The release's export opens the stored state
-# (CrawlerState, written by the writer every 50 ms) and never the WAL, and writes a sitemap; the run check's
+# (CrawlerState, written by the writer in batches) and never the WAL, and writes a sitemap; the run check's
 # export_after_kill must have passed and kill_writes_file failed (render_readme.stop_lines).
 export_after_kill = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "CrawlerState::new(&data_dir)"},
                      {path = "src/main.rs", fn = "run_export_sitemap_command", absent = "WalReader"},
@@ -406,13 +445,15 @@ file = "seeder.rs"
 # review round 6: what the seeds buy. Each gives URLs no link leads to: a sitemap lists pages, the certificate-log
 # seeder yields https://<subdomain>/ for every subdomain crt.sh knows (ct_log_seeder.rs, both trees), Common Crawl
 # every URL it indexed under the domain
-text = "your URL, plus by default URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl"
+# review round 7: the aside set off by commas, and "looked up rather than followed" (each seeder queries a file or
+# an index; none follows a link)
+text = "your URL and, by default, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl"
 head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
            {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
            {path = "src/common_crawl_seeder.rs"}, {path = "src/cli.rs", text = 'default_value = "all"'}]
 [[route.rustmapper.entry.instead]]
-text = "your URL, plus, if asked, URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl"
+text = "your URL and, if asked, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl"
 head = [{path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'}]
 release = [{path = "src/seeder.rs"}, {path = "src/sitemap_seeder.rs"}, {path = "src/ct_log_seeder.rs"},
            {path = "src/ct_log_seeder.rs", text = 'format!("https://{}/", subdomain)'},
@@ -431,14 +472,21 @@ release = [{path = "src/frontier.rs", text = "struct ReadyHost"}, {path = "src/r
 
 # Review round 3: the scope fact lives here, where it is a fact about which links are queued, not a cause.
 # url_utils.rs is_same_domain takes the start's subdomains and every domain it ends with (start on blog.x.org and
-# x.org is crawled too); siblings are not. Review round 6: said as a visitor names them, not "above or below". Review round 4: "your URL's", because the check is made
-# against the start URL's host (frontier.rs start_url_domain), not the fetched page's.
+# x.org is crawled too); siblings are not. Review round 6: said as a visitor names them, not "above or below". Review
+# round 4: "your URL's", because the check is made against the start URL's host (frontier.rs start_url_domain).
+# Review round 7: the governor (G1, a note under this row until now) is folded in, next to the verb it qualifies: on
+# the phone "…its parent domain / fetches fewer pages at once…" read as the parent domain fetching. The release's
+# governor shrinks the fetch permits when the average redb commit time (an EWMA, alpha 0.4) goes over
+# THROTTLE_THRESHOLD_MS, 500.0 in 0.1.3's main.rs; main has since set it to 2,000 ms through
+# GOVERNOR_THROTTLE_THRESHOLD_MS, so the figure, and the row, are the release's (scope "release"; the domain anchors
+# are kept on both sides, and hold).
 [[route.rustmapper.entry]]
 id = "F1"
 kind = "stop"
+scope = "release"
 loop = true
 file = "bfs_crawler.rs"
-text = "fetches a page; queues links to your site, its subdomains and its parent domain"
+text = "fetches pages, fewer at once when saves average over {const:THROTTLE_THRESHOLD_MS} ms; queues their links to your site, its subdomains and its parent domain"
 head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
         {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
         {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
@@ -446,41 +494,44 @@ head = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_link
 release = [{path = "src/bfs_crawler.rs", text = "frontier.add_links(discovered_links)"},
            {path = "src/bfs_crawler.rs", text = "BfsCrawler::is_same_domain("},
            {path = "src/url_utils.rs", fn = "is_same_domain", text = "url_domain.ends_with(base_domain)"},
-           {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"}]
-runs = ["crawl_ctrl_c"]
-# (the release's frontier checks a link against the start URL's domain, which "your URL's" names)
-
-# Review round 5: with its measure, in ink. The release's governor shrinks the fetch permits when the average redb
-# commit time (an EWMA) goes over THROTTLE_THRESHOLD_MS, 500.0 in 0.1.3's main.rs; main has since set it to 2,000 ms
-# through GOVERNOR_THROTTLE_THRESHOLD_MS, so the figure is the release's. Two lines on the phone (647 of 600 units);
-# "when a save averages" is longer still, and "fewer pages" without "at once" reads as fewer pages in all.
-[[route.rustmapper.entry]]
-id = "G1"
-kind = "note"              # it changes how many fetches run at once: a line under F1's words, no mark of its own
-scope = "release"
-loop = true
-file = "governor.rs"
-text = "fetches fewer pages at once when saves average over {const:THROTTLE_THRESHOLD_MS} ms"
-release = [{path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"}, {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS", producer = true},
+           {path = "src/url_utils.rs", fn = "is_same_domain", text = "base_domain.ends_with(url_domain)"},
+           {path = "src/main.rs", const = "THROTTLE_THRESHOLD_MS"},
+           {path = "src/main.rs", text = "if commit_ewma_ms > THROTTLE_THRESHOLD_MS", producer = true},
            {path = "src/main.rs", text = "add_permits"}]
+runs = ["crawl_ctrl_c"]
 
-# The figure is the constant as the code defines it, in both trees. Review round 5: the write path, in its order.
-# writer_loop appends each batch to the write-ahead log and fsyncs it (sync_all) before it commits the batch to redb
-# (order anchors, `before`); the batch is drained for at most BATCH_TIMEOUT_MS. That is why an export after a kill
-# has something to read.
+# The write path, in its order (review round 5). writer_loop appends each batch to the write-ahead log and fsyncs it
+# (sync_all) before it commits the batch to redb (order anchors, `before`). That is why an export after a kill has
+# something to read. Review round 7: no period. drain_batch waits at most BATCH_TIMEOUT_MS (50) for the first event
+# (recv_deadline), then takes whatever is queued, up to MAX_BATCH_SIZE, with try_recv and returns at once: during a
+# crawl batches are written back to back, and 50 ms is the idle wait, not a save period. "every N ms" is said only
+# if writer_loop ever sleeps on the constant between flushes (the first wording, which does not hold today).
 [[route.rustmapper.entry]]
 id = "W1"
 kind = "stop"
 loop = true
 file = "writer_thread.rs"
 text = "logged to disk, then saved to redb, every {const:BATCH_TIMEOUT_MS} ms"
+audit = "Printed only while `writer_loop` sleeps on the constant between flushes; at 0.1.3 and at HEAD it does not (`drain_batch` waits up to 50 ms for the first event, then takes what is queued, up to 5,000, and returns), so the image says \"in batches\" with no figure"
 head = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-        {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
+        {path = "src/writer_thread.rs", fn = "writer_loop", text = "sleep(Duration::from_millis(BATCH_TIMEOUT_MS))"},
         {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.append(&record)", before = "wal_writer.fsync()"},
         {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.fsync()", before = "state.apply_event_batch(&batch)"},
         {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
 release = [{path = "src/writer_thread.rs", const = "BATCH_TIMEOUT_MS"},
-           {path = "src/writer_thread.rs", text = "Duration::from_millis(BATCH_TIMEOUT_MS)"},
+           {path = "src/writer_thread.rs", fn = "writer_loop", text = "sleep(Duration::from_millis(BATCH_TIMEOUT_MS))"},
+           {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.append(&record)", before = "wal.fsync()"},
+           {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.fsync()", before = "state.apply_event_batch(&batch)"},
+           {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
+[[route.rustmapper.entry.instead]]
+text = "logged to disk, then saved to redb, in batches"
+head = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_deadline(deadline)"},
+        {path = "src/writer_thread.rs", fn = "drain_batch", text = "try_recv()"},
+        {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.append(&record)", before = "wal_writer.fsync()"},
+        {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal_writer.fsync()", before = "state.apply_event_batch(&batch)"},
+        {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
+release = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_deadline(deadline)"},
+           {path = "src/writer_thread.rs", fn = "drain_batch", text = "try_recv()"},
            {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.append(&record)", before = "wal.fsync()"},
            {path = "src/writer_thread.rs", fn = "writer_loop", text = "wal.fsync()", before = "state.apply_event_batch(&batch)"},
            {path = "src/wal.rs", fn = "fsync", text = "sync_all()"}, {path = "src/state.rs", text = "use redb::"}]
@@ -498,14 +549,16 @@ id = "H1"
 kind = "trap"
 scope = "release"
 loop = true
-text = "{release} never stops by itself; done when `Received work item` lines stop"
+# Review round 7: "exits", not "stops": the crawl does stop, the process does not exit (the probes' own verb), and
+# "stops printing" says where the lines are (an eprintln!, so the terminal)
+text = "{release} never exits by itself; done when it stops printing `Received work item`"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawler: Received work item:"}]
 runs = ["crawl_ctrl_c", "quiet_after_last_page"]
 fails = ["ends_by_itself"]
 [[route.rustmapper.entry.instead]]
-text = "{release} never stops by itself, even after the last page"
+text = "{release} never exits by itself, even after the last page"
 release = [{path = "src/bfs_crawler.rs", fn = "start_crawling", text = "else =>"},
            {path = "src/bfs_crawler.rs", fn = "start_crawling", text = "Crawl complete: frontier empty"}]
 runs = ["crawl_ctrl_c"]
@@ -552,6 +605,7 @@ id = "L1"
 kind = "text"
 scope = "release"
 text = "It sends up to {field:max_inflight} requests at a time to one host, {arg:workers} in all, with no pause between them. {release} ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read."
+audit = "\"No pause\": `crawl_delay_secs: 0` in the struct literal, no Crawl-delay parser in `src/robots.rs`, and probe `robots_read` (a local http site; the closest two fetches 1 ms apart, no `GET /robots.txt`)"
 release = [{path = "src/state.rs", field = "max_inflight"}, {path = "src/state.rs", field = "crawl_delay_secs", equals = "0"},
            {path = "src/robots.rs", absent = "fn parse_crawl_delay"},
            {path = "src/robots.rs", fn = "fetch_robots_txt", text = 'format!("https://{}/robots.txt"'},
@@ -579,6 +633,7 @@ kind = "text"
 scope = "release"
 from_head = true
 text = "{release} writes one `sitemap.xml` however many pages it found; the sitemap format allows {const:DEFAULT_MAX_URLS_PER_SITEMAP} URLs per file."
+audit = "50,000 is the sitemaps.org protocol's limit (\"no more than 50,000 URLs and must be no larger than 50MB\", https://www.sitemaps.org/protocol.html), the figure main's `SitemapIndexWriter` splits at"
 head = [{path = "src/sitemap_writer.rs", const = "DEFAULT_MAX_URLS_PER_SITEMAP"}]
 release = [{path = "src/main.rs", fn = "run_export_sitemap_command", text = "SitemapWriter::new(&output)"},
            {path = "src/main.rs", absent = "SitemapIndexWriter"}, {path = "src/sitemap_writer.rs", absent = "SitemapIndexWriter"}]

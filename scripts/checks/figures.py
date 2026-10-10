@@ -29,7 +29,7 @@ def prose(readme: str) -> str:
     t = re.sub(r"<!--.*?-->", lambda m: " " * len(m.group(0)), t, flags=re.S)
     t = re.sub(r"<[^>]+>", lambda m: " " * len(m.group(0)), t)
     t = re.sub(r"\]\([^)]*\)", lambda m: " " * len(m.group(0)), t)
-    return t
+    return t.replace("\u00a0", " ")      # review round 7: "60\u00a0s" is the row "60 s" (same length)
 
 
 def uncovered(readme: str, rows: list[dict]) -> list[str]:

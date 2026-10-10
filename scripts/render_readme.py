@@ -63,8 +63,15 @@ def fmt_n(n) -> str:
         return str(n)
 
 
+NBSP = "\u00a0"
+MONTHS_RX = "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+UNITS = ("ms", "s", "min", "h", "characters", "MB")     # review round 7: kept on the line of their number
+
+
 def fmt_date(s, month_only: bool = False) -> str:
-    """'2026-10-07T06:34:12Z' → '7 Oct 2026'; '2024-10' → 'Oct 2024'; anything else passes through."""
+    """'2026-10-07T06:34:12Z' → '7 Oct 2026'; '2024-10' → 'Oct 2024'; anything else passes through. Review round 7:
+    joined by no-break spaces (U+00A0), so a phone never ends a line on "CI passed 8" (GitHub strips inline styles,
+    so `white-space: nowrap` is not available)."""
     if not s:
         return ""
     s = str(s)
@@ -77,8 +84,22 @@ def fmt_date(s, month_only: bool = False) -> str:
     except ValueError:
         return s
     if month_only or not d:
-        return date.strftime("%b %Y")
-    return f"{date.day} {date.strftime('%b %Y')}"
+        return date.strftime("%b") + NBSP + str(date.year)
+    return f"{date.day}{NBSP}{date.strftime('%b')}{NBSP}{date.year}"
+
+
+def keep_together(text: str) -> str:
+    """Review round 7: dates ("7 Oct 2026", "Oct 2025"), a number and its unit ("3 min", "60 s", "50,000
+    characters") and "16k lines of Rust" joined by U+00A0 in text the renderer writes. Code spans are left alone."""
+    parts = re.split(r"(`[^`]*`)", str(text or ""))
+    for i in range(0, len(parts), 2):
+        s = parts[i]
+        s = re.sub(rf"\b(\d{{1,2}}) ({MONTHS_RX}) (\d{{4}})\b", rf"\1{NBSP}\2{NBSP}\3", s)
+        s = re.sub(rf"\b({MONTHS_RX}) (\d{{4}})\b", rf"\1{NBSP}\2", s)
+        s = re.sub(rf"(\d[\d,.–]*) ({'|'.join(UNITS)})\b", rf"\1{NBSP}\2", s)
+        s = re.sub(r"(\d[\d.]*[kM]?) lines of (\w+)", rf"\1{NBSP}lines{NBSP}of{NBSP}\2", s)
+        parts[i] = s
+    return "".join(parts)
 
 
 def fmt_time(s) -> str:
@@ -118,7 +139,30 @@ def figures(stats: dict, cfg: dict) -> dict:
         "release": cfg.get("chart", {}).get("release", ""),
     }
     f["edition"] = f["edition_version"]
+    f["languages"] = languages_line(stats, cfg)
     return f
+
+
+def languages_line(stats: dict, cfg: dict) -> str:
+    """Review round 7: the Languages line from the data. chart.toml `[copy] languages_lead` first (each only while it
+    is some repository's main_language), then every other `main_language` of his public repositories (the profile
+    left out), by how many repositories have it, then by their lines in it: "Python, Rust; Swift, JavaScript,
+    TypeScript, C, Go". `main_language` is the language with most lines at HEAD (data/tree.py)."""
+    login = (cfg.get("chart") or {}).get("login") or stats.get("login")
+    count: dict[str, int] = {}
+    lines: dict[str, int] = {}
+    for r in stats.get("repos") or []:
+        if not isinstance(r, dict) or r.get("name") == login or not r.get("main_language"):
+            continue
+        lang = str(r["main_language"])
+        count[lang] = count.get(lang, 0) + 1
+        ln = r.get("lines") if isinstance(r.get("lines"), dict) else {}
+        lines[lang] = lines.get(lang, 0) + (ln.get(lang) if isinstance(ln.get(lang), int) else 0)
+    lead = [x for x in ((cfg.get("copy") or {}).get("languages_lead") or []) if x in count]
+    rest = sorted((x for x in count if x not in lead), key=lambda x: (-count[x], -lines[x], x))
+    if not lead:
+        return ", ".join(rest)
+    return ", ".join(lead) + ("; " + ", ".join(rest) if rest else "")
 
 
 class _Safe(dict):
@@ -224,7 +268,7 @@ def notices_block(cfg: dict, stats: dict, limit: int = NOTICES_ON_PAGE) -> str:
     for i, nt in enumerate(hand, 1):
         body = f" {nt['body']}" if nt.get("body") else ""
         text, _missing = proof.fill_cite(nt.get("cite") or "", int(nt.get("n", i)), stats.get("rules") or [])
-        cite = f" *{text}*" if text else ""
+        cite = f" *{keep_together(text)}*" if text else ""
         rows.append(f"{nt.get('n', i)}. **{nt['title']}**{body}{cite}")
     return "\n".join(rows)
 
@@ -345,7 +389,14 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
         parts.append(("built on " if (r.get("head") or {}).get("short") else "Built on ") + ", ".join(deps))
     tests = r.get("test_functions")
     if isinstance(tests, int) and not isinstance(tests, bool):
-        parts.append(_plural(tests, "test"))
+        item = _plural(tests, "test")
+        # review round 7: "N tests" beside "CI passed" is read as N passing tests; say how many the passing
+        # workflow's own commands do not select (repos[].ci_selection), when it is any
+        sel = r.get("ci_selection") if isinstance(r.get("ci_selection"), dict) else {}
+        ns = sel.get("not_selected")
+        if isinstance(ns, int) and ns > 0 and sel.get("of") == tests and (r.get("ci") or {}).get("conclusion"):
+            item += f" (CI selects all but {fmt_n(ns)})"
+        parts.append(item)
     ci = r.get("ci")
     if isinstance(ci, str):
         ci = {"conclusion": ci}
@@ -380,7 +431,7 @@ def facts_block(stats: dict, name: str, cfg: dict | None = None) -> str:
     # review round 2: the counts are main's, not the release's; say which snapshot they are
     head = (r.get("head") or {}).get("short")
     lead = f"On main at `{head}`: " if head else ""
-    return "*" + lead + " · ".join(p.replace("*", r"\*") for p in parts) + "*"
+    return "*" + lead + keep_together(" · ".join(p.replace("*", r"\*") for p in parts)) + "*"
 
 
 def facts_repos(text: str) -> list[str]:
@@ -447,7 +498,7 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
         cmd = route_mod.command_name(ed.get("scripts"), ed.get("project") or "rustmapper")
     except Exception:
         return ""
-    # no line over CODE_COLUMNS characters: a 375 px phone shows about 38 columns of GitHub's code font
+    # no line over CODE_COLUMNS characters (checks/readme.py): a 360 px phone shows 32 columns of GitHub's code font
     rc = (stats.get("runcheck") or {}).get(ed.get("project") or "rustmapper")
     lines = ["```sh", f"pip install {ed.get('project') or 'rustmapper'}", f"{cmd} crawl \\",
              *(f"    {f} {v}" for f, v in BLOCK_CRAWL_FLAGS)]
@@ -467,7 +518,7 @@ def install_block(stats: dict, repo: str, cfg: dict | None = None) -> str:
     # the wheel note, then (review round 3) what the release does to a site and to a big one, as its own paragraph
     paras = [x for x in (_wheel_sentence(ed.get("wheels"), rc), " ".join(text_entries(route, rc, ed, _repo(stats, repo))))
              if x]
-    return "\n".join(lines) + "".join(f"\n\n{x}" for x in paras)
+    return "\n".join(lines) + "".join(f"\n\n{keep_together(x)}" for x in paras)
 
 
 def stop_lines(rc: dict | None, gates: dict | None = None) -> list[str]:
@@ -486,7 +537,8 @@ def stop_lines(rc: dict | None, gates: dict | None = None) -> list[str]:
     kill, after = steps.get("kill_writes_file"), steps.get("export_after_kill")
     gate = (gates or {}).get("export_after_kill") or {}
     if kill is not None and not kill.get("ok") and after is not None and after.get("ok") and gate.get("ok"):
-        out.append(f"# {_file_name((gate.get('values') or {}).get('arg:output') or './sitemap.xml')}, even after a kill:")
+        # review round 7: no colon, so the line is 32 columns and fits a 360 px phone
+        out.append(f"# {_file_name((gate.get('values') or {}).get('arg:output') or './sitemap.xml')}, even after a kill")
     return out
 
 
@@ -654,7 +706,6 @@ def _share_pct(v) -> str | None:
     return str(int(pct + 0.5))
 
 
-NBSP = "\u00a0"
 WHOSE = "Ben's"          # review round 3: the page speaks of him in the third person throughout
 
 
@@ -671,7 +722,7 @@ def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | No
         AUTOMATION = ("dependabot[bot]", "renovate[bot]", "github-actions[bot]", "pre-commit-ci[bot]")
     aliases = aliases or {}
     by = {r.get("name"): r for r in stats.get("repos") or [] if isinstance(r, dict)}
-    parts, names = [], {}
+    parts, names, cosigned = [], {}, []
     for name in repos or []:
         r = by.get(name) or {}
         total = r.get("all_hands")
@@ -683,6 +734,10 @@ def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | No
             short = agent_short(o.get("name") or "")
             names[short] = names.get(short, 0) + int(o.get("commits") or 0)
         parts.append(f"{fmt_n(n)} of {aliases.get(name, name)}'s {fmt_n(total)}")
+        # review round 7: his own commits that carry an agent's Co-authored-by trailer (`coauthored.agent`), beside
+        # the authored count as AUDIT §5 allows; said only when every repository listed has the count
+        co = (r.get("coauthored") or {}).get("agent") if isinstance(r.get("coauthored"), dict) else None
+        cosigned.append(co if isinstance(co, int) and not isinstance(co, bool) else None)
     if not parts:
         return ""
     who = [k for k, v in sorted(names.items(), key=lambda kv: -kv[1]) if v]
@@ -690,8 +745,12 @@ def agent_clause(stats: dict, repos: list[str] | None = None, aliases: dict | No
         return ""
     parts[0] += " commits"
     listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    tail = ""
+    if cosigned and all(c is not None for c in cosigned) and any(cosigned):
+        nums = [fmt_n(c) for c in cosigned]
+        tail = ", and co-signed " + (nums[0] if len(nums) == 1 else ", ".join(nums[:-1]) + " and " + nums[-1]) + " of his own"
     return (f"Tests and lines are counted per repository, whoever wrote them: coding agents ({', '.join(who)}) "
-            f"authored {listed}")
+            f"authored {listed}{tail}")
 
 
 # The crawl command the README's block prints (install_block), as (flag, value) pairs.
@@ -754,7 +813,7 @@ def route_clause(stats: dict, figs: dict) -> str:
         return ""
     v = ed["version"]
     project = ed.get("project") or "rustmapper"
-    out = f"The [drawing](DESIGN.md) is {project} {v}, the release pip installs"
+    out = f"The [drawing](DESIGN.md) shows {project} {v}, the release pip installs"   # review round 7: shows, not is
     rc = (stats.get("runcheck") or {}).get("rustmapper") or {}
     if rc.get("ok") and rc.get("date") and str(rc.get("version")) == str(v):
         steps = {s.get("id"): s for s in rc.get("steps") or []}
@@ -774,7 +833,7 @@ def survey_block(stats: dict, figs: dict | None = None, repos: list[str] | None 
     figs = figs or figures(stats, {})
     prov = stats.get("provenance") if isinstance(stats.get("provenance"), dict) else {}
     sentences = []
-    head = route_clause(stats, figs)
+    head = keep_together(route_clause(stats, figs))
     if head:
         sentences.append(head)
     if prov.get("mode") == "cache-failed":
@@ -890,8 +949,9 @@ def main(readme: str, cfg: dict, stats: dict, fittings: list[dict] | None = None
     text, _ = fill_block(text, "figures", figures_block(figs))
     text, _ = fill_block(text, "notices", notices_block(cfg, stats))
     text, _ = fill_block(text, "instruments", instruments_block(cfg, fittings))
-    text, _ = fill_block(text, "survey", survey_block(stats, figs, facts_repos(text),
-                                                      (cfg.get("hero") or {}).get("aliases") or {}))
+    # review round 7: "the Scrapy repository's 499", not "Scrapy's" (the framework has thousands of commits)
+    words = {**((cfg.get("hero") or {}).get("aliases") or {}), **((cfg.get("copy") or {}).get("repo_words") or {})}
+    text, _ = fill_block(text, "survey", survey_block(stats, figs, facts_repos(text), words))
     for name in facts_repos(text):
         text, _ = fill_block(text, f"facts:{name}", facts_block(stats, name, cfg))
     for name in install_repos(text):

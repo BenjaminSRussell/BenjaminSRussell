@@ -19,6 +19,13 @@ subject).
 A `[[figures]]` row backs one number typed into the README's prose: `{text, repo, path, literal}` holds when the
 file at the repository's HEAD contains the literal; `{text, repo, glob, count}` holds when that many files at HEAD
 match the glob. checks/figures.py fails a number in the README's own text that no holding row covers (FIGURES).
+Review round 7: `{text, repo, path, keys, count}` holds when the dict literal assigned to `keys` in that Python file
+(`self.methods = {…}`, read with ast) has `count` keys; `also = [{path, literal}]` must hold too; `handoff = true`
+marks the row the image's hand-off label reads (sheets/route.handoff_words).
+
+Review round 7: a rule's cite must point at code that is still there. Each record carries `at_head`: the anchor's
+text is in a file at HEAD that is not documentation (`head_paths` names them); NOTICE-LIVE fails a printed rule
+whose anchor is not.
 """
 from __future__ import annotations
 
@@ -80,8 +87,45 @@ def rule_records(notices: list[dict], git_dirs: dict[str, str], identity: dict, 
             mine = first_his(commits, identity)
             if mine:
                 rec.update(found=True, sha=mine["sha"][:7], date=mine["date"], author=mine["name"])
+                live = live_paths(gd, text, a.get("path"))
+                rec["at_head"] = bool(live)
+                rec["head_paths"] = live[:3]          # a few of them, for the reader of stats.json
             out.append(rec)
     return out
+
+
+DOC_EXT = (".md", ".rst", ".txt", ".adoc")
+
+
+def live_paths(git_dir: str, text: str, path: str | None = None, timeout: int = 120) -> list[str]:
+    """The files at HEAD, documentation left out, that hold `text` (review round 7: the cited code is still there;
+    a rule that names a practice may cite the month he started it even if that first file was later rebuilt, but
+    the thing itself must still be in the code)."""
+    args = ["git", f"--git-dir={git_dir}", "grep", "-l", "-F", "-e", text, "HEAD"]
+    if path:
+        args += ["--", path]
+    try:
+        r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    paths = [line.split(":", 1)[1] for line in r.stdout.splitlines() if ":" in line]
+    return sorted(p for p in paths if not p.lower().endswith(DOC_EXT))
+
+
+def dict_keys(src: str | None, name: str) -> list[str] | None:
+    """The string keys of the dict literal assigned to `name` (`self.methods`, `METHODS`) anywhere in a Python file,
+    read with ast; None when the file does not parse or holds no such assignment."""
+    import ast
+    try:
+        tree = ast.parse(src or "")
+    except (SyntaxError, ValueError):
+        return None
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Assign, ast.AnnAssign)) and isinstance(node.value, ast.Dict):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(ast.unparse(tg) == name for tg in targets):
+                return [k.value for k in node.value.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)]
+    return None
 
 
 def month_of(rules: list[dict], n: int, key: str) -> str | None:
@@ -127,6 +171,10 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
                "holds": False, "why": ""}
         if f.get("use"):        # review round 3: a row that a build-written sentence rests on (`pick`)
             rec["use"] = str(f["use"])
+        if f.get("keys"):        # review round 7: a count of a dict literal's keys
+            rec["keys"] = str(f["keys"])
+        if f.get("handoff"):
+            rec["handoff"] = True
         gd = git_dirs.get(rec["repo"])
         if not gd:
             old = cached.get((rec["text"], rec["repo"]))
@@ -143,7 +191,23 @@ def figure_records(figures: list[dict], git_dirs: dict[str, str], cache: list[di
                 rec["why"] = f"{rec['path']}: file missing at HEAD"
             elif rec["literal"] and str(rec["literal"]) not in src:
                 rec["why"] = f"{rec['path']}: no {rec['literal']!r} at HEAD"
+            elif rec.get("keys"):
+                keys = dict_keys(src, rec["keys"])
+                rec["measured"] = len(keys) if keys is not None else None
+                if keys is None:
+                    rec["why"] = f"{rec['path']}: no dict literal assigned to {rec['keys']}"
+                elif len(keys) != rec["count"]:
+                    rec["why"] = f"{rec['path']}: {rec['keys']} has {len(keys)} keys, not {rec['count']}"
+                else:
+                    rec["holds"] = True
             else:
                 rec["holds"] = True
+        for a in f.get("also") or []:     # review round 7: literals the row's claim also rests on
+            if not rec["holds"]:
+                break
+            s2 = read(gd, str(a.get("path")))
+            if s2 is None or str(a.get("literal")) not in s2:
+                rec["holds"] = False
+                rec["why"] = f"{a.get('path')}: no {a.get('literal')!r} at HEAD"
         out.append(rec)
     return out

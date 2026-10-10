@@ -1010,7 +1010,35 @@
    },
    "first_ns": "2025-09-25",
    "last_ns": "2026-10-08",
-   "main_language": "Python"
+   "main_language": "Python",
+   "ci_selection": {
+    "not_selected": 41,
+    "outside": 16,
+    "deselected": 25,
+    "ignored": 0,
+    "commands": [
+     {
+      "cwd": "Scraping_project",
+      "paths": [
+       "tests"
+      ],
+      "not_markers": [
+       "slow",
+       "kafka",
+       "performance"
+      ]
+     },
+     {
+      "cwd": "",
+      "paths": [
+       "tests/unit/test_docker_entrypoints.py"
+      ],
+      "not_markers": []
+     }
+    ],
+    "cargo_test": false,
+    "of": 1920
+   }
   },
   {
    "name": "BenjaminSRussell",
@@ -1700,7 +1728,24 @@
    },
    "first_ns": "2025-10-20",
    "last_ns": "2026-08-08",
-   "main_language": "Rust"
+   "main_language": "Rust",
+   "ci_selection": {
+    "not_selected": 0,
+    "outside": 0,
+    "deselected": 0,
+    "ignored": 0,
+    "commands": [
+     {
+      "cwd": "",
+      "paths": [
+       "python/tests"
+      ],
+      "not_markers": []
+     }
+    ],
+    "cargo_test": true,
+    "of": 176
+   }
   },
   {
    "name": "Data-visualizer",
@@ -5618,12 +5663,12 @@
   {
    "repo": "Scrapy",
    "tag": "N1",
-   "date": "2025-09",
+   "date": "2026-10",
    "title": "Boring under load.",
    "url": "",
    "source": "hand",
-   "body": "The system worth having is the one still running after you have stopped watching it.",
-   "cite": "Scrapy, {month:breaker}: a circuit breaker in the error handler.",
+   "body": "One failing host is set aside for a minute; the rest of the crawl goes on.",
+   "cite": "Scrapy, {month:breaker}: a circuit breaker for each host in stage 2.",
    "n": 1
   },
   {
@@ -5633,7 +5678,7 @@
    "title": "Raw before clean.",
    "url": "",
    "source": "hand",
-   "body": "The question you will want next month is one you cannot ask today, so the raw layer is appended to and never overwritten.",
+   "body": "Next month's question can't be known today, so the raw layer is appended to and never overwritten.",
    "cite": "Scrapy, {month:delta}, the Delta Lake tables.",
    "n": 2
   },
@@ -5644,7 +5689,7 @@
    "title": "Dashboards before speed.",
    "url": "",
    "source": "hand",
-   "body": "A crawler you cannot watch is a crawler you cannot trust; dashboards go in version one.",
+   "body": "Dashboards go in version one.",
    "cite": "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards.",
    "n": 3
   },
@@ -7346,7 +7391,7 @@
      "kind": "stop",
      "scope": "release",
      "loop": false,
-     "text": "your URL, plus by default URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl",
+     "text": "your URL and, by default, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl",
      "file": "seeder.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7367,7 +7412,7 @@
      },
      "instead": [
       {
-       "text": "your URL, plus, if asked, URLs found without links: sitemaps, subdomains in certificate logs, Common Crawl",
+       "text": "your URL and, if asked, URLs looked up rather than followed: sitemaps, subdomains in certificate logs, Common Crawl",
        "file": "seeder.rs",
        "verified_head": true,
        "verified_release": false,
@@ -7420,9 +7465,9 @@
     {
      "id": "F1",
      "kind": "stop",
-     "scope": "both",
+     "scope": "release",
      "loop": true,
-     "text": "fetches a page; queues links to your site, its subdomains and its parent domain",
+     "text": "fetches pages, fewer at once when saves average over 500 ms; queues their links to your site, its subdomains and its parent domain",
      "file": "bfs_crawler.rs",
      "verified_head": true,
      "verified_release": true,
@@ -7438,26 +7483,8 @@
       ],
       "release": [
        "src/bfs_crawler.rs",
+       "src/main.rs",
        "src/url_utils.rs"
-      ]
-     }
-    },
-    {
-     "id": "G1",
-     "kind": "note",
-     "scope": "release",
-     "loop": true,
-     "text": "fetches fewer pages at once when saves average over 500 ms",
-     "file": null,
-     "verified_head": true,
-     "verified_release": true,
-     "missing": [],
-     "runs": [],
-     "fails": [],
-     "paths": {
-      "head": [],
-      "release": [
-       "src/main.rs"
       ]
      }
     },
@@ -7468,9 +7495,12 @@
      "loop": true,
      "text": "logged to disk, then saved to redb, every 50 ms",
      "file": "writer_thread.rs",
-     "verified_head": true,
-     "verified_release": true,
-     "missing": [],
+     "verified_head": false,
+     "verified_release": false,
+     "missing": [
+      "head src/writer_thread.rs fn writer_loop: no 'sleep(Duration::from_millis(BATCH_TIMEOUT_MS))'",
+      "release src/writer_thread.rs fn writer_loop: no 'sleep(Duration::from_millis(BATCH_TIMEOUT_MS))'"
+     ],
      "runs": [],
      "fails": [],
      "paths": {
@@ -7484,14 +7514,37 @@
        "src/wal.rs",
        "src/writer_thread.rs"
       ]
-     }
+     },
+     "instead": [
+      {
+       "text": "logged to disk, then saved to redb, in batches",
+       "file": "writer_thread.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/state.rs",
+         "src/wal.rs",
+         "src/writer_thread.rs"
+        ],
+        "release": [
+         "src/state.rs",
+         "src/wal.rs",
+         "src/writer_thread.rs"
+        ]
+       }
+      }
+     ]
     },
     {
      "id": "H1",
      "kind": "trap",
      "scope": "release",
      "loop": true,
-     "text": "{release} never stops by itself; done when `Received work item` lines stop",
+     "text": "{release} never exits by itself; done when it stops printing `Received work item`",
      "file": null,
      "verified_head": true,
      "verified_release": true,
@@ -7511,7 +7564,7 @@
      },
      "instead": [
       {
-       "text": "{release} never stops by itself, even after the last page",
+       "text": "{release} never exits by itself, even after the last page",
        "file": null,
        "verified_head": true,
        "verified_release": true,
@@ -7913,14 +7966,19 @@
    "key": "breaker",
    "repo": "Scrapy",
    "path": null,
-   "text": "class CircuitBreaker",
+   "text": "_host_breakers",
    "found": true,
-   "sha": "fd33c11",
-   "date": "2025-09-29",
+   "sha": "099dd6c",
+   "date": "2026-10-08",
    "author": "Benjamin Russell",
-   "first_sha": "fd33c11",
+   "first_sha": "099dd6c",
    "first_author": "Benjamin Russell",
-   "first_is_his": true
+   "first_is_his": true,
+   "scope": "self",
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/src/stage2/stage2_worker.py"
+   ]
   },
   {
    "n": 2,
@@ -7934,7 +7992,13 @@
    "author": "Benjamin Russell",
    "first_sha": "52dcbd8",
    "first_author": "Benjamin Russell",
-   "first_is_his": true
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/src/lakehouse/lakehouse_manager.py",
+    "Scraping_project/tests/common/test_delta_lake.py",
+    "Scraping_project/tests/delta/test_lazy_imports_and_exceptions.py"
+   ]
   },
   {
    "n": 3,
@@ -7948,7 +8012,13 @@
    "author": "Benjamin Russell",
    "first_sha": "d571e6e",
    "first_author": "Benjamin Russell",
-   "first_is_his": true
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/alerting_rules.yml",
+    "Scraping_project/k8s/helm/scraping-pipeline/values.yaml",
+    "Scraping_project/monitoring/alerting_rules.yml"
+   ]
   },
   {
    "n": 3,
@@ -7962,7 +8032,13 @@
    "author": "Benjamin Russell",
    "first_sha": "e8cbe15",
    "first_author": "Benjamin Russell",
-   "first_is_his": true
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/scraping_pipeline_health.json",
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/unified_dashboard.json",
+    "Scraping_project/monitoring/dashboards/scraping_pipeline_health.json"
+   ]
   },
   {
    "n": 4,
@@ -7977,7 +8053,13 @@
    "first_sha": "6e8087f",
    "first_author": "Claude",
    "first_is_his": false,
-   "scope": "self"
+   "scope": "self",
+   "at_head": true,
+   "head_paths": [
+    "src/analyzers/semantic_analyzer.py",
+    "src/core/url_parser.py",
+    "src/core/web_crawler.py"
+   ]
   }
  ],
  "figures": [
@@ -7989,6 +8071,41 @@
    "glob": "src/organizers/method_*.py",
    "count": 25,
    "measured": 25,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "21 ways",
+   "repo": "ideal-url-organizer",
+   "path": "src/main.py",
+   "literal": null,
+   "glob": null,
+   "count": 21,
+   "measured": 21,
+   "holds": true,
+   "why": "",
+   "keys": "self.methods",
+   "handoff": true
+  },
+  {
+   "text": "four stages",
+   "repo": "Scrapy",
+   "path": null,
+   "literal": null,
+   "glob": "Scraping_project/src/stage[0-9]/__init__.py",
+   "count": 4,
+   "measured": 4,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 2",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "_host_breakers",
+   "glob": null,
+   "count": null,
+   "measured": null,
    "holds": true,
    "why": ""
   },
@@ -8038,7 +8155,7 @@
    "use": "pick"
   },
   {
-   "text": "summarised",
+   "text": "summarized",
    "repo": "Scrapy",
    "path": "Scraping_project/src/stage3/stage3_worker.py",
    "literal": "extractive summary",

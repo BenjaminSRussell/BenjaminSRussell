@@ -13,7 +13,7 @@ route's header, and the counts and CI live in the text). Right, the route: the p
 start bar, the install line with the release right after it (review round 5), the image's one command, then the
 stops (a ring on the magenta track, painted over it; review round 4: every row's words start at one left edge; a desk
 file label left of the track only when every one keeps a line clear of the title block, which today none does), the
-governor as a line under the fetch stop's words with its threshold (no mark of its own), the hazard (its words ringed by a dotted danger line in the accent, review round 3; with the line of output
+governor as a clause of the fetch stop's words, next to the verb it qualifies (review round 7; no mark of its own), the hazard (its words ringed by a dotted danger line in the accent, review round 3; with the line of output
 that says the crawl is done) and the way out, the end bar, the file you get and its real field names, and a thin
 line on to the one other project of his that reads that file, says what it does with it, and tests the join. Everything a reader copies or looks up (the crawl command, the install time, the CI) is in
 the README, once.
@@ -69,13 +69,15 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
     "S1": ("where URLs come from, and what the release contacts by default", "Q5", "stats.json routes.rustmapper S1"),
     "S2": ("it is polite by construction: one queue per host, paced by robots.txt", "Q1", "stats.json routes.rustmapper S2"),
     "F1": ("each page is fetched and its links are queued again, on the domain of the URL you gave, its parent "
-           "domains and subdomains included", "Q1", "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain)"),
-    "G1": ("the crawl slows when it cannot save what it found, not when the network is slow, past a stated "
-           "threshold: backpressure from the store to the fetchers, a note on the fetch stop", "Q1",
-           "stats.json routes.rustmapper G1 (0.1.3 main.rs THROTTLE_THRESHOLD_MS, commit EWMA)"),
-    "W1": ("what it has found is written to a log on disk, fsynced, then committed to redb, every 50 ms, so an export "
-           "after a kill has something to read", "Q5",
-           "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; BATCH_TIMEOUT_MS; redb)"),
+           "domains and subdomains included; and (review round 7, the governor folded in next to its verb) fewer "
+           "pages are fetched at once when saving falls behind, past a stated threshold, not when the network is "
+           "slow: backpressure from the store to the fetchers", "Q1",
+           "stats.json routes.rustmapper F1 (url_utils.rs is_same_domain; 0.1.3 main.rs THROTTLE_THRESHOLD_MS, "
+           "commit EWMA)"),
+    "W1": ("what it has found is written to a log on disk, fsynced, then committed to redb in batches (as events "
+           "arrive, up to 5,000 at a time; no period), so an export after a kill has something to read", "Q5",
+           "stats.json routes.rustmapper W1 (writer_thread.rs writer_loop order; drain_batch recv_deadline, "
+           "try_recv; redb)"),
     "H1": ("the one catch, named with its release: it does not stop by itself, and the line of its own output that "
            "says it is done; the dotted line marks it", "Q5", "stats.json routes.rustmapper H1 (bfs_crawler.rs select! else arm, "
            "'Received work item'); runcheck ends_by_itself, quiet_after_last_page"),
@@ -83,9 +85,9 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
            "Q5", "stats.json routes.rustmapper C1; runcheck crawl_ctrl_c"),
     "R12": ("where you end up", "Q4", "R2-F2 item 7 (the end of the route)"),
     "R13": ("what you get and where it is on disk, with the real field names", "Q4", "stats.json routes.rustmapper R13"),
-    "R15": ("his projects are one body of work: this output is sorted 25 ways by another (drawn only while the join's "
+    "R15": ("his projects are one body of work: this output is sorted 21 ways by another (drawn only while the join's "
             "fields match and its test exists)", "Q2",
-            "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]; figures['25 ways']"),
+            "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]; figures['21 ways'] (handoff)"),
 }
 
 BREAKS: list[tuple[str, str, str]] = [
@@ -98,15 +100,17 @@ BREAKS: list[tuple[str, str, str]] = [
      "the title column is 56 to 410 px, and the name at 141 would be over 500 px wide"),
     ("Order is position; the loop is a line",
      "the route runs top to bottom in the order of a run: install, start, seeds, then the rows that repeat for every "
-     "page (fetch, the governor under it, the log), closed by one line back up the left side; the hazard sits on "
+     "page (fetch, slowed by the governor, and the log), closed by one line back up the left side; the hazard sits on "
      "that line and its way out on the next row",
      "a crawler is a loop: links found on a page go back on the queue (bfs_crawler.rs frontier.add_links); the "
      "release never stops by itself (run check, ends_by_itself), and a list cannot show where the repeat closes"),
-    ("The governor is a note under fetch",
-     "the governor's words are the last line of the fetch stop's row, in ink with its threshold (review round 5), "
-     "with no mark on the track",
+    ("The governor is a clause of fetch",
+     "the governor's words are a clause of the fetch stop's own sentence, next to the verb they qualify (\"fetches "
+     "pages, fewer at once when saves average over 500 ms; queues their links …\"), in ink with its threshold, with "
+     "no mark on the track",
      "it changes how many fetches run at once (governor THROTTLE_THRESHOLD_MS, add_permits), so it qualifies that "
-     "stop; on a metro map a short tick is a station, which it is not (review round 4)"),
+     "stop; on a metro map a short tick is a station, which it is not (review round 4); as its own line under the "
+     "stop's last words it read as their subject (\"…its parent domain / fetches fewer pages…\", review round 7)"),
     ("Fixed marks, no sizes",
      "every bar, ring, dotted line and line has a fixed size; only the number of lines of text moves anything",
      "the owner could not tell what the old islands' sizes meant (9 Oct 2026); here nothing has a size to read"),
@@ -244,13 +248,15 @@ WAYS = re.compile(r"\d[\d,]* ways")
 
 
 def handoff_words(ho: dict, data: dict) -> str:
-    """Review round 6: the hand-off label says what the next project does with the file: "sorted 25 ways by
-    ideal-url-organizer", the count from the [[figures]] row of that repository that holds at its HEAD ("25 ways",
-    25 method files); without one, "sorted by ideal-url-organizer"; without `does`, "read by …"."""
+    """Review round 6: the hand-off label says what the next project does with the file: "sorted 21 ways by
+    ideal-url-organizer". Review round 7: the count is the [[figures]] row of that repository marked `handoff` that
+    holds at its HEAD (the keys of `self.methods`, the methods `run.sh --all` runs; the 25 method files include four
+    that sort pages the organizer fetched itself); without one, "sorted by ideal-url-organizer"; without `does`,
+    "read by …"."""
     to = ho.get("to") or ""
     verb = ho.get("does") or "read by"      # review round 4: what the next project does with the file
     ways = next((str(f["text"]) for f in data.get("figures") or [] if isinstance(f, dict) and f.get("repo") == to
-                 and f.get("holds") and WAYS.fullmatch(str(f.get("text") or ""))), None)
+                 and f.get("handoff") and f.get("holds") and WAYS.fullmatch(str(f.get("text") or ""))), None)
     if ways and verb.endswith(" by"):
         return f"{verb[:-3]} {ways} by {to}"
     return f"{verb} {to}"

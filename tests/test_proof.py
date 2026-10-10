@@ -83,8 +83,9 @@ class Rules(unittest.TestCase):
             cfg = tomllib.load(fh)
         fails = [f for f in notices_check.check(Ctx(stats, cfg)) if f.level == "fail"]
         self.assertEqual(fails, [])
-        block = rr.notices_block(cfg, stats)
-        self.assertIn("*Scrapy, Sep 2025: a circuit breaker in the error handler.*", block)
+        block = rr.notices_block(cfg, stats).replace("\u00a0", " ")
+        # review round 7: rule 1 cites the per-host breakers that run (his 099dd6c), not the uncalled class
+        self.assertIn("*Scrapy, Oct 2026: a circuit breaker for each host in stage 2.*", block)
         self.assertIn("*Scrapy, Oct 2025, the Delta Lake tables.*", block)
         self.assertNotIn("write-ahead", block)
         self.assertNotIn("?", block.replace("don't", ""))
@@ -225,7 +226,7 @@ class CiJobs(unittest.TestCase):
             github._rest = orig
         stats = {"repos": [{"name": "x", "head": {"short": "32c2651"}, "test_functions": 3,
                             "ci": {"conclusion": "success", "date": "2026-10-07", "jobs": jobs}}]}
-        self.assertEqual(rr.facts_block(stats, "x"),
+        self.assertEqual(rr.facts_block(stats, "x").replace("\u00a0", " "),
                          "*On main at `32c2651`: 3 tests · CI passed 7 Oct 2026, Security Audit failed (not blocking)*")
 
 
@@ -239,9 +240,12 @@ class Audit(unittest.TestCase):
         self.assertEqual(audit_figures.render(text, cfg), text, "run python3 scripts/audit_figures.py")
         block = audit_figures.block(cfg)
         for f in cfg["figures"]:
-            self.assertIn(f"| {f['text']} |", block)
+            self.assertIn(f"| sorted {f['text']} by {f['repo']} |" if f.get("handoff") else f"| {f['text']} |", block)
         self.assertIn("{month:breaker}", block)
         self.assertIn("BATCH_TIMEOUT_MS", block)
+        # review round 7: every route entry whose words read a figure has a row
+        for gid in ("F1", "H1", "L1", "X1"):
+            self.assertIn(f"`routes.rustmapper` {gid}", block, gid)
         self.assertNotIn("CODE 32c2651 · 7 OCT 2026\"", text)
         self.assertNotIn("it is the light's period", text)
 

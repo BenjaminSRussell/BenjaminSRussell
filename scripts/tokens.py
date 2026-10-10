@@ -162,8 +162,8 @@ Round 6 (docs/crit/round6/SPEC.md, reviews 1 to 5): the hero is the way into rus
 you start it, what it does with each page, where a stranger goes wrong and how to get out, and where the output goes
 next. Vertical position is the order of a run: the start bar, `pip install rustmapper` with the release and its date
 set right after the command, the stops on the magenta track (what happens there, every row's words at one left edge;
-the track is painted first, so each ring sits on it), the governor as a line under the fetch stop's words with its
-500 ms threshold, the write path (the write-ahead log, fsynced, then redb), the rows that repeat for every page closed
+the track is painted first, so each ring sits on it), the governor as a clause of the fetch stop's words, next to
+the verb it qualifies, with its 500 ms threshold, the write path (the write-ahead log, fsynced, then redb, in batches), the rows that repeat for every page closed
 by one line back up the left side, the one hazard on that loop, which names its release, with its words (and the line
 of output that says the crawl is done) ringed by a dotted line in the accent, the reader's one step (Ctrl-C once) on
 the next row, the end bar, `data/sitemap.jsonl` with its real field names, and a thin line on to ideal-url-organizer,

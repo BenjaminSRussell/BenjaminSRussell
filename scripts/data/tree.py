@@ -266,3 +266,197 @@ def scan_head(head_dir: str, repo: str, lines_cfg: dict | None = None) -> dict:
     has_rust_or_python = any(lang in TEST_FUNCTION_RX for _sha, lang, _path in wanted)
     return {"lines": dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))),
             "test_functions": sum(tests.values()) if has_rust_or_python else None}
+
+
+# ---------------------------------------------------------------- review round 7: what CI runs of those tests
+
+_STEP = re.compile(r"^(\s*)-\s")
+_KEY = re.compile(r"^\s*(?:-\s+)?([\w-]+):\s?(.*)$")
+_NOT_MARK = re.compile(r"^\s*not\s+(\w+)\s*$")
+RUST_IGNORE = re.compile(rb"^[ \t]*#\[[ \t]*ignore\b", re.M)
+
+
+def workflow_name(text: str) -> str | None:
+    m = re.search(r"^name:\s*['\"]?(.*?)['\"]?\s*$", text or "", re.M)
+    return m.group(1) if m else None
+
+
+def _steps(text: str) -> list[dict]:
+    """Each workflow step as {working-directory, run}: a line-level read (no YAML library), enough for `run: |`
+    blocks and one-line `run:` values."""
+    out: list[dict] = []
+    lines = (text or "").splitlines()
+    i = 0
+    cur: dict | None = None
+    step_indent = None
+    while i < len(lines):
+        ln = lines[i]
+        m = _STEP.match(ln)
+        if m and re.match(r"^\s*-\s+(name|uses|run|working-directory|with|env|if|id|shell)\b", ln):
+            cur = {}
+            out.append(cur)
+            step_indent = len(m.group(1))
+        elif step_indent is not None and ln.strip() and len(ln) - len(ln.lstrip()) <= step_indent and not ln.lstrip().startswith("#"):
+            cur, step_indent = None, None
+        if cur is not None:
+            k = _KEY.match(ln)
+            if k and k.group(1) in ("run", "working-directory"):
+                val = k.group(2).strip()
+                if k.group(1) == "run" and val in ("|", ">", "|-", ">-"):
+                    ind = len(ln) - len(ln.lstrip()) + (2 if ln.lstrip().startswith("- ") else 0)
+                    body = []
+                    j = i + 1
+                    while j < len(lines) and (not lines[j].strip() or len(lines[j]) - len(lines[j].lstrip()) > ind):
+                        body.append(lines[j].strip())
+                        j += 1
+                    cur["run"] = "\n".join(body)
+                    i = j
+                    continue
+                cur[k.group(1)] = val.strip("'\"")
+        i += 1
+    return out
+
+
+def pytest_commands(text: str) -> list[dict] | None:
+    """[{cwd, paths, not_markers}] for every `pytest` command in the workflow's run steps (backslash lines joined,
+    comments dropped). None when one has an `-m` expression that is not a chain of `not <marker>` joined by `and`, or
+    a `-k`: what it selects is not read here, so nothing is claimed."""
+    out = []
+    for st in _steps(text):
+        run = re.sub(r"\\\n\s*", " ", "\n".join(l for l in str(st.get("run") or "").splitlines()
+                                              if not l.strip().startswith("#")))
+        for line in run.splitlines():
+            m = re.search(r"(?:^|[\s;&|])(?:python3?\s+-m\s+)?pytest\b(.*)$", line)
+            if not m or "pip install" in line:
+                continue
+            import shlex
+            try:
+                toks = shlex.split(m.group(1))
+            except ValueError:
+                return None
+            paths, nots, k = [], [], 0
+            while k < len(toks):
+                t = toks[k]
+                if t == "-m":
+                    parts = toks[k + 1].split(" and ") if k + 1 < len(toks) else [""]
+                    for p in parts:
+                        mm = _NOT_MARK.match(p)
+                        if not mm:
+                            return None
+                        nots.append(mm.group(1))
+                    k += 2
+                    continue
+                if t == "-k":
+                    return None
+                if t in ("-o", "-c", "-p", "--tb", "--cov", "--rootdir", "--ignore", "--deselect") and k + 1 < len(toks):
+                    if t in ("--ignore", "--deselect"):
+                        return None
+                    k += 2
+                    continue
+                if not t.startswith("-"):
+                    paths.append(t.rstrip("/"))
+                k += 1
+            cwd = str(st.get("working-directory") or "").strip("/")
+            out.append({"cwd": cwd, "paths": paths, "not_markers": nots})
+    return out
+
+
+def _marks(decorators) -> set[str]:
+    """Marker names from `@pytest.mark.<name>` decorators or a `pytestmark` value."""
+    import ast
+    out = set()
+    for d in decorators:
+        for node in ast.walk(d):
+            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Attribute) and node.value.attr == "mark":
+                out.add(node.attr)
+    return out
+
+
+def test_marks(src: str) -> list[set[str]] | None:
+    """The markers of every pytest test function in a file (module `pytestmark`, class and function decorators);
+    None when the file does not parse."""
+    import ast
+    try:
+        tree = ast.parse(src)
+    except (SyntaxError, ValueError):
+        return None
+    mod: set[str] = set()
+    for n in tree.body:
+        if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "pytestmark" for t in n.targets):
+            mod |= _marks([n.value])
+    out: list[set[str]] = []
+
+    def walk(body, inherited):
+        for n in body:
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test_"):
+                out.append(inherited | _marks(n.decorator_list))
+            elif isinstance(n, ast.ClassDef):
+                walk(n.body, inherited | _marks(n.decorator_list))
+    walk(tree.body, mod)
+    return out
+
+
+def ci_selection(paths: list[str], read, repo: str, lines_cfg: dict | None, workflow: str | None,
+                 test_functions: int | None) -> dict | None:
+    """Review round 7: of `test_functions`, how many the passing workflow's own commands do not select. Python: a
+    test in a collected file outside every pytest command's paths, or deselected by the `-m "not …"` of every command
+    whose paths hold it (markers read with ast). Rust: every test when no step runs `cargo test`, else the `#[ignore]`
+    ones. Skips decided at run time (`skipif`, `pytest.skip()`) are not counted: they depend on the machine.
+    {not_selected, outside, deselected, ignored, commands} or None when the workflow cannot be read."""
+    if not isinstance(test_functions, int) or workflow is None:
+        return None
+    cmds = pytest_commands(workflow)
+    if cmds is None:
+        return None
+    lines_cfg = lines_cfg or lines_config(None)
+    cargo = bool(re.search(r"(^|\s)cargo\s+(\+\S+\s+)?test\b", workflow, re.M))
+    outside = deselected = ignored = 0
+
+    def covers(c, p):
+        roots = [("/".join(x for x in (c["cwd"], q) if x)).strip("/") for q in (c["paths"] or [""])]
+        return any(r == "" or p == r or p.startswith(r + "/") for r in roots)
+
+    for p in paths:
+        if not p or excluded(p, repo, lines_cfg):
+            continue
+        ext = os.path.splitext(p)[1].lower()
+        if ext == ".py" and PY_COLLECTED.search(p):
+            src = read(p)
+            if src is None:
+                continue
+            n = len(PY_TEST.findall(src.encode()))
+            if not n:
+                continue
+            mine = [c for c in cmds if covers(c, p)]
+            if not mine:
+                outside += n
+                continue
+            marks = test_marks(src) or []
+            deselected += sum(1 for m in marks if all(set(c["not_markers"]) & m for c in mine))
+        elif ext == ".rs":
+            src = read(p)
+            if src is None:
+                continue
+            n = len(RUST_TEST.findall(src.encode()))
+            if not cargo:
+                outside += n
+            else:
+                ignored += min(n, len(RUST_IGNORE.findall(src.encode())))
+    total = outside + deselected + ignored
+    return {"not_selected": total, "outside": outside, "deselected": deselected, "ignored": ignored,
+            "commands": cmds, "cargo_test": cargo, "of": test_functions}
+
+
+def ci_selection_at_head(git_dir: str, repo: str, lines_cfg: dict | None, workflow_title: str | None,
+                         test_functions: int | None) -> dict | None:
+    """ci_selection on a clone's HEAD, the workflow found by its `name:` (repos[].ci.workflow)."""
+    paths = paths_at_head(git_dir)
+    wf = None
+    for p in paths:
+        if WORKFLOW.match(p or ""):
+            text = blob_at_head(git_dir, p)
+            if text is not None and workflow_name(text) == workflow_title:
+                wf = text
+                break
+    rec = ci_selection(paths, lambda p: blob_at_head(git_dir, p), repo, lines_cfg, wf, test_functions)
+    return rec

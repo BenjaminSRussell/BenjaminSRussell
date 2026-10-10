@@ -68,7 +68,7 @@ MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", 
 
 
 def _words(text: str) -> list[str]:
-    return _WORD.findall(str(text or "").lower().replace("\u2011", "-"))
+    return _WORD.findall(str(text or "").lower().replace("\u2011", "-").replace("\u00a0", " "))
 
 
 def code_or_date(gram: tuple[str, ...]) -> bool:
@@ -111,6 +111,7 @@ def twice(hero_text: list[str], readme: str, n: int = TWICE_WORDS + 1, short: in
 
 def scan(text: str, where: str, code: str = "STRINGS-BANNED") -> list[Finding]:
     out = []
+    text = str(text or "").replace("\u00a0", " ")     # review round 7: the README joins dates with U+00A0
     for label, pat in PATTERNS:
         m = pat.search(text)
         if m:

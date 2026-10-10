@@ -5,9 +5,15 @@ it (round 4, D1: the page is the hero and written text; the supporting sheets ar
 block has exactly one start and one end marker and a <picture> that opens and closes inside it; no
 picture block inside <details>; <details> balanced; the license block present when LICENSE and
 LICENSE-ASSETS.md exist; LICENSE-FLAGSHIP warns for a flagship GitHub detects no license for; render_readme --check clean (the committed README is what the renderer
-would write). Round 6, review 1: no line of a fenced code block is over CODE_COLUMNS characters (a 375 px phone
-shows about 38 columns of GitHub's code font; a longer line hides its end, which is where the warnings were), except a
-line that is one unbreakable URL."""
+would write). Round 6, review 1: no line of a fenced code block is over CODE_COLUMNS characters (a longer line hides
+its end, which is where the warnings were), except a line that is one unbreakable URL. Review round 7, measured on
+10 Oct 2026 in the page renders (scratchpad/r6/build/round-06, GitHub's markdown CSS: `pre` at 85 % of 16 px in
+ui-monospace / SFMono-Regular / Menlo, 16 px box padding, `overflow: auto`, so a long line is cut and scrolls, never
+wraps): a 360 px phone shows 32 visible columns (`page-phone-360-*.png`, the cut after column 32) and a 390 px phone
+36 (`page-phone-3.png`). The limit is the narrower, 32.
+
+THIS-REPO (fail, review round 7): the visible README never says "this repository": on a profile it names the
+profile repository, not the project the sentence is about."""
 from __future__ import annotations
 
 import os
@@ -17,7 +23,7 @@ from check import Finding, fail, warn
 
 TIER = "fast"
 REQUIRED = ("hero",)
-CODE_COLUMNS = 38
+CODE_COLUMNS = 32      # measured at 360 px (docstring)
 _FENCE = re.compile(r"^```[^\n]*\n(.*?)^```", re.S | re.M)
 
 
@@ -31,6 +37,13 @@ def code_too_wide(text: str, limit: int = CODE_COLUMNS) -> list[tuple[int, str]]
             if len(ln) > limit and not (re.fullmatch(r"https?://\S+", bare)):
                 out.append((first + i, ln))
     return out
+
+
+def visible(text: str) -> str:
+    """README text a reader sees: comments, tags and link targets removed (code blocks kept)."""
+    t = re.sub(r"<!--.*?-->", " ", text or "", flags=re.S)
+    t = re.sub(r"<[^>]+>", " ", t)
+    return re.sub(r"\]\([^)]*\)", "]", t)
 
 
 def page_sheets(text: str) -> list[str]:
@@ -85,6 +98,9 @@ def check(ctx) -> list[Finding]:
     for line_no, ln in code_too_wide(text):
         out.append(fail("README-CODE-WIDTH", f"line {line_no} of a code block is {len(ln)} characters (> {CODE_COLUMNS}): "
                         f"{ln.strip()[:60]!r}", "README.md"))
+    for m in re.finditer(r"this repository", visible(text), re.I):
+        out.append(fail("THIS-REPO", "the README says \"this repository\": on the profile that names the profile "
+                        "repository; name the project", "README.md"))
     root = getattr(ctx, "root", ".")
     if all(os.path.exists(os.path.join(root, f)) for f in ("LICENSE", "LICENSE-ASSETS.md")):
         m = re.search(r"<!--\s*license:start\b[^>]*-->(.*?)<!--\s*license:end\s*-->", text, re.S)

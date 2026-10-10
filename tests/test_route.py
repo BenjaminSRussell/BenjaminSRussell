@@ -120,12 +120,12 @@ class Anchors(unittest.TestCase):
         route = stats["routes"]["rustmapper"]
         by = {e["id"]: e for e in route["entries"]}
         self.assertEqual([e["id"] for e in route["entries"]],
-                         ["S1", "S2", "F1", "G1", "W1", "H1", "C1", "R13", "L1", "X1", "M1"])
+                         ["S1", "S2", "F1", "W1", "H1", "C1", "R13", "L1", "X1", "M1"])   # review round 7: G1 is in F1
         if not by["S2"]["verified_head"]:
             self.assertIn("head tests/robots_4xx_allows_crawl.rs: file missing", by["S2"]["missing"])
         rc = stats["runcheck"]["rustmapper"]
         drawn = {e["id"]: e for e in R.drawn(route, rc)}
-        for gid in ("S1", "F1", "G1", "W1", "H1", "C1", "R13", "L1", "X1"):
+        for gid in ("S1", "F1", "W1", "H1", "C1", "R13", "L1", "X1"):
             self.assertIn(gid, drawn, [e for e in R.unverified(route, rc) if e["id"] == gid])
         # review round 6: main's idle test runs with --ignore-robots, so M1 is retired (not printed, not unverified)
         m1 = next(e for e in R.resolve(route, rc) if e["id"] == "M1")
@@ -140,15 +140,18 @@ class Anchors(unittest.TestCase):
         # review round 3: H1 states its cause (no exit once the pages run out), not the crawl's scope; review round 4:
         # with the line of output that says the crawl is done, while the run check saw it go quiet
         # review round 5: the hazard names its release (the sheet fills {release} from edition.version)
-        self.assertEqual(drawn["H1"]["text"], "{release} never stops by itself; done when `Received work item` lines stop")
+        # review round 7: "exits", not "stops": the crawl stops, the process does not exit
+        self.assertEqual(drawn["H1"]["text"], "{release} never exits by itself; done when it stops printing `Received work item`")
         # review round 5: the image keeps one command; what to do after a kill is a comment in the README's block
         self.assertEqual(drawn["C1"]["text"], "press Ctrl-C once to write `data/sitemap.jsonl`")
         # review round 6: the scope in a visitor's words, not the code's ("above or below")
-        self.assertEqual(drawn["F1"]["text"], "fetches a page; queues links to your site, its subdomains and its parent domain")
-        self.assertIn("URLs found without links", drawn["S1"]["text"])
-        # review round 5: the write path in its order, and the governor with the release's threshold
-        self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, every 50 ms")
-        self.assertEqual(drawn["G1"]["text"], "fetches fewer pages at once when saves average over 500 ms")
+        # review round 7: the governor is a clause of F1, next to the verb it qualifies
+        self.assertEqual(drawn["F1"]["text"], "fetches pages, fewer at once when saves average over 500 ms; queues their "
+                                              "links to your site, its subdomains and its parent domain")
+        self.assertEqual(drawn["F1"]["scope"], "release")
+        self.assertIn("URLs looked up rather than followed", drawn["S1"]["text"])
+        # review round 7: the write path in its order, in batches: 50 ms is drain_batch's wait for the first event
+        self.assertEqual(drawn["W1"]["text"], "logged to disk, then saved to redb, in batches")
         self.assertEqual(m1["ci"], "Test")
         self.assertNotIn("kill", drawn["W1"]["text"])
         self.assertNotIn("resume", " ".join(e["text"] for e in drawn.values()))
@@ -242,11 +245,11 @@ class Quiet(unittest.TestCase):
             rc = {"version": "0.1.3", "ok": True, "steps": [{"id": k, "ok": v} for k, v in probes.items()]}
             return {e["id"]: e for e in R.resolve(r, rc)}["H1"]
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=True)["text"],
-                         "{release} never stops by itself; done when `Received work item` lines stop")
+                         "{release} never exits by itself; done when it stops printing `Received work item`")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False, quiet_after_last_page=False)["text"],
-                         "{release} never stops by itself, even after the last page")
+                         "{release} never exits by itself, even after the last page")
         self.assertEqual(words(crawl_ctrl_c=True, ends_by_itself=False)["text"],
-                         "{release} never stops by itself, even after the last page", "no quiet probe recorded: the cause alone")
+                         "{release} never exits by itself, even after the last page", "no quiet probe recorded: the cause alone")
         self.assertTrue(words(crawl_ctrl_c=True, ends_by_itself=True, quiet_after_last_page=False)["retired"])
         # a release that no longer prints the line: the quiet wording's anchor fails, the cause alone is drawn
         r = R.verify_route(spec, None, tree({"src/bfs_crawler.rs": body.replace("Received work item", "item")}),
@@ -255,7 +258,7 @@ class Quiet(unittest.TestCase):
                                                         {"id": "ends_by_itself", "ok": False},
                                                         {"id": "quiet_after_last_page", "ok": True}]}
         self.assertEqual({e["id"]: e for e in R.resolve(r, rc)}["H1"]["text"],
-                         "{release} never stops by itself, even after the last page")
+                         "{release} never exits by itself, even after the last page")
 
 
 class StringDefaults(unittest.TestCase):
@@ -393,7 +396,7 @@ class Commands(unittest.TestCase):
                 self.assertNotIn("{release}", e["text"])
             block = rr.install_block(s, "Rust-sitemap", cfg)
             self.assertIn(want.split()[0] + " crawl \\\n    --start-url <your-site>", block)
-            self.assertIn("# sitemap.xml, even after a kill:\n" + want.split()[0] + " export-sitemap", block)
+            self.assertIn("# sitemap.xml, even after a kill\n" + want.split()[0] + " export-sitemap", block)
         s = copy.deepcopy(stats)
         s["edition"]["scripts"] = []
         with self.assertRaises(RuntimeError):
@@ -407,7 +410,7 @@ class Commands(unittest.TestCase):
         code = block.split("```")[1]
         self.assertEqual(code.strip().splitlines()[1:], ["pip install rustmapper", "rust_sitemap crawl \\",
                                                          "    --start-url <your-site>", "# stop it with one Ctrl-C",
-                                                         "# sitemap.xml, even after a kill:",
+                                                         "# sitemap.xml, even after a kill",
                                                          "rust_sitemap export-sitemap"])
         self.assertTrue(all(len(ln) <= 38 for ln in code.splitlines()))
         # review round 5: the kill comment only while a kill writes no file and the export on what it left worked,
@@ -509,7 +512,7 @@ class RoundThree(unittest.TestCase):
         r = R.verify_route(self.h1_spec(), None, rel, None, "0.1.3")
         res = R.resolve(r, self.rc(ends_by_itself=False, crawl_ctrl_c=True))
         self.assertTrue(res[0]["verified"])
-        self.assertEqual(res[0]["text"], "{release} never stops by itself, even after the last page")
+        self.assertEqual(res[0]["text"], "{release} never exits by itself, even after the last page")
         self.assertNotRegex(res[0]["text"], r"limit|depth|same-site|parent")    # no scope given as the cause
         # the completion check moved to a timer (d751cf0) while the probe still fails: H1 does not hold
         r = R.verify_route(self.h1_spec(), None, tree({"src/bfs_crawler.rs": self.TIMER}), None, "0.1.3")
@@ -671,7 +674,7 @@ class RoundFive(unittest.TestCase):
         with open(STATS, encoding="utf-8") as fh:
             stats = json.load(fh)
         h1 = next(e for e in sheet.plan(stats, load_cfg())["steps"] if e["id"] == "H1")
-        self.assertTrue(h1["text"].startswith(f"{stats['edition']['version']} never stops by itself"), h1["text"])
+        self.assertTrue(h1["text"].startswith(f"{stats['edition']['version']} never exits by itself"), h1["text"])
 
 
 # ================================================================ the sheet half
@@ -713,8 +716,7 @@ class RouteSheet(unittest.TestCase):
             self.assertEqual(ent["h"], int(round(ent["route"]["last_baseline"] + sheet.L["phone" if "phone" in e else "desk"]["foot"])))
 
     def test_unverified_entry_is_not_drawn(self):
-        unv = [e["id"] for e in self.stats["routes"]["rustmapper"]["entries"]
-               if not (e["verified_head"] and e["verified_release"])]
+        unv = [e["id"] for e in R.unverified(self.stats["routes"]["rustmapper"], self.stats["runcheck"]["rustmapper"])]
         for e in EDITIONS:
             drawn = self.report["sheets"][f"hero-{e}"]["route"]["drawn"]
             for gid in unv:
@@ -871,31 +873,22 @@ class RouteSheet(unittest.TestCase):
                 for y, ts in lines.items():
                     w = max(t["x1"] for t in ts) - min(t["x0"] for t in ts)
                     self.assertGreaterEqual(w, 0.45 * measure, f"{e} {gid}: a line of {w:.0f} at {y}")
-            g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
-            self.assertEqual(round(min(t["x0"] for t in g1)), G["text_x"], "the note starts at the rows' left edge")
 
-    def test_governor_is_a_note_under_fetch(self):                # review round 4: no tick, inside F1's row
+    def test_governor_is_a_clause_of_fetch(self):                 # review round 7: no line of its own
         for e in EDITIONS:
             ent = self.report["sheets"][f"hero-{e}"]
             rep = ent["route"]
             self.assertFalse([m for m in rep["marks"] if m["id"] == "G1"], f"{e}: G1 has a mark of its own")
             self.assertNotIn("tick", {m["kind"] for m in rep["marks"]})
-            steps = {st["id"]: st for st in rep["steps"]}
-            self.assertEqual(steps["G1"].get("under"), "F1", e)
-            G = sheet.L["phone" if "phone" in e else "desk"]
-            f1 = [t for t in ent["text"] if t["key"] == "routes:F1" and t["x0"] >= G["text_x"] - 1]
-            g1 = [t for t in ent["text"] if t["key"] == "routes:G1"]
-            w1 = [t for t in ent["text"] if t["key"] == "routes:W1" and t["x0"] >= G["text_x"] - 1]
-            self.assertEqual(min(t["y"] for t in g1) - max(t["y"] for t in f1), G["line"], f"{e}: G1 is F1's next line")
-            self.assertLess(max(t["y"] for t in g1), min(t["y"] for t in w1), e)
-            # review round 5: a measured fact, in ink like its stop, and the number follows the release's constant
+            # no note entry renders as its own line under a stop
+            self.assertFalse([st for st in rep["steps"] if st.get("under") or st["kind"] == "note"], e)
+            f1 = " ".join(t["s"] for t in ent["text"] if t["key"] == "routes:F1")
+            self.assertIn("fewer at once when saves average over 500 ms;", f1, e)
+            self.assertLess(f1.index("500 ms"), f1.index("queues"), e)
             th = tokens.THEMES["night" if "night" in e else "day"]
             svg = self.svg(self.out, e)
-            g1_fill = set(re.findall(r'fill="(#[0-9A-F]{6})"', re.search(r'<g id="hero-G1">(.*?)</g>', svg, re.S).group(1)))
             f1_fill = set(re.findall(r'fill="(#[0-9A-F]{6})"', re.search(r'<g id="hero-F1">(.*?)</g>', svg, re.S).group(1))) - {th.paper}
-            self.assertEqual(g1_fill, {th.ink}, e)
-            self.assertEqual(g1_fill, f1_fill, e)
-            self.assertIn("500", "".join(t["s"] for t in g1))
+            self.assertIn(th.ink, f1_fill, e)
 
     def test_one_left_edge_and_desk_files_left_of_the_track(self):   # review round 4: ROUTE-LEFT-EDGE
         for e in EDITIONS:
@@ -1006,7 +999,7 @@ class RouteSheet(unittest.TestCase):
             ho = [t["s"] for t in texts if t["key"].startswith("handoffs:")]
             # review round 6: what you get, one run on both editions, the count from figures[] "25 ways"; no script
             # path and no ", with a test" (the test is the gate, not the words)
-            self.assertEqual(ho, ["sorted 25 ways by ideal-url-organizer"], e)
+            self.assertEqual(ho, ["sorted 21 ways by ideal-url-organizer"], e)
 
     def test_title_block_is_name_and_role(self):
         for e in EDITIONS:

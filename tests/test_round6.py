@@ -172,14 +172,17 @@ class HandOff(unittest.TestCase):
 
     def test_words(self):
         ho = {"to": "ideal-url-organizer", "does": "sorted by"}
-        rows = [{"text": "25 ways", "repo": "ideal-url-organizer", "holds": True}]
-        self.assertEqual(sheet.handoff_words(ho, {"figures": rows}), "sorted 25 ways by ideal-url-organizer")
+        # review round 7: the row marked `handoff` (the methods run.sh --all runs), not the method-file glob
+        rows = [{"text": "21 ways", "repo": "ideal-url-organizer", "holds": True, "handoff": True}]
+        self.assertEqual(sheet.handoff_words(ho, {"figures": rows}), "sorted 21 ways by ideal-url-organizer")
+        glob = [{"text": "25 ways", "repo": "ideal-url-organizer", "holds": True}]
+        self.assertEqual(sheet.handoff_words(ho, {"figures": glob}), "sorted by ideal-url-organizer")
         self.assertEqual(sheet.handoff_words(ho, {"figures": [dict(rows[0], holds=False)]}),
                          "sorted by ideal-url-organizer")
         self.assertEqual(sheet.handoff_words(ho, {"figures": [dict(rows[0], repo="Scrapy")]}),
                          "sorted by ideal-url-organizer")
         self.assertEqual(sheet.handoff_words({"to": "x"}, {"figures": rows}), "read by x")
-        self.assertIn("25 ways", sheet.PURPOSE["R15"][0])
+        self.assertIn("21 ways", sheet.PURPOSE["R15"][0])
 
 
 class RuleFour(unittest.TestCase):
@@ -289,7 +292,7 @@ class Wording(unittest.TestCase):
         self.assertEqual(cfg["route"]["rustmapper"]["header"], "Crawls a site and writes one line for every URL it finds.")
         self.assertNotIn("above or below", entry(cfg, "F1")["text"])
         s1 = entry(cfg, "S1")
-        self.assertIn("URLs found without links", s1["text"])
+        self.assertIn("URLs looked up rather than followed", s1["text"])     # review round 7
         self.assertIn("if asked", s1["instead"][0]["text"])
         anchor = {"path": "src/ct_log_seeder.rs", "text": 'format!("https://{}/", subdomain)'}
         self.assertIn(anchor, s1["head"])
@@ -299,7 +302,7 @@ class Wording(unittest.TestCase):
         text = read(README)
         self.assertNotIn("Circuit breakers wrap the HTTP, Delta Lake and Redis services", text)
         self.assertIn("Each host has its own circuit breaker: after 5 URLs on it fail every retry, it is left alone for "
-                      "60 s.", text)
+                      "60 s.", text.replace("\u00a0", " "))
         self.assertNotIn("costs the caller nothing", text)
         self.assertIn("logged only after the client has its last byte", text)
         self.assertNotIn("concurrent sitemap crawler written in Rust", text)
