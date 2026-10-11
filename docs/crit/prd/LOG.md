@@ -396,3 +396,132 @@ git diff --stat 027f081..HEAD -- . ':!docs'                                     
 Read §8.1 item 9 and §9.0 (c) as he would on merge day, with `renders/once-2b/page-phone-2.png` and `-3.png` open: can
 he say yes to 2b and pick A or B from the PRD and the committed renders alone; answer §8.3 q.1's new first line and
 q.6's bar; and re-run the commands above, since nothing but a hand checks the register.
+
+## Round 5
+
+11 Oct 2026. Reviews: `review-r05-1.md` (the owner's lens) **7 / 10**, `review-r05-2.md` (a product manager who
+rejects vague PRDs) **7 / 10**, `review-r05-3.md` (an engineer who trusts nothing until the code says it) **7 / 10**.
+All three answer **yes** to "is the product this PRD defines what he wants": reviewer 1 on 9 Oct 20:50 ("How does it
+help the user see my project? What is it showing? ... Everything, single thing inside of this needs a purpose") with
+11:37 ("telling you about me, but with a layer of a theme of shipping ... helpful knowledge") for what it is for;
+reviewer 2 on 11:37 ("helpful data that you're looking at ... in a cool format") tested by 20:50, the round-16 phone
+sheet matched to §5.1 element for element; reviewer 3 on 20:50, confirmed against `route.py PURPOSE` (17 rows, id
+for id, Q for Q) and ROUTE-PURPOSE. What each found: reviewer 1, that both orders of the first merge show a broken
+image to some readers of the live page (`main` names four `still` sources under `prefers-reduced-motion` that the
+first v12 publish removes; a browser picks one `<source>` and does not retry), that the first half of 7 Oct 15:30
+("a massive interest in design") had no goal row, that §9.2 recommended striking the agent-authorship line on a
+reading of 11:35 that is about the v8 picture of commits, that five PRD rounds had changed no product file while G19
+read his 11 Oct sentence as a mandate for more of them, and that §9.0 (c) was labelled as a decision about the top of
+the profile when it changes only the list under the image. Reviewer 2, that the document had no exit from "draft"
+and its blockers were owned by the people editing it, that (c) asked him for a publish order the PRD had already
+chosen, that §8.1's "must all hold" list held an opt-out item and a procedure, that §10.13 and §10.20 were decisions
+with no options, that about 830 words of verification notes sat inside requirements, and that the image had five
+names. Reviewer 3, that four codes stated as gate only warn (ALT-POEM, BOUNDS-TEXTURE, BOUNDS-NO-MANIFEST,
+REPORT-BYTES), that the runner's own codes were outside the grep and the register, that the alt-poem clause is held
+by no product test, that ten tests pin rules the register did not name (four deferred to this round by round 4),
+and that one cite sat beside its subject.
+
+**Answers to §8.3 q.1's first line, logged for G3a** (all three had read §1 first and say so; §8.3 now says the
+line is a product reviewer's): r05-1, *"pip-install a crawler, run it on a URL, it loops over pages, on https it can
+hang behind robots.txt and it never stops by itself, Ctrl-C once writes a JSONL of URLs that another of his tools
+sorts"*; r05-2, *"How to install a crawler called rustmapper, what it does with each page, where it stalls, the one
+key that stops it, and the file it leaves"*; r05-3, *"a crawler called rustmapper, installed with `pip install
+rustmapper`, started with `rust_sitemap crawl`, looping over pages until you press Ctrl-C once, and writing
+`data/sitemap.jsonl`"*. Each names a tool, a way to start it and an output. **§8.3 q.6, logged for G13a:** all three
+would screenshot it; r05-1 "how you get into my crawler" (as rounds 3 and 4), r05-2 "a crawler's run, drawn top to
+bottom", r05-3 "install notes drawn as a route" (as round 2). Third line (G1d): the gap under the box (all three),
+the release date small beside the install line (r05-2, r05-3), the faces and the real field names (r05-1), one left
+edge (r05-3); none saw care in decoration, because there is none.
+
+**Conflicts, resolved on the owner lens (reviewer 1 wins).** (1) The order of the first merge: reviewer 1's MF1 adds
+order C (`--keep-current`, product) and recommends it; reviewer 2's MF2 makes A what happens and B only on his word.
+Applied: C recommended and §10.23 blocks the merge; A until §10.23 exists; B only if he says so; both reviewers
+agreed the order leaves §9.0 (c), and it has. (2) §9.2's recommendation: reviewer 1's MF3 reverses the strike
+ruling that rounds 1 and 2 made on the same lens (no reviewer this round defends strike). Applied: keep recommended,
+the switch defaults on, G8's ruling and §8.1 item 7 follow; his word in a session still decides (b), and the
+reviewer's own "keep" is not his. (3) The first clause of 7 Oct 15:30: reviewer 1's MF2 wants a row G1e, reviewer
+3's MF6 wants it in G1's cell. Applied: G1e, with G1 pointing at it. (4) §5.4's "verified" clauses: reviewer 2's
+MF5 cuts them; reviewer 3's §3 re-ran every one and found them right. Applied in part: the word "verified" and the
+procedure go, the fact each clause states stays (a cell that says what the resolver does under a flipped probe is
+the requirement, not its history).
+
+**Every fact added to `PRD.md` was checked here:** `git show d253286:README.md` (eight `chart` paths, four `still`,
+under `prefers-reduced-motion` at any width; `d253286` is `origin/main` by `git ls-remote`, while the worktree's
+local `main` ref is stale at `e9b111a`, so earlier rounds' `git show main:README.md` is read here against the remote
+sha); `git ls-tree origin/chart assets/v9/` (the same eight files at `c488907`); `README.md:7–13` (six sources, no
+`still`; `grep -c prefers-reduced-motion README.md` = 0), `:38, 86` (the counts), `:151` (the `DESIGN.md` link, "on
+10 Oct 2026"); `render_readme.py:43–52` (the `still` rows as comments), `:459` (`agent_clause(r)`), `:697, 740` (M1
+after the cautions, on the `cargo` gate), `:1017` (the provenance date from `rc['date']`); `publish_chart.py:1–16,
+81, 153–160` (no keep option); `profile.yml:189–191` (the failed-fetch rebuild); `grep -rn no_sounding scripts/`
+(`build_assets.py` sets it; `sheets/log.py:220` and `sheets/soundings.py:145` read it; nothing under `route.py`);
+`stats.json` `runcheck.rustmapper.date` = `2026-10-10`; `alt.py:50` (`warn`), `bounds.py:56, 85` (`warn`),
+`size.py:56` (`warn`), `:70` (`error`), `xml.py:82` (`warn`); `check.py:115, 246, 254, 286, 288` (five `error`
+codes, not four: NO-REPORT at `:288` is the one reviewer 3's grep missed); every `error(` and `Finding("error"` in
+`scripts/checks/` (nine codes: FRAMES-TOOL `:34`, -RENDER `:65`, -SILHOUETTE `:103`, PERF-TOOL `:35`, -RUN `:57`,
+REPORT-STATS, FLAG-WRAP `wrap.py:105`, MOTION-XML `:129`, MOTION-READ `:278`; reviewer 3 named six); the tests at
+`test_route.py:267, 832, 871, 935, 953, 1030`, `test_round12.py:208, 216`, `test_round16.py:85`, `test_data.py:83`,
+`test_pipeline.py:204–223, 550–553` (each opened; the pick's assertions are at 211–223); `chart.toml:1041` (R13
+`runs = ["crawl_ctrl_c"]`), `:1419` (M1), `:1443` (`[[handoffs]]`); `tokens.py:81–101, 112, 117` (`display` and
+`project` serif, `label` cond, `machine` plex; `NIGHT_LIGHT_CUTS`) and `sheets/route.py:555–574` (the name in
+`display`, the project in `project`, widths in `label` and `machine`); `DESIGN.md:21`; `docs/BEN-TODO.md:16`
+("Strike it if you'd rather not"); the renders `renders/round-16/page-phone-2.png` (six open items begin on screen
+two) and `renders/once-2b/page-phone-2.png` (three of the four, the third ending in its sign); `wc -l -w
+docs/PRD.md` and on the §1/2/4/5/8/9/11 lines (the header's figures are now that method's; the round-4 loop gave
+895 / 18,901 against `wc`'s 897 / 18,825 on the same text). Outside, read with WebFetch: TechInterview, "AI-Era
+Resume Framing: How to Position AI Tool Fluency in 2026" (4 May 2026, updated 13 Jul 2026),
+https://www.techinterview.org/post/3233474934/ai-era-resume-framing-2026/ ("Name the specific tool you used, like
+Cursor, Claude Code, Copilot, or Replit Agent"; "Mention AI tool use in the context of work you actually shipped,
+not as a separate skills line"; buzzwords "without specific work behind them"); CoderPad, "New Research: The 2026
+State of Tech Hiring" (11 Mar 2026),
+https://coderpad.io/blog/hiring-developers/new-research-the-2026-state-of-tech-hiring-what-ai-means-for-developers-and-hiring-teams/
+(650+ respondents; "The question isn't whether candidates use AI — it's how they use it"; "Catch and fix AI
+mistakes"; "Explain trade-offs and correctness"; "Raw output alone is no longer a sufficient signal of skill");
+Stack Overflow 2025 Developer Survey, AI section, https://survey.stackoverflow.co/2025/ai (84 % using or planning
+to; "More developers actively distrust the accuracy of AI tools (46%) than trust it (33%)"; 66 % "almost right,
+but not quite"; 45.2 % debugging AI code more time-consuming); WHATWG HTML, "Images",
+https://html.spec.whatwg.org/multipage/images.html ("In an implementation-defined manner, choose one image source
+from sourceSet", chosen once before the fetch; the broken state, "no data could be obtained"; no step retries
+another source). MDN's `<picture>` page is cited from `review-r05-1.md` (source 9) and not re-fetched.
+
+### Applied
+
+| Id | What changed in `PRD.md` |
+|---|---|
+| r1 MF1 (text), r2 MF3 (item 9) | New §8.6 "The first merge": owner a session, the order not one of Ben's inputs; the live `main`'s eight sheets at `d253286` and on `chart` at `c488907`; the branch's six; `publish_chart.py`'s options; the browser picks one source and does not retry (sources above); three orders, C (keep the live sheets; recommended; needs §10.23) first, A (until §10.23 exists; reduced-motion readers see a broken image for the hour), B (only if he says so; 852–1,199 px readers see a broken image for the minutes). §8.1 item 9 is a pointer; §7.4's publish row says "held on the live page once §10.23 exists"; §11's first-merge sentence says some readers see no image under A and B; §8.4 and §9.1 cite §8.6. New §10.23 (`--keep-current`, the test, `unshipped()` against both READMEs; blocks the merge; a session). |
+| r1 MF2, r3 MF6 | New G1e: the first half of 7 Oct 15:30 quoted; "expert" is G1b; "a massive interest in design" shows in how the page is made (three faces with their roles from `tokens.py`, night redrawn, one pitch and edge, the column measured in `DESIGN.md:21`, the link at `README.md:151`); held by review at §8.3 q.6, whose third line now asks whether someone who designs for a living would see a designer's hand, and where. G1 says it carries the second half. |
+| r1 MF3 | §9.2: 11:35 read as about the v8 picture; the line never named by him (`BEN-TODO.md:16`); recommended keep, as printed, with the TechInterview and CoderPad sentences and the Stack Overflow cost quoted; G8 ruled "on by default, his word reverses it"; §8.1 item 7's switch defaults to `true` and fails today on the switch, not the counts; §9.0 (b) "keep is what item 7 implements"; §5.3 row 5, §7.3's totals row and §10.5 follow. His word in a session still decides (b). |
+| r1 MF4, r2 MF1 | Header Status: approved when he answers (c); the text then changes only with the product; next step in order (fix round on items 7, 8, §10.19, §10.23; the PR; his yes); PRD rounds stop at approval. §0's last bullet: the stop rule (no PRD round 6 before that fix round and the PR), the 20:50 floor met, the 11 Oct sentence's object; five rounds, no product change. §10's preamble: session-owned rows are held by the fix pass's scope, a product fix round clears them, a blocking one is done before any further PRD round; "the next PRD round" dropped from Blocks. G19's cell says which sentence gives the count and which the aim. |
+| r1 MF5, r2 MF2, r2 MF7 (table lead) | §9.0 (c) is one word, yes or no, to 2b, saying what changes (six open items to four; the image does not change) and which two renders to compare; a yes means the session's steps and his merge; the order is the session's. §9.1 retitled "The decisions: what the page says about rustmapper 0.1.3, now and after a release"; its first sentence says which rows a merge reaches and which a release; one line above the table says only 2b is decided now. |
+| r2 MF3 | §8.1: items 1–5 run by a session, 6–8 name their owner, the first merge is §8.6; item 6 is one line pointing at §9.0 (a) and §10.21; §9.2's first bullet (the pointer to a pointer) gone. |
+| r2 MF4 | §10.13 closed: the provenance date (`render_readme.py:1017`) is the mark, a rebuild from an older `stats.json` prints the older date, no second mark (G6); §6.1 row 1 says so. §10.20 closed as accepted in §11, reopen only on his ask. |
+| r2 MF5 (part) | §0 bullet 1 cut to the reading order, the baseline line and one sentence on the hand check (the "round 4" clause gone); §7's preamble to the count, a pointer to the round-4 grep and the runner's exclusion; §9.1's render bullets to path, first-screen differences and a pointer to rounds 2 and 4; §5.4's eight "verified:" wrappers cut, their facts kept. |
+| r2 MF6 | One glossary sentence at the end of §1's first paragraph (image, edition, sheet, route, track; the page says "the drawing"); §5.2's header "Sheet, units". |
+| r2 MF7 | §8.5: what Ben does with a failure email (open a session, paste the run link; it fixes and opens a PR). §6's review bullet is a pointer; the row is appendix D's last table. §8.3 q.1's first line is a product reviewer's, given the image first. The header's counts are `wc`'s, method named. |
+| r3 MF1 (text) | §7.5's alt row split: ALT-LONG/-THE/-LAST with T-ALT and what it asserts; the poem clause "gate (warn); no test" with `alt.py:50` and `test_pipeline.py:553`; new §10.24 (`warn` → `fail`, one T-ALT assertion; a session). |
+| r3 MF2 | §7.4: BOUNDS-TEXTURE and -NO-MANIFEST warn (with the manifest sentence), REPORT-BYTES warn and REPORT-STATS error, XML-SET-LOOP on the warn side. |
+| r3 MF3 (corrected) | Appendix B's first row: the runner's **five** `error` codes (NO-REPORT, `check.py:288`, added); §7's preamble says the grep covers the plug-ins only; §6.1's gate row splits exit 1 and 3 and lists the **nine** `error` emits in `scripts/checks/` (reviewer 3 named six). |
+| r3 MF4 | New §7.5 row for `test_c1_has_no_colon_mid_sentence`, `test_once_is_c1s_alone`, `test_pairing`; §5.1's trap sentence cites `test_trap_is_ringed_by_a_dotted_line`; the left-edge row is gate, test (`:953`); the code row gains `test_no_edition_draws_file_labels`; F1 gains `test_governor_is_a_clause_of_fetch`; H1 gains `test_h1_takes_the_quiet_words_only_on_the_probe` and `test_pairing`; the agent row gains `test_bots`. |
+| r3 MF5 | §10.12's fix: the level column and appendix B generated from the plug-ins, the runner and the loader, failing when the committed appendix differs. |
+| r3 MF7 | §5.3 row 4 cites `test_pipeline.py:211–223`; R13 "anchors hold and `crawl_ctrl_c` passed (`runs`, `chart.toml:1041`)"; R15 "`[[handoffs]]` (`chart.toml:1443`)"; §5.3 row 6 places M1. |
+
+### Declined, or applied only in part
+
+| Id | Why |
+|---|---|
+| r1 MF1 (`--keep-current`, its test), r1 MF3 (the switch), r3 MF1 (`alt.py:50` to `fail`), r3 MF5 (the test), and the blockers of r1 MF4 / r2 MF1 (items 7, 8, §10.19) | Product changes; this pass commits only `docs/PRD.md` and `docs/crit/prd/`. Each is a §10 row with the reviewer's reason, the file and line, an owner and a blocking state (5, 8, 12, 19, 23, 24), and the stop rule in §0 says no PRD round runs before a fix round does the blocking ones. |
+| r2 MF5 (part: the §5.4 clauses) | Cut only to the fact: each clause states what the resolver prints under a flipped probe, which is the requirement §10.9 rests on (reviewer 3 re-ran every one this round and they held); the history went, the result stayed. |
+| r3 MF3 (part: "four" runner codes; "six" error codes) | Corrected rather than copied: `check.py:288` emits NO-REPORT, and `scripts/checks/` has nine `error` emits (FRAMES-RENDER, FRAMES-SILHOUETTE, PERF-RUN beside the six named). |
+| r2 MF7 (part: appendix D as the home of the review bullet) | Applied as a row in appendix D's process table, not a paragraph, so §6 keeps one pointer. |
+
+### The hand check, as commands (round 4's, plus reviewer 3's two)
+
+```
+grep -nE '\b(fail|warn|info|error)\(\s*f?"[A-Z]|Finding\("(fail|warn|info|error)", "' scripts/checks/*.py   # the level per code, against §7
+grep -nE 'error\("(PLUGIN|NO-)' scripts/check.py                                                          # the runner's five codes
+```
+
+### Next round
+
+None until the stop rule is met: a product fix round does §8.1 items 7 and 8, §10.19 and §10.23 and opens the PR
+(§10.17); the next PRD round then reads the document once against the merged page, re-runs the hand check with the
+level grep, and asks §8.3 q.1's first line of a reviewer who sees the image before the document.
