@@ -146,3 +146,115 @@ warnings and one REPORT-STATS fail that hashes `assets/stats.json`, not the fixt
 
 Read §9.1 as he would: does row 0, the 1a render and the sequenced default let him decide in one sitting, and is
 §8.1 (items 7 and 8 now blocking) something a session can clear in one fix round before the 2b merge.
+
+## Round 3
+
+11 Oct 2026. Reviews: `review-r03-1.md` (the owner's lens) **7 / 10**, `review-r03-2.md` (a product manager who
+rejects vague PRDs) **7 / 10**, `review-r03-3.md` (an engineer who trusts nothing until the code says it) **7 / 10**.
+All three answer **yes** to "is the product this PRD defines what he wants": reviewer 1 on 9 Oct 11:37 ("It should be
+telling you about me, but with a layer of a theme of shipping... helpful data... in a cool format") tested by 20:50
+("Everything, single thing inside of this needs a purpose"); reviewer 2 on 11:37 ("The map, very helpful. The fucking
+log, not really") and 20:50, the phone sheet checked against §5.1 element by element; reviewer 3 on 20:50, confirmed
+against `route.py PURPOSE` (17 rows, Q for Q) and on 11 Oct 01:12 as the sentence that decides the document. What
+each found: reviewer 1, that the option the PRD asks him to merge (2b) was the one with no render, that his three
+inputs were scattered, that §5.4's one "nothing needed here" row leaves a wrong step on C1 under a release that
+exits, that two of his 7 Oct sentences had no goal row, and that the decision table priced the box but not the
+release's date and the tool's two names; reviewer 2, that 25 lines carried edit history, that the "one home" rule
+was broken for the mid window and the §5.4 gap, that §8.1 item 6 named a gate that holds only its first half, that
+§0 restated three sections, that §2 overclaimed T-PURPOSE, that §8.5 had GitHub's notifications and the 60-day
+schedule rule missing, and that 2b forked on a sub-choice whose second branch fails README-CAUTIONS; reviewer 3,
+that "160 codes" reproduced by no method, that four live codes and a live plug-in were unlisted or marked idle, that
+three "review" cells sit where tests exist, that three line numbers had drifted with no code change, that the rule
+behind §5.4 (a conditional wording needs a probe or producer) and the anchor tests were stated nowhere, and that four
+of appendix A's rule-setting messages were cited by no row.
+
+**Answers to §8.3 q.6, logged for G13a** (the cell now points here): round 2, r02-1 would screenshot it and call it
+"the way into my crawler", r02-3 "install notes drawn as a route"; round 3, r03-1 "how you get into my crawler".
+
+**Conflicts, resolved on the owner lens (reviewer 1 wins).** (1) Who decides the fold's cap under 2b: reviewer 2's
+MF7 set "Decides: Ben"; reviewer 1's MF1 lists three inputs from Ben and makes 2b's change a session's. Applied:
+a session implements the cap of 8 with a test, his yes to 2b (§9.0 (c)) covers it, and the PRD says the cap reverses
+round 13's r1-2 ruling, which was the owner lens's (`docs/crit/round6/LOG.md` round 13), not Ben's. Reviewer 2's
+checked fact stands over reviewer 1's wording: "or a separate open-list cap" is gone, because `cautions()`
+(`checks/readme.py:121`) caps the fold at the same `max_items` and the 2b render fails README-CAUTIONS at 7 ("8 items
+in the fold (at most 7)") and passes at 8. (2) Reviewer 2's MF1 (no round named outside the header) against
+reviewer 3's MF6 (stamp §0 "PRD round 3: four drifts found"): §0 now says the register was checked against `027f081`
+on 11 Oct 2026, that every PRD round so far has found drift in it, and points here for which; no round number inside
+a requirement. (3) Reviewer 2's MF4 (cut §0) against reviewer 1's MF1 (a new status line and §9.0): both applied;
+§0 is four bullets, the last the owner's wording of what waits on whom.
+
+**Every fact added to `PRD.md` was checked here:** `chart.toml:1005–1030` (C1's two wordings and their `runs`; no
+`ends_by_itself`), `:26, 30–31` (`""`), `:1257, 1276, 1308, 1357` (the four `fold = true`), `:693, 696`;
+`checks/position.py:31–35`; `checks/readme.py:7, 119–125, 247, 313` and `cautions()` run on `README.md` and on the
+2b page; `checks/repos.py:3–5`; `checks/data.py:70`; `checks/route.py:60, 70`; `checks/design.py:18`;
+`checks/column.py:45–50, 231`; `render_readme.py:670` (the round-13 comment) and `text_blocks` (the fold flag is read
+from `stats.json`'s routes, not from `chart.toml`, which is why the 2b fixture is a stats file); `profile.yml:13,
+22–27, 160`; `git log -S'20 6 * * 0' -- .github/workflows/profile.yml` → `eeea9d1`, Benjamin Russell, 9 Oct; `git
+rev-list --count main..027f081` = 23; `git diff --stat 027f081..HEAD -- . ':!docs'` empty; the clone at `32c2651`
+(`frontier.rs:913`); every test named (`test_round7.py:367, 391`; `test_route.py:93, 107, 375, 386, 417, 485, 517,
+527, 558, 576, 829, 894–902, 1052`; `test_round6.py:88`; `test_proof.py:158, 200`; `test_pipeline.py:296`;
+`test_round15.py:124`); the code count (`grep -ohE '"[A-Z][A-Z0-9]*(-[A-Z0-9]+)+"|"(data|log)\.[a-z_]+"'
+scripts/checks/*.py | sort -u` → 169 strings, `YYYY-MM` and `YYYY-MM-DD` among them, so 167 codes; reviewer 3's 162
+and 169 came from two other methods, which is the point); round-16 `gate.txt` ("fast log 2 finding(s)");
+`stats.json` `edition` (0.1.3, 2025-11-08, scripts `["rust_sitemap"]`) and the Rust-sitemap `ci` record (success,
+2026-10-07); `docs/BEN-TODO.md:34–36, 39`; the round-16 `sheet-phone-day-390.png` ("0.1.3 · 8 NOV 2025" over
+`rust_sitemap crawl`) and the 1a `sheet-phone-day-390.png` (no box; "press Ctrl-C once and wait for `Saved to`").
+Outside: GitHub docs "Notifications for workflow runs" ("sent to the user who initially created the workflow"; the
+cron editor; "only when a workflow run has failed") and "Events that trigger workflows" ("can be delayed during
+periods of high loads"; "automatically disabled when no repository activity has occurred in 60 days"; "will become
+the `actor`"), read with WebFetch; PyPI JSON for rustmapper (0.1.3 uploaded 2025-11-08T19:52:41, nothing since).
+Sources the PRD now cites by pointer to this log: round 2's Q1 guides (Underdog, TechInterview, GreatFrontEnd) and
+INT 1 / AM Nautical (round 2 above); round 3's two-sided-message meta-analyses (Allen 1991; O'Keefe 1999), the
+pratfall effect, OpenSSF Scorecard's Maintained check, Snyk's release-age label and the four hiring guides
+(Rockstar Developer University: "clarity before complexity", "not a wall of badges or animations", "Stronger READMEs
+explain decisions"), all read and cited in `review-r03-1.md` §5 and Sources.
+
+**The 2b render was produced this round** (reviewer 1's MF1), the way round 2 built 1a: the session's
+`scratchpad/prd-r03/once-2b/` (`stats-once-2b.json` = today's `stats.json` with `fold = true` on L4, L6, L2, L5 in
+`routes.rustmapper.entries`; `root/README-2b.md` from `render_readme.py --cfg --stats`; `page-phone-1..7.png` at
+390 px and `page-desk-1..2.png` through `r6/tools/preview_phone.mjs` and `preview.mjs`; the image is round-16's,
+unchanged). `README.md` and `README-2b.md` differ only in the four items' position. The phone page is 5,237 CSS px
+against round-16's 5,645. No product file changed.
+
+**One drift found while editing, not raised by a reviewer:** §5.3 row 3 cited §10.9 for the untested languages
+order; the gap is §10.15. Fixed.
+
+### Applied
+
+| Id | What changed in `PRD.md` |
+|---|---|
+| r1 MF1, r2 MF4 | Header status: "draft. Waits on three inputs from Ben (§9.0) and three session items"; new §9.0 "What only Ben does, in order" ((a) position and one contact, (b) strike / keep / share, (c) yes or no to 2b with its one change); §0 cut to four bullets (what this is; built; reviewed, pointing at the two logs; what waits on whom), the run-12 story moved to §8.5; the 2b render built and described in §9.1 beside round-16's and 1a's (second phone screen: two items with their levers, the closed fold, the code block a screen higher). |
+| r1 MF2 (text) | §5.4 row 1 "Needs here" = a C1 wording for a release that exits, with why (both wordings hold on `crawl_ctrl_c`/`second_ctrl_c`; the 1a sheet still says Ctrl-C); §5.4's closing count: three retire by themselves, the exit row leaves a wrong step; §5.1 C1 says so; §9.1's 1a cell says the render shows the old line; §10.9 gains the C1 wording with the reviewer's text and his sentence; §7.3's "retire by themselves" row no longer claims five rows. |
+| r1 MF3, r3 MF5 (G1) | New G1d: 7 Oct 17:40 "appear like it took a team months of work" and 17:18 "feels basic"; meaning: the care shows without being announced, with where it is visible; held by review at §8.3 q.6, which gains the third line; no gate, no test, said so. |
+| r1 MF4 | §9.1 rows 2b and 3: the first screen also says `0.1.3 · 8 NOV 2025` (eleven months old at the merge) over `rust_sitemap crawl` under `rustmapper`; only a release changes either; the 1a cell says 0.1.4 · its date and one name; "rows are not alternatives" names the date and the two names as the two first-screen facts a merge does not change; §11's packaging bullet says the same once. 2b's list cell cites the refutation finding (L1 and L7 carry a lever, L4 and L6 none) by pointer here. |
+| r1 MF5 | G19 cites `review-rNN-{1,2,3}.md` under both folders; G13a's cell points here for the q.6 answers (logged above); §8.3 q.6 no longer cites round 4's question; §9.2 lists `BEN-TODO.md`'s round-4 third ask as overtaken and to be struck. |
+| r2 MF1 | Every "PRD round N" / "rNN-x MFn" clause outside the header removed (lines 6, 34, 106, 112, 207, 258, 269, 277, 389, 403, 407–413, 506, 523–525, 534, 553, 575, 596, 601, 631 of the round-2 text); sentences that were only the clause deleted; G13a's round-2 answers moved here; §10's status column reads open / closed with the reason, the round ids here. |
+| r2 MF2 | One home each: the mid window in §9.1b (§5.2's cell, §7.4's row and §11's bullet are pointers); the §5.4 gap in §5.4's table and §10.9 (§0, §7.3's last row, §9.1's paragraph, §9.3 and §11 point at §10.9 without restating the rows). |
+| r2 MF3 (text) | §8.1 item 6 split into 6a (POSITION-EMPTY silent, `position.py:31`) and 6b (one contact non-empty; held by no gate today, `position.py:32–35`; until CONTACT-EMPTY exists §8.3 q.4's link-line tick includes one contact beyond Email); new §10.21 (CONTACT-EMPTY, warn; blocks the merge through 6b; a session). |
+| r2 MF5 | §2: tagged by the author; T-PURPOSE and ROUTE-PURPOSE hold that a row and a tag Q1–Q5 exist (`test_route.py:829`), not that the tag is right; the reviewer judges at §8.3 q.1, which gains the line "each element's Q is the question a stranger would ask of it; name any you would retag". |
+| r2 MF6 | §8.5's first bullet: GitHub notifies the workflow's creator or the last cron editor (`eeea9d1`, Ben), failure-only is an option, a session must not edit the cron line, a failed run is a session's to fix, the 12 runs and run 12's failure, the 60-day auto-disable and the re-enabler as actor; §6's cron sentence quotes the docs' delay line instead of "so a builder timing…". |
+| r2 MF7 | §9.1 row 2b and §10.19: the fold's cap goes to 8 for the fold only; "leave the fold's at 7" is gone (fails README-CAUTIONS on the 2b render); the cap reverses round 13's r1-2 ruling (the owner lens), recommended; a session implements with a test; his yes to 2b covers it (the conflict above). |
+| r2 MF8 | G17–G19 and §7.6's nine rows moved to a new appendix D with their ids and texts unchanged; §3 and §7.6 keep one-line pointers so numbering and every cite hold; §0 says so. |
+| r2 MF9 | Q1's cell keeps the two estimates and points here for the sources; §5.3 row 6 keeps the rule and constants, the comment-wrap trade is §11's; §6's tests bullet is two sentences (539; 91 off the page, §10.8); the "23 commits behind" is dated and given its command; "Round 16: no (8/7/8)…" out of §8.3; "computed in PRD round 2" out of §9.1b. |
+| r3 MF1 | §7's preamble: the method and the number it gives (169 strings, 167 codes), "the number is that grep, not a register"; new rows: LICENSE-FLAGSHIP and REPO-SET (§7.3), README-CD and README-LICENSE (§7.5); appendix B's `log` row is live on `assets/log.json`, warns `log.shards` on every build; `data.calendar` at `info` (`data.py:70`). |
+| r3 MF2 | §7.5's Scrapy/spelling row: test (`test_first_mention`, `test_one_spelling`, with what each asserts) + review; §8.3 q.4's grep said to extend the test's seven; G1a's holder: test (the gap, ≥ 14 units in black, `test_route.py:894`; the hand-off line, `:527`), gate (ROUTE-ARROW), review for whether a reader finds them. |
+| r3 MF3 | §7.3 rows: the conditional-wording rule (`test_round6.py:88`, `route.py:59 CONDITIONAL`, `producers()`), named as the rule behind §5.4; anchor forms with T-ANCHOR, T-SCRIPTS, T-WHEELS, T-HANDOFF; T-BOTH on the both-trees row; forks not surveyed; §5.3 rows 6, 9, 10 gain `test_time_only_when_cold`, `test_rest_repos_drops_forks`, `test_notices_first_four_and_no_release_line`; §5.4 row 3 gains `test_never_both`; §4's chart number cites `test_title_block_is_name_and_role` and commit totals the provenance-line test; §5.4's intro names the rule. |
+| r3 MF4 | `profile.yml:25` and `:160` (the `for f in` loop); `column.py:231` for `breakpoint_px` with `DESK_MIN_PX` at `:50`; `frontier.rs:913`. |
+| r3 MF5 | §7.1's first row cites 8 Oct 14:22 "survey is weird" with `THEME_WORDS` and `EXTRA_WORDS`; G1d carries 17:18 and 17:40 (beside G1, whose own cell is unchanged); G17 cites 8 Oct 16:38 and 23:24; G13a quotes 9 Oct 11:32 "It's a sailing thing, which I do fuck with. I think that's a cool concept" as his permission beside the prohibitions. |
+| r3 MF6 | §0 stamps the register (against `027f081`, 11 Oct 2026; drift found every round; line numbers as of `027f081`, symbols named beside them); symbols cited where one exists (`render_readme.LIST_MAX_ITEMS`, `column.TALL_FROM`, `TALL_PX`, `MIN_PX`, `DESK_MIN_PX`, `checks.route.HEIGHT`, the test names); §10.12 blocks "the next PRD round" and its test gains "every `file:line` cite points at the symbol named beside it". |
+
+### Declined, or applied only in part
+
+| Id | Why |
+|---|---|
+| r1 MF2 (the `chart.toml` C1 wording), r2 MF3 (the CONTACT-EMPTY gate), r2 MF7 (the cap and its test), r2 MF5 (retagging R6/S2/F1 in `route.py`) | Product changes; this pass edits only the PRD and this log. Each is in §10 (items 9, 19, 21) with the reviewer's reason, the file and line, an owner and a blocking state; the Q tags are left as they are and §8.3 q.1 asks the reviewer to name any to retag. |
+| r1 MF5 (strike `BEN-TODO.md`'s round-4 third ask) | `BEN-TODO.md` is outside this pass's files; §9.2 lists the ask as overtaken and to be struck, with the line numbers. |
+| r2 MF8 (part: §7.6 removed) | §7.6 stays as a one-line pointer and §3 keeps a pointer, because the fix pass keeps section numbering stable and every earlier review cites §7.6 and G17–G19 by name; the rows themselves are in appendix D only. |
+| r3 MF6 (part: every line-number cite replaced by a symbol) | Applied where a named symbol exists; cites into `chart.toml`, `profile.yml`, `README.md` and test bodies have no symbol and keep their line numbers, dated by §0's "as of `027f081`". |
+| r3 MF1 (part: the reviewer's 162 or 169) | Neither printed; the PRD prints the one method it names and the number that method gives (167), and says the number is a grep, not a register. |
+| r2 MF4 (part: a shorter document) | §0 is shorter and the restatements are gone, but the document grew (775 → 830 lines): §9.0, the 2b render, appendix D, G1d, five §7.3 rows and three §7.5 rows are reviewer 1's and reviewer 3's additions, each a requirement or a holder, none a restatement. |
+
+### Next round
+
+Read §9.0 and §9.1 as he would, with the 2b render open: can he answer (a), (b) and (c) from the PRD alone; then run
+reviewer 3's §2 checks again from a script and leave the commands here, since §10.12 now blocks the round.
