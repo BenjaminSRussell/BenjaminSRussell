@@ -525,3 +525,144 @@ grep -nE 'error\("(PLUGIN|NO-)' scripts/check.py                                
 None until the stop rule is met: a product fix round does §8.1 items 7 and 8, §10.19 and §10.23 and opens the PR
 (§10.17); the next PRD round then reads the document once against the merged page, re-runs the hand check with the
 level grep, and asks §8.3 q.1's first line of a reviewer who sees the image before the document.
+
+## Round 6
+
+11 Oct 2026. Reviews: `review-r06-1.md` (the owner's lens) **6 / 10**, `review-r06-2.md` (a product manager who
+rejects vague PRDs) **6 / 10**, `review-r06-3.md` (an engineer who trusts nothing until the code says it) **7 / 10**.
+All three answer **yes** to "is the product this PRD defines what he wants": reviewer 1 on 9 Oct 20:50 ("Everything,
+single thing inside of this needs a purpose") met element for element (15 drawn `hero-*` groups plus the two excused
+rows match §5.1's 17) with 11:37 ("telling you about me, but with a layer of a theme of shipping ... helpful
+knowledge") for what it is for; reviewer 2 on 11:37 ("helpful data that you're looking at ... in a cool format")
+and 20:50, the phone sheet matched to §5.1 row by row; reviewer 3 on 20:50 read with 11:37, confirmed against
+`route.py PURPOSE` (17 rows, id for id, Q for Q) and ROUTE-PURPOSE. What each found: reviewer 1, that round 6 ran
+against §0's own stop rule with no product change and no PR, that two of the three code items it blocked the merge
+on (the switch whose default reproduces today's page; five `[copy]` keys no live sheet reads) change nothing a
+visitor sees, that §9.1 priced every option by the phone when his words make the web the likelier reader and the
+desk render puts all six cautions beside the image, that the reason §10.17 gave for the missing PR was false, that
+G8's meaning still said "no commit total of any kind" after round 5 kept the counts, and that "is it interesting,
+does it draw in the user" was held nowhere. Reviewer 2, that the document carried a review schedule it had no
+authority over and broke the day it was written, that Done required a reviewers' yes no printed step could give,
+that the text grew from 8,287 to 20,277 words over six commits with no product change, that the agent-authorship
+decision had seven homes, that §10 was a 24-row backlog with no rank, and that three §9.2 decisions had no
+decide-by and no default. Reviewer 3, that §5.3 row 3 and §10.15 called the Languages order untested when
+`test_order` pins it, that eight tests whose own comments name a gate code were cited nowhere, that twelve more
+pinned rules were unregistered, that the PR was withheld on a false reason, that no process row recorded the broken
+stop rule, and that two printed numbers (§8.6's 38 files for `-- scripts`; §0's 9,335 words) did not reproduce.
+
+**Answers to §8.3 q.1's first line, logged for G3a** (all three had read §1 before and say so): r06-1, *"A crawler
+called rustmapper: pip-install it, run it on a URL, it loops over pages, on https it can hang behind robots.txt and
+the release never stops by itself, so you press Ctrl-C once and get a JSONL of URLs that another of his tools
+sorts"*; r06-2, *"pip-install rustmapper, run `rust_sitemap crawl` on a URL, it fetches twenty pages at a time per
+host, waits behind robots.txt on https and never stops on its own, one Ctrl-C writes `data/sitemap.jsonl`"*; r06-3,
+*"a crawler called rustmapper, installed with `pip install rustmapper`, started with `rust_sitemap crawl`, looping
+over pages until you press Ctrl-C once, and writing `data/sitemap.jsonl`"*. Each names a tool, a way to start it and
+an output. **§8.3 q.6, logged for G13a:** all three would screenshot it; r06-1 "how you get into my crawler" (as
+rounds 3 to 5), r06-2 "a tool's whole run drawn as one route", r06-3 "install notes drawn as a route" (as rounds 2
+and 5). Third line (G1d, G1e): the gap under the box (all three), the release date small beside the install line
+(all three), night redrawn rather than inverted (r06-1, r06-2), one left edge and one pitch (r06-2, r06-3), the
+three faces doing three jobs (r06-1, r06-3); none saw care in decoration.
+
+**Conflicts, resolved on the owner lens (reviewer 1 wins).** (1) The stop rule: reviewer 1's MF1 keeps a stop rule,
+rewritten with §8.1 items 7 and 8 out of its way; reviewer 2's MF1 deletes it and every "next step" sentence, leaving
+one "Reviewed:" line, with the plan only in this log; reviewer 3's MF4 keeps round 5's rule verbatim and adds a
+process row that it was not met. Applied: reviewer 1's text in §0 and the header (the next session is the fix round,
+the PR first, then §10.19 and §10.23; no PRD round before the merge), reviewer 3's process row in appendix D (round 6
+ran on 11 Oct with `git diff --stat 027f081..HEAD -- . ':!docs'` empty and no PR; overdue by one round), and from
+reviewer 2 the clause "a session, which is open: his 11 Oct message was typed in it" cut (a claim about the present
+that is false once the session closes). Reviewer 2's deletion is declined: a document with no stop rule is what let
+six PRD rounds run on no product change, and his 11 Oct sentence's object is the page. (2) §8.1 item 7: reviewer
+1's MF1 moves the switch to after the merge; reviewer 2's MF4 makes item 7 the one acceptance line for the switch.
+Applied: reviewer 1 on the timing (item 7 says the clause prints as today unless he has spoken; the switch is an
+§8.5 bullet, §10.5 ranks it after the merge) and reviewer 2 on the one home (§9.2's first bullet holds options,
+recommendation, decider, default and implementation; G8, §5.3 row 5, §7.3, §8.1 item 7, §8.5, §9.0 (b) and §10.5
+point at it; "a session acts only while Ben has one open" lives in §9.0 only). (3) §9.1 rows 0 and 3: reviewer 1's
+MF2 fills a desk cell in each; reviewer 2's MF3 cuts each to one line. Applied: reviewer 1; both rows keep their
+cells, the first-screen cell split into phone and desk. (4) §10's ranks: reviewer 2's MF5 lists 5, 8, 19 and 23 as
+"must before the merge"; after reviewer 1's MF1 the must rows are 17, 19 and 23 (and 4, the first week after), 5 and
+8 are "nice" with the reason in the cell. (5) Done: reviewer 2's MF2 inserts one product review round on the merge
+candidate's build; reviewer 1's sequence (fix round, PR, his yes) has none. Not read as a conflict: reviewer 1 bars
+PRD rounds before the merge, not product rounds, and Done's third clause (three reviewers' yes, no must-fix) has
+never been true of any build, since round 16's reviewers said "None meets the goal yet" and its fixes are
+`027f081`. Applied: the round runs on the PR's build, after the PR is opened and before his yes.
+
+**Every fact added to `PRD.md` was checked here:** `git ls-remote --heads origin v12/purpose` → `9e3db34`; `git
+branch -r --contains 027f081` lists `origin/v12/purpose`; `git log --oneline 9e3db34..HEAD | wc -l` = 5 (docs only);
+`gh api "repos/BenjaminSRussell/BenjaminSRussell/pulls?state=all&head=BenjaminSRussell:v12/purpose" --jq length`
+= 0; `git rev-list --count origin/main..027f081` = 23; `git diff --stat origin/main..HEAD -- scripts` = 36 files,
+`-- scripts chart.toml .github` = 38; `git diff --stat 027f081..HEAD -- . ':!docs'` empty; `grep agent_clause
+chart.toml` none; `chart.toml:35–39` (the five keys), `:58` (`languages_lead`), `:667` (`[facts]`); `grep -n "fold =
+true" chart.toml` = 1257, 1276, 1308, 1357; `grep -c keep-current scripts/publish_chart.py` = 0;
+`render_readme.py:459` (`agents = agent_clause(r)`), `:162` (`sorted(..., key=lambda x: (-count[x], -lines[x], x))`);
+`README.md:38, 86` (the counts); `docs/BEN-TODO.md` (the worker figure and the name are there, lines 8 and 20;
+Scrapy's robots check, delay, user agent and the near-duplicate filter are not; the round-4 stills ask at 34–36);
+`docs/crit/round6/LOG.md` round 16 ("None meets the goal yet"); the tests, each opened at its line:
+`test_round7.py:105` (`test_order`: Go on two repositories and 15 lines before C on one and 99; "Rust is no
+repository's: left out"), `:196` (`test_no_period_wording`: no `BATCH_TIMEOUT_MS` in any W1 wording),
+`test_route.py:971, 1002, 984, 1013, 1036, 394, 609, 620` (the eight whose comments name ROUTE-PAINT, -ARROW,
+-RELEASE, -CODE-SPACE, TYPE-CODE, ROUTE-LABEL, HERO-SELF-TWICE), `:443` (the block's lines, the three stop-rule
+comments and the blank-rows grep), `:673` (M1 off its `cargo` gate; no idle timing), `:726` (H1 starts with
+`edition.version`), `:1069` (a failed run check or another version hides the entrance), `:225` (a probe step
+carries `gate: false`), `test_round12.py:224` (the `<summary>` leads with the largest group), `test_proof.py:137`
+(`figures_check` over the committed README), `:179` (`more_count` = 22 − 1 − 2 − 2), `test_round13.py:156, 178`
+(no folded item in the open list; no `fold_lead`, no `<details>`), `test_round15.py:295` (`drawn_h(phone, 851) ≤
+TALL_PX`, W1 undrawn, H0 one line), `:155` (ROUTE-WAITING once, `warn`, naming S2); the renders
+`renders/round-16/page-desk-1.png` and `renders/once-2b/page-desk-1.png` (1,280 × 1,700 px by their PNG headers: the
+sheet, the link line, the sentence, the pick, the facts line, the platform note, six cautions against four, the fold
+line, the code block), `renders/once-1a/page-desk-1.png` (no box, `rustmapper crawl`, five cautions, a code block
+with no stop-rule comments, Scrapy's first line), `round-16/page-phone-2.png` (the pick, the facts line, the
+platform note, three cautions), `round-16/sheet-phone-day-390.png`; `git show d253286:README.md` (the v11 sheet,
+the link line, the sentence, four rustmapper bullets with "last commit 8 Aug 2026"); the §0 counts by `wc -l -w`
+over the lines of §1, 2, 4, 5, 8, 9 and 11 split at `## ` headings, written to a file (505 lines, 9,520 words) and
+over the whole file (921, 20,568).
+
+### Applied
+
+| Id | What changed in `PRD.md` |
+|---|---|
+| r1 MF1, r3 MF4 (the record) | §0's stop rule rewritten: the fix round opens the PR first, then §10.19 and §10.23; one product round on the PR's build; his yes; no PRD round before the merge; round 6 ran against round 5's rule, six rounds, no product change; items 7 and 8 out of the way with the reason. The header's "Next, in order" says the same in one sentence. §8.1 items 7 and 8 are one paragraph each saying where they live (§8.5; the first fix PR after the merge); item 9 names the PR first; item 10 is §10.19. §8.2's log.shards row and its closing sentence follow. Appendix D: G19 names the breach; a last process row records it (**not met**, overdue by one round). §7.6 names both unmet rules. |
+| r1 MF2 | §9.1's first-screen column split into "First phone screen (390 px)" and "First desk render (1,280 × 1,700 px, `page-desk-1.png`)"; desk cells for rows 0 (not rendered; what `git show d253286:README.md` puts under the sheet), 1a, 1b, 2, 2b (four cautions) and 3 (six, whole under the facts line beside the image's column), from the renders; the intro says the web is the likelier reader and the list sits beside the image there; the "Recommended" bullet counts the desk. §9.0 (c) adds the two desk renders to the pair he compares. |
+| r1 MF3, r3 MF3 | §10.17: the branch is on `origin` at `9e3db34` with every product file; `gh pr create --head v12/purpose` needs no push; the fix round opens it first. Rank "must: the merge (§8.1 item 9)". Appendix D's PR row drops the push reason. |
+| r1 MF4 | G8's meaning: no commit total on the image or in the provenance line; the facts lines' clause, which names each repository's count, prints by default and his word reverses it. §4's first bullet: no commit total except inside that clause. |
+| r1 MF5 | G1b's meaning gains "screen one makes a stranger scroll to the second"; §8.3 q.6 gains a fourth, advisory line: what on the first screen made the reviewer scroll; if nothing, say so. No gate, no test, said so. |
+| r2 MF2 | Done = §8.1 all hold **and** §9.0 (c) is a yes **and** one product review round on that commit's build (three reviewers, q.1–4 and q.6's first line, no must-fix open), with the fact that the clause has never been true and where the round runs; "§9.1 is decided by Ben" gone. |
+| r2 MF3 (in part) | §0 to three bullets (the reading order with its counts; built and reviewed as pointers; the stop rule); §8.5's run-12 story to one sentence and a pointer (this log, round 2); §8.6's orders A and B to one line each, §11's restatement to a pointer; §9.2's three hiring quotations to a pointer (round 5); §8.1 item 2's why-the-build-comes-first sentence to a §10.7 pointer. |
+| r2 MF4 | §9.2's first bullet is the one home (options, recommendation, decider, what prints until he speaks, implementation, the round-1/2 and round-5 reversal); G8, §5.3 row 5, §7.3's totals row, §8.1 item 7, §8.5, §9.0 (b) and §10.5 point at it; "a session acts only while Ben has one open" is in §9.0 only (the header and §8.5 lose it). |
+| r2 MF5 | §10's Blocks column is now Rank: *must* (17, 19, 23; 4 the first week after), *should* (7, 9, 22), *nice* (the rest), each with its reason; Owner "a session" is "next session"; the two sentences explaining "a session" are one pointer to §9.0; rows 2, 3, 6, 13, 14 and 20 are one line under the table with a phrase each. |
+| r2 MF6 (in part) | §9.2's second bullet gains "Until he does: `rustmapper` stands" and "Decide by: before a release that adds `[project.scripts]`", and §9.0 gains it as (e), not needed for the merge. Bullets 3 to 5 are one bullet: work in his other repositories, with the worker figure's `BEN-TODO.md` line named and the Scrapy items marked as not yet there. |
+| r2 MF7 | §8.3 q.3's "by construction" line is "ROUTE-LEFT-EDGE and ROUTE-HEAD-GAP pass, and the reviewer names any area that reads denser than another; none is the pass"; the header names the sha at which the figures and the 90 cites were last re-read (`b6cca2c`, round 6, reviewer 3); §8.5's success-metric line says the referrer check is recorded in `docs/crit/round6/LOG.md` with its date. |
+| r3 MF1 | §5.3 row 3 cites `test_order` (`tests/test_round7.py:105`) and the sort key (`render_readme.py:162`); §10.15 is the two tie-breaks only. |
+| r3 MF2 | ROUTE-PAINT, ROUTE-ARROW (also G1a's cell), ROUTE-RELEASE, ROUTE-CODE-SPACE, ROUTE-LABEL, TYPE-CODE and HERO-SELF-TWICE read "gate, test" with their eight tests at their lines; §10.12's fix gains the reverse rule (every test whose comment names a code or T-id is cited in that code's row). |
+| r3 MF5 | Registered: `test_fold_label_names_the_largest_group` and `test_more_count_is_computed` (row 9); `test_no_folded_item_in_the_open_list`, `test_no_label_no_fold`, `test_install_block_says_how_it_ends`, `test_m1_says_what_main_fixed_only_on_its_evidence` (row 6; §10.16 names the first as the test the rewording edits); `test_h1_names_the_release` (H1); `test_no_period_wording` (W1); FIGURES "gate, test" with `test_committed_readme_has_no_bare_figure`; the entrance row "gate, test, CI" with its two tests; `test_phone_height_holds_at_851` (the one-screen row); `test_today_warns_once` beside ROUTE-WAITING in §7.3's both-trees row (§8.2's table has no holder column). |
+| r3 MF6 | §8.6 order B: `git diff --stat origin/main..HEAD -- scripts`: 36 files; 38 with `chart.toml` and `.github`. §0's figures recomputed by the method printed (505 / 9,520 of 921 / 20,568). The header's `main` reads `origin/main`. |
+
+### Declined, or applied only in part
+
+| Id | Why |
+|---|---|
+| r2 MF1 (delete the stop rule and the sequence; the "Reviewed:" sentence) | Owner lens: reviewer 1's MF1 keeps a stop rule and rewrites it, and his 11 Oct sentence's object is the page, not more rounds of the document. Reviewer 2's reading of IEEE 830 §4.8 is met half way: the sequence is one sentence in the header and one bullet in §0, and the process record is in appendix D, where the PRD already keeps process. |
+| r2 MF3 (part: §9.1 rows 0 and 3 to one line; about 900 words out) | Rows 0 and 3 gain a desk cell on reviewer 1's MF2 instead. Net, the document is 291 words longer than at `b6cca2c` (20,568 against 20,277 by `wc -w`; `git diff --word-diff=porcelain HEAD` counts 1,725 words removed and 2,014 added): the cuts are real, and the desk column, the Rank column, Done's explanation, §8.5's switch bullet and twenty-one test cites put more back. Every addition is a requirement, a holder or a measured cell; none is history. |
+| r2 MF6 (part: bullets 3 and 4 to `BEN-TODO.md`) | `docs/BEN-TODO.md` is outside this pass's scope (it commits `docs/PRD.md` and `docs/crit/prd/`). The worker figure is already there (line 8); the Scrapy items are not, so §9.2's last bullet says so and §10.10's fix carries the edit for the next fix round. |
+| r3 MF4 (part: keep round 5's rule verbatim) | The rule is kept and rewritten on reviewer 1's MF1 (items 7 and 8 out of its way); reviewer 3's record of the breach is applied as written. |
+| r1 MF1's product half, r2 MF1's "make the four changes", r3's §10.12 | Product changes (§10.19, §10.23, the PR; the switch, the keys, the PRD test); this pass commits only `docs/PRD.md` and `docs/crit/prd/`. Each is a §10 row with its rank and the next session is the fix round (§0). |
+
+### The hand check, as commands (rounds 4 and 5's, plus the reverse direction)
+
+```
+grep -ohE '"[A-Z][A-Z0-9]*(-[A-Z0-9]+)+"|"(data|log)\.[a-z_]+"' scripts/checks/*.py | sort -u | wc -l   # 169
+grep -nE '\b(fail|warn|info|error)\(\s*f?"[A-Za-z]' scripts/checks/*.py                        # the level per code
+grep -nE 'error\("(PLUGIN|NO-)' scripts/check.py                                               # the runner's five
+git ls-remote --heads origin v12/purpose                                                       # 9e3db34
+gh api "repos/BenjaminSRussell/BenjaminSRussell/pulls?state=all&head=BenjaminSRussell:v12/purpose" --jq length   # 0
+git diff --stat origin/main..HEAD -- scripts | tail -1                                         # 36 files
+# reverse direction (reviewer 3's §6): for every `def test_` in tests/*.py, print file:line, name and the trailing
+# comment; flag names whose comment carries T-[A-Z]+ or [A-Z]+-[A-Z-]+ and that docs/PRD.md does not contain (0 now)
+```
+
+### Next round
+
+None before the merge. The next session is the fix round: open the PR (`gh pr create --head v12/purpose`), then
+§10.19 and §10.23, build and gate (§8.1 item 2), and product review round 17 on the PR's build (§8.3, Done); then
+his yes. The first PRD round after the merge reads the document once against the live page, re-runs the hand check
+in both directions, and asks §8.3 q.1's first line and q.6's fourth line of a reviewer who sees the image before
+the document.
