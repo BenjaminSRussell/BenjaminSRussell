@@ -1,0 +1,223 @@
+{
+ "date": "2026-10-10",
+ "runner": "Linux x86_64",
+ "python": "3.13.16",
+ "version": "0.1.3",
+ "scripts": [
+  "rust_sitemap"
+ ],
+ "install": "sdist (built with Rust)",
+ "steps": [
+  {
+   "id": "venv",
+   "cmd": "python3.13 -m venv v",
+   "ok": true,
+   "gate": true,
+   "secs": 2.6,
+   "detail": ""
+  },
+  {
+   "id": "install",
+   "cmd": "v/bin/pip install --no-cache-dir rustmapper==0.1.3",
+   "ok": true,
+   "gate": true,
+   "secs": 171.4,
+   "detail": "sdist (built with Rust); cache cold (empty CARGO_HOME); rustc 1.97.0; 4 CPUs; 3 runs: median 171.4 s, range 168.2-174.3 s; Successfully installed rustmapper-0.1.3",
+   "cache": "cold",
+   "rustc": "1.97.0",
+   "cpus": 4,
+   "runs": [
+    168.2,
+    171.4,
+    174.3
+   ]
+  },
+  {
+   "id": "help",
+   "cmd": "rust_sitemap --help",
+   "ok": true,
+   "gate": true,
+   "secs": null,
+   "detail": ""
+  },
+  {
+   "id": "crawl_help",
+   "cmd": "rust_sitemap crawl --help mentions --start-url",
+   "ok": true,
+   "gate": true,
+   "secs": null,
+   "detail": ""
+  },
+  {
+   "id": "export_help",
+   "cmd": "rust_sitemap export-sitemap --help",
+   "ok": true,
+   "gate": true,
+   "secs": null,
+   "detail": ""
+  },
+  {
+   "id": "crawl_ctrl_c",
+   "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d (no robots.txt; one SIGINT after 45 s)",
+   "ok": true,
+   "gate": true,
+   "secs": 2.0,
+   "detail": "exit 0 2.0 s after one SIGINT; 3 lines; keys url, depth, status_code, title present; status 200"
+  },
+  {
+   "id": "export",
+   "cmd": "rust_sitemap export-sitemap --data-dir d --output s.xml",
+   "ok": true,
+   "gate": true,
+   "secs": 0.0,
+   "detail": "3 <loc>"
+  },
+  {
+   "id": "ends_by_itself",
+   "cmd": "rust_sitemap crawl with no signal exits by itself within 150 s",
+   "ok": true,
+   "gate": false,
+   "secs": 150,
+   "detail": "still running at 150 s; stopped with one SIGINT"
+  },
+  {
+   "id": "quiet_after_last_page",
+   "cmd": "rust_sitemap crawl: its Received work item lines stop once the pages run out",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "3 work-item lines for 3 URLs, the last 150 s before the SIGINT; 3 lines in sitemap.jsonl after it"
+  },
+  {
+   "id": "robots_read",
+   "cmd": "rust_sitemap crawl of an http site whose robots.txt disallows /secret.html reads it",
+   "ok": true,
+   "gate": false,
+   "secs": 17.0,
+   "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 3 ms apart; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "ua_seen",
+   "cmd": "rust_sitemap crawl names itself with one User-Agent, with no contact in it and no From header",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "4 requests; User-Agent 'RustSitemapCrawler/1.0'; From never sent",
+   "ua": "RustSitemapCrawler/1.0"
+  },
+  {
+   "id": "robots_stall",
+   "cmd": "rust_sitemap crawl of an https site: after a link robots.txt disallows, the links queued behind it are not asked for",
+   "ok": false,
+   "gate": false,
+   "secs": 32.0,
+   "detail": "7 requests; robots.txt asked for; the 5 links before the disallowed one: 5 fetched; /secret.html not fetched; the 5 after it: 0 fetched; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "blank_rows",
+   "cmd": "rust_sitemap crawl: every page never asked for is a row with status_code and crawled_at null, and grep -c '\"crawled_at\":null' counts the blank rows",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "12 rows; 6 never asked for (p10.html, p6.html, p7.html, p8.html, p9.html, secret.html), 6 of them with status_code and crawled_at null; 6 rows with crawled_at null, and grep -c '\"crawled_at\":null' counts 6"
+  },
+  {
+   "id": "robots_resume",
+   "cmd": "rust_sitemap crawl of an https site: the host stalled by a disallowed link goes on when a page brings a new link",
+   "ok": true,
+   "gate": false,
+   "secs": 32.0,
+   "detail": "13 requests; before p1.html's answer (3 s late, the one new link): 0 of the 5 links after the disallowed one fetched; after it: 5, and /new.html fetched; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "robots_late",
+   "cmd": "rust_sitemap crawl of an https site whose robots.txt comes 0.5 s late fetches pages it disallows",
+   "ok": true,
+   "gate": false,
+   "secs": 17.0,
+   "detail": "22 requests; robots.txt answered 0.5 s late; 10 of 10 disallowed pages fetched, 10 allowed; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "sitemap_keeps_disallowed",
+   "cmd": "rust_sitemap export-sitemap: the pages robots.txt disallows that the crawl fetched are in sitemap.xml",
+   "ok": true,
+   "gate": false,
+   "secs": 0.0,
+   "detail": "21 <loc> in one file; 10 of the 10 disallowed pages fetched are listed (secret1.html, secret2.html, secret3.html, \u2026)"
+  },
+  {
+   "id": "workers_cap",
+   "cmd": "rust_sitemap crawl --workers 1 keeps one request open at a time",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "default workers: 3 requests, at most 2 open at once; --workers 1: 3 requests, at most 1 open at once; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "second_ctrl_c",
+   "cmd": "rust_sitemap crawl: a second SIGINT 0.3 s after the first quits before writing sitemap.jsonl",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "exit 1; sitemap.jsonl not written; `Saved to:` not printed"
+  },
+  {
+   "id": "non200_status",
+   "cmd": "rust_sitemap crawl: every answer but an HTML 200 (429, 404, 500, a JSON 200, a timeout) is written with no status_code and no crawled_at, asked for once, and its links are not followed",
+   "ok": true,
+   "gate": false,
+   "secs": 14.0,
+   "detail": "8 requests; asked for: busy.html 1, gone.html 1, err 1, feed 1, hang.html 1 (429 with Retry-After: 2, 404, 500, JSON 200, held 8 s with --timeout 3); /beyond.html never asked for; busy.html: status_code null, crawled_at null; gone.html: status_code null, crawled_at null; err: status_code null, crawled_at null; feed: status_code null, crawled_at null; hang.html: status_code null, crawled_at null; e"
+  },
+  {
+   "id": "quiet_slow_page",
+   "cmd": "rust_sitemap crawl: a page held 15 s is not the end; after 60 s with no Received work item line, one SIGINT writes every page",
+   "ok": true,
+   "gate": false,
+   "secs": null,
+   "detail": "3 work-item lines; longest gap between two 15.0 s (slow.html held 15 s); SIGINT 60 s after the last; 3 of 3 pages in sitemap.jsonl, status 200; exit 0 2.0 s after one SIGINT",
+   "quiet_secs": 60
+  },
+  {
+   "id": "redirect_kept",
+   "cmd": "rust_sitemap crawl: after a redirect it keeps the old address, with the target's status and title, and reads the page's links against the old address",
+   "ok": true,
+   "gate": false,
+   "secs": 12.0,
+   "detail": "8 requests; /old (301 to /new.html) written as url /old, status_code 200, title \"New\"; /dir (301 to /dir/) links child.html: /child.html asked for 1 time(s), /dir/child.html 0; exit 0 2.0 s after one SIGINT"
+  },
+  {
+   "id": "sitemap_keeps_noindex",
+   "cmd": "rust_sitemap export-sitemap: one file lists every status_code 200 row, a redirecting URL and a noindex, canonicalized page included",
+   "ok": true,
+   "gate": false,
+   "secs": 0.0,
+   "detail": "5 <loc> in one file: index.html, canon.html, dir, new.html, old"
+  },
+  {
+   "id": "kill_writes_file",
+   "cmd": "rust_sitemap crawl sent SIGTERM after 5 s writes sitemap.jsonl",
+   "ok": false,
+   "gate": false,
+   "secs": 0.0,
+   "detail": "exit -15 0.0 s after one SIGTERM; sitemap.jsonl was not written"
+  },
+  {
+   "id": "export_after_kill",
+   "cmd": "rust_sitemap export-sitemap --data-dir d3 --output k.xml",
+   "ok": true,
+   "gate": false,
+   "secs": 0.0,
+   "detail": "3 <loc>"
+  },
+  {
+   "id": "resume_after_kill",
+   "cmd": "rust_sitemap resume --data-dir d3 after the kill writes every page",
+   "ok": false,
+   "gate": false,
+   "secs": null,
+   "detail": "exited by itself (exit 1) before the SIGINT; sitemap.jsonl was not written; Error: Crawler(\"Database creation error: Database already open. Cannot acquire lock.\")"
+  }
+ ],
+ "ok": true
+}

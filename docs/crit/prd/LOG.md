@@ -258,3 +258,141 @@ order; the gap is §10.15. Fixed.
 
 Read §9.0 and §9.1 as he would, with the 2b render open: can he answer (a), (b) and (c) from the PRD alone; then run
 reviewer 3's §2 checks again from a script and leave the commands here, since §10.12 now blocks the round.
+
+## Round 4
+
+11 Oct 2026. Reviews: `review-r04-1.md` (the owner's lens) **7 / 10**, `review-r04-2.md` (a product manager who
+rejects vague PRDs) **6 / 10**, `review-r04-3.md` (an engineer who trusts nothing until the code says it) **7 / 10**.
+All three answer **yes** to "is the product this PRD defines what he wants": reviewer 1 on 9 Oct 11:37 ("It should be
+telling you about me, but with a layer of a theme of shipping... helpful knowledge... in a cool format") tested by
+20:50 ("Everything, single thing inside of this needs a purpose"); reviewer 2 on 11:37 ("helpful data that you're
+looking at... in a cool format") and 20:50, the phone sheet checked against §5.1; reviewer 3 on 20:50, confirmed
+against `route.py PURPOSE` (17 keys, Q for Q), and on 11 Oct 01:12 for the document. What each found: reviewer 1,
+that the recommended option (2b) folded the text of two marks drawn on screen one (S1's lever L2, H0's sign L6)
+against G6 and the PRD's own refutation-beside-the-claim argument; that §8.1 item 6 blocked the merge on his bio
+line while §9.1 row 0 calls every unmerged week the costliest row; that §10.12 said it blocks this round and the
+round ran and found two line drifts; that the device check was missing from §9.0 and asked him for paperwork; that
+"stunning and fun" was held by an advisory question. Reviewer 2, that the first merge had no sequence and a non-dry
+`workflow_dispatch` on the branch is the merge by the bot; that the renders every §9 decision rests on were in a
+session scratchpad; that "default" meant two opposite things in §9.1; that "a session" is not an owner until he
+opens one; that §6.1's rollback committed to `main` against appendix D; that the C1 wrong-step fact had six homes;
+that §4 did not say the bio, the badge wall and the card deck were rejected; that §8.2's warning set after item 8
+was unstated. Reviewer 3, that a fresh clone's gate fails (4,599 fails) on the tracked, stale
+`assets/build-report.json` and §10.7 blamed gitignored stills; that the code-count grep cannot see `FIGURES` and
+`TYPE`; that the `log.*` and four `STRINGS-*` codes had no row; that `runcheck.py:7` and `data.py:70` were off by
+one at the baseline; that 11:32's "it's confusing... what's happening?" had no goal row. Reviewer 2's straight answer
+to his 11 Oct sentence stands here too: three PRD rounds (now four) have changed no product file.
+
+**Answers to §8.3 q.6, logged for G13a:** round 4, r04-1 would screenshot it and call it "how you get into my
+crawler" (the same words as round 3). Reviewers 2 and 3 did not answer the line. §8.3 q.1's new first line (G3a, the
+one-sentence reading) was not asked this round; round 5 logs the first three.
+
+**Conflicts, resolved on the owner lens (reviewer 1 wins).** (1) When the device check happens: reviewer 2's MF4 put
+it "after MF1's publish or within a day of the merge" (the branch view is usable under order A); reviewer 1's MF4
+says he cannot look at this branch on his phone until it is live. Applied: §9.0 (d) and §8.4 are on the live page in
+the first week after the merge; it no longer blocks Done; §10.4's Blocks cell says so. (2) The shape of 2b: reviewer
+1's MF1 (open every item that is the text of a first-screen mark or carries its lever: L1, L7, L6, L2; fold L4, L5)
+supersedes round 3's r2 MF7 (the fold's cap at 8), because the fold then holds six and no cap moves; the round-3
+render is kept as `renders/once-2b-r3/` for the comparison. (3) §8.1 item 6: reviewer 1 reverses round 1's own
+ruling (his lens then) now that row 0 is costed; no reviewer objected; item 6 is not a merge blocker, POSITION-EMPTY
+returns to §8.2, §10.21 blocks nothing. (4) §10.12: reviewer 1 wanted the test written before round 5 (i), reviewer 2
+either (i) or the Blocks cell withdrawn; applied (ii), because this pass commits only `docs/PRD.md` and
+`docs/crit/prd/` (a test file is product), with the test still the row's fix and reviewer 3's commands below for the
+hand check.
+
+**Every fact added to `PRD.md` was checked here:** `checks/position.py:31` (warn POSITION-EMPTY), `:32–35`;
+`profile.yml:22–27` (push paths), `:72–74` (checkout, no `ref`), `:133` (the report as an artefact), `:142–153`
+(publish, then commit), `:160` (five files), `:168` (the comment), `:174` (`git push origin HEAD:main`); `git show
+main:README.md | grep -o 'chart/assets/v9/…'` (eight paths: four shared with the branch, four `still`) against the
+branch's six; `git diff --stat main..HEAD -- scripts chart.toml .github` (38 files); `publish_chart.py:2–14, 81`;
+`check.py:202` and `python3 scripts/check.py --tier fast` on the committed tree with no build (4,599 fail · 8 warn,
+exit 1; `XML-SIZE [hero-phone-day]: viewBox 600×1121 but report says 720×900`); `git log -1 -- assets/build-report.json`
+(`9e25619`, 8 Oct) and the committed report's 38 sheet names; `build_assets.py --help` (`--out`, `--report`; no
+`--out-dir`); `.gitignore` (`assets/v9/`, no PNG rule); `runcheck.py:8`; `checks/data.py:69`; `checks/log.py:36, 47–69`
+(fail `log.load`, `log.schema`, `log.rule`; warn `log.version`, `log.shards`; info `log.computed`; `"log.json"` at
+`:36` is a path); `strings.py:147 scan()` and `:164–183`; `figures.py:93–104`, `type.py:35`, `motion.py:124`,
+`frames.py:47`, `legend.py:62`, `perf.py:76`; the §7 grep rerun (169 strings; the three non-codes); `tokens.py:73–74`;
+`render_readme.py:459, 670`; `checks/readme.py:121, 318`; `chart.toml:26, 30–31, 35–39, 1005–1030, 1257` and the
+entry headers of L4, L5, L2, L6; `README.md:49` (L6, "The sign: `blocked by robots.txt`") and `:50` (L2,
+`--seeding-strategy none`); `ls tests/` (24, no `test_prd.py`); the renders `round-16/page-phone-1.png` and
+`page-desk-1.png` (no photo, bio paragraph, badge, counter or card), `once-2b-r3/page-phone-2.png` (two items, the
+closed fold, no sign); the reading split by a loop over `## ` headings (485 of 895 lines, 8,829 of 18,901 words).
+Outside sources are the reviewers' this round, read and quoted in `review-r04-1.md` (Bargas-Avila for Google Research
+on the 17–50 ms judgement; NN/g "How People Read Online"; TechInterview and GreatFrontEnd on the first minute and "a
+useful index, not a sticker board"; Spiegel on admitted faults; StatCounter September 2026, 58.99 % mobile),
+`review-r04-2.md` (GitHub docs on `workflow_dispatch`, the profile README's generated template and relative paths;
+abhisheknaiidu's `awesome-github-profile-readme` for the badge, card and counter conventions §4 now rejects by
+name; Cagan, Spolsky, Nygard, the Scrum Guide, ISO 29148, Shape Up, Atlassian) and `review-r04-3.md` (Go examples,
+Sphinx `literalinclude`, Cog `--check`, embedme `--verify`, Kubernetes `verify-generated-docs.sh`, sphinx-needs,
+Doorstop, OpenFastTrace, kernel-doc). §4's new bullets and §9.1's 2b cell cite this entry for them.
+
+**The 2b render was rebuilt under reviewer 1's rule** (`fold = true` on L4 and L5 only), the way rounds 2 and 3
+built theirs: the session's `prd-r04/once-2b/` (`stats-once-2b.json`; `root/README-2b.md` from `render_readme.py
+--readme --cfg --stats`; `page-phone-1..7.png` at 390 px and `page-desk-1..2.png` at 1,280 px through
+`preview_phone.mjs` and `preview.mjs`, cut every 1,700 px with Pillow). `README.md` and `README-2b.md` differ only in
+L4's and L5's position; `cautions()` on the page: nothing; the phone page is 5,429 CSS px against round-16's 5,645.
+Screen two ends inside L6's sign; screen three opens with L2, the closed fold and the code block. **The renders are
+now in the repository** (reviewer 2's MF2): `docs/crit/prd/renders/{round-16,once-1a,once-2b-r3,once-2b}/` hold the
+phone sheet, the first two phone screens, the first desk screen, the fixtures and page texts (4.4 MB of PNG in all);
+`renders/tools/` holds the three preview scripts with a README on what they import. No product file changed.
+
+**Found while editing, not raised as such by a reviewer:** appendix B's `log.json` was a file path counted as a
+code (`log.py:36`), so reviewer 3's "seven live `log.*` codes" are six and his "169 live codes" are 168; both
+corrected in §7's preamble, §7.3 and appendix B. §10.18 carried the same `runcheck.py:7` cite as §6; fixed with it.
+
+### Applied
+
+| Id | What changed in `PRD.md` |
+|---|---|
+| r1 MF1 | §9.1 row 2b redefined by rule (open every item that is the text of a first-screen mark or carries its lever; fold the rest): L1, L7, L6, L2 open, L4 and L5 folded; the fold holds six, no cap moves, round 13's ruling stands; the first cut kept as `once-2b-r3`; row 3's cell says L4 and L5 explain nothing on the first screen; §9.0 (c) says two lines; §10.19 rewritten; the new 2b render built and described in §9.1 (text; the two `chart.toml` lines are product, §10.19). |
+| r1 MF2 | §8.1 item 6 no longer blocks the merge (POSITION-EMPTY warns, `position.py:31`; the push that sets it builds); §9.0 (a) "not needed for the merge"; §8.2 lists POSITION-EMPTY with its owner; §8.3 q.4's link-line tick notes the contact, its absence is not a must-fix; §9.2 bullet 1; §10.21 blocks nothing; §9.1's decide-by reads items 7–9; §0 says only (c) is needed for the merge. |
+| r1 MF3, r2 MF6 | §10.12's Blocks cell is "nothing", with why (round 4 ran without it, two drifts found, a cell nobody enforced is withdrawn); §0 says the test is not written and the register stays hand-checked (56 cites printed, two off by one, fixed); the two cites fixed (r3 MF4); reviewer 3's commands below. |
+| r1 MF4, r2 MF4 | §9.0 gains (d), the device check on the live page in the first week after the merge, screenshots sent in a session; header "four inputs"; §9.0 and the header say a session acts only while he has one open and what that means for "a session" owners and §8.5's failed run; §9.0 (b) and §8.1 item 7 take his word in a session, recorded in `owner-messages.md` and one line here, instead of him writing in `LOG.md`; §8.4 retitled and rewritten (why it cannot run before the merge; the session writes the entry); Done no longer requires §8.4; §10.4 and §9.3 point there. |
+| r1 MF5 | §8.3 q.6's first line is a bar ("A no is a must-fix, and the reviewer says what would make it a yes"), the name line stays logged for G13a, the G1d line stays; Done = three yeses on q.1–4 and q.6's first line; G1 and G1c point at it. |
+| r2 MF1 (text) | §8.1 item 9 "The first merge, in order": the shared and missing `chart` paths, what `publish_chart.py` does, orders A (publish, then merge within the hour; recommended) and B (merge, then the job publishes) with each one's window and when item 5 holds; item 4 says what a non-dry dispatch on a branch does; item 5 points at item 9; §9.0 (c) includes A or B; §11's stale-sheet bullet names the first-merge window; appendix D row 1 names the two ways the rule could break. The workflow guard is §10.22 (product). |
+| r2 MF2 | The renders committed under `docs/crit/prd/renders/` (above); the preview scripts under `renders/tools/` with a README; §9.1's two render bullets, §11 and the Sources line cite repository paths. |
+| r2 MF3 | §9.1: row 0 is "what happens while nothing is decided"; the bullet reads "Recommended: merge 2b now… If nothing is decided: row 0, every week"; §9.2: "Recommended: strike. Today: the counts print (G8 open). Blocks the merge through §8.1 item 7"; "default" survives only in §9.1b. |
+| r2 MF5 | §6.1 row 3: the rollback is a PR Ben merges; the three paths are not in `push: paths` (`profile.yml:22–27`), so it does not re-survey; a code or `chart.toml` revert is a second PR that does. |
+| r2 MF7 | The C1 wrong-step fact has two homes (§5.4 row 1, §10.9): §5.1 C1 ends "a release that exits leaves this row wrong (§5.4 row 1)"; §9.1 1a "once §10.9's C1 wording exists"; the 1a bullet "the Ctrl-C row is unchanged"; §5.4's closing paragraph says "retires its box (row 1)". |
+| r2 MF8 | §4: Not a bio; not a badge wall; not a card deck, each with what the page does instead and his or G1d's words; the conventions' sources cited by pointer here. |
+| r2 MF9 | §8.2 lists all four round-16 warnings and states the merge-commit set (three after item 8, two once (a) is set); §0's "4 warnings" points at the table and `gate.txt`; §0's first bullet gives the reading split in lines and words. |
+| r3 MF1 (text) | §10.7 rewritten with the real cause (the tracked 8 Oct report, `check.py:202`, 4,599 fails, `profile.yml:160, 168, 133`, `assets/v9` never the cause), the fix, owner a session, blocks §8.1 item 2 on a fresh clone; §8.1 item 2 says why the build comes first; §6's pipeline block marks the report tracked and stale; §0 "Built" says so. The report and the loop are product. |
+| r3 MF2 | §7's preamble: 168 live codes (169 strings less three non-codes, plus `FIGURES` and `TYPE` with their lines); the four bare idle codes named and not counted. |
+| r3 MF3 | §7.3 gains the `assets/log.json` row with the fail/warn/info split read from `log.py:47–69`; §7.1's BANNED row names STRINGS-MANIFEST, -ALT, -README, -TOML with `scan()` at `strings.py:147` and its calls; appendix B's `log` row carries the levels and drops `log.json`. |
+| r3 MF4 | `runcheck.py:8` (§6, §10.18); `checks/data.py:69` (§7.3). |
+| r3 MF5 | New G3a (9 Oct 11:32 "what's happening?"): the whole image says what it is at a glance; held by §8.3 q.1's new first line (one sentence before reading §1 or §5.1, naming a tool, how you start it and an output, logged here beside §1's). |
+| r3 §7 (not a must-fix) | §7.4's type-floors row cites `tokens.py:73–74 FLOORS`. |
+
+### Declined, or applied only in part
+
+| Id | Why |
+|---|---|
+| r1 MF3 (i) / r2 MF6 (write `tests/test_prd.py`) | A test file is product, and this pass commits only `docs/PRD.md` and `docs/crit/prd/`. Applied (ii): the Blocks cell withdrawn, the register hand-checked, the row's fix unchanged and owned by a session; the commands for the hand check are below so round 5 can run them. |
+| r1 MF1 (the two `chart.toml` lines, the render as the merge's state), r2 MF1 (the workflow guard), r3 MF1 (commit the report; the loop at `profile.yml:160`) | Product changes; this pass edits only the PRD, this log and the renders. Each is in §10 (items 19, 22, 7) with the reviewer's reason, the file and line, an owner and a blocking state. |
+| r2 MF2 (part: `scripts/preview/`) | `scripts/` is outside the files this pass commits; the three scripts are under `docs/crit/prd/renders/tools/` with a README, which is where the renders they make live. |
+| r2 MF4 (part: (d) "after MF1's publish") | The owner lens (conflict 1): after the merge, on the live page. |
+| r3 MF2 (part: "169 live codes"), r3 MF3 (part: "seven live `log.*` codes"; the fail/warn split as proposed) | Corrected rather than copied: `log.json` is a path, not a code, so 168 and six; `log.computed` is `info` and `log.version` `warn` (`log.py:53, 65`), not fail. |
+| r3 §3 (the four tests that hold unstated rules: `test_pairing`, `test_trap_is_ringed_by_a_dotted_line`, `test_c1_has_no_colon_mid_sentence`, `test_bots`) | Not a must-fix and not opened this pass; left for round 5 to fold into §7.1, §7.3 and §7.5 after reading each. |
+
+### The hand check, as commands (reviewer 3's §6; run from `/home/user/wt-v12`)
+
+```
+ls scripts/checks/*.py | grep -v __init__ | wc -l                                              # 28
+python3 -m unittest 2>&1 | tail -3                                                             # Ran 539 tests … OK
+grep -ohE '"[A-Z][A-Z0-9]*(-[A-Z0-9]+)+"|"(data|log)\.[a-z_]+"' scripts/checks/*.py | sort -u | wc -l   # 169 (§7: less YYYY-MM, YYYY-MM-DD, log.json; plus FIGURES, TYPE)
+grep -nE 'fail\("(FIGURES|TYPE)"' scripts/checks/figures.py scripts/checks/type.py
+python3 -c "import json;s=json.load(open('assets/stats.json'))['runcheck']['rustmapper']['steps'];print(len(s),sum(x['gate'] for x in s))"   # 25 7
+python3 -c "import sys;sys.path.insert(0,'scripts');from sheets import route;print(len(route.PURPOSE))"   # 17
+python3 scripts/build_assets.py && python3 scripts/render_readme.py --check && python3 scripts/check.py --tier fast,render; echo rc=$?   # 0 fail 4 warn rc=2
+git checkout -- assets/build-report.json                                                       # the build dirties a tracked file (§10.7)
+python3 scripts/check.py --tier fast | tail -1                                                 # on the committed report: 4599 fail
+sed -n 8p scripts/runcheck.py; sed -n 69p scripts/checks/data.py                               # the two cites
+git diff --stat 027f081..HEAD -- . ':!docs'                                                    # empty: no product change
+```
+(§5.4's probe-flip script is in `review-r04-3.md` §6.)
+
+### Next round
+
+Read §8.1 item 9 and §9.0 (c) as he would on merge day, with `renders/once-2b/page-phone-2.png` and `-3.png` open: can
+he say yes to 2b and pick A or B from the PRD and the committed renders alone; answer §8.3 q.1's new first line and
+q.6's bar; and re-run the commands above, since nothing but a hand checks the register.

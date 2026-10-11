@@ -1,0 +1,9350 @@
+{
+ "schema": 2,
+ "updated_at": "2026-10-10T01:34:10Z",
+ "taken": "2026-10-10",
+ "run_id": "local",
+ "provenance": {
+  "mode": "cache",
+  "failed_at": null,
+  "soundings_taken": null,
+  "instruments": {
+   "clones": "live",
+   "graphql": "none",
+   "rest": "partial",
+   "pypi": "live",
+   "releases": "live"
+  },
+  "graphql_at": null,
+  "repo_list": [
+   "cache"
+  ]
+ },
+ "login": "BenjaminSRussell",
+ "account_since": null,
+ "repo_count": 22,
+ "followers": null,
+ "stars": null,
+ "calendar_total": null,
+ "calendar_weeks": null,
+ "calendar": null,
+ "languages": [],
+ "repos": [
+  {
+   "name": "game_engine",
+   "aliases": [],
+   "slot": null,
+   "commits": 512,
+   "merges": 85,
+   "coauthored": {
+    "count": 5,
+    "share": 0.01,
+    "agent": 5,
+    "names": {
+     "Claude Haiku 4.5": 5
+    }
+   },
+   "all_hands": 585,
+   "others": [
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 73,
+     "bot": true
+    }
+   ],
+   "first": "2026-01-04",
+   "last": "2026-01-13",
+   "commit_days": 8,
+   "months_active": 1,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    2,
+    2,
+    1,
+    0,
+    1,
+    0,
+    2
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    233,
+    278,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    5,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "days": [
+    {
+     "d": "2026-01-04",
+     "h": 8,
+     "n": 1
+    },
+    {
+     "d": "2026-01-05",
+     "h": 12,
+     "n": 9
+    },
+    {
+     "d": "2026-01-06",
+     "h": 8,
+     "n": 6
+    },
+    {
+     "d": "2026-01-07",
+     "h": 14,
+     "n": 16
+    },
+    {
+     "d": "2026-01-09",
+     "h": 9,
+     "n": 1
+    },
+    {
+     "d": "2026-01-11",
+     "h": 17,
+     "n": 201
+    },
+    {
+     "d": "2026-01-12",
+     "h": 8,
+     "n": 32
+    },
+    {
+     "d": "2026-01-13",
+     "h": 16,
+     "n": 246
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 512
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026",
+   "stale_branches": [],
+   "tests": 7,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "C": 151872,
+    "Swift": 87488,
+    "GLSL": 4528,
+    "Python": 4478,
+    "Metal": 3688,
+    "Objective-C": 1058,
+    "Shell": 334,
+    "C++": 308,
+    "Lua": 151
+   },
+   "stale_branch_count": 148,
+   "months": {
+    "2026-01": 8
+   },
+   "first_ns": "2026-01-04",
+   "last_ns": "2026-01-13",
+   "main_language": "C"
+  },
+  {
+   "name": "Data_science_dev",
+   "aliases": [],
+   "slot": null,
+   "commits": 467,
+   "merges": 133,
+   "coauthored": {
+    "count": 174,
+    "share": 0.373,
+    "agent": 1,
+    "names": {
+     "Claude Haiku 4.5": 1
+    }
+   },
+   "all_hands": 467,
+   "others": [],
+   "first": "2025-12-15",
+   "last": "2026-10-08",
+   "commit_days": 12,
+   "months_active": 4,
+   "hours": [
+    0,
+    1,
+    0,
+    0,
+    2,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   "weekdays": [
+    2,
+    3,
+    3,
+    2,
+    2,
+    0,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5,
+    3,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    108,
+    37,
+    5,
+    0,
+    0,
+    308
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    2,
+    1,
+    0,
+    0,
+    2
+   ],
+   "days": [
+    {
+     "d": "2025-12-15",
+     "h": 17,
+     "n": 5
+    },
+    {
+     "d": "2025-12-22",
+     "h": 11,
+     "n": 3
+    },
+    {
+     "d": "2026-01-09",
+     "h": 18,
+     "n": 1
+    },
+    {
+     "d": "2026-09-01",
+     "h": 21,
+     "n": 44
+    },
+    {
+     "d": "2026-09-02",
+     "h": 7,
+     "n": 26
+    },
+    {
+     "d": "2026-09-03",
+     "h": 4,
+     "n": 30
+    },
+    {
+     "d": "2026-09-04",
+     "h": 1,
+     "n": 8
+    },
+    {
+     "d": "2026-09-08",
+     "h": 22,
+     "n": 7
+    },
+    {
+     "d": "2026-09-09",
+     "h": 5,
+     "n": 30
+    },
+    {
+     "d": "2026-09-15",
+     "h": 9,
+     "n": 5
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 198
+    },
+    {
+     "d": "2026-10-08",
+     "h": 4,
+     "n": 110
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 458,
+    "-0500": 9
+   },
+   "active": true,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Dec 2025\u2013",
+   "stale_branches": [],
+   "tests": 358,
+   "test_functions": 142,
+   "workflows": 2,
+   "manifest": {
+    "files": [
+     "package.json",
+     "pyproject.toml"
+    ],
+    "deps": [
+     "@floating-ui/dom",
+     "@pixi/particle-emitter",
+     "chart.js",
+     "interactjs",
+     "lit",
+     "pixi.js",
+     "three",
+     "zustand"
+    ]
+   },
+   "lines": {
+    "JavaScript": 108779,
+    "CSS": 6797,
+    "Python": 6003,
+    "HTML": 1833,
+    "C++": 1272,
+    "Ruby": 1018,
+    "C": 282
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2025-12": 2,
+    "2026-01": 1,
+    "2026-09": 7,
+    "2026-10": 1
+   },
+   "first_ns": "2025-12-15",
+   "last_ns": "2026-10-08",
+   "main_language": "JavaScript"
+  },
+  {
+   "name": "Scrapy",
+   "aliases": [],
+   "slot": null,
+   "commits": 420,
+   "merges": 75,
+   "coauthored": {
+    "count": 195,
+    "share": 0.464,
+    "agent": 30,
+    "names": {
+     "Claude Sonnet 5": 28,
+     "Claude": 2
+    }
+   },
+   "all_hands": 499,
+   "others": [
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 49,
+     "bot": true
+    },
+    {
+     "name": "Claude",
+     "commits": 22,
+     "bot": true
+    },
+    {
+     "name": "dependabot[bot]",
+     "commits": 8,
+     "bot": true
+    }
+   ],
+   "first": "2025-09-25",
+   "last": "2026-10-08",
+   "commit_days": 27,
+   "months_active": 5,
+   "hours": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    2,
+    0,
+    0,
+    1,
+    3,
+    4,
+    2,
+    2,
+    3,
+    3,
+    2,
+    0,
+    0,
+    0,
+    2,
+    0
+   ],
+   "weekdays": [
+    4,
+    3,
+    4,
+    5,
+    5,
+    2,
+    4
+   ],
+   "weeks": [
+    61,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    19,
+    30,
+    0,
+    173
+   ],
+   "week_days": [
+    5,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    2
+   ],
+   "days": [
+    {
+     "d": "2025-09-25",
+     "h": 15,
+     "n": 6
+    },
+    {
+     "d": "2025-09-26",
+     "h": 12,
+     "n": 1
+    },
+    {
+     "d": "2025-09-27",
+     "h": 8,
+     "n": 6
+    },
+    {
+     "d": "2025-09-28",
+     "h": 13,
+     "n": 17
+    },
+    {
+     "d": "2025-09-29",
+     "h": 15,
+     "n": 3
+    },
+    {
+     "d": "2025-09-30",
+     "h": 14,
+     "n": 6
+    },
+    {
+     "d": "2025-10-01",
+     "h": 17,
+     "n": 4
+    },
+    {
+     "d": "2025-10-02",
+     "h": 7,
+     "n": 20
+    },
+    {
+     "d": "2025-10-03",
+     "h": 13,
+     "n": 9
+    },
+    {
+     "d": "2025-10-04",
+     "h": 22,
+     "n": 18
+    },
+    {
+     "d": "2025-10-05",
+     "h": 0,
+     "n": 19
+    },
+    {
+     "d": "2025-10-06",
+     "h": 16,
+     "n": 13
+    },
+    {
+     "d": "2025-10-07",
+     "h": 12,
+     "n": 5
+    },
+    {
+     "d": "2025-10-08",
+     "h": 17,
+     "n": 5
+    },
+    {
+     "d": "2025-10-09",
+     "h": 12,
+     "n": 2
+    },
+    {
+     "d": "2025-10-10",
+     "h": 18,
+     "n": 2
+    },
+    {
+     "d": "2025-10-13",
+     "h": 13,
+     "n": 7
+    },
+    {
+     "d": "2025-10-14",
+     "h": 16,
+     "n": 33
+    },
+    {
+     "d": "2025-10-15",
+     "h": 8,
+     "n": 2
+    },
+    {
+     "d": "2025-10-16",
+     "h": 16,
+     "n": 16
+    },
+    {
+     "d": "2025-10-17",
+     "h": 14,
+     "n": 3
+    },
+    {
+     "d": "2025-11-09",
+     "h": 17,
+     "n": 1
+    },
+    {
+     "d": "2026-09-18",
+     "h": 13,
+     "n": 17
+    },
+    {
+     "d": "2026-09-20",
+     "h": 22,
+     "n": 2
+    },
+    {
+     "d": "2026-09-21",
+     "h": 11,
+     "n": 30
+    },
+    {
+     "d": "2026-10-07",
+     "h": 18,
+     "n": 82
+    },
+    {
+     "d": "2026-10-08",
+     "h": 5,
+     "n": 91
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 419,
+    "-0500": 1
+   },
+   "active": true,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Python",
+   "stars": 1,
+   "span": "Sep 2025\u2013",
+   "stale_branches": [
+    {
+     "name": "fix/144-lean-docker-extras",
+     "last": "2025-11-09",
+     "author": "Benjamin Russell"
+    }
+   ],
+   "tests": 257,
+   "test_functions": 1920,
+   "workflows": 5,
+   "manifest": {
+    "files": [
+     "Scraping_project/pyproject.toml"
+    ],
+    "deps": [
+     "scrapy",
+     "deltalake",
+     "pyarrow",
+     "pandas",
+     "numpy",
+     "playwright",
+     "scrapy-playwright",
+     "httpx",
+     "aiohttp",
+     "beautifulsoup4",
+     "lxml",
+     "datasketch",
+     "yake",
+     "networkx",
+     "psycopg2-binary",
+     "redis",
+     "confluent-kafka",
+     "prometheus-client",
+     "kubernetes",
+     "pyyaml",
+     "tqdm",
+     "python-dotenv",
+     "click",
+     "psutil",
+     "python-dateutil",
+     "typing-extensions",
+     "pydantic",
+     "jsonlines",
+     "itemadapter",
+     "requests",
+     "w3lib",
+     "twisted",
+     "tenacity"
+    ]
+   },
+   "lines": {
+    "Python": 69036,
+    "JavaScript": 2561,
+    "Shell": 2334,
+    "HTML": 1883,
+    "Rust": 1003,
+    "SQL": 232
+   },
+   "stale_branch_count": 1,
+   "license": "MIT",
+   "ci": {
+    "workflow": "CI/CD Pipeline",
+    "conclusion": "success",
+    "date": "2026-10-08",
+    "url": "https://github.com/BenjaminSRussell/Scrapy/actions/runs/37779293103",
+    "recent": [
+     "success",
+     "cancelled",
+     "cancelled",
+     "cancelled",
+     "success"
+    ],
+    "head_sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+    "jobs": [
+     {
+      "name": "test (3.12)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "test (3.11)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "entrypoint-smoke",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Package build smoke",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "deploy",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     }
+    ],
+    "gates": [
+     "tests",
+     "ruff",
+     "mypy",
+     "bandit"
+    ]
+   },
+   "head": {
+    "sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+    "short": "96e7a1a",
+    "date": "2026-10-08"
+   },
+   "months": {
+    "2025-09": 6,
+    "2025-10": 15,
+    "2026-09": 3,
+    "2026-10": 1
+   },
+   "first_ns": "2025-09-25",
+   "last_ns": "2026-10-08",
+   "main_language": "Python",
+   "ci_selection": {
+    "not_selected": 41,
+    "outside": 16,
+    "deselected": 25,
+    "ignored": 0,
+    "commands": [
+     {
+      "cwd": "Scraping_project",
+      "paths": [
+       "tests"
+      ],
+      "not_markers": [
+       "slow",
+       "kafka",
+       "performance"
+      ]
+     },
+     {
+      "cwd": "",
+      "paths": [
+       "tests/unit/test_docker_entrypoints.py"
+      ],
+      "not_markers": []
+     }
+    ],
+    "cargo_test": false,
+    "of": 1920
+   }
+  },
+  {
+   "name": "BenjaminSRussell",
+   "aliases": [],
+   "slot": null,
+   "commits": 184,
+   "merges": 1,
+   "coauthored": {
+    "count": 1,
+    "share": 0.005,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 185,
+   "others": [
+    {
+     "name": "github-actions[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-22",
+   "last": "2026-10-09",
+   "commit_days": 11,
+   "months_active": 4,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    3,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0
+   ],
+   "weekdays": [
+    2,
+    1,
+    1,
+    1,
+    2,
+    3,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    122,
+    43,
+    0,
+    15
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    3
+   ],
+   "days": [
+    {
+     "d": "2025-11-22",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2025-12-15",
+     "h": 17,
+     "n": 1
+    },
+    {
+     "d": "2025-12-27",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-12-30",
+     "h": 20,
+     "n": 1
+    },
+    {
+     "d": "2026-09-18",
+     "h": 14,
+     "n": 92
+    },
+    {
+     "d": "2026-09-19",
+     "h": 8,
+     "n": 20
+    },
+    {
+     "d": "2026-09-20",
+     "h": 22,
+     "n": 10
+    },
+    {
+     "d": "2026-09-21",
+     "h": 10,
+     "n": 43
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 4
+    },
+    {
+     "d": "2026-10-08",
+     "h": 7,
+     "n": 9
+    },
+    {
+     "d": "2026-10-09",
+     "h": 7,
+     "n": 2
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 180,
+    "-0500": 4
+   },
+   "active": true,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Python",
+   "stars": 1,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 9,
+   "test_functions": 225,
+   "workflows": 3,
+   "manifest": null,
+   "lines": {
+    "Python": 18266,
+    "JavaScript": 414,
+    "Shell": 65
+   },
+   "stale_branch_count": 0,
+   "license": null,
+   "months": {
+    "2025-11": 1,
+    "2025-12": 3,
+    "2026-09": 4,
+    "2026-10": 2
+   },
+   "first_ns": "2025-11-22",
+   "last_ns": "2026-10-09",
+   "main_language": "Python"
+  },
+  {
+   "name": "Rust-sitemap",
+   "aliases": [],
+   "slot": null,
+   "commits": 101,
+   "merges": 31,
+   "coauthored": {
+    "count": 17,
+    "share": 0.168,
+    "agent": 1,
+    "names": {
+     "Claude Sonnet 5": 1
+    }
+   },
+   "all_hands": 146,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 45,
+     "bot": true
+    }
+   ],
+   "first": "2025-10-20",
+   "last": "2026-10-07",
+   "commit_days": 22,
+   "months_active": 6,
+   "hours": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    0,
+    5,
+    1,
+    5,
+    3,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "weekdays": [
+    5,
+    2,
+    5,
+    4,
+    3,
+    2,
+    1
+   ],
+   "weeks": [
+    0,
+    8,
+    7,
+    48,
+    6,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    28
+   ],
+   "week_days": [
+    0,
+    4,
+    3,
+    6,
+    4,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-10-20",
+     "h": 17,
+     "n": 5
+    },
+    {
+     "d": "2025-10-22",
+     "h": 17,
+     "n": 1
+    },
+    {
+     "d": "2025-10-23",
+     "h": 15,
+     "n": 1
+    },
+    {
+     "d": "2025-10-24",
+     "h": 12,
+     "n": 1
+    },
+    {
+     "d": "2025-10-27",
+     "h": 3,
+     "n": 3
+    },
+    {
+     "d": "2025-10-29",
+     "h": 14,
+     "n": 3
+    },
+    {
+     "d": "2025-10-30",
+     "h": 18,
+     "n": 1
+    },
+    {
+     "d": "2025-11-03",
+     "h": 16,
+     "n": 2
+    },
+    {
+     "d": "2025-11-04",
+     "h": 14,
+     "n": 19
+    },
+    {
+     "d": "2025-11-06",
+     "h": 16,
+     "n": 13
+    },
+    {
+     "d": "2025-11-07",
+     "h": 14,
+     "n": 3
+    },
+    {
+     "d": "2025-11-08",
+     "h": 14,
+     "n": 8
+    },
+    {
+     "d": "2025-11-09",
+     "h": 16,
+     "n": 3
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 2
+    },
+    {
+     "d": "2025-11-12",
+     "h": 21,
+     "n": 1
+    },
+    {
+     "d": "2025-11-13",
+     "h": 12,
+     "n": 2
+    },
+    {
+     "d": "2025-11-14",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-11-17",
+     "h": 16,
+     "n": 1
+    },
+    {
+     "d": "2025-12-16",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2026-05-13",
+     "h": 17,
+     "n": 1
+    },
+    {
+     "d": "2026-08-08",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 16,
+     "n": 28
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 56,
+    "-0400": 45
+   },
+   "active": false,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Rust",
+   "stars": 1,
+   "span": "Oct 2025\u2013",
+   "stale_branches": [],
+   "tests": 3,
+   "test_functions": 176,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Cargo.toml",
+     "pyproject.toml"
+    ],
+    "deps": [
+     "clap",
+     "rkyv",
+     "rkyv_derive",
+     "redb",
+     "reqwest",
+     "tokio",
+     "tokio-util",
+     "scraper",
+     "html5ever",
+     "readability",
+     "thiserror",
+     "tracing",
+     "tracing-subscriber",
+     "tracing-appender",
+     "tracing-error",
+     "tracing-log",
+     "url",
+     "serde",
+     "serde_json",
+     "futures-util",
+     "dashmap",
+     "parking_lot",
+     "redis",
+     "robotstxt",
+     "sitemap",
+     "chrono",
+     "async-compression",
+     "async-trait",
+     "async-stream",
+     "flume",
+     "crc32fast",
+     "fastbloom",
+     "tokio-stream",
+     "num_cpus",
+     "psl",
+     "crossbeam-queue",
+     "rand",
+     "pyo3",
+     "bincode",
+     "flate2"
+    ]
+   },
+   "lines": {
+    "Rust": 16390,
+    "Python": 848
+   },
+   "stale_branch_count": 0,
+   "license": null,
+   "ci": {
+    "workflow": "CI",
+    "conclusion": "success",
+    "date": "2026-10-07",
+    "url": "https://github.com/BenjaminSRussell/Rust-sitemap/actions/runs/37704909539",
+    "recent": [
+     "success",
+     "success",
+     "success",
+     "success",
+     "success"
+    ],
+    "head_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+    "jobs": [
+     {
+      "name": "Clippy",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Python wrapper",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Build Release (ubuntu-latest)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Test (ubuntu-latest, stable)",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Format",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Security Audit",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     },
+     {
+      "name": "Benchmark",
+      "conclusion": "success",
+      "labels": [
+       "ubuntu-latest"
+      ]
+     }
+    ],
+    "gates": [
+     "tests",
+     "rustfmt"
+    ]
+   },
+   "head": {
+    "sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+    "short": "32c2651",
+    "date": "2026-10-07"
+   },
+   "months": {
+    "2025-10": 7,
+    "2025-11": 9,
+    "2025-12": 1,
+    "2026-05": 1,
+    "2026-08": 1
+   },
+   "first_ns": "2025-10-20",
+   "last_ns": "2026-08-08",
+   "main_language": "Rust",
+   "ci_selection": {
+    "not_selected": 0,
+    "outside": 0,
+    "deselected": 0,
+    "ignored": 0,
+    "commands": [
+     {
+      "cwd": "",
+      "paths": [
+       "python/tests"
+      ],
+      "not_markers": []
+     }
+    ],
+    "cargo_test": true,
+    "of": 176
+   }
+  },
+  {
+   "name": "Data-visualizer",
+   "aliases": [],
+   "slot": null,
+   "commits": 46,
+   "merges": 10,
+   "coauthored": {
+    "count": 7,
+    "share": 0.152,
+    "agent": 2,
+    "names": {
+     "Claude Fable 5": 2
+    }
+   },
+   "all_hands": 54,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 8,
+     "bot": true
+    }
+   ],
+   "first": "2025-09-25",
+   "last": "2026-10-07",
+   "commit_days": 8,
+   "months_active": 4,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    2,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weekdays": [
+    1,
+    1,
+    1,
+    2,
+    0,
+    1,
+    2
+   ],
+   "weeks": [
+    0,
+    1,
+    6,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    28
+   ],
+   "week_days": [
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-09-25",
+     "h": 17,
+     "n": 1
+    },
+    {
+     "d": "2025-09-27",
+     "h": 13,
+     "n": 5
+    },
+    {
+     "d": "2025-10-26",
+     "h": 23,
+     "n": 1
+    },
+    {
+     "d": "2025-10-27",
+     "h": 14,
+     "n": 2
+    },
+    {
+     "d": "2025-10-28",
+     "h": 19,
+     "n": 4
+    },
+    {
+     "d": "2025-11-09",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 4
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 28
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 45,
+    "-0500": 1
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Sep 2025\u2013",
+   "stale_branches": [],
+   "tests": 12,
+   "test_functions": 134,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Python": 12488,
+    "HTML": 1204,
+    "Shell": 807,
+    "SQL": 340
+   },
+   "stale_branch_count": 23,
+   "months": {
+    "2025-09": 2,
+    "2025-10": 3
+   },
+   "first_ns": "2025-09-25",
+   "last_ns": "2025-10-28",
+   "main_language": "Python"
+  },
+  {
+   "name": "FashionDB",
+   "aliases": [],
+   "slot": null,
+   "commits": 39,
+   "merges": 13,
+   "coauthored": {
+    "count": 6,
+    "share": 0.154,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 69,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 30,
+     "bot": true
+    }
+   ],
+   "first": "2025-10-29",
+   "last": "2026-10-07",
+   "commit_days": 7,
+   "months_active": 3,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    2,
+    1,
+    1,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    2,
+    1,
+    1,
+    1,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    1,
+    9,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    26
+   ],
+   "week_days": [
+    0,
+    0,
+    1,
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-10-29",
+     "h": 12,
+     "n": 1
+    },
+    {
+     "d": "2025-11-06",
+     "h": 17,
+     "n": 4
+    },
+    {
+     "d": "2025-11-07",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-11-08",
+     "h": 12,
+     "n": 2
+    },
+    {
+     "d": "2025-11-09",
+     "h": 17,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 3
+    },
+    {
+     "d": "2026-10-07",
+     "h": 13,
+     "n": 26
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 27,
+    "-0500": 12
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Oct 2025\u2013",
+   "stale_branches": [],
+   "tests": 20,
+   "test_functions": 29,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": [
+     "praw"
+    ]
+   },
+   "lines": {
+    "Python": 5193
+   },
+   "stale_branch_count": 20,
+   "months": {
+    "2025-10": 1,
+    "2025-11": 3
+   },
+   "first_ns": "2025-10-29",
+   "last_ns": "2025-11-08",
+   "main_language": "Python"
+  },
+  {
+   "name": "ideal-url-organizer",
+   "aliases": [],
+   "slot": null,
+   "commits": 37,
+   "merges": 6,
+   "coauthored": {
+    "count": 15,
+    "share": 0.405,
+    "agent": 10,
+    "names": {
+     "Claude Sonnet 5": 10
+    }
+   },
+   "all_hands": 47,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 10,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 7,
+   "months_active": 3,
+   "hours": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    2
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    14,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    17
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 13,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-11-11",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-11-13",
+     "h": 0,
+     "n": 2
+    },
+    {
+     "d": "2026-08-08",
+     "h": 11,
+     "n": 13
+    },
+    {
+     "d": "2026-08-09",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 17
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 31,
+    "-0500": 6
+   },
+   "active": false,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 15,
+   "test_functions": 67,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 12242,
+    "HTML": 1062,
+    "JavaScript": 260,
+    "Shell": 74
+   },
+   "stale_branch_count": 0,
+   "head": {
+    "sha": "159968a7d4b82bb116c2068489748ae357882e68",
+    "short": "159968a",
+    "date": "2026-10-07"
+   },
+   "months": {
+    "2025-11": 2,
+    "2026-08": 2
+   },
+   "first_ns": "2025-11-11",
+   "last_ns": "2026-08-09",
+   "main_language": "Python"
+  },
+  {
+   "name": "Course_crusader",
+   "aliases": [],
+   "slot": null,
+   "commits": 33,
+   "merges": 14,
+   "coauthored": {
+    "count": 3,
+    "share": 0.091,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 44,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 10,
+     "bot": true
+    },
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 3,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    29
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 17,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 29
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 29,
+    "-0500": 4
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 19,
+   "test_functions": 77,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "pyproject.toml"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Python": 10132
+   },
+   "stale_branch_count": 16,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "Ai_code_detector",
+   "aliases": [],
+   "slot": null,
+   "commits": 32,
+   "merges": 2,
+   "coauthored": {
+    "count": 18,
+    "share": 0.562,
+    "agent": 6,
+    "names": {
+     "Claude Sonnet 5": 6
+    }
+   },
+   "all_hands": 39,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 6,
+     "bot": true
+    },
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 3,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    2
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    17,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    12
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 16,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 1
+    },
+    {
+     "d": "2026-08-02",
+     "h": 16,
+     "n": 17
+    },
+    {
+     "d": "2026-10-07",
+     "h": 19,
+     "n": 12
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 29,
+    "-0500": 3
+   },
+   "active": false,
+   "dormant": false,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 25,
+   "test_functions": 127,
+   "workflows": 2,
+   "manifest": null,
+   "lines": {
+    "Python": 11863,
+    "TypeScript": 55,
+    "Go": 40,
+    "Rust": 22
+   },
+   "stale_branch_count": 0,
+   "months": {
+    "2026-08": 1
+   },
+   "first_ns": "2026-08-02",
+   "last_ns": "2026-08-02",
+   "main_language": "Python"
+  },
+  {
+   "name": "go_go_go",
+   "aliases": [],
+   "slot": null,
+   "commits": 28,
+   "merges": 7,
+   "coauthored": {
+    "count": 9,
+    "share": 0.321,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 33,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 5,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    23
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 13,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 13,
+     "n": 1
+    },
+    {
+     "d": "2025-11-11",
+     "h": 14,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 23
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 23,
+    "-0500": 5
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 20,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "go.mod"
+    ],
+    "deps": [
+     "goquery",
+     "bloom",
+     "chromedp",
+     "go-sqlite3",
+     "parquet-go",
+     "utls",
+     "cobra",
+     "robotstxt",
+     "net"
+    ]
+   },
+   "lines": {
+    "Go": 7138,
+    "Shell": 89
+   },
+   "stale_branch_count": 18,
+   "months": {
+    "2025-11": 1
+   },
+   "first_ns": "2025-11-11",
+   "last_ns": "2025-11-11",
+   "main_language": "Go"
+  },
+  {
+   "name": "MLX_convertion",
+   "aliases": [],
+   "slot": null,
+   "commits": 22,
+   "merges": 7,
+   "coauthored": {
+    "count": 3,
+    "share": 0.136,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 39,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 17,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-08",
+   "last": "2026-10-07",
+   "commit_days": 5,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    11,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    8
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-08",
+     "h": 19,
+     "n": 2
+    },
+    {
+     "d": "2025-11-09",
+     "h": 14,
+     "n": 9
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 2
+    },
+    {
+     "d": "2025-11-14",
+     "h": 19,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 8
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 14,
+    "-0400": 8
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 8,
+   "test_functions": 26,
+   "workflows": 2,
+   "manifest": null,
+   "lines": {
+    "Python": 9747,
+    "Shell": 211
+   },
+   "stale_branch_count": 12,
+   "months": {
+    "2025-11": 2
+   },
+   "first_ns": "2025-11-08",
+   "last_ns": "2025-11-14",
+   "main_language": "Python"
+  },
+  {
+   "name": "Wheel",
+   "aliases": [],
+   "slot": null,
+   "commits": 21,
+   "merges": 3,
+   "coauthored": {
+    "count": 9,
+    "share": 0.429,
+    "agent": 3,
+    "names": {
+     "Claude Fable 5": 3
+    }
+   },
+   "all_hands": 21,
+   "others": [],
+   "first": "2025-10-22",
+   "last": "2026-10-07",
+   "commit_days": 8,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weekdays": [
+    0,
+    1,
+    3,
+    2,
+    1,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    7,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    9
+   ],
+   "week_days": [
+    0,
+    4,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-10-22",
+     "h": 19,
+     "n": 2
+    },
+    {
+     "d": "2025-10-23",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2025-10-24",
+     "h": 13,
+     "n": 2
+    },
+    {
+     "d": "2025-10-26",
+     "h": 23,
+     "n": 1
+    },
+    {
+     "d": "2025-10-28",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2025-10-29",
+     "h": 14,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 3
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 9
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 21
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Oct 2025\u2013",
+   "stale_branches": [],
+   "tests": 8,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "postprocessing",
+     "three"
+    ]
+   },
+   "lines": {
+    "JavaScript": 2138,
+    "HTML": 435,
+    "Shell": 170,
+    "TypeScript": 32
+   },
+   "stale_branch_count": 8,
+   "months": {
+    "2025-10": 6
+   },
+   "first_ns": "2025-10-22",
+   "last_ns": "2025-10-29",
+   "main_language": "JavaScript"
+  },
+  {
+   "name": "Elusive_trades_data",
+   "aliases": [],
+   "slot": null,
+   "commits": 17,
+   "merges": 3,
+   "coauthored": {
+    "count": 10,
+    "share": 0.588,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
+   "all_hands": 20,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 3,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    13
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 18,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 16,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 13,
+     "n": 13
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 14,
+    "-0500": 3
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 18,
+   "test_functions": 124,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 6303,
+    "Lua": 87
+   },
+   "stale_branch_count": 13,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "Spotify_to_apple_music",
+   "aliases": [],
+   "slot": null,
+   "commits": 16,
+   "merges": 4,
+   "coauthored": {
+    "count": 10,
+    "share": 0.625,
+    "agent": 2,
+    "names": {
+     "Claude Fable 5": 2
+    }
+   },
+   "all_hands": 26,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 10,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    12
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 18,
+     "n": 1
+    },
+    {
+     "d": "2025-11-10",
+     "h": 11,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 20,
+     "n": 12
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 14,
+    "-0500": 2
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 13,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": [
+     "GRDB.swift",
+     "swift-crypto",
+     "swift-argument-parser"
+    ]
+   },
+   "lines": {
+    "Swift": 11819
+   },
+   "stale_branch_count": 11,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Swift"
+  },
+  {
+   "name": "3d-swift-widget",
+   "aliases": [],
+   "slot": null,
+   "commits": 13,
+   "merges": 2,
+   "coauthored": {
+    "count": 6,
+    "share": 0.462,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
+   "all_hands": 13,
+   "others": [],
+   "first": "2026-01-15",
+   "last": "2026-10-07",
+   "commit_days": 5,
+   "months_active": 2,
+   "hours": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    2,
+    1,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    6
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-01-15",
+     "h": 22,
+     "n": 4
+    },
+    {
+     "d": "2026-01-16",
+     "h": 1,
+     "n": 1
+    },
+    {
+     "d": "2026-01-17",
+     "h": 12,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 21,
+     "n": 6
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 7,
+    "-0500": 6
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026\u2013",
+   "stale_branches": [],
+   "tests": 12,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Swift": 10556,
+    "Metal": 3342,
+    "C": 329,
+    "Shell": 88,
+    "Python": 31
+   },
+   "stale_branch_count": 6,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-17",
+   "main_language": "Swift"
+  },
+  {
+   "name": "2d-swift-widgets",
+   "aliases": [],
+   "slot": null,
+   "commits": 12,
+   "merges": 3,
+   "coauthored": {
+    "count": 5,
+    "share": 0.417,
+    "agent": 1,
+    "names": {
+     "Claude Fable 5": 1
+    }
+   },
+   "all_hands": 12,
+   "others": [],
+   "first": "2026-01-15",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    6
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-01-15",
+     "h": 22,
+     "n": 3
+    },
+    {
+     "d": "2026-01-16",
+     "h": 1,
+     "n": 1
+    },
+    {
+     "d": "2026-10-01",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 14,
+     "n": 6
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 8,
+    "-0500": 4
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026\u2013",
+   "stale_branches": [],
+   "tests": 2,
+   "test_functions": null,
+   "workflows": 0,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "clsx",
+     "framer-motion",
+     "lucide-react",
+     "react",
+     "react-dom"
+    ]
+   },
+   "lines": {
+    "TypeScript": 1224,
+    "CSS": 147,
+    "JavaScript": 40,
+    "Swift": 36,
+    "HTML": 13
+   },
+   "stale_branch_count": 6,
+   "months": {
+    "2026-01": 2
+   },
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-16",
+   "main_language": "TypeScript"
+  },
+  {
+   "name": "rust_llm_logger",
+   "aliases": [],
+   "slot": null,
+   "commits": 10,
+   "merges": 4,
+   "coauthored": {
+    "count": 3,
+    "share": 0.3,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 13,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 2,
+     "bot": true
+    },
+    {
+     "name": "google-labs-jules[bot]",
+     "commits": 1,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 3,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 18,
+     "n": 2
+    },
+    {
+     "d": "2025-11-10",
+     "h": 10,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 11,
+     "n": 7
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 7,
+    "-0500": 3
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 3,
+   "test_functions": 35,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Cargo.toml"
+    ],
+    "deps": [
+     "tokio",
+     "axum",
+     "hyper",
+     "hyper-util",
+     "tower",
+     "tower-http",
+     "http-body-util",
+     "serde",
+     "serde_json",
+     "async-sse",
+     "futures",
+     "tracing",
+     "tracing-subscriber",
+     "anyhow",
+     "thiserror",
+     "bytes",
+     "clap",
+     "chrono",
+     "tokio-stream",
+     "async-trait",
+     "rusqlite",
+     "rand"
+    ]
+   },
+   "lines": {
+    "Rust": 2985,
+    "Shell": 48
+   },
+   "stale_branch_count": 11,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Rust"
+  },
+  {
+   "name": "3d-swift-globe-widget",
+   "aliases": [],
+   "slot": null,
+   "commits": 9,
+   "merges": 1,
+   "coauthored": {
+    "count": 1,
+    "share": 0.111,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 9,
+   "others": [],
+   "first": "2026-01-15",
+   "last": "2026-10-07",
+   "commit_days": 4,
+   "months_active": 2,
+   "hours": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    8,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-01-15",
+     "h": 23,
+     "n": 3
+    },
+    {
+     "d": "2026-01-16",
+     "h": 0,
+     "n": 4
+    },
+    {
+     "d": "2026-01-17",
+     "h": 10,
+     "n": 1
+    },
+    {
+     "d": "2026-10-07",
+     "h": 20,
+     "n": 1
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 8,
+    "-0400": 1
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026\u2013",
+   "stale_branches": [],
+   "tests": 3,
+   "test_functions": null,
+   "workflows": 1,
+   "manifest": {
+    "files": [
+     "Package.swift"
+    ],
+    "deps": []
+   },
+   "lines": {
+    "Swift": 1475
+   },
+   "stale_branch_count": 4,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-15",
+   "last_ns": "2026-01-17",
+   "main_language": "Swift"
+  },
+  {
+   "name": "cozy-game",
+   "aliases": [],
+   "slot": null,
+   "commits": 7,
+   "merges": 0,
+   "coauthored": {
+    "count": 0,
+    "share": 0.0,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 7,
+   "others": [],
+   "first": "2026-01-01",
+   "last": "2026-01-11",
+   "commit_days": 3,
+   "months_active": 1,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "days": [
+    {
+     "d": "2026-01-01",
+     "h": 16,
+     "n": 1
+    },
+    {
+     "d": "2026-01-09",
+     "h": 18,
+     "n": 1
+    },
+    {
+     "d": "2026-01-11",
+     "h": 16,
+     "n": 5
+    }
+   ],
+   "tz_offsets": {
+    "-0500": 7
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Jan 2026",
+   "stale_branches": [],
+   "tests": 0,
+   "test_functions": null,
+   "workflows": 0,
+   "manifest": {
+    "files": [
+     "package.json"
+    ],
+    "deps": [
+     "axios",
+     "expo",
+     "expo-av",
+     "expo-constants",
+     "expo-file-system",
+     "expo-sqlite",
+     "expo-status-bar",
+     "react",
+     "react-dom",
+     "react-native",
+     "react-native-gesture-handler",
+     "react-native-reanimated",
+     "react-native-web",
+     "react-native-worklets",
+     "zustand"
+    ]
+   },
+   "lines": {
+    "TypeScript": 35797,
+    "HTML": 4385,
+    "JavaScript": 1068,
+    "CSS": 162,
+    "Python": 111
+   },
+   "stale_branch_count": 183,
+   "months": {
+    "2026-01": 3
+   },
+   "first_ns": "2026-01-01",
+   "last_ns": "2026-01-11",
+   "main_language": "TypeScript"
+  },
+  {
+   "name": "mlx_Qwen_data_entry",
+   "aliases": [],
+   "slot": null,
+   "commits": 7,
+   "merges": 1,
+   "coauthored": {
+    "count": 5,
+    "share": 0.714,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 11,
+   "others": [
+    {
+     "name": "Claude",
+     "commits": 4,
+     "bot": true
+    }
+   ],
+   "first": "2025-11-09",
+   "last": "2026-10-07",
+   "commit_days": 2,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2025-11-09",
+     "h": 16,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 20,
+     "n": 5
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 5,
+    "-0500": 2
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": null,
+   "stars": null,
+   "span": "Nov 2025\u2013",
+   "stale_branches": [],
+   "tests": 10,
+   "test_functions": 52,
+   "workflows": 1,
+   "manifest": null,
+   "lines": {
+    "Python": 5404,
+    "SQL": 333
+   },
+   "stale_branch_count": 8,
+   "months": {},
+   "first_ns": null,
+   "last_ns": null,
+   "main_language": "Python"
+  },
+  {
+   "name": "excel-and-vba",
+   "aliases": [],
+   "slot": null,
+   "commits": 4,
+   "merges": 0,
+   "coauthored": {
+    "count": 2,
+    "share": 0.5,
+    "agent": 0,
+    "names": {}
+   },
+   "all_hands": 4,
+   "others": [],
+   "first": "2026-05-30",
+   "last": "2026-10-07",
+   "commit_days": 2,
+   "months_active": 2,
+   "hours": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "weekdays": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   "week_days": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "days": [
+    {
+     "d": "2026-05-30",
+     "h": 15,
+     "n": 2
+    },
+    {
+     "d": "2026-10-07",
+     "h": 12,
+     "n": 2
+    }
+   ],
+   "tz_offsets": {
+    "-0400": 4
+   },
+   "active": false,
+   "dormant": true,
+   "archived": false,
+   "stale": false,
+   "stale_since": null,
+   "language": "Python",
+   "stars": 0,
+   "span": "May 2026\u2013",
+   "stale_branches": [],
+   "tests": 0,
+   "test_functions": 0,
+   "workflows": 0,
+   "manifest": null,
+   "lines": {
+    "Python": 55
+   },
+   "stale_branch_count": 3,
+   "license": null,
+   "months": {
+    "2026-05": 1
+   },
+   "first_ns": "2026-05-30",
+   "last_ns": "2026-05-30",
+   "main_language": "Python"
+  }
+ ],
+ "unsurveyed": [],
+ "edition": {
+  "project": "rustmapper",
+  "version": "0.1.3",
+  "date": "2025-11-08",
+  "releases": 4,
+  "status": "alpha",
+  "wheels": [
+   "cp313-cp313-macosx_11_0_arm64"
+  ],
+  "uploads": [
+   {
+    "version": "0.1.0",
+    "date": "2025-11-08",
+    "time": "2025-11-08T18:38:28"
+   },
+   {
+    "version": "0.1.1",
+    "date": "2025-11-08",
+    "time": "2025-11-08T18:41:56"
+   },
+   {
+    "version": "0.1.2",
+    "date": "2025-11-08",
+    "time": "2025-11-08T19:51:17"
+   },
+   {
+    "version": "0.1.3",
+    "date": "2025-11-08",
+    "time": "2025-11-08T19:52:41"
+   }
+  ],
+  "stale": false,
+  "scripts": [
+   "rust_sitemap"
+  ],
+  "modules": []
+ },
+ "notices": [
+  {
+   "repo": "Scrapy",
+   "tag": "N1",
+   "date": "2026-10",
+   "title": "Boring under load.",
+   "url": "",
+   "source": "hand",
+   "body": "One failing host is set aside for a minute; the rest of the crawl goes on.",
+   "cite": "Scrapy, {month:breaker}: a circuit breaker for each host in stage 2.",
+   "n": 1
+  },
+  {
+   "repo": "Scrapy",
+   "tag": "N2",
+   "date": "2025-10",
+   "title": "Raw before clean.",
+   "url": "",
+   "source": "hand",
+   "body": "Next month's question can't be known today, so the raw layer is appended to and never overwritten.",
+   "cite": "Scrapy, {month:delta}: raw pages written to Delta Lake with `write_deltalake`.",
+   "n": 2
+  },
+  {
+   "repo": "Scrapy",
+   "tag": "N3",
+   "date": "2025-10",
+   "title": "Dashboards before speed.",
+   "url": "",
+   "source": "hand",
+   "body": "Dashboards go in version one.",
+   "cite": "Scrapy, {month:prometheus}: Prometheus metrics, then Grafana dashboards.",
+   "n": 3
+  },
+  {
+   "repo": "BenjaminSRussell",
+   "tag": "N5",
+   "date": "2025-11",
+   "title": "The surface is part of the system.",
+   "url": "",
+   "source": "hand",
+   "body": "A tool that confuses its operator is already failing.",
+   "cite": "This page, Nov 2025: its earlier editions read as a template.",
+   "n": 5
+  },
+  {
+   "repo": "Rust-sitemap",
+   "tag": "v0.1.0",
+   "date": "2025-11-08",
+   "title": "rustmapper 0.1.0 on PyPI",
+   "url": "https://pypi.org/project/rustmapper/0.1.0/",
+   "source": "pypi",
+   "n": 6
+  },
+  {
+   "repo": "Rust-sitemap",
+   "tag": "v0.1.1",
+   "date": "2025-11-08",
+   "title": "rustmapper 0.1.1 on PyPI",
+   "url": "https://pypi.org/project/rustmapper/0.1.1/",
+   "source": "pypi",
+   "n": 7
+  },
+  {
+   "repo": "Rust-sitemap",
+   "tag": "v0.1.2",
+   "date": "2025-11-08",
+   "title": "rustmapper 0.1.2 on PyPI",
+   "url": "https://pypi.org/project/rustmapper/0.1.2/",
+   "source": "pypi",
+   "n": 8
+  },
+  {
+   "repo": "Rust-sitemap",
+   "tag": "v0.1.3",
+   "date": "2025-11-08",
+   "title": "rustmapper 0.1.3 on PyPI",
+   "url": "https://pypi.org/project/rustmapper/0.1.3/",
+   "source": "pypi",
+   "n": 9
+  }
+ ],
+ "corrections": {
+  "2025": [
+   {
+    "n": 1,
+    "date": "2025-11-22",
+    "title": "first commit"
+   },
+   {
+    "n": 2,
+    "date": "2025-12-15",
+    "title": "Added .gitignore"
+   },
+   {
+    "n": 3,
+    "date": "2025-12-27",
+    "title": "Update README.md with formal profile and add GitHub contribution snake"
+   },
+   {
+    "n": 4,
+    "date": "2025-12-30",
+    "title": "Update README to remove personal details"
+   }
+  ],
+  "2026": [
+   {
+    "n": 5,
+    "date": "2026-09-18",
+    "title": "feat: over-the-top visual profile README (show, don't tell)"
+   },
+   {
+    "n": 6,
+    "date": "2026-09-18",
+    "title": "fix: swap broken image hosts for verified live endpoints"
+   },
+   {
+    "n": 7,
+    "date": "2026-09-18",
+    "title": "feat(assets): design tokens, glyphs, frames"
+   },
+   {
+    "n": 8,
+    "date": "2026-09-18",
+    "title": "feat(assets): section labels + footer twins"
+   },
+   {
+    "n": 9,
+    "date": "2026-09-18",
+    "title": "feat(assets): animated data-flow connectors (dark/light)"
+   },
+   {
+    "n": 10,
+    "date": "2026-09-18",
+    "title": "feat(assets): hand-authored hero banners (dark/light SMIL)"
+   },
+   {
+    "n": 11,
+    "date": "2026-09-18",
+    "title": "feat: airy profile craft v1.2.0 \u2014 README + core assets"
+   },
+   {
+    "n": 12,
+    "date": "2026-09-18",
+    "title": "feat: airy profile craft v1.2.0 \u2014 remaining assets"
+   },
+   {
+    "n": 13,
+    "date": "2026-09-18",
+    "title": "feat: airy profile craft v1.2.0 \u2014 remaining assets"
+   },
+   {
+    "n": 14,
+    "date": "2026-09-18",
+    "title": "profile: silent film storyboard \u2014 void\u2192chaos\u2192clean\u2192Scrapy+Rust-sitemap"
+   },
+   {
+    "n": 15,
+    "date": "2026-09-18",
+    "title": "Push profile README and core image assets"
+   },
+   {
+    "n": 16,
+    "date": "2026-09-18",
+    "title": "Add profile footer image assets"
+   },
+   {
+    "n": 17,
+    "date": "2026-09-18",
+    "title": "Add chaos artwork assets"
+   },
+   {
+    "n": 18,
+    "date": "2026-09-18",
+    "title": "Add pipeline artwork assets"
+   },
+   {
+    "n": 19,
+    "date": "2026-09-18",
+    "title": "Add snake artwork assets"
+   },
+   {
+    "n": 20,
+    "date": "2026-09-18",
+    "title": "Add Scrapy project artwork assets"
+   },
+   {
+    "n": 21,
+    "date": "2026-09-18",
+    "title": "Add Rust-sitemap project artwork assets"
+   },
+   {
+    "n": 22,
+    "date": "2026-09-18",
+    "title": "Fix profile README theme rendering"
+   },
+   {
+    "n": 23,
+    "date": "2026-09-18",
+    "title": "Use dark-only profile artwork URLs"
+   },
+   {
+    "n": 24,
+    "date": "2026-09-18",
+    "title": "Restore full Scrapy hero artwork"
+   },
+   {
+    "n": 25,
+    "date": "2026-09-18",
+    "title": "Restore full Rust sitemap hero artwork"
+   },
+   {
+    "n": 26,
+    "date": "2026-09-18",
+    "title": "Restore full snake story artwork"
+   },
+   {
+    "n": 27,
+    "date": "2026-09-18",
+    "title": "Restore full chaos story artwork"
+   },
+   {
+    "n": 28,
+    "date": "2026-09-18",
+    "title": "Restore full pipeline story artwork"
+   },
+   {
+    "n": 29,
+    "date": "2026-09-18",
+    "title": "Expand chaos story artwork detail"
+   },
+   {
+    "n": 30,
+    "date": "2026-09-18",
+    "title": "Complete chaos asset payload"
+   },
+   {
+    "n": 31,
+    "date": "2026-09-18",
+    "title": "Ship full chaos story art"
+   },
+   {
+    "n": 32,
+    "date": "2026-09-18",
+    "title": "Ship full pipeline story art"
+   },
+   {
+    "n": 33,
+    "date": "2026-09-18",
+    "title": "Correct pipeline art to local source"
+   },
+   {
+    "n": 34,
+    "date": "2026-09-18",
+    "title": "Ship local footer story art"
+   },
+   {
+    "n": 35,
+    "date": "2026-09-18",
+    "title": "Fix mobile-first profile layout"
+   },
+   {
+    "n": 36,
+    "date": "2026-09-18",
+    "title": "copy: very short mobile-first labels"
+   },
+   {
+    "n": 37,
+    "date": "2026-09-18",
+    "title": "Shorten mobile profile copy"
+   },
+   {
+    "n": 38,
+    "date": "2026-09-18",
+    "title": "Add profile sigil and sitemap art"
+   },
+   {
+    "n": 39,
+    "date": "2026-09-18",
+    "title": "Refresh Scrapy project art"
+   },
+   {
+    "n": 40,
+    "date": "2026-09-18",
+    "title": "Add responsive chaos SVG"
+   },
+   {
+    "n": 41,
+    "date": "2026-09-18",
+    "title": "Add responsive pipeline SVG"
+   },
+   {
+    "n": 42,
+    "date": "2026-09-18",
+    "title": "Add responsive snake SVG"
+   },
+   {
+    "n": 43,
+    "date": "2026-09-18",
+    "title": "docs: long-form 12-act README + craft log (BSR\u2234DP\u22342.0.0)"
+   },
+   {
+    "n": 44,
+    "date": "2026-09-18",
+    "title": "feat: animated rustmapper workflow beat"
+   },
+   {
+    "n": 45,
+    "date": "2026-09-18",
+    "title": "Restore Rust sitemap workflow asset and README beat"
+   },
+   {
+    "n": 46,
+    "date": "2026-09-18",
+    "title": "Preserve complete Rust sitemap workflow asset"
+   },
+   {
+    "n": 47,
+    "date": "2026-09-18",
+    "title": "chore: design-tokens 2.0.0 (actHeight)"
+   },
+   {
+    "n": 48,
+    "date": "2026-09-18",
+    "title": "feat: act-hunt.svg \u2014 data-plane story panel (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 49,
+    "date": "2026-09-18",
+    "title": "Ship long-cut profile README and world panel"
+   },
+   {
+    "n": 50,
+    "date": "2026-09-18",
+    "title": "Add real Rust sitemap workflow panel"
+   },
+   {
+    "n": 51,
+    "date": "2026-09-18",
+    "title": "Add hunt and capture act panels"
+   },
+   {
+    "n": 52,
+    "date": "2026-09-18",
+    "title": "Add structure and motion support panels"
+   },
+   {
+    "n": 53,
+    "date": "2026-09-18",
+    "title": "Add pipeline and snake assets"
+   },
+   {
+    "n": 54,
+    "date": "2026-09-18",
+    "title": "Add profile sigil and footer assets"
+   },
+   {
+    "n": 55,
+    "date": "2026-09-18",
+    "title": "Add featured project cards"
+   },
+   {
+    "n": 56,
+    "date": "2026-09-18",
+    "title": "feat: act-hunt.svg real panel (replace PLACEHOLDER_WILL_REPLACE)"
+   },
+   {
+    "n": 57,
+    "date": "2026-09-18",
+    "title": "Add gallery project cards part one"
+   },
+   {
+    "n": 58,
+    "date": "2026-09-18",
+    "title": "Add gallery project cards part two"
+   },
+   {
+    "n": 59,
+    "date": "2026-09-18",
+    "title": "Add gallery project cards part three"
+   },
+   {
+    "n": 60,
+    "date": "2026-09-18",
+    "title": "Ensure Rust workflow panel is full-size and real SVG"
+   },
+   {
+    "n": 61,
+    "date": "2026-09-18",
+    "title": "feat: ship real chaos.svg (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 62,
+    "date": "2026-09-18",
+    "title": "feat: ship real sigil.svg + footer.svg (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 63,
+    "date": "2026-09-18",
+    "title": "feat: ship real pipeline.svg (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 64,
+    "date": "2026-09-18",
+    "title": "feat: ship real act-capture.svg (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 65,
+    "date": "2026-09-18",
+    "title": "feat: ship real Scrapy.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 66,
+    "date": "2026-09-18",
+    "title": "feat: ship real Rust-sitemap.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 67,
+    "date": "2026-09-18",
+    "title": "feat: ship real Ai_code_detector.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 68,
+    "date": "2026-09-18",
+    "title": "feat: ship real Data-visualizer.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 69,
+    "date": "2026-09-18",
+    "title": "feat: ship real Elusive_trades_data.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 70,
+    "date": "2026-09-18",
+    "title": "profile: steampunk README + chrome (sigil/footer/flow)"
+   },
+   {
+    "n": 71,
+    "date": "2026-09-18",
+    "title": "feat: ship real cozy-game.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 72,
+    "date": "2026-09-18",
+    "title": "profile: steampunk 3.0 README \u2014 restore real content (fix placeholder)"
+   },
+   {
+    "n": 73,
+    "date": "2026-09-18",
+    "title": "feat: ship real FashionDB.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 74,
+    "date": "2026-09-18",
+    "title": "feat: ship real game_engine.svg dark hero (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 75,
+    "date": "2026-09-18",
+    "title": "feat: ship real snake.svg contribution snake (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 76,
+    "date": "2026-09-18",
+    "title": "profile: steampunk 3.0 \u2014 story-flow steam explanation (gather\u2192clean\u2192ship)"
+   },
+   {
+    "n": 77,
+    "date": "2026-09-18",
+    "title": "profile: steampunk DESIGN + design-tokens 3.0"
+   },
+   {
+    "n": 78,
+    "date": "2026-09-18",
+    "title": "feat: ship real act-structure.svg (BSR\u2234DP\u22342.0.0 \u00b7 EC8AC918)"
+   },
+   {
+    "n": 79,
+    "date": "2026-09-18",
+    "title": "profile: short clean README \u2014 one hero, no storyboard"
+   },
+   {
+    "n": 80,
+    "date": "2026-09-18",
+    "title": "Refresh profile README hero asset"
+   },
+   {
+    "n": 81,
+    "date": "2026-09-18",
+    "title": "profile: steampunk ping \u2014 palette probe"
+   },
+   {
+    "n": 82,
+    "date": "2026-09-18",
+    "title": "Add steampunk machine hero asset"
+   },
+   {
+    "n": 83,
+    "date": "2026-09-18",
+    "title": "feat: restore long-cut DP\u22342.0.0 README reel (EC8AC918)"
+   },
+   {
+    "n": 84,
+    "date": "2026-09-18",
+    "title": "Publish short profile README and machine hero"
+   },
+   {
+    "n": 85,
+    "date": "2026-09-18",
+    "title": "revert: simple no-story profile (machine + projects)"
+   },
+   {
+    "n": 86,
+    "date": "2026-09-18",
+    "title": "reset: layered animation README (clear, no story)"
+   },
+   {
+    "n": 87,
+    "date": "2026-09-18",
+    "title": "Add layered parallax hero SVG"
+   },
+   {
+    "n": 88,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 89,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 90,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 91,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 92,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 93,
+    "date": "2026-09-18",
+    "title": "Replace layers.svg with real layered parallax animation"
+   },
+   {
+    "n": 94,
+    "date": "2026-09-18",
+    "title": "fix: real layered animation SVG bytes"
+   },
+   {
+    "n": 95,
+    "date": "2026-09-18",
+    "title": "chore: cache-bust layered hero image"
+   },
+   {
+    "n": 96,
+    "date": "2026-09-18",
+    "title": "fix: serve layered hero via jsDelivr while raw CDN catches up"
+   },
+   {
+    "n": 97,
+    "date": "2026-09-19",
+    "title": "chore(R0): prefer raw.githubusercontent.com for layered hero"
+   },
+   {
+    "n": 98,
+    "date": "2026-09-19",
+    "title": "polish(R2/R3): hero density + signature timings; strip project wordmarks"
+   },
+   {
+    "n": 99,
+    "date": "2026-09-19",
+    "title": "fix(R2): restore real polished layered hero SVG"
+   },
+   {
+    "n": 100,
+    "date": "2026-09-19",
+    "title": "polish(R3): strip project wordmarks"
+   },
+   {
+    "n": 101,
+    "date": "2026-09-19",
+    "title": "polish(R3): strip project wordmarks"
+   },
+   {
+    "n": 102,
+    "date": "2026-09-19",
+    "title": "polish(R3): strip project wordmarks"
+   },
+   {
+    "n": 103,
+    "date": "2026-09-19",
+    "title": "polish(R3): strip project wordmarks"
+   },
+   {
+    "n": 104,
+    "date": "2026-09-19",
+    "title": "fix(R5): pin project heroes to known-good commit (bypass stale main CDN)"
+   },
+   {
+    "n": 105,
+    "date": "2026-09-19",
+    "title": "fix(R5): fresh project card paths to bypass stale raw CDN stubs"
+   },
+   {
+    "n": 106,
+    "date": "2026-09-19",
+    "title": "fix(R5): replace SVG stubs with full card bytes"
+   },
+   {
+    "n": 107,
+    "date": "2026-09-19",
+    "title": "fix(R5): write full scrapy-card.svg bytes (replace stub)"
+   },
+   {
+    "n": 108,
+    "date": "2026-09-19",
+    "title": "fix(R5): write full rust-sitemap-card.svg bytes (replace stub)"
+   },
+   {
+    "n": 109,
+    "date": "2026-09-19",
+    "title": "feat: add animated nameplate SVG"
+   },
+   {
+    "n": 110,
+    "date": "2026-09-19",
+    "title": "feat: add animated divider SVG"
+   },
+   {
+    "n": 111,
+    "date": "2026-09-19",
+    "title": "feat: elevate README \u2014 nameplate, snake, dividers, footer stack"
+   },
+   {
+    "n": 112,
+    "date": "2026-09-19",
+    "title": "feat: cinematic layers hero v2"
+   },
+   {
+    "n": 113,
+    "date": "2026-09-19",
+    "title": "feat: elevate nameplate.svg \u2014 full content with soft aura"
+   },
+   {
+    "n": 114,
+    "date": "2026-09-19",
+    "title": "feat: elevate layers.svg \u2014 reaffirm full cinematic hero (21.3s + animateMotion)"
+   },
+   {
+    "n": 115,
+    "date": "2026-09-19",
+    "title": "chore: delete layers.svg to bust stale raw CDN"
+   },
+   {
+    "n": 116,
+    "date": "2026-09-19",
+    "title": "feat: restore layers.svg \u2014 full cinematic hero bytes (post CDN bust)"
+   },
+   {
+    "n": 117,
+    "date": "2026-09-20",
+    "title": "feat: add depth about scrapers, pipelines, and systems"
+   },
+   {
+    "n": 118,
+    "date": "2026-09-20",
+    "title": "fix: remove harsh corner ticks from nameplate"
+   },
+   {
+    "n": 119,
+    "date": "2026-09-20",
+    "title": "fix: soften harsh lines; add depth about scrapers and systems"
+   },
+   {
+    "n": 120,
+    "date": "2026-09-20",
+    "title": "fix: soften network edges, card borders, and grid lines"
+   },
+   {
+    "n": 121,
+    "date": "2026-09-20",
+    "title": "fix: restore full softened SVG assets (replace LOAD_FROM stubs)"
+   },
+   {
+    "n": 122,
+    "date": "2026-09-20",
+    "title": "fix: restore full softened SVG assets (replace LOAD_FROM stubs)"
+   },
+   {
+    "n": 123,
+    "date": "2026-09-20",
+    "title": "fix: restore full softened SVG assets (replace LOAD_FROM stubs)"
+   },
+   {
+    "n": 124,
+    "date": "2026-09-20",
+    "title": "fix: restore full softened SVG assets (replace LOAD_FROM stubs)"
+   },
+   {
+    "n": 125,
+    "date": "2026-09-20",
+    "title": "fix: restore full softened SVG assets (replace LOAD_FROM stubs)"
+   },
+   {
+    "n": 126,
+    "date": "2026-09-20",
+    "title": "fix: restore full README with What I build depth (replace stub)"
+   },
+   {
+    "n": 127,
+    "date": "2026-09-21",
+    "title": "fix: restore nameplate.svg full bytes (replace LOAD_FROM stub)"
+   },
+   {
+    "n": 128,
+    "date": "2026-09-21",
+    "title": "feat(v3): add label-build section mark"
+   },
+   {
+    "n": 129,
+    "date": "2026-09-21",
+    "title": "feat(v3): standardize label-field to 1280 canvas"
+   },
+   {
+    "n": 130,
+    "date": "2026-09-21",
+    "title": "feat(v3): add about.svg depth panel in continuous dark field"
+   },
+   {
+    "n": 131,
+    "date": "2026-09-21",
+    "title": "feat(v3): orchestrated README \u2014 hero identity signature about field close"
+   },
+   {
+    "n": 132,
+    "date": "2026-09-21",
+    "title": "profile v3: design tokens (unified field #0B0D10)"
+   },
+   {
+    "n": 133,
+    "date": "2026-09-21",
+    "title": "profile v3: label-build.svg (WHAT I BUILD)"
+   },
+   {
+    "n": 134,
+    "date": "2026-09-21",
+    "title": "profile v3: nameplate.svg"
+   },
+   {
+    "n": 135,
+    "date": "2026-09-21",
+    "title": "profile v3: label-field.svg (IN THE FIELD)"
+   },
+   {
+    "n": 136,
+    "date": "2026-09-21",
+    "title": "profile v3: footer.svg unified field #0B0D10"
+   },
+   {
+    "n": 137,
+    "date": "2026-09-21",
+    "title": "profile v3: about.svg (between fetch and trust)"
+   },
+   {
+    "n": 138,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 snake.svg"
+   },
+   {
+    "n": 139,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 footer.svg"
+   },
+   {
+    "n": 140,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 scrapy-card.svg"
+   },
+   {
+    "n": 141,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 rust-sitemap-card.svg"
+   },
+   {
+    "n": 142,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 design-tokens.json"
+   },
+   {
+    "n": 143,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 rust-sitemap-card.svg"
+   },
+   {
+    "n": 144,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 rust-sitemap-card.svg"
+   },
+   {
+    "n": 145,
+    "date": "2026-09-21",
+    "title": "chore(v3): unify field to #0B0D10 \u2014 snake.svg"
+   },
+   {
+    "n": 146,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 hero.svg"
+   },
+   {
+    "n": 147,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 scrapy-card.svg"
+   },
+   {
+    "n": 148,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 rust-sitemap-card.svg"
+   },
+   {
+    "n": 149,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 snake.svg"
+   },
+   {
+    "n": 150,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 design-tokens.json"
+   },
+   {
+    "n": 151,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 README.md"
+   },
+   {
+    "n": 152,
+    "date": "2026-09-21",
+    "title": "feat(v4): Instrument Spread \u2014 rust-sitemap-card.svg"
+   },
+   {
+    "n": 153,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: hero \u2014 always-visible name, shorter magazine panel"
+   },
+   {
+    "n": 154,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: hero \u2014 restore full Quiet Field SVG (fix stub)"
+   },
+   {
+    "n": 155,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: Rust-sitemap card \u2014 readable thick-stroke tree"
+   },
+   {
+    "n": 156,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: Scrapy card \u2014 clear FETCH/CLEAN/ROWS stages"
+   },
+   {
+    "n": 157,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: design tokens"
+   },
+   {
+    "n": 158,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: quieter contribution snake signature"
+   },
+   {
+    "n": 159,
+    "date": "2026-09-21",
+    "title": "profile v5 Quiet Field: README lean face (hero\u2192scrapy\u2192rust-sitemap\u2192snake)"
+   },
+   {
+    "n": 160,
+    "date": "2026-09-21",
+    "title": "profile v6: design tokens Markdown First 6.0.0"
+   },
+   {
+    "n": 161,
+    "date": "2026-09-21",
+    "title": "profile v6: quiet nameplate SVG (Markdown First)"
+   },
+   {
+    "n": 162,
+    "date": "2026-09-21",
+    "title": "profile v6: quiet Scrapy card (Markdown First)"
+   },
+   {
+    "n": 163,
+    "date": "2026-09-21",
+    "title": "profile v6: quiet Rust-sitemap card (Markdown First)"
+   },
+   {
+    "n": 164,
+    "date": "2026-09-21",
+    "title": "profile v6: quieter contribution snake (Markdown First)"
+   },
+   {
+    "n": 165,
+    "date": "2026-09-21",
+    "title": "profile v6: Markdown First \u2014 long crafted README"
+   },
+   {
+    "n": 166,
+    "date": "2026-09-21",
+    "title": "chore(profile): snake palette violet/teal/lilac for dark contribution field"
+   },
+   {
+    "n": 167,
+    "date": "2026-09-21",
+    "title": "chore(profile): add score-commits workflow for live total commits SVG"
+   },
+   {
+    "n": 168,
+    "date": "2026-09-21",
+    "title": "chore(profile): seed score-commits.svg (1828 from search_commits; Actions refreshes)"
+   },
+   {
+    "n": 169,
+    "date": "2026-09-21",
+    "title": "docs(profile): live commit score + linked contribution snake from output branch"
+   },
+   {
+    "n": 170,
+    "date": "2026-10-07",
+    "title": "ci: lychee README link checker weekly + on PR (#3)"
+   },
+   {
+    "n": 171,
+    "date": "2026-10-07",
+    "title": "ci: fix lychee flag --include-mail=false (v2 CLI)"
+   },
+   {
+    "n": 172,
+    "date": "2026-10-07",
+    "title": "Merge pull request #4 from BenjaminSRussell/chore/readme-link-check-3"
+   },
+   {
+    "n": 173,
+    "date": "2026-10-07",
+    "title": "docs: More projects shelf + badge/Actions playbook (#1 #2) (#5)"
+   },
+   {
+    "n": 174,
+    "date": "2026-10-08",
+    "title": "Chart v9: the profile as a nautical chart of the open web (generated sheets, survey data, gated build) (#6)"
+   },
+   {
+    "n": 175,
+    "date": "2026-10-08",
+    "title": "fix the first live chart run: schema accepts calendar_check, log glyph budget covers the pencil-note edition (#7)"
+   },
+   {
+    "n": 176,
+    "date": "2026-10-08",
+    "title": "Hero: adaptive area scale so a sweep week cannot break the area law (#8)"
+   },
+   {
+    "n": 177,
+    "date": "2026-10-08",
+    "title": "hero: reserve the lateral marks' label boxes before any lettering; a land name evicts the texture week figures under it "
+   },
+   {
+    "n": 178,
+    "date": "2026-10-08",
+    "title": "hero: week-figure boxes sized by the real texture height on their printed baseline (phone collision from live run 4) (#1"
+   },
+   {
+    "n": 179,
+    "date": "2026-10-08",
+    "title": "workflow: stage the day's figures one file at a time; a missing lock file made git add stage nothing (#11)"
+   },
+   {
+    "n": 180,
+    "date": "2026-10-08",
+    "title": "hero: reserve every fixed late label before lettering; contour figures register as boxes (#12)"
+   },
+   {
+    "n": 181,
+    "date": "2026-10-08",
+    "title": "v9.1: sheets legible at GitHub's column width; show, don't tell (#13)"
+   },
+   {
+    "n": 182,
+    "date": "2026-10-08",
+    "title": "v9.2: round-3 review fixes; hero passes the gate on the live survey (#14)"
+   },
+   {
+    "n": 183,
+    "date": "2026-10-09",
+    "title": "v10: one chart, composed by hand, soundings in commit-days (round 4) (#15)"
+   },
+   {
+    "n": 184,
+    "date": "2026-10-09",
+    "title": "v11: one sheet of the year, measured; text written straight (round 5) (#16)"
+   }
+  ]
+ },
+ "claims": {
+  "workers": {
+   "value": "256\u20131024",
+   "unit": "permits",
+   "source": "Rust-sitemap:src/governor.rs",
+   "sha": null,
+   "measured": false
+  },
+  "shards": {
+   "value": "num_cpus",
+   "unit": "shards",
+   "source": "Rust-sitemap:src/lib.rs (num_cpus::get())",
+   "sha": "00a877d1fcd0c5ee91da8fb0b81f8150ae46d5c9",
+   "measured": true
+  },
+  "scrape_interval": {
+   "value": null,
+   "unit": "s",
+   "source": null,
+   "sha": null,
+   "measured": false
+  }
+ },
+ "trial": null,
+ "sources": [
+  {
+   "letter": "A",
+   "name": "SITEMAPS",
+   "first": null
+  },
+  {
+   "letter": "B",
+   "name": "CT LOGS",
+   "first": null
+  },
+  {
+   "letter": "C",
+   "name": "COMMON CRAWL",
+   "first": null
+  }
+ ],
+ "commits": 2037,
+ "merges": 405,
+ "coauthored_total": {
+  "count": 504,
+  "share": 0.247,
+  "agent": 63,
+  "agent_share": 0.031,
+  "names": {
+   "Claude Sonnet 5": 45,
+   "Claude Fable 5": 10,
+   "Claude Haiku 4.5": 6,
+   "Claude": 2
+  }
+ },
+ "agent_authored": {
+  "total": 297,
+  "names": {
+   "Claude": 172,
+   "google-labs-jules[bot]": 125
+  },
+  "automation": {
+   "dependabot[bot]": 8,
+   "github-actions[bot]": 1
+  }
+ },
+ "all_hands": 2343,
+ "first_commit": "2025-09-25",
+ "days_surveyed": 380,
+ "hours": [
+  3,
+  3,
+  0,
+  1,
+  2,
+  2,
+  0,
+  4,
+  6,
+  2,
+  8,
+  9,
+  13,
+  11,
+  25,
+  11,
+  15,
+  13,
+  8,
+  5,
+  4,
+  3,
+  6,
+  3
+ ],
+ "weekdays": [
+  25,
+  15,
+  33,
+  26,
+  20,
+  14,
+  24
+ ],
+ "hours_basis": "author-local commit-days",
+ "tz_offsets": {
+  "-0400": 1375,
+  "-0500": 662
+ },
+ "variation": {
+  "hour": 14,
+  "year": 2026,
+  "prior_hour": 12,
+  "annual_change": null,
+  "basis_days": [
+   139,
+   18
+  ],
+  "min_basis_days": 60
+ },
+ "weeks": [
+  {
+   "start": "2025-10-13",
+   "n": 61,
+   "days": 5,
+   "sweep": 0,
+   "repos": {
+    "Scrapy": 61
+   }
+  },
+  {
+   "start": "2025-10-20",
+   "n": 16,
+   "days": 5,
+   "sweep": 0,
+   "repos": {
+    "Rust-sitemap": 8,
+    "Data-visualizer": 1,
+    "Wheel": 7
+   }
+  },
+  {
+   "start": "2025-10-27",
+   "n": 16,
+   "days": 4,
+   "sweep": 0,
+   "repos": {
+    "Rust-sitemap": 7,
+    "Data-visualizer": 6,
+    "FashionDB": 1,
+    "Wheel": 2
+   }
+  },
+  {
+   "start": "2025-11-03",
+   "n": 85,
+   "days": 6,
+   "sweep": 31,
+   "repos": {
+    "Scrapy": 1,
+    "Rust-sitemap": 48,
+    "Data-visualizer": 1,
+    "FashionDB": 9,
+    "ideal-url-organizer": 2,
+    "Course_crusader": 2,
+    "Ai_code_detector": 2,
+    "go_go_go": 2,
+    "MLX_convertion": 11,
+    "Elusive_trades_data": 2,
+    "Spotify_to_apple_music": 1,
+    "rust_llm_logger": 2,
+    "mlx_Qwen_data_entry": 2
+   }
+  },
+  {
+   "start": "2025-11-10",
+   "n": 25,
+   "days": 5,
+   "sweep": 15,
+   "repos": {
+    "Rust-sitemap": 6,
+    "FashionDB": 3,
+    "ideal-url-organizer": 4,
+    "Course_crusader": 2,
+    "Ai_code_detector": 1,
+    "go_go_go": 3,
+    "MLX_convertion": 3,
+    "Elusive_trades_data": 1,
+    "Spotify_to_apple_music": 1,
+    "rust_llm_logger": 1
+   }
+  },
+  {
+   "start": "2025-11-17",
+   "n": 2,
+   "days": 2,
+   "sweep": 0,
+   "repos": {
+    "BenjaminSRussell": 1,
+    "Rust-sitemap": 1
+   }
+  },
+  {
+   "start": "2025-11-24",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2025-12-01",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2025-12-08",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2025-12-15",
+   "n": 7,
+   "days": 2,
+   "sweep": 0,
+   "repos": {
+    "Data_science_dev": 5,
+    "BenjaminSRussell": 1,
+    "Rust-sitemap": 1
+   }
+  },
+  {
+   "start": "2025-12-22",
+   "n": 4,
+   "days": 2,
+   "sweep": 0,
+   "repos": {
+    "Data_science_dev": 3,
+    "BenjaminSRussell": 1
+   }
+  },
+  {
+   "start": "2025-12-29",
+   "n": 3,
+   "days": 3,
+   "sweep": 0,
+   "repos": {
+    "game_engine": 1,
+    "BenjaminSRussell": 1,
+    "cozy-game": 1
+   }
+  },
+  {
+   "start": "2026-01-05",
+   "n": 240,
+   "days": 5,
+   "sweep": 0,
+   "repos": {
+    "game_engine": 233,
+    "Data_science_dev": 1,
+    "cozy-game": 6
+   }
+  },
+  {
+   "start": "2026-01-12",
+   "n": 296,
+   "days": 5,
+   "sweep": 0,
+   "repos": {
+    "game_engine": 278,
+    "3d-swift-widget": 6,
+    "2d-swift-widgets": 4,
+    "3d-swift-globe-widget": 8
+   }
+  },
+  {
+   "start": "2026-01-19",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-01-26",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-02-02",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-02-09",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-02-16",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-02-23",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-03-02",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-03-09",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-03-16",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-03-23",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-03-30",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-04-06",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-04-13",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-04-20",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-04-27",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-05-04",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-05-11",
+   "n": 1,
+   "days": 1,
+   "sweep": 0,
+   "repos": {
+    "Rust-sitemap": 1
+   }
+  },
+  {
+   "start": "2026-05-18",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-05-25",
+   "n": 2,
+   "days": 1,
+   "sweep": 0,
+   "repos": {
+    "excel-and-vba": 2
+   }
+  },
+  {
+   "start": "2026-06-01",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-06-08",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-06-15",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-06-22",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-06-29",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-07-06",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-07-13",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-07-20",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-07-27",
+   "n": 17,
+   "days": 1,
+   "sweep": 0,
+   "repos": {
+    "Ai_code_detector": 17
+   }
+  },
+  {
+   "start": "2026-08-03",
+   "n": 15,
+   "days": 2,
+   "sweep": 0,
+   "repos": {
+    "Rust-sitemap": 1,
+    "ideal-url-organizer": 14
+   }
+  },
+  {
+   "start": "2026-08-10",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-08-17",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-08-24",
+   "n": 0,
+   "days": 0,
+   "sweep": 0,
+   "repos": {}
+  },
+  {
+   "start": "2026-08-31",
+   "n": 108,
+   "days": 4,
+   "sweep": 0,
+   "repos": {
+    "Data_science_dev": 108
+   }
+  },
+  {
+   "start": "2026-09-07",
+   "n": 37,
+   "days": 2,
+   "sweep": 0,
+   "repos": {
+    "Data_science_dev": 37
+   }
+  },
+  {
+   "start": "2026-09-14",
+   "n": 146,
+   "days": 4,
+   "sweep": 0,
+   "repos": {
+    "Data_science_dev": 5,
+    "Scrapy": 19,
+    "BenjaminSRussell": 122
+   }
+  },
+  {
+   "start": "2026-09-21",
+   "n": 73,
+   "days": 1,
+   "sweep": 0,
+   "repos": {
+    "Scrapy": 30,
+    "BenjaminSRussell": 43
+   }
+  },
+  {
+   "start": "2026-09-28",
+   "n": 13,
+   "days": 1,
+   "sweep": 13,
+   "repos": {
+    "Data-visualizer": 4,
+    "Wheel": 3,
+    "Elusive_trades_data": 1,
+    "Spotify_to_apple_music": 2,
+    "3d-swift-widget": 1,
+    "2d-swift-widgets": 2
+   }
+  },
+  {
+   "start": "2026-10-05",
+   "n": 728,
+   "days": 3,
+   "sweep": 516,
+   "repos": {
+    "Data_science_dev": 308,
+    "Scrapy": 173,
+    "BenjaminSRussell": 15,
+    "Rust-sitemap": 28,
+    "Data-visualizer": 28,
+    "FashionDB": 26,
+    "ideal-url-organizer": 17,
+    "Course_crusader": 29,
+    "Ai_code_detector": 12,
+    "go_go_go": 23,
+    "MLX_convertion": 8,
+    "Wheel": 9,
+    "Elusive_trades_data": 13,
+    "Spotify_to_apple_music": 12,
+    "3d-swift-widget": 6,
+    "2d-swift-widgets": 6,
+    "rust_llm_logger": 7,
+    "3d-swift-globe-widget": 1,
+    "mlx_Qwen_data_entry": 5,
+    "excel-and-vba": 2
+   }
+  }
+ ],
+ "tide": {
+  "hw": {
+   "start": "2026-10-05",
+   "n": 728,
+   "cause": "Data_science_dev",
+   "cause_days": 2,
+   "cause_share": 0.423,
+   "sweep_share": 0.709
+  },
+  "lw": {
+   "start": "2026-08-24",
+   "n": 0
+  },
+  "median": 0,
+  "slack": {
+   "start": "2026-06-29",
+   "end": "2026-07-26",
+   "month": "2026-07",
+   "n": 0
+  }
+ },
+ "sweeps": [
+  {
+   "date": "2025-11-09",
+   "repos": 13,
+   "names": [
+    "Ai_code_detector",
+    "Course_crusader",
+    "Data-visualizer",
+    "Elusive_trades_data",
+    "FashionDB",
+    "MLX_convertion",
+    "Rust-sitemap",
+    "Scrapy",
+    "Spotify_to_apple_music",
+    "go_go_go",
+    "ideal-url-organizer",
+    "mlx_Qwen_data_entry",
+    "rust_llm_logger"
+   ]
+  },
+  {
+   "date": "2025-11-10",
+   "repos": 10,
+   "names": [
+    "Ai_code_detector",
+    "Course_crusader",
+    "Elusive_trades_data",
+    "FashionDB",
+    "MLX_convertion",
+    "Rust-sitemap",
+    "Spotify_to_apple_music",
+    "go_go_go",
+    "ideal-url-organizer",
+    "rust_llm_logger"
+   ]
+  },
+  {
+   "date": "2026-10-01",
+   "repos": 6,
+   "names": [
+    "2d-swift-widgets",
+    "3d-swift-widget",
+    "Data-visualizer",
+    "Elusive_trades_data",
+    "Spotify_to_apple_music",
+    "Wheel"
+   ]
+  },
+  {
+   "date": "2026-10-07",
+   "repos": 20,
+   "names": [
+    "2d-swift-widgets",
+    "3d-swift-globe-widget",
+    "3d-swift-widget",
+    "Ai_code_detector",
+    "BenjaminSRussell",
+    "Course_crusader",
+    "Data-visualizer",
+    "Data_science_dev",
+    "Elusive_trades_data",
+    "FashionDB",
+    "MLX_convertion",
+    "Rust-sitemap",
+    "Scrapy",
+    "Spotify_to_apple_music",
+    "Wheel",
+    "excel-and-vba",
+    "go_go_go",
+    "ideal-url-organizer",
+    "mlx_Qwen_data_entry",
+    "rust_llm_logger"
+   ]
+  }
+ ],
+ "sweep_dates": [
+  "2025-11-09",
+  "2025-11-10",
+  "2026-10-01",
+  "2026-10-07"
+ ],
+ "sweep_threshold": 5,
+ "routes": {
+  "rustmapper": {
+   "repo": "Rust-sitemap",
+   "head_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "release": "0.1.3",
+   "header": "Crawls a site and writes one line for every URL it finds.",
+   "header_verified": true,
+   "header_missing": [],
+   "header_runs": [
+    "crawl_ctrl_c"
+   ],
+   "entries": [
+    {
+     "id": "S1",
+     "kind": "stop",
+     "scope": "release",
+     "loop": false,
+     "text": "`{script} crawl` starts from your URL; by default also from sitemaps, certificate logs and Common Crawl",
+     "file": "seeder.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "crawl_help"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/ct_log_seeder.rs"
+      ],
+      "release": [
+       "src/cli.rs",
+       "src/common_crawl_seeder.rs",
+       "src/ct_log_seeder.rs",
+       "src/seeder.rs",
+       "src/sitemap_seeder.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "`{script} crawl` starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl",
+       "file": "seeder.rs",
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/cli.rs: no 'default_value = \"none\"'"
+       ],
+       "runs": [
+        "crawl_help"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
+      },
+      {
+       "text": "starts from your URL; by default also from sitemaps, certificate logs and Common Crawl",
+       "file": "seeder.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
+      },
+      {
+       "text": "starts from your URL; if asked, also from sitemaps, certificate logs and Common Crawl",
+       "file": "seeder.rs",
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/cli.rs: no 'default_value = \"none\"'"
+       ],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/ct_log_seeder.rs"
+        ],
+        "release": [
+         "src/cli.rs",
+         "src/common_crawl_seeder.rs",
+         "src/ct_log_seeder.rs",
+         "src/seeder.rs",
+         "src/sitemap_seeder.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "S2",
+     "kind": "stop",
+     "scope": "both",
+     "loop": true,
+     "text": "one queue per host, paced by that host's robots.txt",
+     "file": "frontier.rs",
+     "verified_head": false,
+     "verified_release": false,
+     "missing": [
+      "head tests/robots_4xx_allows_crawl.rs: file missing",
+      "release src/robots.rs: no 'fn parse_crawl_delay'"
+     ],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/frontier.rs",
+       "src/robots.rs",
+       "tests/robots_4xx_allows_crawl.rs"
+      ],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "waits": "release"
+    },
+    {
+     "id": "F1",
+     "kind": "stop",
+     "scope": "release",
+     "loop": true,
+     "text": "fetches pages, fewer at once when saves average over 500 ms; queues their links to your site, its subdomains and its parent domain",
+     "file": "bfs_crawler.rs",
+     "verified_head": true,
+     "verified_release": false,
+     "missing": [
+      "release src/main.rs fn governor_task: contains 'current_permits > MIN_PERMITS'"
+     ],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/bfs_crawler.rs",
+       "src/url_utils.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/main.rs",
+       "src/url_utils.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "fetches up to 20 pages at a time from each host; queues their links to your site, its subdomains and its parent domain",
+       "file": "bfs_crawler.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/bfs_crawler.rs",
+         "src/url_utils.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs",
+         "src/frontier.rs",
+         "src/state.rs",
+         "src/url_utils.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "H0",
+     "kind": "trap",
+     "scope": "release",
+     "loop": true,
+     "text": "on https, pages behind a disallowed link wait",
+     "file": "frontier.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_stall",
+      "robots_resume"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "on https, pages behind a disallowed link wait",
+       "file": "frontier.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "skipped": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs",
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": "frontier.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "W1",
+     "kind": "stop",
+     "scope": "both",
+     "loop": true,
+     "text": "saved as it goes; export works after a kill",
+     "file": "writer_thread.rs",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "export_after_kill"
+     ],
+     "fails": [
+      "kill_writes_file"
+     ],
+     "paths": {
+      "head": [
+       "src/state.rs",
+       "src/wal.rs",
+       "src/writer_thread.rs"
+      ],
+      "release": [
+       "src/main.rs",
+       "src/state.rs",
+       "src/wal.rs",
+       "src/writer_thread.rs"
+      ]
+     },
+     "drawn": false,
+     "instead": [
+      {
+       "text": "logged to disk, then saved to redb, in batches",
+       "file": "writer_thread.rs",
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/state.rs",
+         "src/wal.rs",
+         "src/writer_thread.rs"
+        ],
+        "release": [
+         "src/state.rs",
+         "src/wal.rs",
+         "src/writer_thread.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "H1",
+     "kind": "trap",
+     "scope": "release",
+     "loop": true,
+     "text": "{release} never exits by itself; quit when `Received work item` lines stop for 60 s",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "quiet": 60,
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c",
+      "quiet_after_last_page",
+      "quiet_slow_page"
+     ],
+     "fails": [
+      "ends_by_itself"
+     ],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/cli.rs",
+       "src/main.rs",
+       "src/network.rs",
+       "src/state.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "{release} never exits by itself, even after the last page",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [
+        "ends_by_itself"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "ends_by_itself"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "C1",
+     "kind": "step",
+     "scope": "both",
+     "loop": false,
+     "text": "press Ctrl-C once and wait for `Saved to`; a second press quits without writing the file",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c",
+      "second_ctrl_c"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/orchestration/shutdown.rs"
+      ],
+      "release": [
+       "src/main.rs"
+      ]
+     },
+     "instead": [
+      {
+       "text": "press Ctrl-C once to write `data/sitemap.jsonl`",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "crawl_ctrl_c"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/orchestration/shutdown.rs"
+        ],
+        "release": [
+         "src/main.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "R13",
+     "kind": "end",
+     "scope": "both",
+     "loop": false,
+     "text": "fields: `url, depth, status_code, title, \u2026`",
+     "file": "data/sitemap.jsonl",
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "crawl_ctrl_c"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/state.rs"
+      ],
+      "release": [
+       "src/state.rs"
+      ]
+     }
+    },
+    {
+     "id": "L1",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "It sends requests with no pause between them, up to 256 at a time across all hosts. `--workers 1` sends one at a time.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "workers_cap"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/cli.rs",
+       "src/main.rs",
+       "src/robots.rs",
+       "src/state.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "load",
+     "instead": [
+      {
+       "text": "It sends requests with no pause unless the site's `robots.txt` sets a `Crawl-delay`, up to 256 at a time across all hosts. `--workers 1` sends one at a time.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/robots.rs: no 'fn parse_crawl_delay'"
+       ],
+       "runs": [
+        "workers_cap",
+        "crawl_delay_obeyed"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs",
+         "src/cli.rs",
+         "src/main.rs",
+         "src/robots.rs",
+         "src/state.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "L7",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "It names itself `RustSitemapCrawler/1.0`, with no way to reach you. `--user-agent <your-bot>` sends your name instead.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "ua_seen"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/cli.rs",
+       "src/network.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "its name"
+    },
+    {
+     "id": "L4",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`, and reads `robots.txt` only over https.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_late"
+     ],
+     "fails": [
+      "robots_read"
+     ],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "robots.txt",
+     "instead": [
+      {
+       "text": "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_read"
+       ],
+       "skipped": [
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "It ignores `Crawl-delay`, and asks for `robots.txt` only over https, so a plain-http site's rules are not read.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_read",
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too. It ignores `Crawl-delay`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "robots_read",
+        "robots_late"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "It ignores `Crawl-delay`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "robots_read"
+       ],
+       "fails": [
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "Until a host's `robots.txt` is back, it fetches that host's pages, disallowed ones too.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/robots.rs: no 'fn parse_crawl_delay'"
+       ],
+       "runs": [
+        "robots_read",
+        "robots_late",
+        "crawl_delay_obeyed"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/robots.rs: no 'fn parse_crawl_delay'"
+       ],
+       "runs": [
+        "robots_read",
+        "crawl_delay_obeyed"
+       ],
+       "fails": [
+        "robots_late"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/robots.rs"
+        ]
+       }
+      }
+     ],
+     "fold": true
+    },
+    {
+     "id": "L6",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "robots_stall",
+      "robots_resume"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/frontier.rs",
+       "src/robots.rs"
+      ]
+     },
+     "item": true,
+     "stage": "server",
+     "short": "robots.txt stall",
+     "instead": [
+      {
+       "text": "On https, pages queued behind a link that `robots.txt` disallows wait for a new link to that host. The sign: `blocked by robots.txt`.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "skipped": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs",
+         "src/robots.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "robots_stall"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/frontier.rs"
+        ]
+       }
+      }
+     ],
+     "fold": true
+    },
+    {
+     "id": "L2",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "By default it asks crt.sh and Common Crawl about your domain. `--seeding-strategy none` asks no one.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/cli.rs",
+       "src/common_crawl_seeder.rs",
+       "src/ct_log_seeder.rs"
+      ]
+     },
+     "item": true,
+     "stage": "start",
+     "short": "seeding",
+     "fold": true
+    },
+    {
+     "id": "L5",
+     "kind": "text",
+     "scope": "both",
+     "loop": false,
+     "text": "From `www.<site>` it skips sibling hosts such as `blog.`, even ones crt.sh lists. Start at the bare domain to take them all.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/bfs_crawler.rs",
+       "src/ct_log_seeder.rs",
+       "src/frontier.rs",
+       "src/url_utils.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/ct_log_seeder.rs",
+       "src/frontier.rs",
+       "src/url_utils.rs"
+      ]
+     },
+     "item": true,
+     "stage": "start",
+     "short": "the www scope",
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "src/url_utils.rs"
+        ],
+        "release": [
+         "src/url_utils.rs"
+        ]
+       }
+      }
+     ],
+     "fold": true
+    },
+    {
+     "id": "L3",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "It reads links from the HTML a server sends, and no JavaScript runs. go_go_go can render pages in headless Chrome.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "Cargo.toml"
+      ]
+     },
+     "item": true,
+     "stage": "links",
+     "short": "JavaScript",
+     "fold": true
+    },
+    {
+     "id": "X3",
+     "kind": "text",
+     "scope": "both",
+     "loop": false,
+     "text": "After a redirect it keeps the old address and reads the page's links from it: if `/docs` redirects to `/docs/`, `a.html` is fetched as `/a.html`.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "redirect_kept"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/bfs_crawler.rs",
+       "src/network.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/network.rs"
+      ]
+     },
+     "item": true,
+     "stage": "links",
+     "short": "redirects",
+     "fold": true,
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "redirect_kept"
+       ],
+       "paths": {
+        "head": [
+         "src/bfs_crawler.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "X2",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "non200_status",
+      "redirect_kept",
+      "blank_rows"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [],
+      "release": [
+       "src/bfs_crawler.rs",
+       "src/frontier.rs",
+       "src/state.rs"
+      ]
+     },
+     "item": true,
+     "stage": "file",
+     "short": "status codes",
+     "fold": true,
+     "instead": [
+      {
+       "text": "Only HTML pages that answer 200, redirected or not, get a `status_code`. Errors, timeouts, non-HTML 200s and pages never reached are left blank, `crawled_at` too.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "non200_status",
+        "redirect_kept"
+       ],
+       "fails": [],
+       "skipped": [
+        "blank_rows"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs",
+         "src/frontier.rs",
+         "src/state.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [
+        "non200_status"
+       ],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "X1",
+     "kind": "text",
+     "scope": "release",
+     "loop": false,
+     "text": "Its `sitemap.xml` is every row with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex`, canonicalized and disallowed pages.",
+     "file": null,
+     "verified_head": true,
+     "verified_release": true,
+     "missing": [],
+     "runs": [
+      "sitemap_keeps_noindex",
+      "sitemap_keeps_disallowed"
+     ],
+     "fails": [],
+     "paths": {
+      "head": [
+       "src/sitemap_writer.rs"
+      ],
+      "release": [
+       "src/main.rs",
+       "src/sitemap_writer.rs"
+      ]
+     },
+     "item": true,
+     "stage": "export",
+     "short": "sitemap.xml",
+     "fold": true,
+     "instead": [
+      {
+       "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "sitemap_keeps_noindex"
+       ],
+       "fails": [],
+       "skipped": [
+        "sitemap_keeps_disallowed"
+       ],
+       "paths": {
+        "head": [
+         "src/sitemap_writer.rs"
+        ],
+        "release": [
+         "src/main.rs",
+         "src/sitemap_writer.rs"
+        ]
+       }
+      },
+      {
+       "text": "Its `sitemap.xml` is every page with `status_code` 200, in one file; the format allows 50,000 URLs per file. It keeps `noindex` and canonicalized pages.",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "sitemap_keeps_noindex"
+       ],
+       "fails": [
+        "sitemap_keeps_disallowed"
+       ],
+       "paths": {
+        "head": [
+         "src/sitemap_writer.rs"
+        ],
+        "release": [
+         "src/main.rs",
+         "src/sitemap_writer.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": false,
+       "missing": [
+        "release src/sitemap_writer.rs: no 'SitemapIndexWriter'"
+       ],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [],
+        "release": [
+         "src/sitemap_writer.rs"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "M1",
+     "kind": "text",
+     "scope": "both",
+     "loop": false,
+     "text": "On main, a crawl stops by itself once the site runs out of pages: `tests/crawl_exits_when_idle.rs` passes in CI at `{head}`. That fix is not on PyPI yet.",
+     "file": null,
+     "verified_head": false,
+     "verified_release": true,
+     "missing": [
+      "head tests/crawl_exits_when_idle.rs: contains '--ignore-robots'"
+     ],
+     "runs": [],
+     "fails": [
+      "ends_by_itself"
+     ],
+     "paths": {
+      "head": [
+       ".github/workflows/ci.yml",
+       "tests/crawl_exits_when_idle.rs"
+      ],
+      "release": [
+       "src/bfs_crawler.rs"
+      ]
+     },
+     "ci": "Test",
+     "gate": "cargo",
+     "instead": [
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [
+        "ends_by_itself"
+       ],
+       "fails": [],
+       "paths": {
+        "head": [
+         "tests/crawl_exits_when_idle.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      },
+      {
+       "text": "",
+       "file": null,
+       "verified_head": true,
+       "verified_release": true,
+       "missing": [],
+       "runs": [],
+       "fails": [],
+       "paths": {
+        "head": [
+         "tests/crawl_exits_when_idle.rs"
+        ],
+        "release": [
+         "src/bfs_crawler.rs"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "gates": {
+    "cargo": {
+     "ok": false,
+     "missing": [
+      "head tests/robots_4xx_allows_crawl.rs: file missing",
+      "head tests/duration_stops_stalled_crawl.rs: file missing"
+     ]
+    },
+    "export_defaults": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:data_dir": "./data",
+      "arg:output": "./sitemap.xml"
+     }
+    },
+    "no_services": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {}
+    },
+    "export_after_kill": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:output": "./sitemap.xml"
+     }
+    },
+    "blank_rows": {
+     "ok": true,
+     "missing": [],
+     "scope": "release",
+     "values": {
+      "arg:data_dir": "./data"
+     }
+    }
+   },
+   "list_lead": "Before you run {release}:",
+   "fold_lead": "What {release}'s files miss or get wrong",
+   "sdist": {
+    "filename": "rustmapper-0.1.3.tar.gz",
+    "sha256": "a586e1e10931b088ccb5d88681510de744e04eb9ff5c9ac98b3764c1d702f649"
+   }
+  }
+ },
+ "handoffs": [
+  {
+   "id": "sitemap-jsonl\u2192ideal-url-organizer",
+   "from": "Rust-sitemap",
+   "to": "ideal-url-organizer",
+   "file": "data/sitemap.jsonl",
+   "from_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "to_sha": "159968a7d4b82bb116c2068489748ae357882e68",
+   "release": "0.1.3",
+   "reader_fields": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count"
+   ],
+   "writer_fields_head": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count",
+    "description",
+    "canonical_url",
+    "author",
+    "language",
+    "keywords",
+    "article_text_length",
+    "metadata_json",
+    "set_cookies",
+    "third_party_api_calls",
+    "external_resources",
+    "privacy_metadata_json",
+    "structured_data_json",
+    "tech_profile"
+   ],
+   "writer_fields_release": [
+    "schema_version",
+    "url",
+    "url_normalized",
+    "depth",
+    "parent_url",
+    "fragments",
+    "discovered_at",
+    "queued_at",
+    "crawled_at",
+    "response_time_ms",
+    "status_code",
+    "content_type",
+    "content_length",
+    "title",
+    "link_count"
+   ],
+   "reader": "scripts/import_rust_sitemapper.py",
+   "test": "tests/test_import_rust_sitemapper.py",
+   "state": "runs",
+   "does": "sorted by",
+   "missing_fields": []
+  },
+  {
+   "id": "delta-export\u2192Scrapy",
+   "from": "Rust-sitemap",
+   "to": "Scrapy",
+   "file": "stage1_discovery",
+   "from_sha": "32c26519752c01782ae4ebaf8af9be6687838f34",
+   "to_sha": "96e7a1a3e7ac1440bee1db3894293d0c7f37c883",
+   "release": "0.1.3",
+   "reader_fields": [],
+   "writer_fields_head": [],
+   "writer_fields_release": [],
+   "reader": null,
+   "test": null,
+   "state": "no reader",
+   "writer": "python/rustmapper/export_parquet.py",
+   "readers": []
+  }
+ ],
+ "rules": [
+  {
+   "n": 1,
+   "key": "breaker",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "_host_breakers",
+   "found": true,
+   "sha": "099dd6c",
+   "date": "2026-10-08",
+   "author": "Benjamin Russell",
+   "first_sha": "099dd6c",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true,
+   "scope": "self",
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/src/stage2/stage2_worker.py"
+   ]
+  },
+  {
+   "n": 2,
+   "key": "delta",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "write_deltalake",
+   "found": true,
+   "sha": "52dcbd8",
+   "date": "2025-10-04",
+   "author": "Benjamin Russell",
+   "first_sha": "52dcbd8",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/src/lakehouse/lakehouse_manager.py",
+    "Scraping_project/tests/common/test_delta_lake.py",
+    "Scraping_project/tests/delta/test_lazy_imports_and_exceptions.py"
+   ]
+  },
+  {
+   "n": 3,
+   "key": "prometheus",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "prometheus_client",
+   "found": true,
+   "sha": "d571e6e",
+   "date": "2025-10-01",
+   "author": "Benjamin Russell",
+   "first_sha": "d571e6e",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/alerting_rules.yml",
+    "Scraping_project/k8s/helm/scraping-pipeline/values.yaml",
+    "Scraping_project/monitoring/alerting_rules.yml"
+   ],
+   "repo_first": "2025-09-25"
+  },
+  {
+   "n": 3,
+   "key": "grafana",
+   "repo": "Scrapy",
+   "path": null,
+   "text": "\"panels\"",
+   "found": true,
+   "sha": "e8cbe15",
+   "date": "2025-10-06",
+   "author": "Benjamin Russell",
+   "first_sha": "e8cbe15",
+   "first_author": "Benjamin Russell",
+   "first_is_his": true,
+   "at_head": true,
+   "head_paths": [
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/scraping_pipeline_health.json",
+    "Scraping_project/k8s/helm/scraping-pipeline/files/monitoring/dashboards/unified_dashboard.json",
+    "Scraping_project/monitoring/dashboards/scraping_pipeline_health.json"
+   ],
+   "repo_first": "2025-09-25"
+  }
+ ],
+ "figures": [
+  {
+   "text": "crawl and export-sitemap commands",
+   "repo": "go_go_go",
+   "path": "internal/cli/crawl.go",
+   "literal": "Use:   \"crawl\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "optional headless-Chrome rendering",
+   "repo": "go_go_go",
+   "path": "internal/cli/crawl.go",
+   "literal": "\"enable-js-rendering\", false, \"Enable JavaScript rendering with headless Chrome\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "SQLite storage with full-text search",
+   "repo": "go_go_go",
+   "path": "internal/cli/crawl.go",
+   "literal": "\"enable-sqlite\", false",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "`aicd scan`",
+   "repo": "Ai_code_detector",
+   "path": "setup.py",
+   "literal": "\"aicd=ai_code_detector.aicd:main\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "comments, naming, structure and git history",
+   "repo": "Ai_code_detector",
+   "path": "src/ai_code_detector/detector_enhanced.py",
+   "literal": "StylometryAnalyzer(",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "says why it flagged it",
+   "repo": "Ai_code_detector",
+   "path": "src/ai_code_detector/detector_enhanced.py",
+   "literal": "use_explanations: bool = True",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "21 ways",
+   "repo": "ideal-url-organizer",
+   "path": "src/main.py",
+   "literal": null,
+   "glob": null,
+   "count": 21,
+   "measured": 21,
+   "holds": true,
+   "why": "",
+   "keys": "self.methods",
+   "handoff": true
+  },
+  {
+   "text": "four stages",
+   "repo": "Scrapy",
+   "path": null,
+   "literal": null,
+   "glob": "Scraping_project/src/stage[0-9]/__init__.py",
+   "count": 4,
+   "measured": 4,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 2",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "_host_breakers",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 3",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage3/stage3_worker.py",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "first five sentences",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/core/constants.py",
+   "literal": "\"extractive_max_sentences\": 5",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Delta tables under `data/delta/`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docker-compose.yml",
+   "literal": "DELTA_LAKE_PATH=/data/delta",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "50,000 characters",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/core/config.py",
+   "literal": "massive_doc_threshold=50000",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stage 4",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage4/large_doc_processor.py",
+   "literal": "bart-large-cnn",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "deduplicated",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/settings.py",
+   "literal": "DUPEFILTER_CLASS = _scrapy_config.get(\"dupefilter_class\", \"scrapy.dupefilters.RFPDupeFilter\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
+  },
+  {
+   "text": "summarized",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage3/stage3_worker.py",
+   "literal": "extractive summary",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
+  },
+  {
+   "text": "needs Docker",
+   "repo": "Scrapy",
+   "path": "Scraping_project/start.py",
+   "literal": "\"local\": (\"docker\", \"docker-compose\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick"
+  },
+  {
+   "text": "It obeys `robots.txt`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "\"ROBOTSTXT_OBEY\": bool(spider_config.get(\"robotstxt_obey\", True))",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "its `Crawl-delay`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "PoliteRobotsTxtMiddleware\": 100",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "waits out a `Retry-After`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "RetryAfterMiddleware\": 560",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": "",
+   "use": "pick_polite"
+  },
+  {
+   "text": "Scrapy obeys robots.txt in stage 2 too",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": false,
+   "why": "Scraping_project/src/stage2/stage2_worker.py: no match for '(?i)robots' at HEAD",
+   "use": "pick_polite"
+  },
+  {
+   "text": "The spider obeys `robots.txt` and its `Crawl-delay`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/middlewares/spider_config.py",
+   "literal": "\"ROBOTSTXT_OBEY\": bool(spider_config.get(\"robotstxt_obey\", True))",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "disallowed ones too",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage1/scout_spider.py",
+   "literal": "yield self._queue_for_stage2(url, response.url, content_hint)\n\n                    self.scout_stats[\"html_queued_js\"] += 1\n                    self.scout_stats[\"pages_queued_stage2\"] += 1\n\n                    yield scrapy.Request(",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "4 at a time per host",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_PER_HOST_CONCURRENCY = 4",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "`Python/3.11 aiohttp/3.13.1`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/Dockerfile",
+   "literal": "FROM python:3.11-slim as base",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Prometheus alerts on its own metrics",
+   "repo": "Scrapy",
+   "path": "Scraping_project/monitoring/alerting_rules.yml",
+   "literal": "alert: DeltaWriteFailuresSustained",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "Delta writes spilling to disk",
+   "repo": "Scrapy",
+   "path": "Scraping_project/monitoring/alerting_rules.yml",
+   "literal": "delta_write_failures_total{outcome=\"spilled\"}",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "stops new downloads within 5 s",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/utils/crawl_guard.py",
+   "literal": "opt(\"kill_switch_check_secs\", 5.0)",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "with a runbook",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docs/runbooks/sev1_abuse_kill_switch.md",
+   "literal": null,
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "`UConn-Discovery-Crawler/1.0`",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/settings.py",
+   "literal": "USER_AGENT = _scrapy_config.get(\"user_agent\", \"UConn-Discovery-Crawler/1.0\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "the `docker-compose` command",
+   "repo": "Scrapy",
+   "path": "Scraping_project/start.py",
+   "literal": "\"local\": (\"docker\", \"docker-compose\")",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "a worker for each of the four stages",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docker-compose.yml",
+   "literal": "\n  stage1-worker:",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "It loads no seeds:",
+   "repo": "Scrapy",
+   "path": "Scraping_project/start.py",
+   "literal": "    if args.reset_delta:",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "5 URLs in a row on one host",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_BREAKER_FAILURES = 5",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "60 s",
+   "repo": "Scrapy",
+   "path": "Scraping_project/src/stage2/stage2_worker.py",
+   "literal": "DEFAULT_STAGE2_BREAKER_RECOVERY = 60",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  },
+  {
+   "text": "localhost:3000",
+   "repo": "Scrapy",
+   "path": "Scraping_project/docker-compose.yml",
+   "literal": "\"3000:3000\"",
+   "glob": null,
+   "count": null,
+   "measured": null,
+   "holds": true,
+   "why": ""
+  }
+ ],
+ "runcheck": {
+  "rustmapper": {
+   "date": "2026-10-10",
+   "runner": "Linux x86_64",
+   "python": "3.13.16",
+   "version": "0.1.3",
+   "scripts": [
+    "rust_sitemap"
+   ],
+   "install": "sdist (built with Rust)",
+   "steps": [
+    {
+     "id": "venv",
+     "cmd": "python3.13 -m venv v",
+     "ok": true,
+     "gate": true,
+     "secs": 2.6,
+     "detail": ""
+    },
+    {
+     "id": "install",
+     "cmd": "v/bin/pip install --no-cache-dir rustmapper==0.1.3",
+     "ok": true,
+     "gate": true,
+     "secs": 171.4,
+     "detail": "sdist (built with Rust); cache cold (empty CARGO_HOME); rustc 1.97.0; 4 CPUs; 3 runs: median 171.4 s, range 168.2-174.3 s; Successfully installed rustmapper-0.1.3",
+     "cache": "cold",
+     "rustc": "1.97.0",
+     "cpus": 4,
+     "runs": [
+      168.2,
+      171.4,
+      174.3
+     ]
+    },
+    {
+     "id": "help",
+     "cmd": "rust_sitemap --help",
+     "ok": true,
+     "gate": true,
+     "secs": null,
+     "detail": ""
+    },
+    {
+     "id": "crawl_help",
+     "cmd": "rust_sitemap crawl --help mentions --start-url",
+     "ok": true,
+     "gate": true,
+     "secs": null,
+     "detail": ""
+    },
+    {
+     "id": "export_help",
+     "cmd": "rust_sitemap export-sitemap --help",
+     "ok": true,
+     "gate": true,
+     "secs": null,
+     "detail": ""
+    },
+    {
+     "id": "crawl_ctrl_c",
+     "cmd": "rust_sitemap crawl --start-url http://127.0.0.1:<port>/ --seeding-strategy none --data-dir d (no robots.txt; one SIGINT after 45 s)",
+     "ok": true,
+     "gate": true,
+     "secs": 2.0,
+     "detail": "exit 0 2.0 s after one SIGINT; 3 lines; keys url, depth, status_code, title present; status 200"
+    },
+    {
+     "id": "export",
+     "cmd": "rust_sitemap export-sitemap --data-dir d --output s.xml",
+     "ok": true,
+     "gate": true,
+     "secs": 0.0,
+     "detail": "3 <loc>"
+    },
+    {
+     "id": "ends_by_itself",
+     "cmd": "rust_sitemap crawl with no signal exits by itself within 150 s",
+     "ok": false,
+     "gate": false,
+     "secs": 150,
+     "detail": "still running at 150 s; stopped with one SIGINT"
+    },
+    {
+     "id": "quiet_after_last_page",
+     "cmd": "rust_sitemap crawl: its Received work item lines stop once the pages run out",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "3 work-item lines for 3 URLs, the last 150 s before the SIGINT; 3 lines in sitemap.jsonl after it"
+    },
+    {
+     "id": "robots_read",
+     "cmd": "rust_sitemap crawl of an http site whose robots.txt disallows /secret.html reads it",
+     "ok": false,
+     "gate": false,
+     "secs": 17.0,
+     "detail": "4 requests; /robots.txt never asked for; /secret.html (disallowed) fetched; closest two fetches 3 ms apart; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "ua_seen",
+     "cmd": "rust_sitemap crawl names itself with one User-Agent, with no contact in it and no From header",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "4 requests; User-Agent 'RustSitemapCrawler/1.0'; From never sent",
+     "ua": "RustSitemapCrawler/1.0"
+    },
+    {
+     "id": "robots_stall",
+     "cmd": "rust_sitemap crawl of an https site: after a link robots.txt disallows, the links queued behind it are not asked for",
+     "ok": true,
+     "gate": false,
+     "secs": 32.0,
+     "detail": "7 requests; robots.txt asked for; the 5 links before the disallowed one: 5 fetched; /secret.html not fetched; the 5 after it: 0 fetched; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "blank_rows",
+     "cmd": "rust_sitemap crawl: every page never asked for is a row with status_code and crawled_at null, and grep -c '\"crawled_at\":null' counts the blank rows",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "12 rows; 6 never asked for (p10.html, p6.html, p7.html, p8.html, p9.html, secret.html), 6 of them with status_code and crawled_at null; 6 rows with crawled_at null, and grep -c '\"crawled_at\":null' counts 6"
+    },
+    {
+     "id": "robots_resume",
+     "cmd": "rust_sitemap crawl of an https site: the host stalled by a disallowed link goes on when a page brings a new link",
+     "ok": true,
+     "gate": false,
+     "secs": 32.0,
+     "detail": "13 requests; before p1.html's answer (3 s late, the one new link): 0 of the 5 links after the disallowed one fetched; after it: 5, and /new.html fetched; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "robots_late",
+     "cmd": "rust_sitemap crawl of an https site whose robots.txt comes 0.5 s late fetches pages it disallows",
+     "ok": true,
+     "gate": false,
+     "secs": 17.0,
+     "detail": "22 requests; robots.txt answered 0.5 s late; 10 of 10 disallowed pages fetched, 10 allowed; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "sitemap_keeps_disallowed",
+     "cmd": "rust_sitemap export-sitemap: the pages robots.txt disallows that the crawl fetched are in sitemap.xml",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "21 <loc> in one file; 10 of the 10 disallowed pages fetched are listed (secret1.html, secret2.html, secret3.html, \u2026)"
+    },
+    {
+     "id": "workers_cap",
+     "cmd": "rust_sitemap crawl --workers 1 keeps one request open at a time",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "default workers: 3 requests, at most 2 open at once; --workers 1: 3 requests, at most 1 open at once; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "second_ctrl_c",
+     "cmd": "rust_sitemap crawl: a second SIGINT 0.3 s after the first quits before writing sitemap.jsonl",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "exit 1; sitemap.jsonl not written; `Saved to:` not printed"
+    },
+    {
+     "id": "non200_status",
+     "cmd": "rust_sitemap crawl: every answer but an HTML 200 (429, 404, 500, a JSON 200, a timeout) is written with no status_code and no crawled_at, asked for once, and its links are not followed",
+     "ok": true,
+     "gate": false,
+     "secs": 14.0,
+     "detail": "8 requests; asked for: busy.html 1, gone.html 1, err 1, feed 1, hang.html 1 (429 with Retry-After: 2, 404, 500, JSON 200, held 8 s with --timeout 3); /beyond.html never asked for; busy.html: status_code null, crawled_at null; gone.html: status_code null, crawled_at null; err: status_code null, crawled_at null; feed: status_code null, crawled_at null; hang.html: status_code null, crawled_at null; e"
+    },
+    {
+     "id": "quiet_slow_page",
+     "cmd": "rust_sitemap crawl: a page held 15 s is not the end; after 60 s with no Received work item line, one SIGINT writes every page",
+     "ok": true,
+     "gate": false,
+     "secs": null,
+     "detail": "3 work-item lines; longest gap between two 15.0 s (slow.html held 15 s); SIGINT 60 s after the last; 3 of 3 pages in sitemap.jsonl, status 200; exit 0 2.0 s after one SIGINT",
+     "quiet_secs": 60
+    },
+    {
+     "id": "redirect_kept",
+     "cmd": "rust_sitemap crawl: after a redirect it keeps the old address, with the target's status and title, and reads the page's links against the old address",
+     "ok": true,
+     "gate": false,
+     "secs": 12.0,
+     "detail": "8 requests; /old (301 to /new.html) written as url /old, status_code 200, title \"New\"; /dir (301 to /dir/) links child.html: /child.html asked for 1 time(s), /dir/child.html 0; exit 0 2.0 s after one SIGINT"
+    },
+    {
+     "id": "sitemap_keeps_noindex",
+     "cmd": "rust_sitemap export-sitemap: one file lists every status_code 200 row, a redirecting URL and a noindex, canonicalized page included",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "5 <loc> in one file: index.html, canon.html, dir, new.html, old"
+    },
+    {
+     "id": "kill_writes_file",
+     "cmd": "rust_sitemap crawl sent SIGTERM after 5 s writes sitemap.jsonl",
+     "ok": false,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "exit -15 0.0 s after one SIGTERM; sitemap.jsonl was not written"
+    },
+    {
+     "id": "export_after_kill",
+     "cmd": "rust_sitemap export-sitemap --data-dir d3 --output k.xml",
+     "ok": true,
+     "gate": false,
+     "secs": 0.0,
+     "detail": "3 <loc>"
+    },
+    {
+     "id": "resume_after_kill",
+     "cmd": "rust_sitemap resume --data-dir d3 after the kill writes every page",
+     "ok": false,
+     "gate": false,
+     "secs": null,
+     "detail": "exited by itself (exit 1) before the SIGINT; sitemap.jsonl was not written; Error: Crawler(\"Database creation error: Database already open. Cannot acquire lock.\")"
+    }
+   ],
+   "ok": true
+  }
+ }
+}

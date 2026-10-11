@@ -1,0 +1,10 @@
+import { marked } from '/tmp/claude-0/-home-user-BenjaminSRussell/707a62e9-865e-57a2-81be-b65fd4820b14/scratchpad/tools/node_modules/marked/lib/marked.esm.js';
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+import fs from 'node:fs'; import path from 'node:path';
+const [,, readmePath, outDir, repoRoot, width='390'] = process.argv;
+const md = fs.readFileSync(readmePath,'utf8').replace(/https:\/\/raw\.githubusercontent\.com\/BenjaminSRussell\/BenjaminSRussell\/(main|chart)\//g, 'file://'+path.resolve(repoRoot)+'/');
+const body = marked.parse(md,{gfm:true});
+const html = `<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width"><style>body{margin:0;background:#fff;color:#1f2328;font:16px/1.5 -apple-system,Helvetica,Arial,sans-serif}.md{padding:16px 41px}img{max-width:100%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}pre{background:#f6f8fa;padding:16px;border-radius:6px;overflow:auto}code{font:85% ui-monospace,SFMono-Regular,Menlo,monospace}pre code{white-space:pre}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:6px 13px}</style><div class=md>${body}</div>`;
+fs.mkdirSync(outDir,{recursive:true}); const file=path.join(outDir,`readme-${width}.html`); fs.writeFileSync(file,html);
+const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:+width,height:800},deviceScaleFactor:2}); const p=await ctx.newPage();
+await p.goto('file://'+path.resolve(file)); await p.waitForTimeout(1500); await p.screenshot({path:path.join(outDir,`readme-${width}.png`),fullPage:true}); await b.close(); console.log('ok');

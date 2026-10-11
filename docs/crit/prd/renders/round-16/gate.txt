@@ -1,0 +1,32 @@
+-- fast   alt            1 finding(s)       0 ms
+-- fast   audit          0 finding(s)      15 ms
+-- fast   audit_cover    0 finding(s)       9 ms
+-- fast   bounds         0 finding(s)       5 ms
+-- fast   contrast       0 finding(s)       2 ms
+-- fast   data           1 finding(s)      15 ms
+-- fast   design         1 finding(s)       2 ms
+-- fast   expiry         0 finding(s)       0 ms
+-- fast   figures        0 finding(s)       6 ms
+-- fast   flash          0 finding(s)       4 ms
+-- fast   legend         0 finding(s)       0 ms
+-- fast   log            2 finding(s)       1 ms
+-- fast   motion         0 finding(s)      12 ms
+-- fast   notices        3 finding(s)       0 ms
+-- fast   notices_live   0 finding(s)       0 ms
+-- fast   position       1 finding(s)       0 ms
+-- fast   readme         1 finding(s)      26 ms
+-- fast   repos          1 finding(s)       1 ms
+-- fast   route          4 finding(s)       3 ms
+-- fast   size           0 finding(s)      24 ms
+-- fast   strings        0 finding(s)     135 ms
+-- fast   type           0 finding(s)       1 ms
+-- fast   xml            0 finding(s)      29 ms
+-- render boxpad         1 finding(s)       1 ms
+-- render column         3 finding(s)     118 ms
+-- render frames         1 finding(s)       0 ms
+-- render wrap           1 finding(s)    1077 ms
+WARN  log.shards: claims.shards num_cpus != machine.cores 8
+WARN  POSITION-EMPTY: [position] text is "": the position slot is omitted everywhere
+WARN  LICENSE-FLAGSHIP [stats.json]: Rust-sitemap: GitHub detects no license (commit a LICENSE file; the page prints none)
+WARN  ROUTE-WAITING [stats.json routes]: S2 "one queue per host, paced by that host's robots.txt" waits for a release: head tests/robots_4xx_allows_crawl.rs: file missing; release src/robots.rs: no 'fn parse_crawl_delay'
+check.py: pass with warnings (exit 2) · 0 fail · 4 warn · 0 error
