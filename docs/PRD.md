@@ -1,37 +1,49 @@
 # PRD: Ben Russell's profile page
 
-11 Oct 2026. Branch `v12/purpose` at `027f081` plus this document and its review rounds (no PR; `main` is 23 commits
-behind `027f081`).
+**Status:** draft, blocked on §9.1 (Ben's decision). **Owner of the decision:** Ben. **Owner of the text:** the
+session; edited only in a PRD review round or when the product changes. **Baseline:** the product code at `027f081` on
+`v12/purpose` (no PR; `main` is 23 commits behind it, `git rev-list --count`); the figures were read at `e17cc80` and
+re-checked in PRD round 2, which changed no code. **Last updated:** 11 Oct 2026, PRD review round 2.
 
 Sources: the owner's 21 messages in this session (the full text is `docs/crit/prd/owner-messages.md`; appendix A
 excerpts the 15 that set a rule), `docs/crit/round6/SPEC.md` and `DECISIONS.md`, `docs/crit/round5/DECISIONS.md`,
 `docs/crit/round6/LOG.md` (16 review rounds), the 48 reviews under `docs/crit/round6/`, `docs/data/AUDIT.md`,
 `chart.toml`, the 28 gate plug-ins under `scripts/checks/`, the 539 tests under `tests/`, `scripts/runcheck.py`,
-`.github/workflows/profile.yml`, the round-16 renders, the clone of `Rust-sitemap` at `32c2651`, and the three PRD
-reviews under `docs/crit/prd/` (`LOG.md` there records what each round changed).
+`.github/workflows/profile.yml`, the round-16 renders, a clone of `Rust-sitemap` at `32c2651` (the session's
+`scratchpad/clones/Rust-sitemap`; `build_stats.py` makes the clones, so any clone at that commit serves), and the PRD
+reviews under `docs/crit/prd/` (three a round; `LOG.md` there records what each round changed).
 
 ---
 
-## 0. Status, in six lines
+## 0. Status
 
 - **What this is.** The final product, every rule the owner set for it, and how each rule is implemented: by a gate
   in `check.py`, by a unit test, by a reviewer's judgement, or not at all. To build and accept the page, read §1, §2,
   §4, §5, §8, §9 and §11. The register is §3's last column, §7, §10 and appendix B. §7.6 and G17–G19 are how the
-  session worked, not what the page is.
+  session worked, not what the page is. The register's own claims (that each code and test it names exists and runs
+  in the tier stated) were checked by hand on 11 Oct 2026 and are checked by nothing since; §10.12 is the test that
+  would hold them.
 - **Built.** The image and page described below exist on `v12/purpose`. `python3 -m unittest`: 539 tests, all pass.
-  `check.py --tier fast,render` on the round-16 build: 0 fail, 4 warnings (§8.2), exit 2.
+  `check.py --tier fast,render` on the round-16 build: 0 fail, 4 warnings (§8.2), exit 2. The weekly job has run 12
+  times on `main` since 8 Oct and committed once (`d253286`, 9 Oct, `github-actions[bot]`). Run 12 (11 Oct 12:52
+  UTC, the only scheduled run) failed at `Unit tests` on `main`'s v11 code
+  (`test_hero.HeroBuild.test_alt_is_short_plain_and_agrees_with_chart_toml`,
+  `test_pipeline.Readme.test_blocks_and_inline_are_idempotent`; REST, run `38140965684`); the live page is run 11's.
 - **Reviewed.** 16 product rounds, three reviewers each, research in every round (31 to 59 cited sources per round;
-  360 in the seven research files). No round reached a unanimous ship verdict. Best 9/9/8 (round 13); last 8/7/8
-  (round 16). PRD review round 1 (11 Oct): 7/6/6, all three "yes, this is what he asked for" (`docs/crit/prd/LOG.md`).
-  These scores are as of the date above and go stale the day the next round runs.
+  360 in the seven research files). No round reached a unanimous ship verdict (best 9/9/8, round 13; last 8/7/8,
+  round 16). PRD review rounds 1 and 2 (11 Oct): six reviews, six times "yes, this is what he asked for"; the scores
+  (7/6/6, then 7/7/7) and what each round changed are in `docs/crit/prd/LOG.md`. Scores are as of the baseline above.
 - **The blocker is outside this repository.** Every caution on the page is a measured fault of rustmapper 0.1.3. They
   are true and gated. Four of the eight fixes in §5.4 retire their cautions on their own at the next weekly run;
   three need a probe or a fallback wording written here first, and one is a hand switch (§5.4, column "Needs here").
   Until then the top of the profile reads as a fault list for his flagship tool.
-- **The owner's decision (§9.1):** release 0.1.4 from a fixed `Rust-sitemap` (1a minimum or 1b full, recommended),
-  move the cautions to rustmapper's own README (2), cut the page's list to two items (2b), or ship as is (3). Until he
-  decides, the branch stays unmerged and `main` does not change.
-- **Not pushed to `main`; no PR.** PR #17 (the thesis line cut) is still open and separate.
+- **The owner's decision (§9.1):** merge option 2b now (the image with its box; the page's open list cut to two
+  items), then release 0.1.4 from a fixed `Rust-sitemap` (1a minimum, 1b full): the cautions retire on their own
+  when the release lands. "Undecided" is not free: `main` serves the v11 page he rejected on 9 Oct 20:50 (alt "22
+  repositories by week", "last commit 8 Aug 2026", a first-person footer, the thesis line pending PR #17), and its
+  weekly job is red. §9.1 prints that as row 0.
+- **Not pushed to `main`; no PR.** PR #17 (the thesis line cut) is still open and separate. Opening this branch's PR
+  is owed (8 Oct 09:04; §7.6; §10.17).
 
 ---
 
@@ -43,8 +55,12 @@ order, where it goes wrong, how you stop it, what file you get, and which other 
 page under it is the lookup material: who he is, which project to open, the facts of each, how to run them, and the
 rest of his work.
 
-The product has a manner, not a theme. A navigator would recognise a route strip, a magenta track, a dotted danger
-line and a cream sheet. Nobody is told. No word on the page names the sea.
+The product has a manner, not a theme. A navigator would recognise a route strip, a magenta routeing line (this
+document calls it the track, R5), a dotted danger line and a cream sheet. Nobody is told. No word on the page names
+the sea. The forms are the chart's own: INT 1 prints routeing measures "usually magenta" while a recommended track
+itself is a black dashed line with arrowheads, and a dotted or pecked line encloses a danger (PRD r02-1, sources 11
+and 12). The double reading is intended, not only a risk (§11): a reader who knows the forms sees where the colours
+come from; one who does not sees a clean route (G13a; asked every round at §8.3 q.6).
 
 **One sentence the image must answer** (SPEC §0): *how you start rustmapper, what happens to a URL inside it in order,
 where a stranger goes wrong, and where the output goes next.* Every mark on the image either belongs to that sentence
@@ -58,7 +74,7 @@ none is cut (test T-PURPOSE, gate ROUTE-PURPOSE).
 
 | Q | The visitor's question | Who asks it first |
 |---|---|---|
-| Q1 | Who is this and what does he build? | a screener, about 7 s (R4-F1: the six facts screened in about 7 s) |
+| Q1 | Who is this and what does he build? | a screener. R4-F1 estimates about 7 s for the six facts; the practitioner guides read in PRD round 2 say 30 s to a minute for the first look ("the 30-Second Scan", "Total time: 30–90 seconds", "In the first minute"; r02-1 sources 1, 2, 4). None is measured. The first-screen rule (§8.3 q.4) rests on "first screen", not on a number |
 | Q2 | Which project should I look at? | a hiring engineer, a peer |
 | Q3 | Does it work, and is it alive? | anyone about to try it |
 | Q4 | How do I start it, and what do I get? | an engineer with a terminal open |
@@ -80,19 +96,20 @@ it; "open" means nothing holds it yet.
 | G1 | "world class one of a kind beautiful profile readme that is stunning and fun and tells a lot about me" (7 Oct) | the standard of finish; a page that says what he builds and shows one of his tools working | review (every round's first question; G1 has no test, the reviewer's yes to §8.3 q.1–4 is its proxy) |
 | G1a | "it should say more than it literally says and should have layers of depth and thoughts associated with it" (7 Oct 17:40) | a second reading finds more: the loop bracket up the left (these rows repeat for every page), the gap in the track under the box (the release never exits), the thin line past the end bar (his projects hand each other files) | review (§8.3 q.1 names the three marks) |
 | G1b | "is it interesting does it draw in the user what does it say about the person who made it" (7 Oct 17:40) | the page says what kind of engineer made it without saying so: measured figures with their source commits, commands that were run, faults stated with their fix beside them | review (§8.3 q.4) |
-| G1c | "stunning and fun" (7 Oct) / "The images are not cool enough" (8 Oct 14:22) / "Wording is weird but it's cool" (8 Oct 14:22) | finish and wit. **The trade, in his words:** on 9 Oct he overrode "fun" for anything that names the theme ("too on the nose", "cringy"); the two winks (§7.1) are what remains of it. A later round does not reopen "fun" without re-reading 9 Oct 11:35 and 11:37 | review (§8.3 q.6) |
+| G1c | "stunning and fun" (7 Oct) / "The images are not cool enough" (8 Oct 14:22) / "Wording is weird but it's cool" (8 Oct 14:22) | finish and wit. **The trade, in his words:** on 9 Oct he overrode naming the theme and running bits ("too on the nose"; "Making it all about it too fucking much... It's just cringy"). "Stunning" and "fun" still stand as goals, judged at §8.3 q.6; "not on the nose" is a constraint on how they are met, not a withdrawal of them. A later round that touches either re-reads 9 Oct 11:35 and 11:37 first | review (§8.3 q.6) |
 | G2 | "Don't tell the user show the user you don't need to tell them it's a ships log or label everything it should be obvious" (8 Oct) | no label names the form; marks carry the manner; no themed headings (the headings are "Also", "Working rules") | ROUTE-WORDS, STRINGS-BANNED, T-WORDS, DESIGN-FRESH; headings pinned by test (§7.1); README prose: review only (gap §10.1) |
 | G3 | "It's too dense in certain areas of the image... other parts... open, but you can't read anything" (9 Oct) | one left edge, fixed pitch, nothing placed by hand, nothing overlaps | BOUNDS-*, BOX-PAD, ROUTE-LEFT-EDGE, ROUTE-HEAD-GAP; T-NOSIZE |
-| G4 | "I'm looking at iPhone... it has to be kind of accepting of all different formats" (9 Oct) | a phone edition drawn at its own width; type floors on screen; the code block fits 32 columns; the web reader gets the desk edition | ROUTE-PHONE-PX, HERO-COLUMN-PX, HERO-FALLBACK, README-CODE-WIDTH, FLAG-WRAP, DESK-PX; the device check is §8.4 (open) |
+| G4 | "The images are all crushed" (8 Oct 14:22); "I'm looking at iPhone... it has to be kind of accepting of all different formats" (9 Oct) | a phone edition drawn at its own width; type floors on screen; the code block fits 32 columns; the web reader gets the desk edition | ROUTE-PHONE-PX, HERO-COLUMN-PX, HERO-FALLBACK, README-CODE-WIDTH, FLAG-WRAP, DESK-PX; the device check is §8.4 (open) |
 | G5 | "Fuck saying ship's log. Just make it a log... If it looks like a shoe... You don't need to tell me it's a shoe" (9 Oct) | the same rule as G2, said again on 9 Oct; nothing further | as G2 |
 | G6 | "the images and the text need to... differentiate themselves... It should act like it doesn't know that it is" (9 Oct) | the image keeps what a list cannot show, the text keeps what you copy or look up; no fact said twice | STRINGS-TWICE, STRINGS-COUNT, HERO-SELF-TWICE |
 | G7 | "how is the data gathered? The data doesn't look exactly accurate" (9 Oct) | every figure has a key, a definition and a source commit; every claim about code has an anchor in the code | AUDIT-STALE, AUDIT-COVER, FIGURES, ROUTE-UNVERIFIED, ROUTE-HEADER, NOTICE-*, STRINGS-UNMEASURED, ROUTE-STRINGS |
-| G8 | "We don't need to show the commits... it feels lazy" (9 Oct) | no commit activity drawn; no commit total printed, of any kind. **Ruled in PRD round 1 by his sentence: off by default** until he turns it on (§9.2) | the image has no count; the provenance-line test bans `commits`, `all_hands`, `calendar_total`; **open on the facts lines**, which still print the agent-authorship counts ("authored 45 of its 146 commits and co-signed 1 of his own 101"); the `[facts] agent_clause` switch is the fix (§10.5) |
+| G8 | "We don't need to show the commits are kind of cool. The data is kind of cool that we're pulling, but at the same time, it feels lazy, and I don't really like that" (9 Oct 11:35); "Talking about my commits. Talking about my work. That is what this should all be about" (9 Oct 11:37) | no commit activity drawn; no commit total printed, of any kind. He said both: 11:35 reads against showing commit figures, 11:37 says the page should talk about his commits and his work. **Ruled in PRD round 1 on the owner lens, kept in round 2: off by default** until he turns it on (§9.2); the switch blocks the merge (§8.1 item 7) | the image has no count; the provenance-line test bans `commits`, `all_hands`, `calendar_total`; **open on the facts lines**, which still print the agent-authorship counts ("authored 45 of its 146 commits and co-signed 1 of his own 101"); the `[facts] agent_clause` switch is the fix (§10.5, blocks the merge) |
 | G9 | "Don't show me fucking ships unless it's like artfully well done... it's too on the nose" (9 Oct) | no ship, no boat, no buoy, no rose, no symbols at all; no legend | nothing drawn but bars, rings, a track, a dotted line; held by review (T-PURPOSE checks containment, not shape: §7.1); LEGEND-* idle |
-| G10 | "Don't say arg like a fucking pirate... We're in a modern era... little jokes... one-off words... that's funny. Making it all about it... cringy" (9 Oct) | plain modern copy; at most a dry wink or two about the work, none nautical | THEME_WORDS has `ahoy`, `arr`; the winks are counted by review (two today, named in §8.3) |
+| G10 | "Don't say arg like a fucking pirate. Don't use pirate language. We're in a modern era. [...] if there's little things, little jokes you can throw in, like one word, one-off words that are referenced being a pirate or some shit, like that's funny. Making it all about it too fucking much. No one wants that. It's just cringy" (9 Oct 11:37) | two rules, not one: no pirate talk and no running bit; a one-off word as a joke is allowed ("that's funny"); more than a couple is "cringy". Plain modern copy otherwise. Winks today: two, named in §7.1 and §8.3 q.4; whether a wink uses the one-off allowance is the writer's call | THEME_WORDS has `ahoy`, `arr` (the pirate-talk half); the count is review (§8.3 q.4; §10.2) |
 | G11 | "The map, very helpful. The fucking log, not really... helpful knowledge... in a cool format" (9 Oct) | the image is directions a stranger uses; the log sheet is gone | the route; `log`, `instruments`, `approaches`, `soundings`, `footer` sheets are off the page (their modules and strings are still in the repository: §10.8) |
 | G12 | "the ship went off a cliff at the end? No... Unsurveyed?... not smart" (9 Oct) | no end-of-the-world device; no hatched margin; no "unsurveyed" | STRINGS-BANNED, THEME_WORDS (`unsurveyed`) |
-| G13 | "It should be telling you about me, but with a layer of a theme of shipping" (9 Oct) | the page is about him and his work, in the third person | T1/T2, "Ben Russell builds", facts lines; `test_no_first_person_on_the_page`; THIS-REPO; the position line and a contact are §8.1 item 6 |
+| G13 | "It should be telling you about me" (9 Oct 11:37, the first half of the sentence) | the page is about him and his work, in the third person | T1/T2, "Ben Russell builds", facts lines; `test_no_first_person_on_the_page`; THIS-REPO; the position line and a contact are §8.1 item 6 |
+| G13a | "but with a layer of a theme of shipping" (9 Oct 11:37, the second half) | the manner is in the marks, never in a word (§1): a reader who knows the forms recognises a routeing line, a danger line and a sheet; one who does not sees a clean route | review: §8.3 q.6, logged every round. First answers, PRD round 2: r02-1 would screenshot it and call it "the way into my crawler"; r02-3 "install notes drawn as a route". No gate, no test; split from G13 in round 2 because the table held one half of the sentence |
 | G14 | "The wording is fucking weird survey the web that is wrong about itself" (9 Oct) | the thesis line is cut, everywhere | `chart.toml [copy]` has no `thesis`; EXPIRY-KEY **warns** on a stale review key (never fails); the phrase is banned nowhere and `docs/BEN-TODO.md` round-4 item 1 still tells him to put it in his bio (§10.10) |
 | G15 | "It's trying to be a fucking map for no reason... tiny fucking islands... Is it based on the size of the project or how many commits?" (9 Oct) | no shape has a size that depends on data; the picture exists only where the subject has a route to travel | T-NOSIZE; DECISIONS (four concepts scored on this goal) |
 | G16 | "Every single fucking map needs a deep purpose... Everything, single thing inside of this needs a purpose, not a fucking chasing a reason" (9 Oct) | a PURPOSE row per drawn element: what a stranger learns, which Q, from which data | T-PURPOSE, ROUTE-PURPOSE; T-BREAKS (every design departure names a project fact) |
@@ -147,7 +164,7 @@ day paper is 4.1:1, under the 4.5:1 text needs, over the 3:1 a line needs).
 | Edition | Sheet | Served at | Column there | Smallest text on screen (19-unit runs on desk and mid, 26 on the phone, per the build report) |
 |---|---|---|---|---|
 | phone-day / phone-night | 600 × 1,121 | viewport ≤ 851 px; also the `<img>` fallback | 308 px on a 390 phone, 278 on a 360 | 13.3 px on a 390, 12.0 px on a 360 (floors 13 / 11, ROUTE-PHONE-PX) |
-| mid-day / mid-night | 820 × 707 | 852 to 1,199 px | 482 to 765 px | **11.2 px at 852 to 17.7 px at 1,199** (floor 11, HERO-COLUMN-PX; DESK-PX does not run here). Under the phone's 13 px up to a 930 px window; 13.7 px on a 1,024 px iPad held sideways (§9.3, §11) |
+| mid-day / mid-night | 820 × 707 | 852 to 1,199 px | 482 to 765 px | **11.2 px at 852 to 17.7 px at 1,199** (floor 11, HERO-COLUMN-PX; DESK-PX does not run here). Under the phone's 13 px up to a 930 px window; 13.7 px on a 1,024 px iPad held sideways (the trade is decided in §9.1b) |
 | day / night | 1,000 × 707 | ≥ 1,200 px | 766 to 846 px | 14.6 to 16.1 px (DESK-PX, from 1,200) |
 
 Night is redrawn (strokes 20 % heavier, light cuts of the sans and mono), not inverted; every text colour clears
@@ -168,8 +185,8 @@ In order. Marker blocks (`<!-- x:start -->…<!-- x:end -->`) are written by `sc
 | 2 | links: rustmapper · PyPI · Scrapy · Email (+ LinkedIn, resume when `[contact]` is set) | Q2 | PyPI sits beside rustmapper; the position line prints when `[position] text` is set (§8.1 item 6) | `tests/test_round7.py:370`; `tests/test_pipeline.py:495` (block order); POSITION-* |
 | 3 | "Ben Russell builds…", Languages, Stack | Q1 | Languages: Python, Rust first, then every other `main_language` by repository count; the Stack line is his | `tests/test_round7.py:91` (the set, and "Python, Rust; " first); the order of the rest by count: no test (§10.9) |
 | 4 | the pick: which tool for which job | Q2 | printed only while rustmapper's header, every `pick` figure row and the `no_services` release gate hold; the politeness clause only while Scrapy's stage 2 checks robots.txt (it does not today, so it is off) | `test_pipeline.py:206–210`; FIGURES |
-| 5 | rustmapper facts line | Q3 | `head.short`, built-on (from the manifest, in `[facts]` order), `test_functions`, CI conclusion + date + gates, lines; a key that is absent is omitted, never estimated. The agent-authorship commit counts print today against G8 (§9.2) | `test_facts_block_prints_only_present_keys`; CI-GATES |
-| 6 | the platform note, "Before you run 0.1.3:" cautions (≤ 7 items, ≤ 25 words each), a `<details>` fold for what the files miss, the code block (≤ 32 columns a line) | Q4, Q5 | each item is a gated wording with anchors and a probe. The three comment lines of the code block ("# 0.1.3 runs until stopped: when / # "Received work item" stops / # for 60 s, then Ctrl-C once") are wrapped at 32 columns for the phone's sake (the commands break at a backslash, which reads the same at any width); Markdown serves one block to every width, so the desk reader sees the comments phone-wrapped (§11) | README-CAUTIONS, README-CD, README-SUBCOMMAND, FLAG-WRAP, README-CODE-WIDTH; `test_no_fenced_line_over_32` |
+| 5 | rustmapper facts line | Q3 | `head.short`, built-on (from the manifest, in `[facts]` order), `test_functions`, CI conclusion + date + gates, lines; a key that is absent is omitted, never estimated. The agent-authorship commit counts print today against G8 (§9.2; §8.1 item 7 blocks the merge on them) | `test_facts_block_prints_only_present_keys`; CI-GATES |
+| 6 | the platform note, "Before you run 0.1.3:" cautions (≤ 7 items, ≤ 25 words each: `LIST_MAX_ITEMS = 7`, `LIST_MAX_WORDS = 25`, `render_readme.py:670–671`, read by `checks/readme.py:318`; the fold has the same cap and takes the entries marked `fold = true` in `chart.toml`), a `<details>` fold for what the files miss, the code block (≤ 32 columns a line) | Q4, Q5 | each item is a gated wording with anchors and a probe. The three comment lines of the code block ("# 0.1.3 runs until stopped: when / # "Received work item" stops / # for 60 s, then Ctrl-C once") are wrapped at 32 columns for the phone's sake (the commands break at a backslash, which reads the same at any width); Markdown serves one block to every width, so the desk reader sees the comments phone-wrapped (§11) | README-CAUTIONS, README-CD, README-SUBCOMMAND, FLAG-WRAP, README-CODE-WIDTH; `test_no_fenced_line_over_32` |
 | 7 | Scrapy sentence, facts line, three bullets, how to run it, its two cautions, code block, where output lands | Q3–Q5 | same gating; every typed number has a `[[figures]]` row that holds at `96e7a1a` | FIGURES |
 | 8 | **Also**: ideal-url-organizer, go_go_go, rust_llm_logger, Ai_code_detector | Q2 | one line each; "21 ways" must match the image's count | STRINGS-COUNT |
 | 9 | `<details>` "15 more repositories" | Q2 | the count is computed (`repo_count` − profile − 2 − 4); every surveyed repository is linked once | `render_readme.more_count`; REPO-SET |
@@ -199,7 +216,7 @@ with the probe in question flipped.
 | default UA with a contact; `From` | L7 | probe `ua_seen` fails on a contact | no: `src/cli.rs:40` default `RustSitemapCrawler/1.0`; no `From` in `src/network.rs` | **an `instead` on L7 with `fails = ["ua_seen"]`, `text = ""`** (verified: with `ua_seen` failed L7 has no wording that holds and goes unverified; the build fails) |
 | disallowed and `noindex` pages left out of `export-sitemap` | X1's clauses | probes `sitemap_keeps_disallowed`, `sitemap_keeps_noindex` fail | no: no `noindex` handling in `src/` | nothing for the disallowed clause (verified: X1 drops "and disallowed"); **a wording for a release that also drops `noindex` pages** (verified: with both probes failed X1 goes unverified) |
 | `[project.scripts] rustmapper` in the wheel | the image prints `rustmapper crawl` | `edition.scripts` from the wheel's RECORD | no: `pyproject.toml:55 bindings = "pyo3"`, no `[project.scripts]` (§11) | nothing |
-| SIGTERM writes the file; `resume` after a kill | W1 drawn; "resume" allowed next to rustmapper | probes `kill_writes_file`, `resume_after_kill` pass | no: no signal handler in `src/` | **lift W1's `drawn = false` by hand and write a wording that holds on a passing kill** (verified: a passing `kill_writes_file` prints the fallback "logged to disk, then saved to redb, in batches" and W1 stays undrawn, as `test_round13.py:258` pins); `resume_after_kill` is named by no entry, only a comment |
+| SIGTERM writes the file; `resume` after a kill | W1 drawn; "resume" allowed next to rustmapper | probes `kill_writes_file`, `resume_after_kill` pass | no: no signal handler in `src/` | **lift W1's `drawn = false` by hand and write a wording that holds on a passing kill** (verified: a passing `kill_writes_file` prints the fallback "logged to disk, then saved to redb, in batches" and W1 stays undrawn, as `test_round13.py:258` pins); `resume_after_kill` is named by no entry, only a comment (§10.18) |
 | a LICENSE | the LICENSE-FLAGSHIP warning | GitHub detects it | no | nothing |
 
 So four of the eight rows retire by themselves (exit, robots, export's disallowed clause, LICENSE), the packaging row
@@ -217,7 +234,7 @@ check.py --tier fast,render           28 plug-ins; exit 0 pass · 1 fail · 2 wa
 publish_chart.py                       force-push of the sheets to the orphan `chart` branch, before main is touched
 ```
 
-- **Weekly job** (`profile.yml`): Sunday 06:20 UTC, on push to `main` (scripts, chart.toml, workflow, `assets/log.json`,
+- **Weekly job** (`profile.yml`): scheduled for Sunday 06:20 UTC (cron `20 6 * * 0`; GitHub ran run 12 at 12:52 UTC, so a builder timing the first live run does not wait for 06:20), on push to `main` (scripts, chart.toml, workflow, `assets/log.json`,
   `requirements.txt`), and on `repository_dispatch: release-published`. Job 1 `runcheck` on macos-14 installs the
   release and runs the probes; job 2 runs tests, builds, gates, publishes sheets, then commits stats + README +
   DESIGN.md to `main`. A failed gate publishes nothing. A failed data fetch (`steps.stats` failed) runs
@@ -230,9 +247,15 @@ publish_chart.py                       force-push of the sheets to the orphan `c
   `blank_rows`, `robots_resume`, `robots_late`, `sitemap_keeps_disallowed`, `workers_cap`, `second_ctrl_c`,
   `non200_status`, `quiet_slow_page`, `redirect_kept`, `sitemap_keeps_noindex`, `kill_writes_file`,
   `export_after_kill`, `resume_after_kill`), each against a local fixture site over http or https. A probe that
-  cannot run is `skipped`, never a pass (ROUTE-PROBE-SKIPPED).
-- **Tests**: 539, `python3 -m unittest`, 22 s. Fixture trees, never the network. 69 of them (`test_supporting` 24,
-  `test_timeline` 26, `test_approaches` 19) test sheets that are off the page; the product's own count is 470.
+  cannot run is `skipped`, never a pass (ROUTE-PROBE-SKIPPED). 17 of the 18 are named by a wording's `runs`/`fails`
+  in `chart.toml`; `resume_after_kill` is run every week and read by nothing (`chart.toml:900` is a comment; §5.4
+  row 7; §10.18). `runcheck.py:7` still says it "probes four behaviours".
+- **Tests**: 539, `python3 -m unittest`, 22 s. Fixture trees, never the network. 91 of them test sheets and engines
+  that are off the page (`test_supporting` 24, `test_timeline` 26, `test_approaches` 19, `test_chartlib` 22: islands,
+  contours, soundings, a sloop, hatching, tints; the route sheet calls one `chartlib` function, `stroke`); the
+  product's own count is 448. `test_edition` (11) is the edition writer's and counts with the product, though two
+  of its tests are motion rules (`test_numeric_begin_untouched`, `test_no_timestamps`). Counted by a loader walk in
+  PRD round 2, not by file names.
 - **Review**: three independent reviewers per round, each opening with "does it meet the owner's goal", each
   re-measuring every printed figure, each citing sources; a fix round applies or declines each must-fix with a reason
   in `LOG.md`.
@@ -243,13 +266,17 @@ publish_chart.py                       force-push of the sheets to the orphan `c
 |---|---|---|
 | the data fetch fails | the page as last week, same dates, no stale mark (above) | nothing to undo; §10.13 asks whether a mark should exist |
 | a gate fails (exit 1 or 3) | nothing new: the page and the `chart` branch as before | nothing to undo; the run's `::error::` lines say what failed |
-| a build passes the gates and prints something wrong | the new page | Ben, or a session, `git revert`s the bot commit on `main`; a `workflow_dispatch` with `dry_run: false` rebuilds the sheets from the reverted `stats.json`. Until then the `chart` branch holds the wrong sheets: `publish_chart.py` force-pushes one orphan commit (its docstring, lines 2–14: "no history ... exactly one commit after every run"), so there is no earlier sheet to roll back to, only a rebuild |
+| a build passes the gates and prints something wrong | the new page | **No CI path rebuilds from an older `stats.json`**: every trigger re-surveys (`build_stats.py --runcheck …`, `profile.yml:106`, live with `GITHUB_TOKEN`), so a `workflow_dispatch` brings the figure back if it came from the data; and reverting the bot commit is itself a push that re-surveys, because `assets/log.json` is in the commit (line 157) and in `push: paths` (line 24). Rollback is local: Ben or a session checks out the last good `assets/stats.json`, runs `build_assets.py`, `render_readme.py`, `check.py --tier fast,render`, `publish_chart.py`, and commits `stats.json`, `README.md` and `DESIGN.md` to `main`; if the fault is in code or `chart.toml`, revert that commit first or the next weekly run reprints it. The `chart` branch has no history (`publish_chart.py` docstring, lines 2–14: one orphan commit, force-pushed), so there is no older sheet to point at, only a rebuild. Corrected in PRD round 2; round 1's row described a path the workflow does not have |
 
 ## 7. The rules, and how each is implemented
 
 Status: **gate** (`check.py` fails; **gate (warn)** when it only warns), **test** (`unittest`), **review** (a reviewer
 judges it each round), **process** (how the session works), **open** (not held by anything yet). The last column is
-where it lives.
+where it lives. Status is what the holder did on the round-16 build, not a promise (§0, first bullet). The 28
+plug-ins emit 160 distinct codes (every `fail`/`warn`/`error`/`info` literal and the dotted `data.*`/`log.*`
+strings, counted in PRD round 2); PRD round 1's register cited 50 of them. Round 2 added the engineering rules that
+trace to no sentence of his (budgets, XML hygiene, the stats invariants, paint order, the alt poem, the position
+line) to the table nearest their subject, so that every live code has a row here or an "idle" mark in appendix B.
 
 ### 7.1 Don't name the theme
 
@@ -263,7 +290,7 @@ where it lives.
 | No themed headings; headings are "Also", "Working rules" | test | `test_committed_readme_is_the_one_chart_page`, round tests pin the headings |
 | Every design departure from the type and layout rules names a project fact or a measured constraint, never the theme | test | T-BREAKS over `route.py BREAKS` |
 | No pirate language | gate (image) | THEME_WORDS `ahoy`, `arr` |
-| At most a dry wink or two, about the work, not the sea | review | two today, named in §8.3 q.4: "Boring under load." (working rule 1), "why engines are hard" (game_engine's line) |
+| No pirate talk, no running bit; a one-off word as a joke is allowed, more than a couple is "cringy" (G10, his two rules) | review | two winks today, named in §8.3 q.4: "Boring under load." (working rule 1), "why engines are hard" (game_engine's line); neither uses the one-off allowance, and nothing bars a later one |
 | No ships, boats, buoys, roses, lights, hatching, legends | **review**; T-PURPOSE holds containment only | `test_every_element_has_a_purpose` (`tests/test_route.py:812–829`) checks that every group id is a PURPOSE key and that no `path`, `circle`, `rect` or `use` sits outside a group; it never looks at what is inside a group, so a hull drawn inside `hero-R5` would pass. The only shapes today are bars, rings, lines, a dotted box, by the reviewer's eye (§10.11) |
 
 ### 7.2 Everything has a purpose; nothing has a size
@@ -287,7 +314,10 @@ where it lives.
 | Every claim about the code rests on anchors at HEAD and in the released sdist; drawn only when both hold | gate | ROUTE-UNVERIFIED, ROUTE-HEADER, ROUTE-LABEL, ROUTE-WAITING (warn) |
 | The install and crawl commands are run, not quoted; the entrance is drawn only within 14 days of a passing run of the same version | gate, CI | ROUTE-ENTRANCE; the `runcheck` job |
 | A subcommand named next to "rustmapper" must not be one the run check saw fail | gate | README-SUBCOMMAND |
-| A working rule's cite month is computed from his first commit adding the anchor; the anchor is his, not an agent's; the code is live at HEAD | gate | NOTICE-DATE, NOTICE-AUTHOR, NOTICE-LIVE, NOTICE-ANCHORS |
+| A working rule's cite month is computed from his first commit adding the anchor; the anchor is his, not an agent's; the code is live at HEAD; the cite reads `<repo>, <Mon YYYY>: <what>.` | gate | NOTICE-DATE, NOTICE-AUTHOR, NOTICE-LIVE, NOTICE-ANCHORS; NOTICE-CITE (the form, `notices.py CITE_FORM`) |
+| The stats file is readable, unseeded, schema-valid, with provenance, and internally consistent; a claim is measured only with a source and a sha; PyPI unreachable with no cache stops the build. Warnings: an edition from cache, a repository not re-surveyed, a run with no live clone, a repo-count drift, no notices, the calendar disagreeing with the clones by over 10 % | gate | `data.load`, `data.seeded`, `data.schema`, `data.provenance`, `data.invariant`, `data.claims`, `data.edition` (fail, `checks/data.py:53–90`); `data.edition` (cache), `data.stale`, `data.clones`, `data.repo_count`, `data.notices`, `data.calendar`, `data.unsurveyed` (warn); `data.tide`, `data.variation` idle |
+| The printed position line equals `[position] text`; an unset key fails, `""` warns and omits the slot, a README still showing an old line warns; no ⟨ ⟩ placeholder in `[contact]`; no `<!-- POSITION` comment in place of a line | gate | POSITION-UNSET, -PLACEHOLDER, -MISMATCH, -BLOCK, -COMMENT (fail); POSITION-EMPTY, -STALE (warn); CONTACT-PLACEHOLDER (`checks/position.py`) |
+| The README has exactly one hero picture block, with paired markers and one `<picture>` that names `hero-day.svg`, not inside `<details>`; the staleness check itself must be able to run | gate | README-PICTURE, README-PICTURE-FOLDED (fail); README-MISSING, README-RENDER (warn) |
 | A skipped probe is never a pass; the code-only wording prints | gate (warn), test | ROUTE-PROBE-SKIPPED; `test_skipped_is_not_a_pass` |
 | Sweep days (bulk edits touching most repositories: 9–10 Nov 2025, 1 and 7 Oct 2026) are excluded from any activity figure | code, test | `sweep_dates`; `test_sweep_days_are_named_not_removed`; no activity figure is printed now |
 | Test counts are functions (`#[test]`, `def test_`), never files; languages from lines in the clone, never the REST field; generated trees excluded | code, test | `test_test_function_patterns`, `test_main_language_per_repo_from_lines`, `[lines.exclude]` |
@@ -306,14 +336,17 @@ where it lives.
 | A phone edition drawn at its own width (600 units), served to viewports ≤ 851 px and as the `<img>` fallback | test, gate (render) | `test_picture_order`; HERO-FALLBACK |
 | No phone text under 13 px on a 390 px phone (image 308 px) or 11 px on a 360 (278 px) | gate | ROUTE-PHONE-PX |
 | The sheet is one screen: ≤ 900 px tall **from a 768 px viewport up**; below 768 the height is not bounded (the phone sheet is 1.87 × the column) | gate (render) | HERO-COLUMN-PX, `TALL_FROM = 768`, `TALL_PX = 900` (`column.py:47–48`) |
-| Desk words ≥ 14.5 px from a 1,200 px window; a mid edition for 852–1,199, whose only floor is 11 px | gate (render) | DESK-PX from `breakpoint_px + 1` (`column.py:50`, `chart.toml:9`); the mid window is held by `MIN_PX = 11.0` (`column.py:45`): 11.2 px at 852; `test_the_old_breakpoint_fails_on_tablets` |
+| Desk words ≥ 14.5 px from a 1,200 px window; a mid edition for 852–1,199, whose only floor is 11 px | gate (render) | DESK-PX from `breakpoint_px + 1` (`column.py:50`, `chart.toml:9`); the mid window is held by `MIN_PX = 11.0` (`column.py:45`): 11.2 px at 852 (§9.1b); `test_the_old_breakpoint_fails_on_tablets` |
 | Code block lines ≤ 32 columns (what a 360 px phone shows) | gate | README-CODE-WIDTH (`CODE_COLUMNS = 32`); `test_no_fenced_line_over_32` |
 | A flag a reader types (`--workers 1`) never wraps mid-flag on a phone | gate (render) | FLAG-WRAP |
 | Cautions: one list, ≤ 7 items, ≤ 25 words each; the file faults folded | gate | README-CAUTIONS, README-DETAILS |
 | Type floors: desk and mid 19 (serif 25), phone 26 (serif 30); sizes on the scale | gate | TYPE |
-| Nothing overlaps; every box inside the sheet less a 6-unit frame; words clear the dotted line by ≥ 8 units | gate | BOUNDS-* (fast), BOX-PAD (render) |
+| Nothing overlaps; every box inside the sheet less a 6-unit frame; words clear the dotted line by ≥ 8 units | gate | BOUNDS-COLLIDE, -EDGE, -EXCLUSION, -MORE, -TEXTURE, -NO-MANIFEST (fast), BOX-PAD (render) |
+| Each edition within budget: raw ≤ 300 KB, gzip ≤ 100 KB, phone raw ≤ 120 KB, ≤ 3,000 elements, one desk set ≤ 250 KB gzip; the report's sha256 matches each SVG and `stats.json`; the per-sheet target (hero 170 KB raw / 60 KB gzip) warns | gate | SIZE-RAW, -GZ, -PHONE, -PAGE, -ELEMENTS; SIZE-TARGET (warn); REPORT-SHA, -BYTES, -MISSING, -ORPHAN, -STATS (`tokens.BUDGETS`, `tokens.py:131`) |
+| Every sheet parses; no live `<text>`, `<script>`, `<style>`, `<image>` or external href (the rule behind §5.1's glyph outlines); ids unique and sheet-prefixed; every `#ref` resolves; the root is `<svg>` with a viewBox that matches the report | gate | XML-PARSE, -FORBIDDEN, -EXTERNAL-HREF, -ID-DUP, -ID-PREFIX, -REF, -ROOT, -VIEWBOX, -SIZE; -KEYTIMES, -FADE-BASE, -SET-LOOP idle (animation) |
+| Sheet height ≤ 770 (desk), 1,246 (phone), 964 (mid) units; rings, bars and words painted after the track, the loop and the hand-off line; the loop's arrowhead keeps ring_r + 2 from every ring's centre row; `stats.json` carries the route | gate | ROUTE-HEIGHT (`HEIGHT`, `checks/route.py:70`), ROUTE-PAINT, ROUTE-ARROW, ROUTE-MISSING; ROUTE-HANDOFF (info: each hand-off's state) |
 | Rows start at one left edge; the project name sits ≥ 2 role pitches under the role line | gate | ROUTE-LEFT-EDGE, ROUTE-HEAD-GAP |
-| Contrast: text ≥ 4.5:1, lines ≥ 3:1, both themes; red/green kept apart for CVD | gate | CONTRAST-* |
+| Contrast: text ≥ 4.5:1, lines ≥ 3:1, both themes; red/green kept apart for CVD | gate | CONTRAST-TEXT, -LINE, -DANGER, -TINT, -LIGHT, -LIGHTS, -RG, -CVD |
 | Night redrawn, not inverted | code | `tokens.THEMES`, `W_NIGHT` |
 | The six editions are on the `chart` branch before `README.md` names them (8 Oct 11:13: "Merged but all images are unavailable") | test, process | `publish_chart.unshipped` (`scripts/publish_chart.py:81`); `test_publish_before_commit` (`tests/test_round15.py:193`); `test_publish_needs_every_named_edition` (`tests/test_round12.py:124`); `profile.yml` publishes before the commit; §8.1 item 5 |
 | Verified on a real iPhone, in Safari and the GitHub app, light and dark | **open** | §8.4, the one home of this check |
@@ -327,8 +360,8 @@ where it lives.
 | Never "this repository" on a profile | gate | THIS-REPO |
 | "His Scrapy repository", not the framework; American spelling | review | `[copy] repo_words`; r07; the spelling grep is in §8.3 q.4 |
 | Existing wording stays unless cut; every change carries its review round in a `chart.toml` comment | process | the comments in `chart.toml` |
-| The role line is re-read by 2027-06 | gate (warn) | EXPIRY-PASSED (`expiry.py:37–42`: all three EXPIRY codes warn, never fail) |
-| Alt text ≤ 25 words, not starting "The", says what the image shows in plain words | gate, test | ALT-LONG, ALT-THE; T-ALT |
+| The role line is re-read by 2027-06; a `[copy.review]` key names a `[copy]` key and reads `YYYY-MM` or `YYYY-MM-DD` | gate (warn) | EXPIRY-PASSED, EXPIRY-KEY, EXPIRY-FORMAT (`expiry.py:37–42`: all three warn, never fail) |
+| Alt text ≤ 25 words, not starting "The", says what the image shows in plain words; its last sentence ≤ 10 words and equal to `[alt] alt_poem`'s hero line ("It loops until one Ctrl-C writes data/sitemap.jsonl.", `chart.toml:563`) | gate, test | ALT-LONG, ALT-THE, ALT-LAST, ALT-POEM; ALT-NO-README (warn); T-ALT |
 | Code in the code face; code spaces at the word space; no file names left of the track | gate | TYPE-CODE, ROUTE-CODE-SPACE, ROUTE-LABEL |
 | The release label sits right after its command, never at the right edge | gate | ROUTE-RELEASE |
 | No "generated by" line a visitor can read; no schedule in the provenance | test | the provenance-line test bans "generated", "regenerated", "weekly" (§10.6 on the two maintainer comments) |
@@ -340,7 +373,7 @@ where it lives.
 | Rule | Status | Where |
 |---|---|---|
 | Never push to `main`; the owner merges PRs | process | every change is on a branch; the weekly bot commit to `main` is the workflow's own, by his design |
-| Every open PR is mergeable; a branch is opened as a PR before a round ends (8 Oct 09:04: "all PRs need to be ready to merge") | process, **not met today** | PR #17 is open (`gh api`: `state: open`, `mergeable: true`, head `v11.1/no-thesis`); this branch has no PR |
+| Every open PR is mergeable and without conflicts; a branch is opened as a PR before a round ends (8 Oct 09:04: "Resolve all merge conflicts and all PRs need to be ready to merge") | process, **not met today** | PR #17 is open (`gh api`: `state: open`, `mergeable: true`, head `v11.1/no-thesis`); this branch has no PR (§10.17; the fix passes do not push) |
 | Commit messages end with the Co-Authored-By and Claude-Session trailers | process | `git log` shows them; the model name in the trailer follows the serving model |
 | No "Generated by Claude Code" footer in PR bodies or comments; the server appends its own | process | his instruction of 8 Oct |
 | The stop hook: commit and push before stopping | process (session; not verifiable from the repository) | WIP commits when it fires |
@@ -353,8 +386,13 @@ where it lives.
 
 ### 8.1 Mechanical (must all hold on the commit that merges)
 
+A §10 item that blocks the merge is also a line here (items 7 and 8 came from §10.5 and §10.8 in PRD round 2).
+
 1. `python3 -m unittest`: all pass.
-2. `python3 scripts/check.py --tier fast,render` on a fresh build: 0 fail, 0 error; warnings only from §8.2.
+2. From the committed `assets/stats.json`, no network: `python3 scripts/build_assets.py && python3
+   scripts/render_readme.py --check && python3 scripts/check.py --tier fast,render`: 0 fail, 0 error; warnings only
+   from §8.2. A fresh *survey* (`build_stats.py` live: `GITHUB_TOKEN`, the clones, PyPI, a macOS `runcheck.json`) is
+   item 4's job, not this item's; the two can give different wordings (§11).
 3. `render_readme.py --check` clean; `DESIGN.md` and `docs/data/AUDIT.md` regenerated (README-STALE, DESIGN-FRESH,
    AUDIT-STALE).
 4. A `workflow_dispatch` dry run of `profile.yml` on the branch: the macOS run check uploads, the build gates, the
@@ -363,6 +401,16 @@ where it lives.
 6. `[position] text` is set and at least one of `[contact] linkedin` / `resume` is set, so POSITION-EMPTY does not
    fire. Owner: Ben. The page does not merge with the one line a visitor came for left blank (7 Oct: "tells a lot
    about me"; moved here from §8.2 in PRD round 1 on the owner lens).
+7. `[facts] agent_clause` exists in `chart.toml`, defaults to `false`, and the facts lines carry no commit counts on
+   the merge commit, unless Ben has written "keep" or "share" against §9.2 in `docs/crit/prd/LOG.md`. Owner: a
+   session (§10.5). Fails today: `render_readme.py:459` calls `agent_clause(r)` unconditionally, `[facts]`
+   (`chart.toml:667`) has no switch, and `README.md:38, 86` print the counts (9 Oct 11:35; added in PRD round 2 on
+   the owner lens, r02-1 MF5 and r02-2 MF6, because "Done" never asked about G8).
+8. No theme word in a `chart.toml [copy]` value: the five retired keys at `chart.toml:35–39` (`unit_chart`,
+   `unit_hero`, `unit_approaches`, `limit_label`, `footer_line`) are deleted with the retired sheet modules (§10.8).
+   Owner: a session. Fails today. Added in PRD round 2 on the owner lens (r02-1 MF5): `chart.toml` is the public file
+   he is told to edit, and `footer_line` ("The chart ends here. The web doesn't.") is the thesis voice he cut on
+   9 Oct 19:39.
 
 ### 8.2 Warnings allowed today, each with an owner
 
@@ -394,19 +442,23 @@ accomplishing my goal?"*). Each has lines a reviewer ticks; a line that fails is
    two named in §7.1; American spelling (grep for colour, behaviour, organise, licence, grey, centre, favour,
    catalogue: none); no sentence a reviewer had to read twice (name it if there is one).
 5. **Would the reviewer ship it as is?** Advisory. This is the reviewer's taste; it has no pass condition and it is
-   not his bar. Only Ben's own "ship it" closes the product.
+   not his bar. Only Ben's own merge closes the product (§7.6).
 6. **Would the reviewer screenshot the image and send it to someone, and what would they say it was?** Advisory;
-   the answer is logged. "A flowchart" is the risk in §11 and this is where it is asked, every round (7 Oct 15:30:
-   "stunning"; round 4's question to him was which one he would screenshot).
+   the answer is logged against G13a. "A flowchart" is the risk in §11 and this is where it is asked, every round
+   (7 Oct 15:30: "stunning"; round 4's question to him was which one he would screenshot).
 
 **Done** = §8.1 all hold on the merge commit **and** §8.4 is logged **and** §9.1 is decided by Ben **and** three
-reviewers answer yes to questions 1–4 with no must-fix left open. Round 16: no (8/7/8). The must-fixes left were
+reviewers answer yes to questions 1–4 with no must-fix left open. Done means ready for Ben to merge; his merge is the
+acceptance (§7.6: he merges PRs). "Must-fix" here means a product-review must-fix (`docs/crit/round6/review-rNN-*.md`);
+PRD-review must-fixes live in §10 and `docs/crit/prd/LOG.md`. Round 16: no (8/7/8). The must-fixes left were
 copy (r16-3) and the meaning of a blank row and of `sitemap.xml` (r16-2), both fixed since; what blocks a yes is
 §9.1, not question 5.
 
 ### 8.4 On a device (once, before merge)
 
-Open the profile on an iPhone in Safari and in the GitHub app, light and dark. Pass conditions, logged in `LOG.md`:
+Owner: Ben (the session has no device). Open the profile on an iPhone in Safari and in the GitHub app, light and
+dark. Log the result in `docs/crit/round6/LOG.md` under the round that merges, with the screenshots' paths (two
+`LOG.md` files exist, `docs/crit/round6/` and `docs/crit/prd/`; neither has a device entry today). Pass conditions:
 
 - Safari at 390 px serves `hero-phone-day` in light mode and `hero-phone-night` in dark (the `<source>` order in
   `README.md` lines 7–12).
@@ -419,7 +471,13 @@ Open the profile on an iPhone in Safari and in the GitHub app, light and dark. P
 
 ### 8.5 After merge
 
-- A failed weekly run is Ben's to notice (the run page; the job's `::error::` lines) and a session's to fix.
+- A failed weekly run is Ben's to notice (the run page; the job's `::error::` lines) and a session's to fix. First
+  instance: run 12 (11 Oct 12:52 UTC, scheduled) failed at `Unit tests` on `main`'s v11 code (§0); noticed by PRD
+  review round 2 (r02-2), not by him; merging this branch replaces that code, and until then the next scheduled run
+  fails the same way.
+- After each run the sheet can lag the text for minutes to hours (§11). A sheet stale past a day is Ben's to purge:
+  `curl -X PURGE` on the Camo URL in the page source, sparingly (GitHub docs, "About anonymized URLs": "Purging the
+  cache forces every GitHub user to re-request the image").
 - The GitHub constants in the checks (the 82 px mobile inset, the 846 px column, `<picture>` support; measured on
   the live page 10 Oct 2026) are re-measured by whoever opens the next round, and on any GitHub changelog that names
   Markdown images.
@@ -435,40 +493,96 @@ Open the profile on an iPhone in Safari and in the GitHub app, light and dark. P
 Today the image's box and the page's "Before you run 0.1.3" list state six measured faults of the released tool
 (L1, L7, L4, L6, L2, L5 on the open list; H0 and H1 in the box). Every one is true, probed and gated. Together they
 read as a warning label on his flagship. His test is 9 Oct 20:50, *"is it accomplishing my goal? Not just what I'm
-saying"*, so each option below says what the first phone screen reads, not only which probes pass.
+saying"*, so each option below says what the first phone screen reads, not only which probes pass. The 1a outcome is
+rendered (below, and §9.3); the 1b render waits on §10.9.
+
+**What is live while this is undecided** (checked 11 Oct 2026 by REST and on the `chart` branch): `main` at `d253286`
+serves the v11 sheet from `chart` `c488907` ("chart: soundings 2026-10-09"; groups `hero-row0`, `hero-row1`, …), alt
+*"Ben Russell's 22 repositories by week, Sep 2025 to Oct 2026: Scrapy and rustmapper busiest, quiet Feb to Apr 2026.
+The rest share one row."*; facts lines with *"last commit 8 Aug 2026"* and *"last commit 8 Oct 2026"*; a first-person
+footer (*"my commits on their default branches … 3 % of my commits carry an AI co-author trailer … regenerated
+weekly"*); and the thesis line he cut on 9 Oct 19:39, pending PR #17. That is the map he rejected on 9 Oct 20:50
+(*"tiny fucking islands … Is it based on the size of the project or how many commits?"*), and its weekly job failed
+on 11 Oct (§0). Row 0 prints what that costs; PRD round 1's "the live page does not change" was true and not neutral.
 
 | Option | What the first screen says | What the page's list becomes | Cost, and who | What the pipeline does |
 |---|---|---|---|---|
-| **1a. Minimum 0.1.4** (recommended as the floor) | name; role; rustmapper, one sentence; `pip install rustmapper` 0.1.4; `rustmapper crawl` starts from your URL; fetches up to 20 pages; press Ctrl-C once; `data/sitemap.jsonl`; sorted 21 ways. **No box.** | five items (L1, L7, L4 without its https clause, L2, L5) | §5.4 rows 1, 2 and 6: exit when idle (the test is at HEAD), robots 404/scheme/fail-closed (not at HEAD), `[project.scripts]` (not at HEAD); a release. Ben, or a session with push access to `Rust-sitemap`. Nothing needed here. | H1, the gap, H0, L6 and L4's clause retire at the next weekly run; `release-published` rebuilds at once |
-| **1b. Full 0.1.4** (recommended) | as 1a, plus S2 "one queue per host, paced by that host's robots.txt" in the loop and W1 if its switch is lifted | three items (L1 reworded, L2, L5), each a default rather than a fault; the fold keeps the file notes | 1a plus §5.4 rows 3, 4, 5, 7, 8; two of the eight are at HEAD already (exit test, Crawl-delay parser). **Plus, here first:** the `crawl_delay_obeyed` probe, the L7 and `noindex` fallbacks, W1's switch (§10.9); without them the first build after the release fails on L1/L4/L7 | every caution retires on its own only once §10.9 is done |
+| **0. Leave `main` as it is** (what "undecided" means) | "22 repositories by week … Scrapy and rustmapper busiest, quiet Feb to Apr 2026"; "last commit 8 Aug 2026"; "my commits"; "regenerated weekly"; the thesis line | the v11 page: an activity sheet with repositories as rows, first person, a schedule line | no work; every week undecided keeps up a page that breaks G8, G13, G14, G15, §7.3 and §7.5, and its job failed on 11 Oct. The costliest row in what strangers see | nothing; the next scheduled run fails on the v11 tests again |
+| **1a. Minimum 0.1.4** (the floor; the step after 2b) | name; role; rustmapper, one sentence; `pip install rustmapper` 0.1.4; `rustmapper crawl` starts from your URL; fetches up to 20 pages; press Ctrl-C once; `data/sitemap.jsonl`; sorted 21 ways. **No box.** | five items (L1, L7, L4 without its https clause, L2, L5) | §5.4 rows 1, 2 and 6: exit when idle (the test is at HEAD), robots 404/scheme/fail-closed (not at HEAD), `[project.scripts]` (not at HEAD); a release. Ben, or a session with push access to `Rust-sitemap`. Nothing needed here. | H1, the gap, H0, L6 and L4's clause retire at the next weekly run; `release-published` rebuilds at once |
+| **1b. Full 0.1.4** (the end state) | as 1a, plus S2 "one queue per host, paced by that host's robots.txt" in the loop and W1 if its switch is lifted | three items (L1 reworded, L2, L5), each a default rather than a fault; the fold keeps the file notes | 1a plus §5.4 rows 3, 4, 5, 7, 8; two of the eight are at HEAD already (exit test, Crawl-delay parser). **Plus, here first:** the `crawl_delay_obeyed` probe, the L7 and `noindex` fallbacks, W1's switch (§10.9); without them the first build after the release fails on L1/L4/L7 | every caution retires on its own only once §10.9 is done |
 | 2. Keep the route, move the cautions to rustmapper's README | as today, with the box | one line linking the project's own "Known issues" | the image still draws H0/H1, because they are true of the release the image names; a "Known issues" section in Rust-sitemap; a gate here that the linked section exists | `[route.rustmapper]` items marked off-page |
-| 2b. Keep the image and its box; cut the open list to the two first-minute faults | as today, with the box | two items (L1: no pause, 256 workers; L7: no contact in the UA), the other four folded under the existing `<details>`; two is under the "few" the hiring-side sources set (r01-1 §5) | no work in Rust-sitemap; here, README-CAUTIONS' open-list limit and the fold's | retires the same way as 3 |
+| **2b. Keep the image and its box; cut the open list to the two first-minute faults** (recommended now) | as today, with the box | two items (L1: no pause, 256 workers; L7: no contact in the UA), the other four folded under the existing `<details>`; two is under the "few" the hiring-side sources set (r01-1 §5; r02-1 §5.2: a fault list helps when short, after the positive, each item with its fix) | no work in Rust-sitemap; here, one change: `LIST_MAX_ITEMS = 7` caps the open list and the fold alike (`render_readme.py:670`) and the fold takes the entries marked `fold = true` in `chart.toml`, so L4, L6, L2 and L5 get `fold = true` (four lines in `chart.toml`); but the fold then holds eight (L3, X3, X2, X1 are folded today) against the same cap of 7 (`checks/readme.py:121–125`: "at most one `<details>` fold ... of at most `max_items` items too"), so the fold's cap goes to 8 (round 12 had it there) or the open list gets its own cap (§10.19); a session, before the merge | retires the same way as 3: H1, the gap, H0, L6 and L4's clause go on the next weekly run after a release |
 | 3. Ship as is | as today, with the box, then six items | six items | a visitor's first read of his main tool is its fault list | nothing |
 
-- **Default while undecided:** the branch stays unmerged; `main` and the live page do not change.
-- **Decide by:** before the merge. A push to `main` that touches scripts or `chart.toml` triggers a build, so the
-  merge is the first weekly run.
+**The rows are not alternatives.** 1a/1b and 2b/3 are steps, not a menu: merging now (2b or 3) and releasing 0.1.4
+later gives 1a or 1b by itself, because four of §5.4's eight rows retire on `release-published` or at the next weekly
+run with no edit here, and the other three need §10.9, which is work in this repository, not in Rust-sitemap.
+Merging first costs nothing a release would not undo on its own, and 0 → 2b is reversible (`git revert` of the merge
+commit on `main`; §6.1). So the decision is sequenced:
+
+- **Default while undecided:** **merge 2b now**, then decide 1a against 1b with the renders in hand. Changed in PRD
+  round 2 on the owner lens (r02-1 MF1, r02-2 MF2) from round 1's "the branch stays unmerged; `main` does not
+  change", whose cost is row 0. 3 is not the better immediate merge: the hiring-side sources read in round 2 want a
+  fault list short, after the positive, and each item with its fix, and 2b is the only row that gets there without
+  Rust work; 3 puts six items, two unfixed, on the second phone screen (`page-phone-2.png`).
+- **Decide by:** 2b before the merge (one change here, §10.19; §8.1 items 6–8 first). 1a against 1b before the
+  release is cut. A push to `main` that touches scripts or `chart.toml` triggers a build, so the merge is the first
+  weekly run.
 - **Size:** 1a is three fixes in Rust-sitemap, one with its test already at HEAD; 1b is eight fixes plus the four
   items here. In days this is Ben's estimate to make; the repository cannot measure it, and this document prints no
   figure it did not measure.
-- **A render of the 1a and 1b outcomes** is owed to him before he decides (§9.3): the round-1 `once-p1-lands/` sheet
-  is the precedent. The 1b render needs §10.9 first, because the fixture that passes every §5.4 probe fails the
-  build today (§5.4, "Needs here").
+- **The 1a render** (PRD round 2; the round-1 `once-p1-lands/` sheet is the precedent) is at the session's
+  `scratchpad/prd-r02/once-1a/`: `sheet-phone-day-390.png`, `sheet-desk-day-870.png`, `page-phone-1.png` to
+  `-7.png`, `page-desk-1.png`, `-2.png`, with the fixture (`stats-once-1a.json`, `runcheck-1a.json`), the page text
+  (`README-1a.md`) and the build. The fixture is today's `stats.json` with `ends_by_itself` and `robots_read` passing,
+  `robots_stall` failing and `edition.scripts = ["rustmapper"]`, its routes re-verified against the clone at
+  `32c2651` and the local 0.1.3 sdist. What it shows, beside round-16's: **no box and no gap in the track** (H0, H1,
+  L6 and M1 resolve to `""`; G1a's second mark goes with the fault it marked), the loop closing on the fetch row,
+  `rustmapper crawl` on the first line of the route, L4 without its https clause, the open list five items (L1, L7,
+  L4, L2, L5), the fold unchanged; the phone sheet 982 units tall against 1,121 today (the desk 620 against 707). The
+  version line still reads "0.1.3 · 8 NOV 2025": the fixture does not invent a release. `check.py --tier fast,render`
+  on that build: the same four warnings as round 16 and one fail, REPORT-STATS, which hashes `assets/stats.json`
+  rather than the fixture (an artefact of the path, not of the build). The 1b render needs §10.9 first, because the
+  fixture that passes every §5.4 probe fails the build today (§5.4, "Needs here").
+
+### 9.1b The second decision: the mid window, 852–930 px
+
+Between 852 and 930 px the mid sheet's 19-unit text is 11.2 to 13.0 px, under the 13 px floor a phone gets
+(`column.py`: `MIN_PX = 11.0`, line 45; `column_px(852)` = 482 px, lines 56–63; the mid sheet starts at `mid_from_px
+= 852`, `chart.toml:13`). No device he named sits in that window; a 1,024 px iPad held sideways gets 13.7 px. This is
+the one home of the trade (PRD round 1 said it in five places); §5.2, §7.4, §10.14 and §11 point here.
+
+| Option | What the 852–930 px reader sees | Cost, and who | Default |
+|---|---|---|---|
+| **a. Accept 11.2–13 px in writing** (recommended) | the mid sheet as today, 11.2 px at 852 | none; written here and in §11 | yes |
+| b. Serve the phone sheet to 930 (`mid_from_px = 931`) | the phone sheet in a 482–560 px column, its 26-unit text about 21–24 px | one number and six `<source>` lines regenerate; **but HERO-COLUMN-PX fails at 852 as the gate stands**: the phone sheet is 1.868 × its column (1,121 / 600 units), 900.5 px at 482 px, over `TALL_PX = 900` by half a pixel (computed in PRD round 2), so b also needs the sheet 1 unit shorter or the gate moved; a session | no |
+| c. A narrower mid sheet | smaller type on every mid reader, 852–1,199 | a redesign of one edition, a build and a review round; a session | no |
+
+Decides: Ben (9 Oct 11:32: *"accepting of all different formats"*). Until he does, a stands.
 
 ### 9.2 Owner's calls carried in `docs/BEN-TODO.md`
 
 - `[position] text` and `[contact] linkedin` / `resume` (empty since round 4): now §8.1 item 6, blocking the merge.
 - **The agent-authorship counts on the facts lines** ("coding agents (Claude) authored 45 of its 146 commits and
-  co-signed 1 of his own 101"; Scrapy's "71 of its 499 … 30 of his own 420"). The rule is his sentence (9 Oct 11:35:
-  "We don't need to show the commits… it feels lazy"); the two memos that argued hiding them costs more are the
-  agents' judgement, not his. Options: **strike** (his words; the default from PRD round 1), **keep** (an honest
-  fact a hiring engineer asks, Q3), **share without totals** ("about a third of its commits were written by coding
-  agents", no numbers, in the provenance line which already says who is counted). Implementation either way is the
-  `[facts] agent_clause` switch (§10.5), default off, so his answer is one line. Until the switch exists the page
-  prints the counts, and G8 is marked open.
-- `rustmapper` or `Rust-sitemap` as the printed name (the alias is in `chart.toml`).
-- The rustmapper README's worker figure (code 256–1,024, README 32–512, PyPI 256).
-- Scrapy: make the near-duplicate filter persist across passes; stage 2's robots check, delay and user agent.
+  co-signed 1 of his own 101"; Scrapy's "71 of its 499 … 30 of his own 420"). He said both: 9 Oct 11:35 (*"We don't
+  need to show the commits are kind of cool. The data is kind of cool that we're pulling, but at the same time, it
+  feels lazy, and I don't really like that"*) reads against showing commit figures; 9 Oct 11:37 (*"Talking about my
+  commits. Talking about my work. That is what this should all be about"*) says the page should talk about his
+  commits and his work. The two memos that argued hiding them costs more are the agents' judgement, not his.
+  Options: **strike** (11:35), **keep** (11:37; an honest fact a hiring engineer asks, Q3), **share without totals**
+  ("about a third of its commits were written by coding agents", no numbers, in the provenance line which already
+  says who is counted). **Default: strike; not yet implemented; blocks the merge** (§8.1 item 7; the owner lens in
+  PRD rounds 1 and 2). Implementation either way is the `[facts] agent_clause` switch (§10.5), default off, so his
+  answer is one line in `docs/crit/prd/LOG.md`. Until the switch exists the page prints the counts, and G8 is open.
+- **The printed name.** Options: `rustmapper` (the PyPI name and what a reader types; printed today through the
+  alias in `chart.toml`; recommended, since the first screen is the install line) or `Rust-sitemap` (the repository,
+  linked from the image and the link line either way). Decides: Ben; one line in `chart.toml`.
+- **The rustmapper README's worker figure** (code 256–1,024, README 32–512, PyPI 256). Options: correct the README
+  in Rust-sitemap to the code's figures (recommended; the page prints the code's 256 on L1 and would not change) or
+  leave it (nothing here changes). Decides: Ben, in Rust-sitemap.
+- **Scrapy**: the near-duplicate filter persisting across passes; stage 2's robots check, delay and user agent.
+  Options: do the work in his Scrapy repository (the pick's politeness clause then prints by itself, §5.3 row 4) or
+  leave it (the clause stays off). Nothing here changes either way. Decides: Ben, in Scrapy.
 
 ### 9.3 Not yet verified or produced
 
@@ -476,81 +590,40 @@ saying"*, so each option below says what the first phone screen reads, not only 
 - The `workflow_dispatch` dry run on the branch (the macOS run check installs the prebuilt wheel, so the install
   note will read differently from the Linux run that produced today's `stats.json`; the https probes depend on
   `sudo -n security add-trusted-cert` on macos-14 and may be skipped, which the gate reports as a warning).
-- A real iPad at 852–1,199 px, and his call on the mid window: between 852 and 930 px the route's words are under
-  the 13 px floor he gets on a phone (11.2 px at 852). Either lift the mid floor to 13 (a narrower mid sheet, or a
-  second breakpoint at 931) or accept the window in writing (§11). 9 Oct 11:32: "accepting of all different
-  formats".
-- The renders of the §9.1 outcomes: build from a fixture `stats.json` with `ends_by_itself`, `robots_read`,
-  `robots_late` passing and `robots_stall`, `ua_seen`, `sitemap_keeps_disallowed`, `kill_writes_file` failing, with
-  `edition.scripts` set; put the paths beside round-16's. The 1a fixture builds today; the 1b fixture needs §10.9.
+- A real iPad at 852–1,199 px. His call on the mid window is §9.1b (default a: accept in writing).
+- The 1b render: a fixture `stats.json` with `ends_by_itself`, `robots_read`, `robots_late` passing and
+  `robots_stall`, `ua_seen`, `sitemap_keeps_disallowed`, `kill_writes_file` failing, with `edition.scripts` set; it
+  needs §10.9 first (L7 goes unverified with `ua_seen` failed). The 1a render exists (§9.1, PRD round 2).
 
 ## 10. Gaps this review found
 
-Rules that are held only by a reviewer's eye, or by nothing, with the proposed fix. Items 1–7 are from the PRD's
-first draft; 8–16 were added by PRD review round 1 (reviewer and must-fix in brackets). None of 1–8 blocks the
-merge; 9 blocks option 1b.
+Rules held only by a reviewer's eye, or by nothing, with the proposed fix. One row each, ids stable (other sections
+cite them): items 1–7 are from the PRD's first draft, 8–16 from PRD review round 1, 17–20 from round 2. **Rule:** a
+row that blocks the merge is also a line in §8.1; a row that closes keeps its id here as one line and its reasoning
+moves to `docs/crit/prd/LOG.md`. Blocks: merge / option 1b / nothing. Owner: Ben, or a session.
 
-1. **Theme words in README prose** (G2). `theme_words` runs over the image, the alt and DESIGN.md, not over
-   `README.md`'s visible prose. Add it to `checks/readme.py` with an allow-list for project facts ("Helm chart",
-   "CT logs", "logged"). One function, one test. Until then §8.3 q.1 carries the grep.
-2. **"Not too on the nose" has no count** (G10). The reviewers count winks by hand (two today). Record the allowed
-   two phrases in `chart.toml [copy] winks` and fail a third unlisted one? Over-engineering; keep it in review. The
-   two are named in §7.1 and §8.3 q.4 so no round forgets to count.
-3. **Even density** (G3). No metric. The one-pitch, one-edge, fixed-mark rules hold it by construction; a density
-   check would be chasing a number. Keep it judged (§8.3 q.3).
-4. **The device check** (G4): §8.4, with its pass conditions. It must be done once, by him or on a device the
-   session can reach, before the merge.
-5. **Commit counts on the facts lines** (G8). Decided in §9.2: off by default, by his sentence. The gap is the
-   implementation: `render_readme.agent_clause` is called unconditionally (`render_readme.py:459`) and `chart.toml
-   [facts]` has no switch. Add `[facts] agent_clause = false`, read it in the renderer, and a test for both states;
-   then mark G8 "gate + switch".
-6. **"Generated" survives in two maintainer comments**: the README's first line ("regenerated weekly from
-   assets/stats.json") and DESIGN.md's first line ("Generated by `python3 scripts/tokens.py --md`"). Both are HTML
-   comments a visitor never sees, and the test guards only the provenance line. Fine as is; noted so the rule's
-   scope is explicit: *no generated-by line a visitor can read*.
-7. **The worktree's `assets/v9` is stale** (gitignored; it still holds v9 footer stills). `check.py` run without
-   `--out-dir` on a stale tree fails on them. Not a product defect; `build_assets.py` first, or point the gate at the
-   build. Worth a one-line note in `check.py`'s docstring.
-8. **Theme strings and retired modules in the repository** (G2, G11; r01-1 MF7). `chart.toml [copy]` still carries
-   `unit_chart = "SOUNDINGS IN COMMIT-DAYS"` (read by nothing), `unit_hero`, `unit_approaches`, `limit_label = "LIMIT
-   OF SURVEY 2026"` and `footer_line = "The chart ends here. The web doesn't."`, read only by `scripts/sheets/
-   soundings.py`, `approaches.py` and `footer.py`, which `build_assets.py` lists in `ALL_SHEETS` but not in
-   `SHEETS = ["hero"]`. The profile repository is public and `chart.toml` is the file he is told to edit; the
-   footer line is the thesis voice he cut on 9 Oct 19:39. Fix: delete the five keys and the retired `soundings`,
-   `approaches`, `footer`, `log` and `instruments` modules with their tests (69 tests) and the `log.shards` warning;
-   extend `theme_words` to `[copy]` values (the §7.1 open row).
-9. **Three of §5.4's rows fail the build instead of retiring** (G7; r01-3 MF1), verified by running the resolver:
-   write probe `crawl_delay_obeyed` in `runcheck.py` (a fixture robots.txt with `Crawl-delay: 2`, two requests to
-   one host at least 2 s apart); add to L7 an `instead` with `fails = ["ua_seen"]`, `text = ""`; add to X1 a wording
-   for a release that drops `noindex` pages; replace W1's `drawn = false` with a wording that holds on a passing
-   `kill_writes_file` and lift the switch, or leave W1 undrawn and say so in §5.1 for good. Then §5.4's claim is a
-   fixture the resolver is run against (item 12).
-10. **The thesis line is banned nowhere** (G14; r01-3 MF4). Add "wrong about itself" to `strings.py BANNED` (it scans
-    `README.md`, `chart.toml`, the SVGs and the report), and strike `docs/BEN-TODO.md:39` (round-4 item 1 still
-    tells him to set his GitHub bio to "The web is wrong about itself; I survey the part that isn't linked"). His
-    words, 9 Oct 19:39.
-11. **T-PURPOSE and ROUTE-PURPOSE are narrower than their rows** (G9, G16; r01-3 MF5, MF6). Add to
-    `test_every_element_has_a_purpose` an assertion on what is inside each non-text group (only `rect`, `circle`,
-    `line` and `path` with straight-segment `d`; no `use`, `symbol`, `polygon`, `image`), so "no ships" has a test;
-    and derive the excused set from `data.route` (`drawn = false`, `waits`) instead of the hand list `{S2, W1}`.
-12. **The PRD has no test** (r01-3 MF8). This repository already fails the build when `README.md`, `DESIGN.md` or
-    `AUDIT.md` drift (README-STALE, DESIGN-FRESH, AUDIT-STALE); the PRD is the one generated-by-hand document. Add
-    `tests/test_prd.py`: every `[A-Z]+(-[A-Z]+)+` token in §7 and appendix B is emitted by `scripts/checks/*.py` and
-    every emitted code is in appendix B; each appendix-B tier equals the plug-in's `TIER`; §6's counts match
-    (`ls scripts/checks`, the `unittest` total from the runner, `len(steps)` and the gate/probe split in
-    `stats.json`); §8.2's codes equal the gate's warn set on a fresh build; §5.1's IDs and Q's equal `PURPOSE`; each
-    §5.4 row is a resolver fixture.
-13. **A failed data fetch leaves no mark** (r01-2 MF3). §6 and §6.1 now say what happens (last week's figures, old
-    dates, no mark). Decide whether a mark should exist on the route sheet or the page; if yes, define it, have
-    `route.py` read `no_sounding`, and test that path with `["hero"]`, not `["log"]`.
-14. **The mid window's floor** (G4; r01-3 MF2): §9.3. A product change (narrower mid, or a breakpoint at 931) or an
-    accepted trade written in §11.
-15. **Languages order** (r01-2 MF9): `tests/test_round7.py:91` pins the set and "Python, Rust; " first; nothing pins
-    "then by repository count, then by lines". Add one assertion over a fixture with two counts.
-16. **The code block's comment lines on the desk** (r01-1 MF6). README-CODE-WIDTH caps every line at 32 columns for
-    the 360 px phone; the three comment lines are the ones that wrap for it, and the desk reader (the likelier one)
-    sees them wrapped in an 846 px column. If a wording of the stop rule fits one ≤ 32-column comment, take it ("#
-    runs until stopped; Ctrl-C once" is 33). Otherwise the trade stands (§11).
+| # | Gap | Fix (file) | Blocks | Owner | Status |
+|---|---|---|---|---|---|
+| 1 | Theme words in README prose (G2): `theme_words` runs over the image, the alt and DESIGN.md, not `README.md`'s visible prose | add it to `checks/readme.py` with an allow-list for project facts ("Helm chart", "CT logs", "logged"); one function, one test. Until then §8.3 q.1 carries the grep | nothing | a session | open (draft) |
+| 2 | "Not too on the nose" has no count (G10) | none: the winks stay review-counted, the two named in §7.1 and §8.3 q.4; a `[copy] winks` list would be over-engineering | nothing | — | closed (draft): kept in review |
+| 3 | Even density (G3) has no metric | none: one pitch, one edge, fixed marks hold it by construction; judged at §8.3 q.3 | nothing | — | closed (draft): kept in review |
+| 4 | The device check (G4) has not been done | §8.4, once, with its pass conditions and the screenshots' paths in `docs/crit/round6/LOG.md` | merge (§8.3 "Done") | Ben | open (draft) |
+| 5 | Commit counts on the facts lines (G8); decided off by default in §9.2 | `[facts] agent_clause = false` in `chart.toml`, read at `render_readme.py:459`, a test for both states; then G8 "gate + switch" | **merge** (§8.1 item 7) | a session | open (draft; blocking since round 2) |
+| 6 | "Generated" survives in two maintainer comments (`README.md` line 1, `DESIGN.md` line 1) | none: HTML comments a visitor never sees; the rule's scope is *no generated-by line a visitor can read* | nothing | — | closed (draft): noted |
+| 7 | The worktree's `assets/v9` is stale (gitignored v9 footer stills), so `check.py` without `--out-dir` fails on them | `build_assets.py` first, or `--out-dir`; one line in `check.py`'s docstring | nothing | a session | open (draft) |
+| 8 | Theme strings and retired modules in the public repository (G2, G11): `chart.toml:35–39` (`unit_chart = "SOUNDINGS IN COMMIT-DAYS"`, `unit_hero`, `unit_approaches`, `limit_label`, `footer_line = "The chart ends here. The web doesn't."`), read only by `scripts/sheets/soundings.py`, `approaches.py`, `footer.py` (`build_assets.ALL_SHEETS`, not `SHEETS = ["hero"]`) | delete the five keys; the `soundings`, `approaches`, `footer`, `log`, `instruments` modules with their tests; `tests/test_chartlib.py` (22) and the `chartlib` functions the route does not call (it calls `stroke` only: `grep chartlib. scripts/sheets/route.py`); the `log.shards` warning; extend `theme_words` to `[copy]` values (§7.1 open row). 91 tests go (§6) | **merge** (§8.1 item 8) | a session | open (round 1; blocking since round 2, owner lens r02-1 MF5; `test_chartlib` added by r02-3 MF3) |
+| 9 | Three of §5.4's rows fail the build instead of retiring (G7), verified by running the resolver | probe `crawl_delay_obeyed` in `runcheck.py` (a fixture robots.txt with `Crawl-delay: 2`, two requests to one host ≥ 2 s apart); an `instead` on L7 with `fails = ["ua_seen"]`, `text = ""`; a wording on X1 for a release that drops `noindex`; W1: a wording that holds on a passing `kill_writes_file` and the switch lifted, or leave W1 undrawn and say so in §5.1 for good. Then each §5.4 row is a resolver fixture (item 12) | option 1b | a session | open (round 1, r01-3 MF1) |
+| 10 | The thesis line is banned nowhere (G14; 9 Oct 19:39) | "wrong about itself" into `strings.py BANNED` (it scans `README.md`, `chart.toml`, the SVGs, the report); strike `docs/BEN-TODO.md:39` (round-4 item 1 still tells him to put it in his bio) | nothing | a session (BANNED); Ben (BEN-TODO) | open (round 1, r01-3 MF4) |
+| 11 | T-PURPOSE and ROUTE-PURPOSE are narrower than their rows (G9, G16) | in `test_every_element_has_a_purpose`, assert what is inside each non-text group (only `rect`, `circle`, `line`, `path` with straight segments; no `use`, `symbol`, `polygon`, `image`), so "no ships" has a test; derive the excused set from `data.route` (`drawn = false`, `waits`) instead of `{S2, W1}` | nothing | a session | open (round 1, r01-3 MF5, MF6) |
+| 12 | The PRD has no test; its register is checked by hand (§0) | `tests/test_prd.py`: every `[A-Z]+(-[A-Z]+)+` token in §7 and appendix B is emitted by `scripts/checks/*.py` and every emitted code is in appendix B; each tier equals the plug-in's `TIER`; §6's counts match (`ls scripts/checks`, the runner's total, `len(steps)` and the gate/probe split); §8.2's codes equal the warn set on a fresh build; §5.1's IDs and Q's equal `PURPOSE`; each §5.4 row is a resolver fixture | nothing | a session | open (round 1, r01-3 MF8; r02-3 MF6) |
+| 13 | A failed data fetch leaves no mark (§6, §6.1: last week's figures, old dates) | decide whether a mark exists on the route sheet or the page; if yes, define it, have `route.py` read `no_sounding`, and test the path with `["hero"]`, not `["log"]` | nothing | Ben (whether); a session (how) | open (round 1, r01-2 MF3) |
+| 14 | The mid window's floor (G4) | moved to §9.1b as a decision with options, cost and a default (a: accept in writing) | nothing | Ben | closed as a gap (round 2, r02-2 MF5): a decision, §9.1b |
+| 15 | Languages order: `tests/test_round7.py:91` pins the set and "Python, Rust; " first, nothing pins "then by repository count, then by lines" | one assertion over a fixture with two counts | nothing | a session | open (round 1, r01-2 MF9) |
+| 16 | The code block's comment lines wrap at the phone's 32 columns on the desk (`page-desk-1.png`) | a ≤ 32-column wording of the stop rule if one exists ("# runs until stopped; Ctrl-C once" is 33); otherwise the trade stands (§11) | nothing | a session | open (round 1, r01-1 MF6) |
+| 17 | This branch has no PR (§7.6 "not met today"; 8 Oct 09:04) | open the PR for `v12/purpose`; the fix passes do not push, so a session with push does it, or Ben | the §7.6 rule, not the merge | a session with push | open (round 2, r02-1 MF1) |
+| 18 | `resume_after_kill` runs every week and is read by nothing (§6; `chart.toml:900` is a comment); `runcheck.py:7` says "probes four behaviours" of 18 | name the probe from W1's future wording (item 9) or drop it; fix the docstring | nothing | a session | open (round 2, r02-3 MF5) |
+| 19 | Option 2b needs one change here: `LIST_MAX_ITEMS = 7` caps the open list and the fold alike (`render_readme.py:670`) and the fold takes the entries marked `fold = true` | mark L4, L6, L2, L5 `fold = true` in `chart.toml` (four lines), and raise the fold's cap to 8 (`cautions()` in `checks/readme.py:121–125` caps the fold at `max_items` too, and the fold holds four today: L3, X3, X2, X1), or give the open list its own cap and leave the fold's at 7; a test for the new state | merge under 2b (§9.1 default) | a session | open (round 2, r02-1 MF1, r02-2 MF2) |
+| 20 | The sheet can lag the text after each run (§11: raw 300 s, Camo on top, same paths force-pushed) | only if Ben wants the window shorter: sheets named by run in `publish_chart.py`, the URL in `render_readme.py`, HERO-FALLBACK's path check | nothing | Ben (whether); a session (how) | open (round 2, r02-2 MF8) |
 
 ## 11. Risks
 
@@ -561,9 +634,20 @@ merge; 9 blocks option 1b.
   serves one code block to both, so the desk column (846 px, `page-desk-1.png`) shows the three stop-rule comment
   lines wrapped at the phone's 32 columns with two thirds of the column empty. Accepted for now; §10.16 names the
   one-line fix if a wording exists.
-- **The mid window, 852–930 px.** The route's words are 11.2–13.0 px there, under the 13 px a phone gets (§5.2,
-  §9.3). No device he named sits in that window (a 1,024 px iPad sideways gets 13.7 px); the trade is written here
-  until he rules on it.
+- **The mid window, 852–930 px.** The route's words are 11.2–13.0 px there, under the 13 px a phone gets. Accepted
+  in writing by default (§9.1b, option a) until he rules otherwise.
+- **The sheet can lag the text after each run.** The `<picture>` sources are
+  `raw.githubusercontent.com/…/chart/assets/v9/hero-*.svg` (`README.md` lines 7–13) and `publish_chart.py`
+  force-pushes new sheets to the same paths. raw.githubusercontent.com caches for 300 s (GitHub staff in community
+  discussion #46691: "The cache is set for 5 minutes"; `max-age=86400` seen on some files, hours reported in some
+  regions; FLUID-6626: "a varnish cache that does not allow updates more frequently than every 300 seconds"), and
+  GitHub serves Markdown images through Camo, which caches on top (GitHub docs, "About anonymized URLs"). So for
+  minutes, sometimes longer, a visitor can see the new README with last week's sheet: the week H1 retires, the list
+  drops the stop-rule while the image still shows the box. Accepted: both states are true of the release, and round
+  15's publish-before-commit rule covers a missing sheet, not a stale one (8 Oct 11:13 was the same class of
+  surprise). If it must be shorter: name the sheets by run (`hero-day-<date>.svg`) so the README's new URLs miss the
+  cache; one line in `publish_chart.py`, one in `render_readme.py`, and HERO-FALLBACK's path check (§10.20). A sheet
+  stale past a day is purged by Ben (§8.5).
 - **The weekly run check on macOS differs from the Linux run** that produced today's stats; wordings may shift on
   the first CI build (the install note, probe skips). The gate reports it; nothing false can print.
 - **A 0.1.4 cut from HEAD as it stands removes the command line** (`bindings = "pyo3"`, no `[project.scripts]`,
