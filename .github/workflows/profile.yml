@@ -147,6 +147,11 @@ jobs:
         if: ${{ inputs.dry_run }}
         run: python3 scripts/publish_chart.py --dry-run
 
+      # Owner's process rule (docs/PRD.md appendix D): never push to main; he merges PRs (Owner, 8 Oct 2026 09:04:
+      # "Resolve all merge conflicts and all PRs need to be ready to merge"). This step is the one exception, by his
+      # design: the bot's weekly commit of the measured files and the rendered README, after the gate. A non-dry
+      # workflow_dispatch on a branch would break the rule by the bot's hand (PRD §8.1 item 4, §10.22).
+      # Owner, 8 Oct 2026 11:13: "Merged but all images are unavailable", hence the order: sheets first, main after.
       # Review round 15 (the owner): the sheets go to the chart branch before README.md goes to main, so main never
       # names a file the branch lacks (publish_chart.unshipped refuses a README that names an unshipped edition); a
       # README merged ahead of its sheets showed a broken image at 852 to 1,199 px and the old sheet elsewhere.

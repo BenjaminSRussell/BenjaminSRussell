@@ -245,6 +245,7 @@ class Readme(unittest.TestCase):
 
     def test_no_first_person_on_the_page(self):
         """Review round 3: the page is about him, in his name: no I, my, mine or me in its visible prose."""
+        # Owner, 9 Oct 2026 11:37: "It should be telling you about me, but with a layer of a theme of shipping."
         from checks.strings import readme_visible
         with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as fh:
             text = re.sub(r"```.*?```", " ", fh.read(), flags=re.S)
@@ -307,6 +308,8 @@ class Readme(unittest.TestCase):
     def test_provenance_line_is_from_stats_only(self):
         """D5 / F3.4: measured when, from how many clones, my commits on their default branches, the bulk-edit days
         named and defined; the agent share and the agent-authored commits; no commit total, no instruments."""
+        # Owner, 9 Oct 2026 11:35: "We don't need to show the commits are kind of cool. The data is kind of cool that
+        # we're pulling, but at the same time, it feels lazy, and I don't really like that."
         figs = render_readme.figures(self.stats, self.cfg)
         block = sp(render_readme.survey_block(self.stats, figs, ["Rust-sitemap", "Scrapy"], {"Rust-sitemap": "rustmapper"}))
         self.assertTrue(block.startswith("<sub>The [drawing](DESIGN.md) shows rustmapper ") and block.endswith(".</sub>"),

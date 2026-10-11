@@ -15,6 +15,9 @@ import re
 from check import Finding, fail
 
 TIER = "fast"
+# Owner, 9 Oct 2026 11:35: "On top of that, we really need to be focused on, how is the data gathered? The data doesn't
+# look exactly accurate. It looks like it's kind of like all over the place." Every figure printed has a register row
+# with its definition, its key and its source commit (AUDIT-COVER).
 DIGITS = re.compile(r"(?<![A-Za-z0-9_\-])\d+(?:,\d{3})*(?:\.\d+)*(?![A-Za-z0-9_\-])")
 
 

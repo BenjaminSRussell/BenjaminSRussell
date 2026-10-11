@@ -21,6 +21,9 @@ from check import Finding, fail
 
 TIER = "fast"
 
+# Owner, 9 Oct 2026 11:37: "Don't say arg like a fucking pirate. Don't use pirate language. We're in a modern era."
+# ("Here be dragons", "Fair winds"). Owner, 8 Oct 2026 14:52: "you don't need to tell them it's a ships log or label
+# everything it should be obvious" (the labels and footers of the earlier editions)
 BANNED = (
     "ILLUSTRATIVE", "PENDING", "SEEDED", "NOT FOR NAVIGATION", "Here be dragons", "Fair winds",
     "example.com", "Oct 2024", "thanks for reading", "that's a mood", "Hi I'm Ben", "Hi, I'm Ben",
@@ -64,6 +67,8 @@ def unmeasured(report: dict | None) -> list[Finding]:
     return out
 
 
+# Owner, 9 Oct 2026 11:35: "the images and the text need to kind of like either differentiate themselves a little bit,
+# or don't go too far into the ship theme." STRINGS-TWICE is the first half: no fact both in the image and in the prose.
 TWICE_WORDS = 4
 SHORT_WORDS = 3          # review round 2: a run this short counts when it holds a code token or a date
 # the image's one command is the entrance, and the code block copies it. Review round 10: "received work item" is the

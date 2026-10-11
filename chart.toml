@@ -31,6 +31,12 @@ linkedin = ""
 resume = ""
 
 [copy]
+# Owner, 9 Oct 2026 11:37: "It should be telling you about me, but with a layer of a theme of shipping. If that's what
+# your goal is, that should be the fucking orientation." The role line says what he builds, in plain words; the manner
+# is in the drawing's marks (sheets/route.py), never in a word here.
+# Owner, 9 Oct 2026 19:39: "The wording is fucking weird survey the web that is wrong about itself come the fuck on"
+# So the thesis line ("survey the web that is wrong about itself") is cut: no `thesis` key here or in [copy.review],
+# and nothing prints one (PRD G14).
 role_line = "Crawl and data infrastructure · Python and Rust"
 unit_chart = "SOUNDINGS IN COMMIT-DAYS"   # the hero's unit line (v10, D2)
 unit_hero = "SOUNDINGS IN COMMITS"         # read by the soundings sheet (sheet 2) until that module retires; not the hero's
@@ -126,6 +132,12 @@ name = "COMMON CRAWL"
 # checks/notices.py fails a printed cite whose anchor is not found (NOTICE-DATE) or whose code an agent wrote first
 # (NOTICE-AUTHOR), unless the cite says so (`names_agent = true`). `date` is the first anchor's month, for the
 # notices list in stats.json; NOTICE-DATE fails when it differs from the computed one.
+# Owner, 9 Oct 2026 11:37: "Don't say arg like a fucking pirate. Don't use pirate language. We're in a modern era. But if
+# it's shipping themed, it should just feel shipping. And if there's little things, little jokes you can throw in, like
+# one word, one-off words that are referenced being a pirate or some shit, like that's funny. Making it all about it
+# too fucking much. No one wants that. It's just cringy." The working rules are plain claims about his code, each with
+# a cite; "Boring under load." is one of the page's two winks (the other is game_engine's "why engines are hard"),
+# and no rule names a theme (PRD G10, §7.1).
 [[notices]]
 n = 1
 title = "Boring under load."
@@ -681,6 +693,10 @@ built_on.Rust-sitemap = ["tokio", "redb", "rkyv", "reqwest", "clap"]
 repo = "Rust-sitemap"
 project = "rustmapper"
 # review round 6: "URL it finds", not "page it reaches": a link to a missing page gets a line too (status_code null)
+# Owner, 9 Oct 2026 20:50: "How does it help the user see my project? What is it showing?" The header is the first
+# sentence a stranger reads on the image: the project and what it does, nothing about the manner. Owner, 8 Oct 2026
+# 14:52: "Don't tell the user show the user you don't need to tell them it's a ships log or label everything it
+# should be obvious"
 header = "Crawls a site and writes one line for every URL it finds."
 # the sentence rests on the code that writes the file, at HEAD and in the release, and on the run check's crawl
 header_head = [{path = "src/orchestration/shutdown.rs", text = 'join("sitemap.jsonl")'}, {path = "src/state.rs", text = "pub struct SitemapNode"}]
@@ -693,6 +709,11 @@ header_runs = ["crawl_ctrl_c"]
 list_lead = "Before you run {release}:"
 # review round 13 (the owner): the items marked `fold` (what the files miss or get wrong, nothing a server feels)
 # go in one <details> after the open list, under this label; the open list keeps what you set or decide first
+# Owner, 9 Oct 2026 11:32: "I'm looking at iPhone. I think the iPhone experience is going to be a very common one. So if
+# it has to be kind of separated for that or scalable for that, that's important." The open list stays short on a
+# phone (README-CAUTIONS: at most 7 items of 25 words); the file faults are one tap away, folded (README-DETAILS).
+# Owner, 9 Oct 2026 11:37: "It has to be helpful knowledge. If you were a fucking real sailor, if you were a real
+# person, you'd want it to be helpful data that you're looking at." Every item is a probe's result with its lever.
 fold_lead = "What {release}'s files miss or get wrong"
 
 # README lines that wait on work in Rust-sitemap (SPEC §1, §4 block 5): the cargo install line is printed once the
@@ -861,6 +882,10 @@ runs = ["crawl_ctrl_c"]
 # visitor loses and use L6's verb: the pages behind the disallowed link wait (a new link to the host wakes them, so
 # not "never"). One phone line in every edition (tests/test_round15.py).
 # The day a release re-pushes the host (main has since 6bcb6cd), robots_stall fails and the empty wording retires it.
+# Owner, 9 Oct 2026 11:37: "And the data we're showing should be helpful. If I was a fucking sailor pilot, if I am a
+# sailor, if I was a pilot, or if I was a fucking pirate, or if I was a shipping captain back in that day and age, what
+# I'd want are very helpful information. Things that very help." The cautions (H0, H1) are the two catches a stranger
+# meets on a real site, each on a probe that showed it, and C1 is the way out; none is a device.
 [[route.rustmapper.entry]]
 id = "H0"
 kind = "trap"
@@ -947,6 +972,10 @@ release = [{path = "src/writer_thread.rs", fn = "drain_batch", text = "recv_dead
 # Review round 4: the mark that says when to act. 0.1.3 prints "Crawler: Received work item: <url>" for every URL it
 # starts (start_crawling, stderr, no switch); probe quiet_after_last_page holds when those lines named as many URLs
 # as the file then had, and the last came at least 100 s before the SIGINT. Without that probe, the cause alone.
+# Owner, 9 Oct 2026 11:37: "And the ship went off a cliff at the end? No, it's fucking dumb. Unsurveyed? [...] It's
+# not, like, that's not smart. It's not intelligent." The hazard is the release's own fault (the crawl that never
+# exits), measured by a probe and given its clearing mark; no end-of-the-world device, no hatched margin, no
+# "unsurveyed" (PRD G12; THEME_WORDS in checks/route.py).
 [[route.rustmapper.entry]]
 id = "H1"
 kind = "trap"
@@ -1001,6 +1030,9 @@ runs = ["ends_by_itself"]
 # 0.1.3 listens for Ctrl-C only) is said where the reader types, as a comment in the README's block above the export
 # line, gated by the release gate `export_after_kill` below and the run check (kill_writes_file failed,
 # export_after_kill passed). The image keeps one command, `pip install`.
+# Owner, 9 Oct 2026 11:37: "You're going through, you're like, oh, it's very helpful, and it's in a cool format. Not
+# like, oh, it's just this is shipping themed." The way out, as the reader types it, with the one thing that loses
+# the file.
 [[route.rustmapper.entry]]
 id = "C1"
 kind = "step"

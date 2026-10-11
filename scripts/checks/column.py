@@ -42,6 +42,11 @@ import re
 from check import Finding, fail, info
 
 TIER = "render"
+# Owner, 9 Oct 2026 11:32: "I'm looking at iPhone. I think the iPhone experience is going to be a very common one. So if
+# it has to be kind of separated for that or scalable for that, that's important. Because if you look at it on an
+# iPhone, it's very difficult to see. And I think it's like if someone's going to look at your profile, likely look at
+# it on the web and maybe on your iPhone. If they're looking at your repos, it's definitely on the web. So for this
+# one, it has to be kind of accepting of all different formats" Owner, 8 Oct 2026 14:22: "The images are all crushed"
 MIN_PX = 11.0
 VIEWPORTS = (360, 1920)
 TALL_FROM = 768          # review round 12: two columns from here (a laptop, or a tablet held sideways)

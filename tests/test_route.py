@@ -778,6 +778,8 @@ class RouteSheet(unittest.TestCase):
                              if "S2" in unv else "")
 
     def test_nothing_has_a_size(self):                            # T-NOSIZE
+        # Owner, 9 Oct 2026 20:50: "it's like they're tiny fucking islands. [...] Is it based on the size of the project
+        # or how many commits? There's nothing about that teaches you anything."
         a = all_verified(self.stats)
         b = copy.deepcopy(a)
         for r in b["repos"]:
@@ -810,6 +812,9 @@ class RouteSheet(unittest.TestCase):
             self.assertEqual(self.svg(again, e), self.svg(self.fout, e), e)
 
     def test_every_element_has_a_purpose(self):                   # T-PURPOSE
+        # Owner, 9 Oct 2026 20:50: "My goal is to have a purpose behind each map. Every single fucking map needs a deep
+        # purpose. Every single, not even just maps. Everything, single thing inside of this needs a purpose, not a
+        # fucking chasing a reason."
         ids = set(sheet.PURPOSE)
         for e in EDITIONS:
             svg = self.svg(self.fout, e)

@@ -19,6 +19,9 @@ import re
 from check import Finding, fail
 
 TIER = "fast"
+# Owner, 9 Oct 2026 11:35: "On top of that, we really need to be focused on, how is the data gathered? The data doesn't
+# look exactly accurate. It looks like it's kind of like all over the place." Every number a reader sees in the prose
+# rests on a [[figures]] row re-read at that repository's HEAD (FIGURES).
 _BLOCK = re.compile(r"<!--\s*([\w:.-]+):start\b[^>]*-->.*?<!--\s*\1:end\s*-->", re.S)
 _INLINE = re.compile(r"<!--\s*n:[\w.-]+\s*-->.*?<!--\s*/n\s*-->", re.S)
 WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",

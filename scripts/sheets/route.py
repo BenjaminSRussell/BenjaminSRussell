@@ -9,6 +9,17 @@ Nothing on the sheet has a size that depends on data: every shape is a fixed mar
 line), and every word comes from `stats.json` (routes, handoffs, edition, runcheck) or from
 chart.toml [copy] / [identity].
 
+Owner, 9 Oct 2026 20:50: "My goal is to have a purpose behind each map. Every single fucking map needs a deep purpose.
+Every single, not even just maps. Everything, single thing inside of this needs a purpose, not a fucking chasing a
+reason." PURPOSE (below) is that rule: one row per drawn element, held by T-PURPOSE and ROUTE-PURPOSE.
+Owner, 9 Oct 2026 20:50: "It shows you where the repos are and like I see the idea kind of, but not really, because
+it's like they're tiny fucking islands. That part makes no fucking sense to me at all. Like, why the hell would you
+have tiny islands to represent like different projects? Is it based on the size of the project or how many commits?
+There's nothing about that teaches you anything." So nothing on the sheet has a size (the paragraph above; T-NOSIZE),
+and the picture is directions through one tool, not a map of repositories.
+Owner, 9 Oct 2026 11:37: "The map, very helpful. The fucking log, not really." The route is what a stranger uses; the
+log sheet is off the page.
+
 Left column, the title block: the name and the role line, nothing else (review round 2: the project's name is the
 route's header, and the counts and CI live in the text). Right, the route: the project's name and one sentence, the
 start bar, the install line with the release right after it (review round 5), the image's one command, then the
@@ -70,6 +81,7 @@ DANGER_PITCH = {"desk": 6, "phone": 8, "mid": 6}
 CODE_TOKENS = ("_", "--", ".rs", ".jsonl", "export-sitemap")   # TYPE-CODE: these are code and take the code face
 RUNCHECK_MAX_AGE = 14    # days before `taken` a passing run check still counts (SPEC §7, ROUTE-ENTRANCE)
 
+# Owner, 9 Oct 2026 20:50: "Everything, single thing inside of this needs a purpose, not a fucking chasing a reason."
 # id -> (what a stranger learns, the visitor question, where it comes from). SPEC §2.2; T-PURPOSE holds the sheet to it.
 PURPOSE: dict[str, tuple[str, str, str]] = {
     "T1": ("whose page this is", "Q1", "chart.toml [identity]"),
@@ -123,6 +135,10 @@ PURPOSE: dict[str, tuple[str, str, str]] = {
             "stats.json handoffs[sitemap-jsonl→ideal-url-organizer]; figures['21 ways'] (handoff)"),
 }
 
+# Owner, 9 Oct 2026 11:32: "It's too dense in certain areas of the image. You look at one area of the image, it's
+# incredibly dense. The other parts, it's like kind of like open, but you can't read anything." Every departure below
+# names a project fact or a measured constraint (T-BREAKS), never the theme; the density rules (one pitch, one left
+# edge, fixed marks) are among them.
 BREAKS: list[tuple[str, str, str]] = [
     ("Caps lines in role `label`",
      "the role line is set through role `label` in capitals with explicit tracking (desk 1.6, phone 1.0); no run "
@@ -147,6 +163,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "the per-host cap is what a site feels and what governs a one-site crawl (state.rs max_inflight, frontier.rs); "
      "0.1.3's governor takes back idle permits only and stops at 32 idle, so it never cuts the fetches in flight "
      "(review round 8); as its own line under the stop's last words it read as their subject (review round 7)"),
+    # Owner, 9 Oct 2026 20:50: "Is it based on the size of the project or how many commits? There's nothing about that
+    # teaches you anything."
     ("Fixed marks, no sizes",
      "every bar, ring, dotted line and line has a fixed size; only the number of lines of text moves anything",
      "the owner could not tell what the old islands' sizes meant (9 Oct 2026); here nothing has a size to read"),
@@ -154,6 +172,8 @@ BREAKS: list[tuple[str, str, str]] = [
      "an entry is drawn only when its anchors hold in the code at HEAD and in the released sdist; the install lines "
      "only when the run check passed; the line past the end only when the reader's fields are in the writer's struct",
      "the image claims only what the tool does (SPEC §5, §6)"),
+    # Owner, 9 Oct 2026 11:37: "And the ship went off a cliff at the end? No, it's fucking dumb." The hazard is a dotted
+    # line round the words of a measured fault, not a cliff and not a hatched margin.
     ("Trap text in ink, ringed by dots",
      "each trap's words are set in ink inside a dotted line of the accent with no fill (review round 3: the band and "
      "the hatch are cut); the two traps, on consecutive rows of the loop (the robots.txt stall under the fetch stop, then "
@@ -193,6 +213,7 @@ BREAKS: list[tuple[str, str, str]] = [
      "inside a row's code spans the words are set in the code face and the spaces in the label face",
      "a mono space is 2.8 times the label's, and `Received work item` read as three loose words (review round 5); "
      "the README's code block keeps real spacing for pasting"),
+    # Owner, 9 Oct 2026 11:32: "Because if you look at it on an iPhone, it's very difficult to see."
     ("Phone sheet 600 wide, title gap 70, foot 22",
      "the phone sheet is 600 units wide (it was 720); the gap from the role line to the project's name is 70 (review "
      "round 8, was 50: at least twice the role line's pitch of 34, so the name reads as the drawing's heading and not "

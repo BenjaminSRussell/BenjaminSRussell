@@ -57,6 +57,14 @@ TIER = "fast"
 PROJECT = "rustmapper"
 MAX_AGE = 14
 SOURCES = ("routes", "handoffs", "edition", "repos", "repo_count", "taken", "copy", "identity", "runcheck")
+# Owner, 8 Oct 2026 14:52: "Don't tell the user show the user you don't need to tell them it's a ships log or label
+# everything it should be obvious"
+# Owner, 8 Oct 2026 14:22: "survey is weird" (the one word he banned by name)
+# Owner, 9 Oct 2026 11:32: "Fuck saying ship's log. Just make it a log. Like, it doesn't need to be something that says,
+# I'm a ship. It can just be a ship. [...] If it looks like a shoe, it smells like a shoe, it's probably a fucking shoe.
+# You don't need to tell me it's a shoe."
+# Owner, 9 Oct 2026 11:37: "Don't say arg like a fucking pirate. Don't use pirate language. We're in a modern era."
+# (`ahoy`, `arr`); "Unsurveyed? [...] It's not, like, that's not smart. It's not intelligent." (`unsurveyed`)
 THEME_WORDS = ("chart", "sea", "ship", "harbour", "harbor", "survey", "unsurveyed", "buoy", "light", "berth",
                "approach", "pilot", "mariner", "nautical", "sail", "anchorage", "ahoy", "arr")
 WORDS_RE = re.compile(r"\b(" + "|".join(THEME_WORDS) + r")\b", re.I)
@@ -74,6 +82,9 @@ RELEASE_GAP_MAX = 40
 CODE_SPACE_MAX = 1.3
 TWICE_SELF = 4
 SOURCE_FILE = re.compile(r"[\w./-]+\.(rs|py|toml)$")
+# Owner, 9 Oct 2026 11:32: "If you're going to make an image, I'm looking at iPhone. I think the iPhone experience is
+# going to be a very common one. [...] Because if you look at it on an iPhone, it's very difficult to see." Owner, 8 Oct
+# 2026 14:22: "The images are all crushed". ROUTE-PHONE-PX holds the floors below on the phone editions.
 PHONE_SCREEN, MIN_PX = 308, 13.0          # review round 6: the image on a 390 px phone (viewport − 82)
 NARROW_SCREEN, MIN_PX_NARROW = 278, 11.0   # on a 360 px phone
 
