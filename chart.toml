@@ -27,7 +27,6 @@ linkedin = ""
 resume = ""
 
 [copy]
-thesis = "I survey a web that is wrong about itself."
 role_line = "Crawl and data infrastructure · Python and Rust"
 unit_chart = "SOUNDINGS IN COMMIT-DAYS"   # the hero's unit line (v10, D2)
 unit_hero = "SOUNDINGS IN COMMITS"         # read by the soundings sheet (sheet 2) until that module retires; not the hero's
@@ -39,7 +38,6 @@ log_footnote = "Heights observed, not predicted."
 [copy.review]
 # check.py warns once these months have passed: re-read the line.
 role_line = "2027-06"
-thesis = "2027-06"
 
 [motion]
 enabled = true
