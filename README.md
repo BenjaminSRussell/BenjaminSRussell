@@ -53,6 +53,9 @@ Review in incredible depth making an entire PRD for the final product and review
 
 Owner, 11 Oct 2026 (later):
 Review and ensure this is something I want to see rounds of reviews and research
+
+Owner, 27 Oct 2026:
+Don’t use api use local agents
 -->
 
 <a name="top"></a>

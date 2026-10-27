@@ -86,3 +86,7 @@ Review in incredible depth making an entire PRD for the final product and review
 ## 2026-10-11 (later)
 
 Review and ensure this is something I want to see rounds of reviews and research
+
+## 2026-10-27
+
+Don’t use api use local agents
